@@ -97,8 +97,8 @@ class ArgumentsExt : IApplicationExtension
 
     ***************************************************************************/
 
-    public this ( char[] name = null, char[] desc = null,
-            char[] usage = null, char[] help = null,
+    public this ( istring name = null, istring desc = null,
+            istring usage = null, istring help = null,
             FormatOutput!(char) stdout = Stdout,
             FormatOutput!(char) stderr = Stderr )
     {
@@ -144,7 +144,7 @@ class ArgumentsExt : IApplicationExtension
 
     ***************************************************************************/
 
-    public void preRun ( IApplication app, char[][] cl_args )
+    public void preRun ( IApplication app, istring[] cl_args )
     {
         auto args = this.args;
 
@@ -156,7 +156,7 @@ class ArgumentsExt : IApplicationExtension
             ext.setupArgs(app, args);
         }
 
-        char[][] errors;
+        cstring[] errors;
         auto args_ok = args.parse(cl_args[1 .. $]);
 
         if ( args.exists("help") )
@@ -169,7 +169,7 @@ class ArgumentsExt : IApplicationExtension
         {
             foreach (ext; this.extensions)
             {
-                char[] error = ext.validateArgs(app, args);
+                auto error = ext.validateArgs(app, args);
                 if (error != "")
                 {
                     errors ~= error;
@@ -210,19 +210,19 @@ class ArgumentsExt : IApplicationExtension
 
     ***************************************************************************/
 
-    public void postRun ( IApplication app, char[][] args, int status )
+    public void postRun ( IApplication app, istring[] args, int status )
     {
         // Unused
     }
 
-    public void atExit ( IApplication app, char[][] args, int status,
+    public void atExit ( IApplication app, istring[] args, int status,
             ExitException exception )
     {
         // Unused
     }
 
     public ExitException onExitException ( IApplication app,
-            char[][] args, ExitException exception )
+            istring[] args, ExitException exception )
     {
         // Unused
         return exception;
@@ -249,7 +249,7 @@ version (UnitTest)
     class App : Application
     {
         this ( ) { super("app", "A test application"); }
-        protected override int run ( char[][] args ) { return 10; }
+        protected override int run ( istring[] args ) { return 10; }
     }
 }
 
@@ -302,4 +302,3 @@ unittest
              "--help should be found in help message:\n" ~ s);
     }
 }
-

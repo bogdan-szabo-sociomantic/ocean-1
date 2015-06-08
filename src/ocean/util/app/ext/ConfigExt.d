@@ -88,7 +88,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    public char[][] default_configs;
+    public istring[] default_configs;
 
 
     /***************************************************************************
@@ -105,8 +105,8 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
     ***************************************************************************/
 
     this ( bool loose_config_parsing = false,
-            char[][] default_configs = [ "etc/config.ini" ],
-            ConfigParser config = null )
+           istring[] default_configs = [ "etc/config.ini" ],
+           ConfigParser config = null )
     {
         this.loose_config_parsing = loose_config_parsing;
         this.default_configs = default_configs;
@@ -204,9 +204,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     public void processOverrides ( Arguments args )
     {
-        char[] category;
-        char[] key;
-        char[] value;
+        cstring category, key, value;
 
         foreach (opt; args("override-config").assigned)
         {
@@ -215,7 +213,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
                     "Unexpected error while processing overrides, errors " ~
                     "should have been caught by the validateArgs() method");
 
-            if ( value == "" )
+            if ( !value.length )
             {
                 this.config.remove(category, key);
             }
@@ -240,18 +238,16 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    public char[] validateArgs ( IApplication app, Arguments args )
+    public cstring validateArgs ( IApplication app, Arguments args )
     {
-        char[][] errors;
+        cstring[] errors;
         foreach (opt; args("override-config").assigned)
         {
-            char[] cat;
-            char[] key;
-            char[] val;
+            cstring cat, key, val;
 
             auto error = this.parseOverride(opt, cat, key, val);
 
-            if (error is null)
+            if (!error.length)
                 continue;
 
             errors ~= error;
@@ -281,7 +277,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    public void preRun ( IApplication app, char[][] cl_args )
+    public void preRun ( IApplication app, istring[] cl_args )
     {
         foreach (ext; this.extensions)
         {
@@ -334,21 +330,22 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    public void postRun ( IApplication app, char[][] args, int status )
+    public void postRun ( IApplication app, istring[] args, int status )
     {
         // Unused
     }
 
     /// ditto
-    public void atExit ( IApplication app, char[][] args, int status,
-            ExitException exception )
+    public void atExit ( IApplication app, istring[] args, int status,
+                         ExitException exception )
     {
         // Unused
     }
 
     /// ditto
     public ExitException onExitException ( IApplication app,
-            char[][] args, ExitException exception )
+                                           istring[] args,
+                                           ExitException exception )
     {
         // Unused
         return exception;
@@ -379,8 +376,8 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    private char[] parseOverride ( char[] opt, out char[] category,
-            out char[] key, out char[] value )
+    private cstring parseOverride ( cstring opt, out cstring category,
+                                    out cstring key, out cstring value )
     {
         opt = trim(opt);
 
@@ -431,12 +428,10 @@ unittest
     auto ext = new ConfigExt;
 
     // Errors are compared only with startsWith(), not the whole error
-    void testParser ( char[] opt, char[] exp_cat, char[] exp_key,
-            char[] exp_val, char[] expected_error = null )
+    void testParser ( cstring opt, cstring exp_cat, cstring exp_key,
+                      cstring exp_val, cstring expected_error = null )
     {
-        char[] cat;
-        char[] key;
-        char[] val;
+        cstring cat, key, val;
 
         auto t = new NamedTest(opt);
 
@@ -463,7 +458,7 @@ unittest
     }
 
     // Shortcut to test expected errors
-    void testParserError ( char[] opt, char[] expected_error )
+    void testParserError ( cstring opt, cstring expected_error )
     {
         testParser(opt, null, null, null, expected_error);
     }

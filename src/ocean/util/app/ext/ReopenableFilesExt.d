@@ -151,21 +151,21 @@ public class ReopenableFilesExt : IApplicationExtension, ISignalExtExtension
 
     ***************************************************************************/
 
-    override public void preRun ( IApplication app, char[][] args )
+    override public void preRun ( IApplication app, istring[] args )
     {
         // Unused
     }
 
 
     /// ditto
-    override public void postRun ( IApplication app, char[][] args, int status )
+    override public void postRun ( IApplication app, istring[] args, int status )
     {
         // Unused
     }
 
 
     /// ditto
-    override public void atExit ( IApplication app, char[][] args, int status,
+    override public void atExit ( IApplication app, istring[] args, int status,
             ExitException exception )
     {
         // Unused
@@ -173,11 +173,10 @@ public class ReopenableFilesExt : IApplicationExtension, ISignalExtExtension
 
 
     /// ditto
-    override public ExitException onExitException ( IApplication app, char[][] args,
+    override public ExitException onExitException ( IApplication app, istring[] args,
             ExitException exception )
     {
         // Unused
         return exception;
     }
 }
-

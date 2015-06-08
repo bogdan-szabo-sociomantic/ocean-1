@@ -82,7 +82,7 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     ***************************************************************************/
 
-    public char[] default_file;
+    public istring default_file;
 
 
     /***************************************************************************
@@ -108,7 +108,7 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
     ***************************************************************************/
 
     this ( VersionInfo ver, bool default_logging = true,
-            char[] default_file = "log/version.log" )
+            istring default_file = "log/version.log" )
     {
         this.ver = ver;
         this.default_logging = default_logging;
@@ -132,10 +132,10 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     ***************************************************************************/
 
-    protected char[] getLibsVersionsString ( char[][char[]] ver )
+    protected istring getLibsVersionsString ( istring[istring] ver )
     {
         const prefix = "lib_";
-        char[] s;
+        istring s;
         auto sorted_names = ver.keys;
         sorted_names.sort();
         foreach (name; sorted_names)
@@ -160,9 +160,9 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     ***************************************************************************/
 
-    protected char[] getVersionString ( char[] app_name, VersionInfo ver )
+    protected istring getVersionString ( istring app_name, VersionInfo ver )
     {
-        char[] get(char[] key)
+        istring get(istring key)
         {
             auto v = key in ver;
             return v is null ? "<unknown>" : *v;
@@ -286,7 +286,7 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     ***************************************************************************/
 
-    public void preRun ( IApplication app, char[][] args )
+    public void preRun ( IApplication app, istring[] args )
     {
         auto conf_ext = (cast(Application)app).getExtension!(ConfigExt)();
         if (conf_ext is null)
@@ -313,19 +313,20 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     ***************************************************************************/
 
-    public void postRun ( IApplication app, char[][] args, int status )
+    public void postRun ( IApplication app, istring[] args, int status )
     {
         // Unused
     }
 
-    public void atExit ( IApplication app, char[][] args, int status,
-            ExitException exception )
+    public void atExit ( IApplication app, istring[] args, int status,
+                         ExitException exception )
     {
         // Unused
     }
 
     public ExitException onExitException ( IApplication app,
-            char[][] args, ExitException exception )
+                                           istring[] args,
+                                           ExitException exception )
     {
         // Unused
         return exception;
@@ -345,7 +346,7 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     ***************************************************************************/
 
-    public char[] validateArgs ( IApplication app, Arguments args )
+    public istring validateArgs ( IApplication app, Arguments args )
     {
         // Unused
         return null;
@@ -376,4 +377,3 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
     }
 
 }
-

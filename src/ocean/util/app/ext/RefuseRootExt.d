@@ -68,7 +68,7 @@ class RefuseRootExt : IArgumentsExtExtension
 
     ***************************************************************************/
 
-    char[] validateArgs ( IApplication app, Arguments args )
+    cstring validateArgs ( IApplication app, Arguments args )
     {
         if ( getuid() == 0 && !args.exists("asroot"))
         {
@@ -96,4 +96,3 @@ class RefuseRootExt : IArgumentsExtExtension
 
     void processArgs ( IApplication app, Arguments args ) {}
 }
-

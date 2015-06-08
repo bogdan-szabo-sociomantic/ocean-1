@@ -147,11 +147,11 @@ class StatsExt : IConfigExtExtension
 
     ***************************************************************************/
 
-    public char[][] filterConfigFiles ( IApplication app,
-            ConfigParser config, char[][] files )
+    public istring[] filterConfigFiles ( IApplication app,
+                                         ConfigParser config,
+                                         istring[] files )
     {
         // Unused
         return files;
     }
 }
-

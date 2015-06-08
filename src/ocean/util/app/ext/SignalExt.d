@@ -164,26 +164,25 @@ public class SignalExt : IApplicationExtension
 
     ***************************************************************************/
 
-    public override void preRun ( IApplication app, char[][] args )
+    public override void preRun ( IApplication app, istring[] args )
     {
     }
 
     /// ditto
-    public override void postRun ( IApplication app, char[][] args, int status )
+    public override void postRun ( IApplication app, istring[] args, int status )
     {
     }
 
     /// ditto
-    public override void atExit ( IApplication app, char[][] args, int status,
+    public override void atExit ( IApplication app, istring[] args, int status,
             ExitException exception )
     {
     }
 
     /// ditto
-    public override ExitException onExitException ( IApplication app, char[][] args,
+    public override ExitException onExitException ( IApplication app, istring[] args,
             ExitException exception )
     {
         return exception;
     }
 }
-
