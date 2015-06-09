@@ -148,7 +148,7 @@ public interface IEnum
 
     ***************************************************************************/
 
-    public alias char[] Name;
+    public alias istring Name;
     public alias int Value;
 
 
@@ -256,7 +256,8 @@ public interface IEnum
 
     ***************************************************************************/
 
-    public int opApply ( int delegate ( ref Name name, ref Value value ) dg );
+    public int opApply ( int delegate ( ref Const!(Name) name,
+        ref Const!(Value) value ) dg );
 
 
     /***************************************************************************
@@ -266,8 +267,8 @@ public interface IEnum
 
     ***************************************************************************/
 
-    public int opApply (
-        int delegate ( ref size_t i, ref Name name, ref Value value ) dg );
+    public int opApply ( int delegate ( ref size_t i, ref Const!(Name) name,
+        ref Const!(Value) value ) dg );
 }
 
 
@@ -292,8 +293,8 @@ public interface IEnum
 private template EnumValues ( size_t i, T ... )
 {
     static assert(T.length == 2);
-    static assert(is(typeof(T[0]) : char[][]));
-    static assert(is(typeof(T[1]) : int[]));
+    static assert(is(typeof(T[0]) : Const!(istring[])));
+    static assert(is(typeof(T[1]) : Const!(int[])));
 
     static if ( i == T[0].length - 1 )
     {
@@ -360,6 +361,9 @@ private template SuperClassIndex ( size_t i, T ... )
 
 public template EnumBase ( T ... )
 {
+    alias IEnum.Name Name;
+    alias IEnum.Value Value;    
+
     /***************************************************************************
 
         Ensure that the class into which this template is mixed is an IEnum.
@@ -377,8 +381,8 @@ public template EnumBase ( T ... )
     ***************************************************************************/
 
     static assert(T.length == 1);
-    static assert(is(typeof(T[0].keys) : char[][]));
-    static assert(is(typeof(T[0].values) : int[]));
+    static assert(is(typeof(T[0].keys) : Const!(char[][])));
+    static assert(is(typeof(T[0].values) : Const!(int[])));
 
 
     /***************************************************************************
@@ -412,15 +416,15 @@ public template EnumBase ( T ... )
 
     static if ( is_derived_enum )
     {
-        static private const names =
+        private const names =
             S[super_class_index].names[0..$] ~ T[0].keys[0..$];
-        static private const values =
+        private const values =
             S[super_class_index].values[0..$] ~ T[0].values[0..$];
     }
     else
     {
-        static private const names = T[0].keys;
-        static private const values = T[0].values;
+        private const names = T[0].keys;
+        private const values = T[0].values;
     }
 
     static assert(names.length == values.length);
@@ -637,7 +641,8 @@ public template EnumBase ( T ... )
 
     ***************************************************************************/
 
-    public override int opApply ( int delegate ( ref Name name, ref Value value ) dg )
+    public override int opApply ( int delegate ( ref Const!(Name) name,
+        ref Const!(Value) value ) dg )
     {
         int res;
         foreach ( i, n; names )
@@ -661,8 +666,8 @@ public template EnumBase ( T ... )
 
     ***************************************************************************/
 
-    public override int opApply (
-        int delegate ( ref size_t i, ref Name name, ref Value value ) dg )
+    public override int opApply ( int delegate ( ref size_t i,
+        ref Const!(Name) name, ref Const!(Value) value ) dg )
     {
         int res;
         foreach ( i, n; names )
@@ -704,7 +709,7 @@ version ( UnitTest )
 
     ***************************************************************************/
 
-    void checkEnum ( E : IEnum ) ( char[][] names, int[] values )
+    void checkEnum ( E : IEnum ) ( istring[] names, int[] values )
     in
     {
         assert(names.length == values.length);
