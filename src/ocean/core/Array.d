@@ -322,7 +322,13 @@ public T[] substitute ( T, TC1, TC2, TC3 ) ( TC1[] source, TC2[] match,
 
     result.length = 0;
 
-    foreach ( s; patterns(source, match, replacement) )
+    // `patterns` normally expect same type for both source and
+    // replacement because it returns slice that can refer to either
+    // of those. But `substitute` doesn't care because it does
+    // allocation/appending of that slice anyway. Thus it is ok
+    // to do a cast that would be normally illegal as the slice
+    // is never stored or written to.
+    foreach (s; patterns (source, match, cast(TC1[]) replacement))
     {
         result ~= s;
     }
