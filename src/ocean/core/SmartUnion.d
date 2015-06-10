@@ -120,36 +120,36 @@ unittest
     test!("==")(u2.active, 0);
     test!("==")(u3.active, 0);
 
-    testThrown!(AssertException)(u1.a(), false);
-    testThrown!(AssertException)(u1.b(), false);
-    testThrown!(AssertException)(u2.a(), false);
-    testThrown!(AssertException)(u2.b(), false);
-    testThrown!(AssertException)(u3.a(), false);
-    testThrown!(AssertException)(u3.b(), false);
+    testThrown!(Exception)(u1.a(), false);
+    testThrown!(Exception)(u1.b(), false);
+    testThrown!(Exception)(u2.a(), false);
+    testThrown!(Exception)(u2.b(), false);
+    testThrown!(Exception)(u3.a(), false);
+    testThrown!(Exception)(u3.b(), false);
 
     u1.a(42);
     test!("==")(u1.a, 42);
-    testThrown!(AssertException)(u1.b(), false);
+    testThrown!(Exception)(u1.b(), false);
 
     u2.a(new C1());
     test!("==")(u2.a.v, uint.init);
-    testThrown!(AssertException)(u2.b(), false);
+    testThrown!(Exception)(u2.b(), false);
 
     u3.a(S1(42));
     test!("==")(u3.a, S1(42));
-    testThrown!(AssertException)(u3.b(), false);
+    testThrown!(Exception)(u3.b(), false);
 
-    u1.b("Hello world");
+    u1.b("Hello world".dup);
     test!("==")(u1.b, "Hello world");
-    testThrown!(AssertException)(u1.a(), false);
+    testThrown!(Exception)(u1.a(), false);
 
     u2.b(S1.init);
     test!("==")(u2.b, S1.init);
-    testThrown!(AssertException)(u2.a(), false);
+    testThrown!(Exception)(u2.a(), false);
 
     u3.b(21);
     test!("==")(u3.b, 21);
-    testThrown!(AssertException)(u3.a(), false);
+    testThrown!(Exception)(u3.a(), false);
 
 }
 
@@ -324,7 +324,7 @@ private template Methods ( U, uint i )
     const type = "typeof(" ~ member_access ~ ")";
 
     const get = type ~ ' ' ~  member ~ "() "
-        ~ "in { assert(_.active == _.active." ~ member ~ ", "
+        ~ "in { enforce(_.active == _.active." ~ member ~ ", "
         ~ `"SmartUnion: '` ~ member ~ `' not active"); } `
         ~ "body { return " ~ member_access ~ "; }";
 
@@ -335,7 +335,9 @@ private template Methods ( U, uint i )
     const ini = "static Type opCall(" ~ type ~ ' ' ~ member ~ ")"
         ~ "{ Type su; su." ~ member ~ '=' ~ member ~ "; return su; }";
 
-    const all = get ~ '\n' ~ set ~ '\n' ~ ini;
+    const local_import = "import ocean.core.Exception;\n";
+
+    const all = local_import ~ get ~ '\n' ~ set ~ '\n' ~ ini;
 }
 
 /*******************************************************************************
