@@ -453,8 +453,10 @@ class MessageFiber
     {
         assert (this.fiber.state != this.fiber.State.EXEC, "attempt to start an active fiber");
     }
-    out (msg_out)
+    out (_msg_out)
     {
+        auto msg_out = cast(Unqual!(typeof(_msg_out))) _msg_out;
+
         auto a = msg_out.active;
         assert (a);
         assert (a != a.exc);
@@ -504,8 +506,10 @@ class MessageFiber
         assert (this.fiber.state == this.fiber.State.EXEC, "attempt to suspend an inactive fiber");
         with (msg) if (active == active.exc) assert (exc !is null);
     }
-    out (msg_out)
+    out (_msg_out)
     {
+        auto msg_out = cast(Unqual!(typeof(_msg_out))) _msg_out;
+
         auto a = msg_out.active;
         assert (a);
         assert (a != a.exc);
@@ -606,8 +610,10 @@ class MessageFiber
     {
         assert (this.fiber.state == this.fiber.State.HOLD, "attempt to resume a non-held fiber");
     }
-    out (msg_out)
+    out (_msg_out)
     {
+        auto msg_out = cast(Unqual!(typeof(_msg_out))) _msg_out;
+
         auto a = msg_out.active;
         assert (a);
         assert (a != a.exc);
@@ -748,10 +754,11 @@ class MessageFiber
     in
     {
         assert (this.fiber.state == this.fiber.State.EXEC, "attempt to suspend a non-active fiber");
+        assert (this.fiber == Fiber.getThis, "attempt to suspend fiber externally");
     }
     body
     {
-        this.fiber.cede();
+        this.fiber.yield();
 
         if (this.killed)
         {
