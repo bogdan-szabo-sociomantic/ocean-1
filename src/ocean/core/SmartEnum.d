@@ -126,6 +126,11 @@ import ocean.core.Traits;
 import tango.core.Traits;
 import tango.core.Tuple;
 
+version (UnitTest)
+{
+    import ocean.core.Test;
+}
+
 
 /*******************************************************************************
 
@@ -155,7 +160,7 @@ public struct SmartEnumValue ( T )
 {
     alias T BaseType;
 
-    char[] name;
+    istring name;
     T value;
 }
 
@@ -184,7 +189,7 @@ private template SmartEnumCore ( BaseType )
 
     ***************************************************************************/
 
-    static public TwoWayMap!(BaseType, char[], true) map;
+    static public TwoWayMap!(BaseType, istring, true) map;
 
 
     /***************************************************************************
@@ -201,7 +206,7 @@ private template SmartEnumCore ( BaseType )
 
     ***************************************************************************/
 
-    static public char[]* description ( BaseType code )
+    static public istring* description ( BaseType code )
     {
         return code in map;
     }
@@ -223,7 +228,7 @@ private template SmartEnumCore ( BaseType )
 
     ***************************************************************************/
 
-    static public BaseType* code ( char[] description )
+    static public BaseType* code ( istring description )
     {
         return description in map;
     }
@@ -246,7 +251,7 @@ private template SmartEnumCore ( BaseType )
 
     ***************************************************************************/
 
-    static public char[] opIndex ( BaseType code )
+    static public istring opIndex ( BaseType code )
     {
         auto description = code in map;
         enforce(description, "code not found in SmartEnum");
@@ -269,7 +274,7 @@ private template SmartEnumCore ( BaseType )
 
     ***************************************************************************/
 
-    static public BaseType opIndex ( char[] description )
+    static public BaseType opIndex ( istring description )
     {
         auto code = description in map;
         enforce(code, description ~ " not found in SmartEnum");
@@ -309,7 +314,7 @@ private template SmartEnumCore ( BaseType )
 
     ***************************************************************************/
 
-    static public size_t* indexOf ( char[] description )
+    static public size_t* indexOf ( istring description )
     {
         return map.indexOf(description);
     }
@@ -353,7 +358,7 @@ private template SmartEnumCore ( BaseType )
 
     ***************************************************************************/
 
-    static public char[] descriptionFromIndex ( size_t index )
+    static public istring descriptionFromIndex ( size_t index )
     {
         return map.values[index];
     }
@@ -365,7 +370,7 @@ private template SmartEnumCore ( BaseType )
 
     ***************************************************************************/
 
-    static public int opApply ( int delegate ( ref BaseType code, ref char[] desc ) dg )
+    static public int opApply ( int delegate ( ref BaseType code, ref istring desc ) dg )
     {
         int res;
         foreach ( code, description; map )
@@ -383,7 +388,7 @@ private template SmartEnumCore ( BaseType )
 
     ***************************************************************************/
 
-    static public int opApply ( int delegate ( ref size_t index, ref BaseType code, ref char[] desc ) dg )
+    static public int opApply ( int delegate ( ref size_t index, ref BaseType code, ref istring desc ) dg )
     {
         int res;
         foreach ( index, code, description; map )
@@ -406,7 +411,7 @@ unittest
 
 *******************************************************************************/
 
-public char[] CTFE_Int2String ( T ) ( T num )
+public istring CTFE_Int2String ( T ) ( T num )
 {
     static if ( is(T == ubyte) )
     {
@@ -432,7 +437,11 @@ public char[] CTFE_Int2String ( T ) ( T num )
 
 unittest
 {
-    auto s = CTFE_Int2String(42);
+    test!("==")(CTFE_Int2String(42), "42");
+    test!("==")(CTFE_Int2String(ubyte.init), "0");
+    test!("==")(CTFE_Int2String(byte.init), "0");
+    test!("==")(CTFE_Int2String(ushort.init), "0");
+    test!("==")(CTFE_Int2String(short.init), "0");
 }
 
 /*******************************************************************************
@@ -724,13 +733,33 @@ public template SmartEnum ( istring Name, T ... )
     }
 }
 
+///
 unittest
 {
-    mixin(SmartEnum!(
-        "Name",
-        SmartEnumValue!(int)("a", 42),
-        SmartEnumValue!(int)("b", 43)
+    alias SmartEnumValue!(int) Code;
+
+    mixin (SmartEnum!("Commands",
+        Code("first", 1),
+        Code("second", 2)
     ));
+
+    test!("==")(*Commands.description(Commands.first), "first");
+    test!("==")(*Commands.description(1), "first");
+
+    test!("==")(*Commands.code("first"), Commands.first);
+    test!("==")(*Commands.code("second"), 2);
+
+    test((1 in Commands) !is null);
+    test((Commands.second in Commands) !is null);
+    test((5 in Commands) is null);
+
+    test(("first" in Commands) !is null);
+    test(("third" in Commands) is null);
+
+    size_t count;
+    foreach ( code, descr; Commands )
+        ++count;
+    test!("==")(count, 2);
 }
 
 /*******************************************************************************
@@ -767,7 +796,7 @@ private template CreateCodes ( BaseType, uint i, Strings ... )
         Name = name of class
         BaseType = base type of enum
         Strings = variadic list of descriptions of the enum values (statically
-                  asserted to be char[]s)
+                  asserted to be istring's)
 
 *******************************************************************************/
 
@@ -781,6 +810,9 @@ public template AutoSmartEnum ( istring Name, BaseType, Strings ... )
 unittest
 {
     mixin(AutoSmartEnum!("Name", int, "a", "b", "c"));
+    test!("==")(*Name.code("a"), 0);
+    test!("==")(*Name.code("b"), 1);
+    test!("==")(*Name.code("c"), 2);
 }
 
 /*******************************************************************************
