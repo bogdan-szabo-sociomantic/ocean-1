@@ -73,7 +73,8 @@ import ocean.core.Traits,
 ***************************************************************************/
 
 public void structCopy ( From, To ) ( ref From from, out To to,
-                                      void[] delegate ( size_t ) requestBuffer )
+    void[] delegate ( size_t ) requestBuffer
+        = ( size_t n ) { return new void[n]; } )
 {
     static assert ( is ( From == struct ) && is ( To == struct ),
             "structCopy works only on structs, not on " ~

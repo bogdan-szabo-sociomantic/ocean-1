@@ -95,3 +95,9 @@ New Features
   and `ocean.core.Exception.enforce`. Now it uses different member field for reusable
   mutable buffer and thus allows to set `.msg` to immutable literal (as `enforce` does).
   Usage of member `enforce` method is still necessary for non-literal messages.
+
+* `ocean.core.StructConverter`
+
+  `structCopy` now uses default delegate argument which allocates GC memory if no
+  explicit delegate agument was specified. That will make it more convenient to use
+  it in tests.
