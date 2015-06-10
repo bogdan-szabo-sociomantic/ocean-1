@@ -63,6 +63,11 @@ Deprecations
 
   `assertEx` is renamed to `enforce` to match `ocean.core.Exception`
 
+* `ocean.core.DeepCopy`
+
+  This module was proved to be very hard to port to D2 with no semantic changes and all
+  existing use cases are already covered by `ocean.core.StructConverter`.
+
 New Features
 ============
 

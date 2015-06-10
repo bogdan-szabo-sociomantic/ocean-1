@@ -20,7 +20,7 @@
 
 *******************************************************************************/
 
-module ocean.core.DeepCopy;
+deprecated module ocean.core.DeepCopy;
 
 
 
@@ -57,6 +57,7 @@ version (UnitTest)
 
 *******************************************************************************/
 
+deprecated("Use ocean.core.StructConverter.structCopy instead")
 public template DeepCopy ( T )
 {
     static if ( isTypedef!(T) )
