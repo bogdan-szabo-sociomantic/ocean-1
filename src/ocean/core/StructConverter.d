@@ -237,7 +237,7 @@ private void copyField ( From, To ) ( From* from_field, To* to_field,
 
 *******************************************************************************/
 
-private bool structHasMember ( char[] name, S ) ( )
+private bool structHasMember ( istring name, S ) ( )
 {
     mixin(`
         static if (is(typeof(S.` ~ name ~`)))
@@ -429,7 +429,7 @@ unittest
 // multiple conversions at once
 unittest
 {
-    struct A
+    static struct A
     {
         int a;
         int b;
@@ -445,7 +445,7 @@ unittest
         C srt;
     }
 
-    struct B
+    static struct B
     {
         int c;
         short b;
@@ -478,7 +478,7 @@ unittest
         }
     }
 
-    auto a = A(1,2, [[1,2], [45,234], [53],[3]],3, "THE TEH THE RTANEIARTEN");
+    auto a = A(1,2, [[1,2], [45,234], [53],[3]],3, "THE TEH THE RTANEIARTEN".dup);
     B b_loaded;
 
     structCopy!(A, B)(a, b_loaded, toDg(&testAlloc));
