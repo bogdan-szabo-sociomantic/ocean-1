@@ -325,7 +325,7 @@ public class StringEncoderSequence ( Encoders... )
 
         ***********************************************************************/
 
-        void dispose ( )
+        override void dispose ( )
         {
             foreach ( e; this.encoders )
             {
@@ -409,4 +409,3 @@ public class StringEncoderSequence ( Encoders... )
         }
     }
 }
-

@@ -110,23 +110,27 @@ public interface IMemManager
     public void destroy ( ubyte[] buffer );
 
 
-    /***************************************************************************
+    version (D_Version2) {}
+    else
+    {
+        /***********************************************************************
 
-        Dispose compatible deallocation
+            Dispose compatible deallocation
 
-        Note that it is up to the user of classes which implement this interface
-        to ensure that the buffer passed was in fact allocated by the same
-        instance.
+            Note that it is up to the user of classes which implement this
+            interface to ensure that the buffer passed was in fact allocated
+            by the same instance.
 
-        void Object.dispose() is called on explicit delete. This method is
-        intended to be called from that method.
+            `void Object.dispose()` is called on explicit delete. This method is
+            intended to be called from that method.
 
-        Params:
-            buffer = buffer to deallocate
+            Params:
+                buffer = buffer to deallocate
 
-    ***************************************************************************/
+        ***********************************************************************/
 
-    public void dispose ( ubyte[] buffer );
+        public void dispose ( ubyte[] buffer );
+    }
 
 
     /***************************************************************************
@@ -175,7 +179,7 @@ private class GCMemManager ( bool gc_aware ) : IMemManager
 
     ***************************************************************************/
 
-    public ubyte[] create ( size_t dimension )
+    public override ubyte[] create ( size_t dimension )
     {
         static if ( gc_aware )
         {
@@ -201,7 +205,7 @@ private class GCMemManager ( bool gc_aware ) : IMemManager
 
     ***************************************************************************/
 
-    public void destroy ( ubyte[] buffer )
+    public override void destroy ( ubyte[] buffer )
     {
         delete buffer;
     }
@@ -216,7 +220,8 @@ private class GCMemManager ( bool gc_aware ) : IMemManager
 
     ***************************************************************************/
 
-    public void dispose ( ubyte[] buffer )
+    version (D_Version2) {}
+    else public override void dispose ( ubyte[] buffer )
     {
         delete buffer;
     }
@@ -239,7 +244,7 @@ private class GCMemManager ( bool gc_aware ) : IMemManager
 
     ***************************************************************************/
 
-    public void dtor ( ubyte[] buffer )
+    public override void dtor ( ubyte[] buffer )
     {
     }
 }
@@ -270,7 +275,7 @@ private class MallocMemManager ( bool gc_aware ) : IMemManager
 
     ***************************************************************************/
 
-    public ubyte[] create ( size_t dimension )
+    public override ubyte[] create ( size_t dimension )
     {
         auto ptr = cast(ubyte*)malloc(dimension);
         enforce!(OutOfMemoryException)(ptr !is null);
@@ -297,7 +302,7 @@ private class MallocMemManager ( bool gc_aware ) : IMemManager
 
     ***************************************************************************/
 
-    public void destroy ( ubyte[] buffer )
+    public override void destroy ( ubyte[] buffer )
     {
         if ( buffer.ptr !is null )
         {
@@ -320,9 +325,8 @@ private class MallocMemManager ( bool gc_aware ) : IMemManager
 
     ***************************************************************************/
 
-    public void dispose ( ubyte[] buffer )
-    {
-    }
+    version (D_Version2) {}
+    else public override void dispose ( ubyte[] buffer ) {}
 
 
     /***************************************************************************
@@ -342,7 +346,7 @@ private class MallocMemManager ( bool gc_aware ) : IMemManager
 
     ***************************************************************************/
 
-    public void dtor ( ubyte[] buffer )
+    public override void dtor ( ubyte[] buffer )
     {
         if ( buffer.ptr !is null )
         {
@@ -355,4 +359,3 @@ private class MallocMemManager ( bool gc_aware ) : IMemManager
         }
     }
 }
-
