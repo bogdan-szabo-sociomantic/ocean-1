@@ -1112,3 +1112,53 @@ unittest
 
     mixin Tests!(Union);
 }
+
+/*******************************************************************************
+
+    Returns "name" (identifier) of a given symbol as string
+
+    Template Params:
+        Sym = any symbol alias
+
+*******************************************************************************/
+
+public template identifier(alias Sym)
+{
+    const identifier = _identifier!(Sym)();
+}
+
+private istring _identifier(alias Sym)()
+{
+    static if (is(typeof(Sym) == function))
+    {
+        // Sym.stringof is treated as Sym().stringof
+        // ugly workaround:
+        ParameterTupleOf!(Sym) args;
+        auto name = Sym(args).stringof;
+        size_t bracketIndex = 0;
+        while (name[bracketIndex] != '(' && bracketIndex < name.length)
+            ++bracketIndex;
+        return name[0 .. bracketIndex];
+    }
+    else
+    {
+        return Sym.stringof;
+    }
+}
+
+///
+unittest
+{
+    class ClassName { }
+    void funcName ( ) { }
+    extern(C) void funcNameArgs ( int a, double b ) { }
+
+    static assert (identifier!(ClassName) == "ClassName");
+    assert (identifier!(ClassName) == "ClassName");
+
+    static assert (identifier!(funcName) == "funcName");
+    assert (identifier!(funcName) == "funcName");
+
+    static assert (identifier!(funcNameArgs) == "funcNameArgs");
+    assert (identifier!(funcNameArgs) == "funcNameArgs");
+}

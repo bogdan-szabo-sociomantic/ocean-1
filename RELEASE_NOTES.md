@@ -79,6 +79,11 @@ Deprecations
 New Features
 ============
 
+* `ocean.core.Traits`
+
+  New utility `identifier!(alias Sym)` returns name of any symbol as string, including function
+  symbols
+
 * `ocean.util.cipher.HMAC.hexDigest` and `ocean.util.cipher.ByteConverter.hexEncode`
 
   These methods now both support taking a reusable buffer as their second
