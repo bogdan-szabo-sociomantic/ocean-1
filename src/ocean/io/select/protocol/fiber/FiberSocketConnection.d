@@ -73,7 +73,7 @@ public class FiberSocketConnection ( bool IPv6 = false ) : IFiberSocketConnectio
 
     alias AddressIPSocket!(IPv6) IPSocket;
 
-    protected const IPSocket socket;
+    protected IPSocket socket;
 
     /**************************************************************************
 
@@ -718,4 +718,3 @@ public class IFiberSocketConnection : IFiberSelectProtocol
         }
     }
 }
-
