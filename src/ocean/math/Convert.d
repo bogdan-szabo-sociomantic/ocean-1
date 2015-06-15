@@ -56,19 +56,22 @@ public bool roundToInt ( T )( T input, out int output )
     feclearexcept(FE_ALL_EXCEPT);
     static if ( is(T == float) )
     {
-        output = lroundf(input);
+        auto tmp = lroundf(input);
     }
     else static if ( is(T == double) )
     {
-        output = lround(input);
+        auto tmp = lround(input);
     }
     else
     {
         static assert (is(T == real), "roundToInt(): Input argument expected to"
             " be of type float, double or real, not \"" ~ T.stringof ~ "\"");
-        output = lroundl(input);
+        auto tmp = lroundl(input);
     }
 
+    if (tmp > int.max || tmp < int.min)
+        return false;
+    output = cast(int) tmp;
     return !fetestexcept(FE_INVALID | FE_OVERFLOW | FE_UNDERFLOW);
 }
 
@@ -165,4 +168,3 @@ unittest
     testConversions!(double)();
     testConversions!(real)();
 }
-
