@@ -464,6 +464,18 @@ public class StatsLog
 
         Stats log config class
 
+        The field `hostname`, `app_name`, `app_instance` and `default_type`
+        are values used by the Collectd integration of `StatsLog`.
+
+        Collectd identify resources using an identifier, that has the
+        following form: 'hostname/plugin-pinstance/type-tinstance'.
+        Every resource written by a process MUST have the same 'hostname',
+       'plugin' and 'pinstance' values.
+        `hostname` value is not limited or checked in any way.
+        Other identifier shall only include alphanum ([a-z] [A-Z] [0-9]),
+        underscores ('_') and dots ('.').
+        Instance parts can also include dashes ('-').
+
     ***************************************************************************/
 
     public static class Config
@@ -472,6 +484,100 @@ public class StatsLog
         public size_t max_file_size;
         public size_t file_count;
         public size_t start_compress;
+
+
+        /***********************************************************************
+
+            Path to the collectd socket
+
+            It is null by default. When set through the constructor (usual value
+            is provided through `default_collectd_socket`, `StatsLog` will
+            write to the Collectd socket.
+
+            When this is set, it is required that `collectd_name` and
+            `collectd_instance` be set.
+
+        ***********************************************************************/
+
+        public istring socket_path;
+
+
+        /***********************************************************************
+
+            'hostname' to use when logging using 'add'
+
+            This is the 'hostname' part of the identifier.
+            If not set, gethostname (2) will be called.
+            See this class' documentation for further details.
+
+        ***********************************************************************/
+
+        public istring hostname;
+
+
+        /***********************************************************************
+
+            Collectd 'plugin' name to used
+
+            This is the 'plugin' part of the identifier, and should be set
+            to your application's name. It should hardly ever change.
+
+            By default, the name provided to the application framework will be
+            used.  If the application framework isn't used, or the name needs
+            to be overriden, set this value to a non-empty string.
+
+            See this class' documentation for further details.
+
+        ***********************************************************************/
+
+        public istring app_name;
+
+
+        /***********************************************************************
+
+            Collectd 'plugin instance' name to used
+
+            This is the 'pinstance' part of the identifier, and should be set
+            to your application's "instance". This can be an id (1, 2, 3...)
+            or a more complicated string, like the ranges over which your app
+            operate ("0x00000000_0x0FFFFFFF"). Change to this value should be
+            rare, if any.
+            The duo of 'plugin' and 'pinstance' should uniquely identify
+            a process (for the same `hostname`).
+
+            See this class' documentation for further details.
+
+        ***********************************************************************/
+
+        public istring app_instance;
+
+
+        /***********************************************************************
+
+            Default 'type' to use when logging using 'add'
+
+            This is the 'type' part of the identifier. Usually it is provided
+            as a string template argument to `addObject`, but for convenience,
+            `add` provide a default logging channel. If this argument is not
+            supplied, `collectd_name ~ "_stats"` will be used.
+
+            See this class' documentation for further details.
+
+        ***********************************************************************/
+
+        public istring default_type;
+
+
+        /***********************************************************************
+
+            Frequency at which Collectd should expect to receive metrics
+
+            This metric is expressed in metric, and should rarely needs to be
+            modified. Defaults to 30s.
+
+        ***********************************************************************/
+
+        public istring interval;
 
 
         /***********************************************************************
@@ -486,12 +592,26 @@ public class StatsLog
         public this ( istring file_name = default_file_name,
             size_t max_file_size = default_max_file_size,
             size_t file_count = default_file_count,
-            size_t start_compress = default_start_compress)
+            size_t start_compress = default_start_compress,
+            istring socket_path = null,
+            istring hostname = null,
+            istring app_name = null,
+            istring app_instance = null,
+            istring default_type = null,
+            ulong interval = 30)
+
         {
             this.file_name = file_name;
             this.max_file_size = max_file_size;
             this.file_count = file_count;
             this.start_compress = start_compress;
+            // Collectd settings
+            this.socket_path = socket_path;
+            this.hostname = hostname;
+            this.app_name = app_name;
+            this.app_instance = app_instance;
+            this.default_type = default_type;
+            this.interval = interval;
         }
     }
 
