@@ -416,19 +416,21 @@ public template EnumBase ( T ... )
 
     static if ( is_derived_enum )
     {
-        private const names =
-            S[super_class_index].names[0..$] ~ T[0].keys[0..$];
-        private const values =
-            S[super_class_index].values[0..$] ~ T[0].values[0..$];
+        private const _internal_names =
+            S[super_class_index]._internal_names[0..$] ~ T[0].keys[0..$];
+        private const _internal_values =
+            S[super_class_index]._internal_values[0..$] ~ T[0].values[0..$];
     }
     else
     {
-        private const names = T[0].keys;
-        private const values = T[0].values;
+        private const _internal_names = T[0].keys;
+        private const _internal_values = T[0].values;
     }
 
-    static assert(names.length == values.length);
+    static assert(_internal_names.length == _internal_values.length);
 
+    private static names = _internal_names;
+    private static values = _internal_values;
 
     /***************************************************************************
 
@@ -436,7 +438,8 @@ public template EnumBase ( T ... )
 
     ***************************************************************************/
 
-    mixin("enum E {" ~ EnumValues!(0, names[0..$], values[0..$]) ~ "}");
+    mixin("enum E {" ~ EnumValues!(0, _internal_names[0..$],
+        _internal_values[0..$]) ~ "}");
 
 
     /***************************************************************************
@@ -645,9 +648,9 @@ public template EnumBase ( T ... )
         ref Const!(Value) value ) dg )
     {
         int res;
-        foreach ( i, n; names )
+        foreach ( i, name; this.names )
         {
-            res = dg(n, values[i]);
+            res = dg(name, values[i]);
             if ( res ) break;
         }
         return res;
@@ -670,9 +673,10 @@ public template EnumBase ( T ... )
         ref Const!(Name) name, ref Const!(Value) value ) dg )
     {
         int res;
-        foreach ( i, n; names )
+        foreach ( i, name; this.names )
         {
-            res = dg(i, n, values[i]);
+            res = dg(i, name, values[i]);
+            ++i;
             if ( res ) break;
         }
         return res;
