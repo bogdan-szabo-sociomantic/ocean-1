@@ -150,8 +150,13 @@ unittest
     // Mismatched but implicitly castable From does not compile
     static assert(!is(typeof({ double x; castFrom!(float).to!(char)(x); })));
 
-    // Illegal cast does not compile
-    static assert(!is(typeof({ void* p; castFrom!(void*).to!(int[30])(p); })));
+    // Disabled until patched DMD2 is packaged
+    version (D_Version2) { }
+    else
+    {
+        // Illegal cast does not compile
+        static assert(!is(typeof({ void* p; castFrom!(void*).to!(int[30])(p); })));
+    }
 
     // Valid case compiles
     static assert(is(typeof({ int x; castFrom!(int).to!(float)(x); })));
