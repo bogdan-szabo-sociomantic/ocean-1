@@ -42,24 +42,16 @@ module ocean.util.log.Stats;
 
 *******************************************************************************/
 
-import ocean.core.Traits : FieldName;
-
-import ocean.core.TypeConvert;
-
-import ocean.io.select.EpollSelectDispatcher;
-
-import ocean.io.select.client.TimerEvent;
-
-import ocean.text.convert.Layout: StringLayout;
-
-import ocean.util.log.layout.LayoutStatsLog;
-
 import ocean.transition;
-import ocean.core.Traits;
+import ocean.core.Traits : FieldName;
+import ocean.core.TypeConvert;
+import ocean.io.select.EpollSelectDispatcher;
+import ocean.io.select.client.TimerEvent;
+import ocean.stdc.time : time_t;
+import ocean.text.convert.Layout: StringLayout;
+import ocean.util.log.layout.LayoutStatsLog;
 import ocean.util.log.Log;
 import ocean.util.log.AppendSyslog;
-
-import ocean.stdc.time : time_t;
 
 version (UnitTest)
 {
@@ -481,6 +473,16 @@ public class StatsLog
         public size_t file_count;
         public size_t start_compress;
 
+
+        /***********************************************************************
+
+            Constructor
+
+            Emulates struct's default constructor by providing a default value
+            for all parameters.
+
+        ***********************************************************************/
+
         public this ( istring file_name = default_file_name,
             size_t max_file_size = default_max_file_size,
             size_t file_count = default_file_count,
@@ -593,7 +595,7 @@ public class StatsLog
 
         this.logger.add(new_appender(config.file_name, new LayoutStatsLog));
 
-        // Explcitly set the logger to output all levels, to avoid the situation
+        // Explicitly set the logger to output all levels, to avoid the situation
         // where the root logger is configured to not output level 'info'.
         this.logger.level = this.logger.Level.Trace;
 
@@ -684,10 +686,9 @@ public class StatsLog
         the aggregate will be output as
         <category>/<instance>/<member name>:<member value>.
 
-        Template_Params:
+        Params:
             category = The name of the category this object belongs to.
 
-        Params:
             instance = Name of the object to add.
             values = aggregate containing values to write to the log.
 
@@ -740,12 +741,11 @@ public class StatsLog
         Note: When the aggregate is a class, the members of the super class
         are not iterated over.
 
-        Template_Params:
+        Params:
             category = the type or category of the object, such as 'channels',
                        'users'... May be null (see the 'instance' parameter).
             T = the type of the aggregate containing the fields to log
 
-        Params:
             values = aggregate containing values to write to the log. Passed as
                      ref purely to avoid making a copy -- the aggregate is not
                      modified.
@@ -978,12 +978,11 @@ public abstract class IStatsLog
 
         Writes the specified name:value pair to the layout.
 
-        Template_Params:
+        Params:
             category = The category of the structure, such as 'channels',
                        'users'... Can be null (see 'instance' parameter).
             V        = type of value. Assumed to be handled by Layout
 
-        Params:
             value_name = name of the value we log in that category.
                          If a category is a structure, a value_name
                          is the name of a field. This value should not
@@ -1023,4 +1022,3 @@ public abstract class IStatsLog
         }
     }
 }
-
