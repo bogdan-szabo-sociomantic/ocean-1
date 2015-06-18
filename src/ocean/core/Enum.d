@@ -6,48 +6,95 @@
 
     authors:        Gavin Norman
 
-    Mixin for an enum class with the following features:
+    Mixin for an enum class with the following basic features:
         * Contains an enum, called E, with members specified by an associative
-          array passed to the enum mixin.
-        * Contains a constant char[][], called names, with the names of all enum
-          members.
-        * Contains a constant int[], called values, with the values of all enum
-          members.
-        * Implements an interface, IEnum, with common shared methods: opIn (for
-          enum names (strings) and values (ints)), opApply (over names &
-          values), length (number of enum members), min & max (enum values).
-        * One enum class can be inherited from another, using standard class
-          inheritance. The enum members, as well as the values and names arrays,
-          in a derived enum class extend those of the super class.
+          array passed to the mixin.
+        * Implements an interface, IEnum, with common shared methods:
+            * opIndex: look up an enum member's name by its value and
+              vice-versa.
+            * opIn_r: check whether a value (int) or name (char[]) is a member
+              of the enum.
+            * opApply: iteration over over the names & values of the enum's
+              members.
+            * length: returns the number of members in the enum.
+            * min & max: return the minimum/maximum value of the enum's members.
         * A static opCall() method which returns a singleton instance of the
-          class. The ability to get a singleton instance of an enum class is
-          useful as it can be passed to functions which expect an instance of
-          an enum base class, or the IEnum interface, allowing enum classes to
-          be used in an abstract manner.
+          class. This is the most convenient means of calling the methods listed
+          above.
 
-    Usage example:
+    Basic usage example:
+
+    ---
+
+        // Define enum class by implementing IEnum and mixing in EnumBase with
+        // an associative array defining the enum members
+        class Commands : IEnum
+        {
+            // Note: the [] after the first string ensures that the associative
+            // array is of type int[char[]], not int[char[3]].
+            mixin EnumBase!([
+                "Get"[]:1,
+                "Put":2,
+                "Remove":3
+            ]);
+        }
+
+        // Look up enum member names by value. (Note that the singleton instance
+        // of the enum class is passed, using the static opCall method.)
+        assert(Commands()["Get"] == 1);
+
+        // Look up enum member values by name
+        assert(Commands()[1] == "Get");
+
+        // Check whether a value is in the enum
+        assert(!(5 in Commands()));
+
+        // Check whether a name is in the enum
+        assert(!("Delete" in Commands()));
+
+        // Iterate over enum members
+        import ocean.io.Stdout;
+
+        foreach ( n, v; Commands() )
+        {
+            Stdout.formatln("{}: {}", n, v);
+        }
+
+    ---
+
+    The mixin also supports the following more advanced features:
+        * One enum class can be inherited from another, using standard class
+          inheritance. The enum members in a derived enum class extend those of
+          the super class.
+        * The use of normal class inheritance, along with the IEnum interface,
+          allows enum classes to be used abstractly.
+
+    Advanced usage example:
 
     ---
 
         import ocean.core.Enum;
 
-        // Simple enum class - note that the EnumBase mixin requires the class
-        // to implement IEnum
+        // Basic enum class
         class BasicCommands : IEnum
         {
-            // Note: the [] after the first string ensures that the associative
-            // array is of type int[char[]], not int[char[3]].
-            mixin EnumBase!(["Get"[]:1, "Put":2, "Remove":3]);
+            mixin EnumBase!([
+                "Get"[]:1,
+                "Put":2,
+                "Remove":3
+            ]);
         }
 
         // Inherited enum class
         class ExtendedCommands : BasicCommands
         {
-            mixin EnumBase!(["GetAll"[]:4, "RemoveAll":5]);
+            mixin EnumBase!([
+                "GetAll"[]:4,
+                "RemoveAll":5
+            ]);
         }
 
-        // Check for a few names. (Note that the singleton instance of the enum
-        // class is passed, using the static opCall method.)
+        // Check for a few names.
         assert("Get" in BasicCommands());
         assert("Get" in ExtendedCommands());
         assert(!("GetAll" in BasicCommands()));
@@ -64,8 +111,6 @@
             }
         }
 
-        // Note that the singleton instance of the enum class is passed, using
-        // the static opCall method
         printEnumMembers(BasicCommands());
         printEnumMembers(ExtendedCommands());
 
