@@ -343,7 +343,61 @@ public class StringStructSerializer ( Char )
     }
 }
 
+version(UnitTest)
+{
+    import ocean.core.Test;
+}
+
 unittest
 {
+    auto t = new NamedTest("struct serializer test");
     auto srlz = new StringStructSerializer!(char);
+
+    struct TextFragment
+    {
+        char[] text;
+        int type;
+    }
+
+    TextFragment text_fragment;
+    text_fragment.text = "eins";
+    text_fragment.type = 1;
+
+    char[] buffer;
+    srlz.serialize(buffer, text_fragment);
+
+    t.test(buffer.length == 69, "Incorrect string serializer result length");
+    t.test(buffer == "struct TextFragment:\n"
+                     "   char[] text (length 4): eins\n"
+                     "   int type : 1\n",
+        "Incorrect string serializer result");
+
+
+    struct MultiDimensionalArray
+    {
+        TextFragment[][] text_fragments;
+    }
+
+    MultiDimensionalArray multi_dimensional_array;
+    multi_dimensional_array.text_fragments ~= [[TextFragment("eins", 1)],
+        [TextFragment("zwei", 2), TextFragment("drei", 3)]];
+
+    buffer.length = 0;
+    srlz.serialize(buffer, multi_dimensional_array);
+
+    t.test(buffer.length == 461, "Incorrect string serializer result length");
+    t.test(buffer == "struct MultiDimensionalArray:\n"
+                     "   TextFragment[][] text_fragments (length 2):\n"
+                     "      TextFragment[] text_fragments (length 1):\n"
+                     "         struct TextFragment:\n"
+                     "            char[] text (length 4): eins\n"
+                     "            int type : 1\n"
+                     "      TextFragment[] text_fragments (length 2):\n"
+                     "         struct TextFragment:\n"
+                     "            char[] text (length 4): zwei\n"
+                     "            int type : 2\n"
+                     "         struct TextFragment:\n"
+                     "            char[] text (length 4): drei\n"
+                     "            int type : 3\n",
+        "Incorrect string serializer result");
 }

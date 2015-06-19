@@ -1040,16 +1040,9 @@ struct StructSerializer ( bool AllowUnions = false )
             {
                 U[] array = *field;
 
-                static if ( is(U == struct) )
+                static if ( is(BaseTypeOfArrays!(U) == struct) )
                 {
-                    serializer.openStructArray(data, field_name, array);
-                    foreach ( element; array )
-                    {
-                        serializer.openStruct(data, U.stringof);
-                        serialize_(&element, serializer, data);                 // recursive call
-                        serializer.closeStruct(data, U.stringof);
-                    }
-                    serializer.closeStructArray(data, field_name, array);
+                    serializeStructArray(array, field_name, serializer, data);
                 }
                 else static if ( isStaticArrayType!(T) &&
                                  is ( typeof(serializer.serializeStaticArray!(T)) ) )
@@ -1079,6 +1072,50 @@ struct StructSerializer ( bool AllowUnions = false )
                 }
             }
         }
+    }
+
+    /**************************************************************************
+
+        Dumps/serializes array which is expected to be a one- or multi-
+        dimensional array of structs, using the given serializer object. See the
+        description of the dump() method above for a full description of how the
+        serializer object should behave.
+
+        Template params:
+            T = array base type, should be a struct or a (possibly
+                multi-dimensional) array of structs
+            Serializer = type of serializer object
+            D = tuple of data parameters passed to the serializer
+
+        Params:
+            array = array to serialize
+            field_name = the name of the struct field that contains the array
+            serializer = object to do the serialization
+            data = parameters for serializer
+
+     **************************************************************************/
+
+    private void serializeStructArray ( T, Serializer, D ... ) ( T[] array,
+        char[] field_name, Serializer serializer, ref D data )
+    {
+        serializer.openStructArray(data, field_name, array);
+
+        foreach ( ref element; array )
+        {
+            static if ( is(T U : U[]) )
+            {
+                serializeStructArray(element, field_name, serializer, data);
+            }
+            else
+            {
+                static assert(is(T == struct));
+                serializer.openStruct(data, T.stringof);
+                serialize_(&element, serializer, data);
+                serializer.closeStruct(data, T.stringof);
+            }
+        }
+
+        serializer.closeStructArray(data, field_name, array);
     }
 
     /**************************************************************************
