@@ -16,15 +16,15 @@ module ocean.io.select.selector.SelectedKeysHandler;
 
 *******************************************************************************/
 
-private import ocean.io.select.selector.model.ISelectedKeysHandler;
+import ocean.io.select.selector.model.ISelectedKeysHandler;
 
-private import ocean.io.select.client.model.ISelectClient;
+import ocean.io.select.client.model.ISelectClient;
 
-private import ocean.sys.Epoll;
+import ocean.sys.Epoll;
 
-private import ocean.io.select.selector.EpollException;
+import ocean.io.select.selector.EpollException;
 
-debug (ISelectClient) private import ocean.io.Stdout;
+debug (ISelectClient) import ocean.io.Stdout;
 
 /******************************************************************************/
 

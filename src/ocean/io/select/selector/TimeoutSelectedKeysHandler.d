@@ -15,21 +15,21 @@ module ocean.io.select.selector.TimeoutSelectedKeysHandler;
 
 *******************************************************************************/
 
-private import ocean.io.select.selector.SelectedKeysHandler,
+import ocean.io.select.selector.SelectedKeysHandler,
                ocean.io.select.selector.EpollException;
 
-private import ocean.sys.Epoll: epoll_event_t;
+import ocean.sys.Epoll: epoll_event_t;
 
-private import ocean.io.select.client.model.ISelectClient;
+import ocean.io.select.client.model.ISelectClient;
 
-private import ocean.time.timeout.model.ITimeoutManager,
+import ocean.time.timeout.model.ITimeoutManager,
                ocean.time.timeout.model.ITimeoutClient;
 
-private import ocean.util.container.AppendBuffer: AppendBuffer;
+import ocean.util.container.AppendBuffer: AppendBuffer;
 
-private import tango.stdc.stdlib: bsearch, qsort;
+import tango.stdc.stdlib: bsearch, qsort;
 
-debug (ISelectClient) private import ocean.io.Stdout;
+debug (ISelectClient) import ocean.io.Stdout;
 
 /******************************************************************************/
 

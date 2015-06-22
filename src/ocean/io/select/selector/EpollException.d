@@ -14,7 +14,7 @@ module ocean.io.select.selector.EpollException;
 
 *******************************************************************************/
 
-private import ocean.core.ErrnoIOException;
+import ocean.core.ErrnoIOException;
 
 /******************************************************************************/
 

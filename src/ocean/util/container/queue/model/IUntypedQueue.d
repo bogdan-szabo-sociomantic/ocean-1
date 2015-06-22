@@ -16,7 +16,7 @@
 
 module ocean.util.container.queue.model.IUntypedQueue;
 
-private import ocean.core.Array : copy;
+import ocean.core.Array : copy;
 
 
 /******************************************************************************

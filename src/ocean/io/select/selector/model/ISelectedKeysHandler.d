@@ -14,7 +14,7 @@ module ocean.io.select.selector.model.ISelectedKeysHandler;
 
 *******************************************************************************/
 
-private import ocean.sys.Epoll: epoll_event_t;
+import ocean.sys.Epoll: epoll_event_t;
 
 /******************************************************************************/
 
