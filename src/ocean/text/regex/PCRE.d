@@ -295,8 +295,7 @@ public class PCRE
                 slice to the first found match or null if no match
 
             Throws:
-                if an error occurs when running the regex search or if the
-                pattern contains more than one capture, ex "(a(b)c)".
+                if an error occurs when running the regex search
 
             In:
                 the regex must have been compiled
@@ -324,9 +323,14 @@ public class PCRE
                 subject.ptr, castFrom!(size_t).to!(int)(subject.length), 0, 0,
                 ovector.ptr, ovector.length);
 
-            if ( error_code > 0 )
+            // A positive return value indicates that a single match was found
+            // and its indices stored in ovector[0] and ovector[1].
+            // A zero return value indicates that multiple matches were found,
+            // the first stored in ovector[0] and ovector[1], and the rest
+            // discarded.
+            if ( error_code >= 0 )
             {
-                //we got a match but ovector is 0 so the whole subject matched
+                // we got a match but ovector is 0 so the whole subject matched
                 if ( ovector[0] == 0 && ovector[1] == 0 )
                 {
                     return subject;
@@ -334,12 +338,8 @@ public class PCRE
 
                 return subject[ovector[0] .. ovector[1]];
             }
-            else if ( error_code == 0 )
-            {
-                this.outer.exception.set(error_code,
-                    "The pattern contains more than one capture!");
-                throw this.outer.exception;
-            }
+            // Negative return values indicate failure or error. We ignore
+            // match failures and throw on error.
             else if ( error_code != PCRE_ERROR_NOMATCH )
             {
                 this.outer.exception.set(error_code,
@@ -363,8 +363,7 @@ public class PCRE
                 Array with slices of all matches
 
             Throws:
-                if an error occurs when running the regex search or if the
-                pattern contains more than one capture, ex "(a(b)c)".
+                if an error occurs when running the regex search
 
             In:
                 the regex must have been compiled
@@ -556,6 +555,54 @@ unittest
 
     // Case-insensitive match
     test({ return pcre.preg_match("Hello World", "hello", false); }, true);
+}
+
+/*******************************************************************************
+
+    Tests for single substring matching via the CompiledRegex.findFirst()
+    method.
+
+*******************************************************************************/
+
+unittest
+{
+    auto pcre = new PCRE;
+    auto regex = pcre.new CompiledRegex;
+
+    void testFind ( char[] needle, char[] pre, char[] match, char[] post )
+    {
+        regex.compile(needle);
+
+        auto haystack = pre ~ match ~ post;
+        auto res = regex.findFirst(haystack);
+
+        auto t = new CounterNamedTest;
+        t.test!("==")(res, haystack[pre.length .. pre.length + match.length]);
+    }
+
+    // Simple match
+    testFind(
+        "a",
+        "bbb",
+        "a",
+        "ccc"
+    );
+
+    // Match with a more complicated regex
+    testFind(
+        "(aid=google.*(aaid=zalando|aaid=zalando-fr|aaid=zalando-uk))|((aaid=zalando|aaid=zalando-fr|aaid=zalando-uk).*aid=google)",
+        "http://eu-sonar.sociomantic.com/js/2010-07-01/action/click?&",
+        "aid=google&fpc=7161999584528497855&aaid=zalando",
+        "&size=3&cid=445&ao=%5B%7B%22id%22%3A%2216880840621970542745%22%2C%22fsize%22%3A22%7D%5D"
+    );
+
+    // Single match returned when multiple matches are possible
+    testFind(
+        "a",
+        "bbb",
+        "a",
+        "cacac"
+    );
 }
 
 /*******************************************************************************
