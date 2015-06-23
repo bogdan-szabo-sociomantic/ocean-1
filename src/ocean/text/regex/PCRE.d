@@ -505,6 +505,27 @@ version ( UnitTest )
     }
 }
 
+
+/*******************************************************************************
+
+    Test for invalid pattern
+
+*******************************************************************************/
+
+unittest
+{
+    auto pcre = new PCRE;
+    testThrown!(PCRE.PcreException)(pcre.preg_match("", "("));
+}
+
+/*******************************************************************************
+
+    Tests for simple boolean matching via the preg_match() method. (This
+    unittest tests only the interface of this method. It does not test the full
+    range of PCRE features as that is beyond its scope.)
+
+*******************************************************************************/
+
 unittest
 {
     void test ( bool delegate ( ) dg, bool match, bool error )
@@ -525,12 +546,7 @@ unittest
         t.test!("==")(match, matched);
     }
 
-    // This unittest tests only the interface of this method. It does not
-    // test the full range of PCRE features as that is beyond its scope.
     auto pcre = new PCRE;
-
-    // Invalid pattern (error expected)
-    test({ return pcre.preg_match("", "("); }, false, true);
 
     // Empty pattern (matches any string)
     test({ return pcre.preg_match("Hello World", ""); }, true, false);
@@ -552,7 +568,18 @@ unittest
 
     // Case-insensitive match
     test({ return pcre.preg_match("Hello World", "hello", false); }, true, false);
+}
 
+/*******************************************************************************
+
+    Tests for multiple substring matching via the CompiledRegex.findAll()
+    method.
+
+*******************************************************************************/
+
+unittest
+{
+    auto pcre = new PCRE;
     auto regex = pcre.new CompiledRegex;
     char[][] matches_buffer;
 
