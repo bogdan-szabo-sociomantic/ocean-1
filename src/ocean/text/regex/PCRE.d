@@ -528,46 +528,34 @@ unittest
 
 unittest
 {
-    void test ( bool delegate ( ) dg, bool match, bool error )
+    void test ( bool delegate ( ) dg, bool match )
     {
-        Exception e;
-        bool matched;
-        try
-        {
-            matched = dg();
-        }
-        catch ( Exception e_ )
-        {
-            e = e_;
-        }
-
         auto t = new CounterNamedTest;
-        t.test!("==")(error, e !is null);
-        t.test!("==")(match, matched);
+        t.test!("==")(match, dg());
     }
 
     auto pcre = new PCRE;
 
     // Empty pattern (matches any string)
-    test({ return pcre.preg_match("Hello World", ""); }, true, false);
+    test({ return pcre.preg_match("Hello World", ""); }, true);
 
     // Empty string and empty pattern (match)
-    test({ return pcre.preg_match("", ""); }, true, false);
+    test({ return pcre.preg_match("", ""); }, true);
 
     // Empty string (no match)
-    test({ return pcre.preg_match("", "a"); }, false, false);
+    test({ return pcre.preg_match("", "a"); }, false);
 
     // Simple string match
-    test({ return pcre.preg_match("Hello World", "Hello"); }, true, false);
+    test({ return pcre.preg_match("Hello World", "Hello"); }, true);
 
     // Simple string match (fail)
-    test({ return pcre.preg_match("Hello World", "Hallo"); }, false, false);
+    test({ return pcre.preg_match("Hello World", "Hallo"); }, false);
 
     // Case-sensitive match (fail)
-    test({ return pcre.preg_match("Hello World", "hello"); }, false, false);
+    test({ return pcre.preg_match("Hello World", "hello"); }, false);
 
     // Case-insensitive match
-    test({ return pcre.preg_match("Hello World", "hello", false); }, true, false);
+    test({ return pcre.preg_match("Hello World", "hello", false); }, true);
 }
 
 /*******************************************************************************
