@@ -260,6 +260,9 @@ template MapExtension ( K, V )
     called "StructPrevious" (this is identical to the requirements for vesioned
     struct in the StructDumper/Loader.
 
+    Additionally, a validation using the struct hash is done too, to exclude
+    potential human errors while setting up the version info.
+
     If you have a map saved in the old version (2) and at the same time updated
     the struct definition of that map, you can still take advantage of the
     auto-conversion functionality if you simply define the old struct version as
@@ -317,6 +320,8 @@ template MapExtension ( K, V )
 
 class MapSerializer
 {
+    import ocean.io.digest.Fnv1: StaticFnv1a64;
+
     /***************************************************************************
 
         Magic Marker for HashMap files, part of the header
@@ -324,6 +329,14 @@ class MapSerializer
      ***************************************************************************/
 
     private const uint MAGIC_MARKER = 0xCA1101AF;
+
+    /***************************************************************************
+
+        Current file header version
+
+    ***************************************************************************/
+
+    private const ubyte HEADER_VERSION = 5;
 
     /***************************************************************************
 
@@ -405,11 +418,34 @@ class MapSerializer
 
     /***************************************************************************
 
+        Evaluates to the fnv1 hash of the types that make up the struct.
+        If S is no struct, mangled name of the type is used.
+
+        Params:
+            S = struct containing key & value
+
+    ***************************************************************************/
+
+    template StructHash ( S )
+    {
+        static if ( is (typeof(TypeHash!(S))) )
+        {
+            const StructHash = TypeHash!(S);
+        }
+        else
+        {
+            const StructHash = StaticFnv1a64!(typeof(S.k).mangleof ~
+                                             typeof(S.v).mangleof);
+        }
+    }
+
+    /***************************************************************************
+
         File header writen at the beginning of a dumped HashMap
 
     ***************************************************************************/
 
-    private struct FileHeader ( K, V, ubyte VERSION = 4 )
+    private struct FileHeader ( K, V, ubyte VERSION )
     {
         /***********************************************************************
 
@@ -442,7 +478,7 @@ class MapSerializer
             ulong hash = TypeHash!(KeyValueStruct!(K,V));
         }
 
-        static if ( VERSION >= 3 )
+        static if ( VERSION >= 3 && VERSION <= 4 )
         {
             static if ( Version.Info!(K).exists )
             {
@@ -461,6 +497,12 @@ class MapSerializer
             {
                 ulong hash = TypeHash!(KeyValueStruct!(K,V));
             }
+        }
+        else static if ( VERSION >= 5 )
+        {
+            ubyte key_version = Version.Info!(K).number;
+            ubyte value_version = Version.Info!(V).number;
+            ulong hash = StructHash!(KeyValueStruct!(K,V));
         }
     }
 
@@ -620,6 +662,7 @@ class MapSerializer
         Template Params:
             K = Key type of the map
             V = Value type of the map
+            HeaderVersion = version of the file header we're trying to load
 
         Params:
             buffered = stream to write to
@@ -629,12 +672,12 @@ class MapSerializer
 
     ***************************************************************************/
 
-    private void dumpInternal ( K, V ) ( BufferedOutput buffered,
-                                         AdderDg!(K, V) adder )
+    private void dumpInternal ( K, V, ubyte HeaderVersion = HEADER_VERSION )
+                              ( BufferedOutput buffered, AdderDg!(K, V) adder )
     {
         size_t nr_rec = 0;
 
-        FileHeader!(K,V) fh;
+        FileHeader!(K,V, HeaderVersion) fh;
 
         SimpleSerializer.write(buffered, fh);
         // Write dummy value first
@@ -752,6 +795,7 @@ class MapSerializer
         Template Params:
             K = key of the array map
             V = value of the corresponding key
+            HeaderVersion = version of the file header we're trying to load
 
         Params:
             buffered  = input stream to read from
@@ -759,13 +803,13 @@ class MapSerializer
 
     ***************************************************************************/
 
-    private void loadInternal ( K, V ) ( BufferedInput buffered,
-                                         PutterDg!(K, V) putter )
+    private void loadInternal ( K, V, ubyte HeaderVersion = HEADER_VERSION )
+                              ( BufferedInput buffered, PutterDg!(K, V) putter )
     {
         bool raw_load = false;
 
-        FileHeader!(K,V) fh_expected;
-        FileHeader!(K,V) fh_actual;
+        FileHeader!(K,V, HeaderVersion) fh_expected;
+        FileHeader!(K,V, HeaderVersion) fh_actual;
 
         fh_actual.versionNumber = ubyte.max;
 
@@ -789,6 +833,10 @@ class MapSerializer
             {
                 raw_load = true;
             }
+            else if ( fh_actual.versionNumber == 4 )
+            {
+                return this.loadInternal!(K, V, 4)(buffered, putter);
+            }
             else
             {
                 throw new Exception("Version of file header "
@@ -801,20 +849,26 @@ class MapSerializer
         // Code for converting from older Key/Value structs
         static if ( is ( typeof ( fh_expected.key_version ) ) )
         {
-            conv = this.handleVersion!(MapSerializer.loadInternal, 0, K, V)
+            if ( fh_expected.key_version != 0 )
+            {
+                conv = this.handleVersion!(MapSerializer.loadInternal, 0, K, V)
                             (fh_actual.key_version, fh_expected.key_version,
                              this.key_convert_buffer, putter, buffered);
 
-            if ( conv ) return;
+                if ( conv ) return;
+            }
         }
 
         static if ( is ( typeof ( fh_expected.value_version ) ) )
         {
-            conv = this.handleVersion!(MapSerializer.loadInternal, 1, K, V)
-                           (fh_actual.value_version, fh_expected.value_version,
-                            this.value_convert_buffer, putter, buffered);
+            if ( fh_expected.value_version != 0 )
+            {
+                conv = this.handleVersion!(MapSerializer.loadInternal, 1, K, V)
+                            (fh_actual.value_version, fh_expected.value_version,
+                             this.value_convert_buffer, putter, buffered);
 
-            if ( conv ) return;
+                if ( conv ) return;
+            }
         }
 
         static if ( is ( typeof ( fh_expected.hash ) ) )
@@ -1289,7 +1343,7 @@ version ( UnitTest )
             serializer.buffered_output.output(array);
             serializer.dumpInternal!(K, V)(serializer.buffered_output, &adder);
 
-            auto header_size = MapSerializer.FileHeader!(K, V).sizeof;
+            auto header_size = MapSerializer.FileHeader!(K, V, MapSerializer.HEADER_VERSION).sizeof;
         }
 
         // Check size of dump
@@ -1347,6 +1401,13 @@ unittest
            dumpOld!(K, V)(bufout, &adder);
 
            auto header_size = MapSerializer.FileHeader!(K, V, 2).sizeof;`;
+
+    const version4_load_code =
+          `serializer.buffered_output.output(array);
+           serializer.dumpInternal!(K, V, 4)(serializer.buffered_output, &adder);
+
+           auto header_size = MapSerializer.FileHeader!(K, V, 4).sizeof;
+           `;
 
     struct TestNoVersion
     {
@@ -1551,6 +1612,24 @@ unittest
     testCombination!(OldKey, OldStruct, NewKey, NewStruct, old_load_code)(Iterations);
     testCombination!(OldKey, OldStruct, NewerKey, NewStruct, old_load_code)(Iterations);
     testCombination!(OldKey, OldStruct, NewerKey, NewerStruct,old_load_code)(Iterations);
+
+
+    ////////////// Test Loading of version 4 header
+
+    // Test old versions
+    testCombination!(hash_t, TestNoVersion, hash_t, TestNoVersion, version4_load_code)(Iterations);
+
+    // Test conversion of old files to new ones
+    testCombination!(hash_t, OldStruct, hash_t, NewStruct, version4_load_code)(Iterations);
+
+    // Test conversion of old files with
+    // different key versions to new ones
+    testCombination!(OldKey, OldStruct, OldKey, OldStruct, version4_load_code)(Iterations);
+    testCombination!(OldKey, OldStruct, NewKey, OldStruct, version4_load_code)(Iterations);
+    testCombination!(OldKey, OldStruct, NewKey, OldStruct, version4_load_code)(Iterations);
+    testCombination!(OldKey, OldStruct, NewKey, NewStruct, version4_load_code)(Iterations);
+    testCombination!(OldKey, OldStruct, NewerKey, NewStruct, version4_load_code)(Iterations);
+    testCombination!(OldKey, OldStruct, NewerKey, NewerStruct,version4_load_code)(Iterations);
 }
 
 

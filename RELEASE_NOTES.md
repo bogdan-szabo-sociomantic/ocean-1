@@ -8,6 +8,13 @@ tango      | v1.2.1
 Migration Instructions
 ======================
 
+* `ocean.util.container.map.utils.MapSerializer`
+
+  If you change your key or value structs from non-versioned to versioned, you
+  should first load the map before applying any change of the structs and dump
+  the map again so it is saved in the new format. After that you can just add
+  version-information as desired.
+
 Removed Deprecated Modules
 --------------------------
 * `ocean.util.container.cache.PriorityCache
@@ -51,3 +58,10 @@ Deprecations
 
 New Features
 ============
+
+* `ocean.util.container.map.utils.MapSerializer`
+
+   `MapSerializer` now provides an easier path to update from maps using
+   non-versioned keys or values to maps that start using a version for either.
+   Additionally, the map now also always does a struct hash validation in case
+   the versioning code was wrong.
