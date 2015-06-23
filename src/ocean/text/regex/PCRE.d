@@ -503,150 +503,150 @@ version ( UnitTest )
             super(test_name);
         }
     }
+}
 
-    unittest
+unittest
+{
+    void test ( bool delegate ( ) dg, bool match, bool error )
     {
-        void test ( bool delegate ( ) dg, bool match, bool error )
+        Exception e;
+        bool matched;
+        try
         {
-            Exception e;
-            bool matched;
-            try
-            {
-                matched = dg();
-            }
-            catch ( Exception e_ )
-            {
-                e = e_;
-            }
-
-            auto t = new CounterNamedTest;
-            t.test!("==")(error, e !is null);
-            t.test!("==")(match, matched);
+            matched = dg();
+        }
+        catch ( Exception e_ )
+        {
+            e = e_;
         }
 
-        // This unittest tests only the interface of this method. It does not
-        // test the full range of PCRE features as that is beyond its scope.
-        auto pcre = new PCRE;
+        auto t = new CounterNamedTest;
+        t.test!("==")(error, e !is null);
+        t.test!("==")(match, matched);
+    }
 
-        // Invalid pattern (error expected)
-        test({ return pcre.preg_match("", "("); }, false, true);
+    // This unittest tests only the interface of this method. It does not
+    // test the full range of PCRE features as that is beyond its scope.
+    auto pcre = new PCRE;
 
-        // Empty pattern (matches any string)
-        test({ return pcre.preg_match("Hello World", ""); }, true, false);
+    // Invalid pattern (error expected)
+    test({ return pcre.preg_match("", "("); }, false, true);
 
-        // Empty string and empty pattern (match)
-        test({ return pcre.preg_match("", ""); }, true, false);
+    // Empty pattern (matches any string)
+    test({ return pcre.preg_match("Hello World", ""); }, true, false);
 
-        // Empty string (no match)
-        test({ return pcre.preg_match("", "a"); }, false, false);
+    // Empty string and empty pattern (match)
+    test({ return pcre.preg_match("", ""); }, true, false);
 
-        // Simple string match
-        test({ return pcre.preg_match("Hello World", "Hello"); }, true, false);
+    // Empty string (no match)
+    test({ return pcre.preg_match("", "a"); }, false, false);
 
-        // Simple string match (fail)
-        test({ return pcre.preg_match("Hello World", "Hallo"); }, false, false);
+    // Simple string match
+    test({ return pcre.preg_match("Hello World", "Hello"); }, true, false);
 
-        // Case-sensitive match (fail)
-        test({ return pcre.preg_match("Hello World", "hello"); }, false, false);
+    // Simple string match (fail)
+    test({ return pcre.preg_match("Hello World", "Hallo"); }, false, false);
 
-        // Case-insensitive match
-        test({ return pcre.preg_match("Hello World", "hello", false); }, true, false);
+    // Case-sensitive match (fail)
+    test({ return pcre.preg_match("Hello World", "hello"); }, false, false);
 
-        auto regex = pcre.new CompiledRegex;
-        char[][] matches_buffer;
+    // Case-insensitive match
+    test({ return pcre.preg_match("Hello World", "hello", false); }, true, false);
 
-        auto t = new NamedTest("PCRE findAll");
+    auto regex = pcre.new CompiledRegex;
+    char[][] matches_buffer;
 
+    auto t = new NamedTest("PCRE findAll");
+
+    {
+        const str = "apa bepa cepa depa epa fepa gepa hepa";
+        regex.compile("a[ ]", false);
+
+        matches_buffer.length = 0;
+
+        foreach ( match; regex.findAll(str, matches_buffer) )
         {
-            const str = "apa bepa cepa depa epa fepa gepa hepa";
-            regex.compile("a[ ]", false);
-
-            matches_buffer.length = 0;
-
-            foreach ( match; regex.findAll(str, matches_buffer) )
-            {
-                t.test!("==")(match, "a ");
-            }
-
-            t.test!("==")(matches_buffer.length, 7);
+            t.test!("==")(match, "a ");
         }
 
+        t.test!("==")(matches_buffer.length, 7);
+    }
+
+    {
+        char[][3] exp = ["ast", "at", "ast"];
+        const str = "en hast at en annan hast";
+        regex.compile("a[s]*t", false);
+
+        matches_buffer.length = 0;
+
+
+        foreach (i, match; regex.findAll(str, matches_buffer) )
         {
-            char[][3] exp = ["ast", "at", "ast"];
-            const str = "en hast at en annan hast";
-            regex.compile("a[s]*t", false);
+            t.test!("==")(match, exp[i]);
+        }
+        t.test!("==")(matches_buffer.length, 3);
+    }
 
-            matches_buffer.length = 0;
+    {
+        char[][3] exp = ["ta", "tb", "td"];
+        const str = "tatb t c Tf td";
+        regex.compile("t[\\w]", true);
+        regex.study();
 
+        matches_buffer.length = 0;
 
-            foreach (i, match; regex.findAll(str, matches_buffer) )
-            {
-                t.test!("==")(match, exp[i]);
-            }
-            t.test!("==")(matches_buffer.length, 3);
+        foreach (i, match; regex.findAll(str, matches_buffer) )
+        {
+            t.test!("==")(match, exp[i]);
         }
 
+        t.test!("==")(matches_buffer.length, 3);
+    }
+
+    {
+        const str = "en text";
+        regex.compile("zzz", false);
+        matches_buffer.length = 0;
+        auto matches = regex.findAll(str, matches_buffer);
+
+        t.test!("==")(matches_buffer.length, 0);
+    }
+
+    {
+        const str = "en text";
+        regex.compile("zzz", false);
+        matches_buffer.length = 0;
+        auto matches = regex.findAll(str, matches_buffer);
+
+        t.test!("==")(matches_buffer.length, 0);
+    }
+
+    {
+        const str ="aaaaaaaaaaaaaaaaaaaaaaAaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                   "aaaaaaaaaaaaaaaaaaaaaaaaAaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                   "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaAaaaaaaaaaaaaaaaaaaaaaaaaa"
+                   "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAaaaaaaaaaaaaaaaaaaaaaaaa"
+                   "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAaaaaaaaaaaaaaaaaaa"
+                   "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAaaaaaaaaaaaaaaaaaaa"
+                   "aaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbAbbbbbbbbbbbb"
+                   "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbAbbbbbbb"
+                   "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbaaaaaaaaaaaaaaaaaAaaaaa"
+                   "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAaaaaa"
+                   "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAaa"
+                   "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                   "aaaaaAaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                   "aacaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                   "aaaacaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
+        regex.compile("a", true);
+        matches_buffer.length = 0;
+
+        foreach (i, match; regex.findAll(str, matches_buffer) )
         {
-            char[][3] exp = ["ta", "tb", "td"];
-            const str = "tatb t c Tf td";
-            regex.compile("t[\\w]", true);
-            regex.study();
-
-            matches_buffer.length = 0;
-
-            foreach (i, match; regex.findAll(str, matches_buffer) )
-            {
-                t.test!("==")(match, exp[i]);
-            }
-
-            t.test!("==")(matches_buffer.length, 3);
+            t.test!("==")(match, "a");
         }
 
-        {
-            const str = "en text";
-            regex.compile("zzz", false);
-            matches_buffer.length = 0;
-            auto matches = regex.findAll(str, matches_buffer);
-
-            t.test!("==")(matches_buffer.length, 0);
-        }
-
-        {
-            const str = "en text";
-            regex.compile("zzz", false);
-            matches_buffer.length = 0;
-            auto matches = regex.findAll(str, matches_buffer);
-
-            t.test!("==")(matches_buffer.length, 0);
-        }
-
-        {
-            const str ="aaaaaaaaaaaaaaaaaaaaaaAaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-                       "aaaaaaaaaaaaaaaaaaaaaaaaAaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-                       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaAaaaaaaaaaaaaaaaaaaaaaaaaa"
-                       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAaaaaaaaaaaaaaaaaaaaaaaaa"
-                       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAaaaaaaaaaaaaaaaaaa"
-                       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAaaaaaaaaaaaaaaaaaaa"
-                       "aaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbAbbbbbbbbbbbb"
-                       "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbAbbbbbbb"
-                       "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbaaaaaaaaaaaaaaaaaAaaaaa"
-                       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAaaaaa"
-                       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAaa"
-                       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-                       "aaaaaAaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-                       "aacaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-                       "aaaacaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-
-            regex.compile("a", true);
-            matches_buffer.length = 0;
-
-            foreach (i, match; regex.findAll(str, matches_buffer) )
-            {
-                t.test!("==")(match, "a");
-            }
-
-            t.test!("==")(matches_buffer.length, 695);
-        }
+        t.test!("==")(matches_buffer.length, 695);
     }
 }
 
