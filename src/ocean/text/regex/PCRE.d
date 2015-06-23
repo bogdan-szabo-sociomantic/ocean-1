@@ -492,17 +492,26 @@ version ( UnitTest )
 {
     import ocean.core.Test;
 
+    class CounterNamedTest : NamedTest
+    {
+        static uint test_num;
+
+        this ( )
+        {
+            char[] test_name;
+            Format.format(test_name, "PCRE test #{}", ++test_num);
+            super(test_name);
+        }
+    }
+
     unittest
     {
         void test ( bool delegate ( ) dg, bool match, bool error )
         {
-            static uint test_num;
-            char[] test_name;
             Exception e;
             bool matched;
             try
             {
-                Format.format(test_name, "PCRE test #{}", ++test_num);
                 matched = dg();
             }
             catch ( Exception e_ )
@@ -510,8 +519,7 @@ version ( UnitTest )
                 e = e_;
             }
 
-            auto t = new NamedTest(test_name);
-
+            auto t = new CounterNamedTest;
             t.test!("==")(error, e !is null);
             t.test!("==")(match, matched);
         }
