@@ -175,7 +175,7 @@ public abstract class IPool : IPoolInfo, ILimitable
 
     public this ( )
     {
-        this.limit_exception = this.new LimitExceededException;
+        this.limit_exception = new .LimitExceededException;
     }
 
     /**************************************************************************
@@ -301,7 +301,7 @@ public abstract class IPool : IPoolInfo, ILimitable
 
         if ( this.limited )
         {
-            this.limit_exception.check(this.num_busy_ <= limit,
+            this.limit_exception.check(this, this.num_busy_ <= limit,
                 "pool already contains more busy items than requested limit",
                 __FILE__, __LINE__);
 
@@ -338,7 +338,7 @@ public abstract class IPool : IPoolInfo, ILimitable
     {
         if ( this.items.length < num )
         {
-            this.limit_exception.check(num <= limit,
+            this.limit_exception.check(this, num <= limit,
                 "cannot fill pool to larger than specified limit", __FILE__,
                 __LINE__);
 
@@ -407,7 +407,7 @@ public abstract class IPool : IPoolInfo, ILimitable
         }
         else
         {
-            this.limit_exception.check(this.num_busy_ < this.limit,
+            this.limit_exception.check(this, this.num_busy_ < this.limit,
                 "limit reached: no free items", __FILE__, __LINE__);
 
             item = new_item();
@@ -584,57 +584,61 @@ public abstract class IPool : IPoolInfo, ILimitable
         this.items.length = this.items.length - remove;
     }
 
+    deprecated("Use the class defined at module scope instead")
+    public alias .LimitExceededException LimitExceededException;
+}
+
+/*******************************************************************************
+
+    LimitExceededException class
+
+*******************************************************************************/
+
+public class LimitExceededException : Exception
+{
     /***************************************************************************
 
-        LimitExceededException class
+        Limit which was exceeded when this instance has been thrown
 
     ***************************************************************************/
 
-    class LimitExceededException : Exception
+    size_t limit;
+
+    /***************************************************************************
+
+        Constructor
+
+    ***************************************************************************/
+
+    this ( ) {super("");}
+
+    /***************************************************************************
+
+        Throws this instance if ok is false
+
+        Params:
+            pool = instance that's throwing the exception
+            ok   = condition to check if limitation is enabled
+            msg  = message
+            file = source code file
+            line = source code line
+
+        Throws:
+            this instance if ok is false
+
+    ***************************************************************************/
+
+    void check ( IPool pool, bool ok, lazy char[] msg, char[] file, long line )
     {
-        /***********************************************************************
-
-            Limit which was exceeded when this instance has been thrown
-
-        ***********************************************************************/
-
-        size_t limit;
-
-        /***********************************************************************
-
-            Constructor
-
-        ***********************************************************************/
-
-        this ( ) {super("");}
-
-        /***********************************************************************
-
-            Throws this instance if ok is false and limitation is enabled.
-
-            Params:
-                ok   = condition to check if limitation is enabled
-                msg  = message
-                file = source code file
-                line = source code line
-
-            Throws:
-                this instance if ok is false and limitation is enabled
-
-        ***********************************************************************/
-
-        void check ( bool ok, lazy char[] msg, char[] file, long line )
+        if (!ok)
         {
-            if (this.outer.limited && !ok)
-            {
-                this.limit = this.outer.items.length;
+            this.limit = pool.items.length;
 
-                super.msg.copy(msg);
-                super.file.copy(file);
-                super.line = line;
+            super.msg.copy(msg);
+            super.file.copy(file);
+            super.line = line;
 
-                throw this;
-            }
+            throw this;
         }
     }
 }
