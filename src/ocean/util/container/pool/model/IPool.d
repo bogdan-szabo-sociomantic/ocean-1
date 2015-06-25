@@ -187,7 +187,7 @@ public abstract class IPool : IPoolInfo, ILimitable
 
      **************************************************************************/
 
-    public size_t length ( )
+    override public size_t length ( )
     {
         return this.items.length;
     }
@@ -201,7 +201,7 @@ public abstract class IPool : IPoolInfo, ILimitable
 
      **************************************************************************/
 
-    public uint num_busy ( )
+    override public uint num_busy ( )
     {
         return this.num_busy_;
     }
@@ -215,7 +215,7 @@ public abstract class IPool : IPoolInfo, ILimitable
 
      **************************************************************************/
 
-    public size_t num_idle ( )
+    override public size_t num_idle ( )
     {
         return this.items.length - this.num_busy_;
     }
@@ -230,7 +230,7 @@ public abstract class IPool : IPoolInfo, ILimitable
 
      **************************************************************************/
 
-    public uint limit ( )
+    override public uint limit ( )
     {
         return this.limited? this.limit_max : this.unlimited;
     }
@@ -242,7 +242,7 @@ public abstract class IPool : IPoolInfo, ILimitable
 
      **************************************************************************/
 
-    public bool is_limited ( )
+    override public bool is_limited ( )
     {
         return this.limited;
     }
@@ -287,7 +287,7 @@ public abstract class IPool : IPoolInfo, ILimitable
 
      **************************************************************************/
 
-    public uint setLimit ( uint limit )
+    override public uint setLimit ( uint limit )
     out
     {
         debug (ObjectPoolConsistencyCheck) foreach (item; this.items)
@@ -638,4 +638,3 @@ public abstract class IPool : IPoolInfo, ILimitable
         }
     }
 }
-
