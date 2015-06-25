@@ -13,6 +13,71 @@
     and the event loop started, the signal handlers will not be called in
     response to signals which have occurred.
 
+    Usage example:
+
+    ---
+
+        import ocean.util.app.Application;
+        import ocean.util.app.ext.SignalExt;
+        import ocean.io.select.EpollSelectDispatcher;
+        import tango.stdc.posix.signal : SIGINT, SIGTERM;
+
+        // Example application class which does two things:
+        // 1. Owns an instance of SignalExtension and registers some signals
+        //    with it.
+        // 2. Implements ISignalExtExtension to be notified when registered
+        //    signals occur.
+
+        // It's important to understand that these two things are not connected.
+        // It's perfectly possible for an application class to own a SignalExt
+        // but for another class (indeed other classes) elsewhere to implement
+        // ISignalExtExtension to receive the notification of signals occurring.
+        class MyApp : Application, ISignalExtExtension
+        {
+            private SignalExt signal_ext;
+
+            this ( )
+            {
+                super("name", "desc");
+
+                // Construct a signal extension instance and tell it which
+                // signals we're interested in. The list of signals can be
+                // extended after construction via the register() method.
+                auto signals = [SIGINT, SIGTERM];
+                this.signal_ext = new SignalExt(signals);
+
+                // Register the signal extension with the application class
+                // (this).
+                this.registerExtension(this.signal_ext);
+
+                // Register this class with the signal extension so that it will
+                // be notified (via its onSignal() method, below) when one of
+                // the registered signals occurs.
+                this.signal_ext.registerExtension(this);
+            }
+
+            // Signal handler callback required by ISignalExtExtension. Called
+            // when a signal which has been registered with the signal extension
+            // occurs.
+            override void onSignal ( int signum )
+            {
+            }
+
+            // Application main method required by Application.
+            override int run ( char[][] args )
+            {
+                // Important: onSignal() will not be called until the signal
+                // extension's event has been registered with epoll!
+                auto epoll = new EpollSelectDispatcher;
+                epoll.register(this.signal_ext.event);
+                epoll.eventLoop();
+
+                return 0;
+            }
+        }
+
+    ---
+
 *******************************************************************************/
 
 module ocean.util.app.ext.SignalExt;
