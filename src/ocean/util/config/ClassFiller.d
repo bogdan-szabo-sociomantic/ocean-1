@@ -127,11 +127,13 @@ module ocean.util.config.ClassFiller;
 
 *******************************************************************************/
 
+import tango.transition;
+
 public import ocean.util.config.ConfigParser: ConfigException;
 
 import ocean.core.Traits;
 
-import tango.core.Exception;
+import tango.core.Exception, tango.core.Enforce;
 
 import tango.core.Traits;
 
@@ -229,13 +231,6 @@ template WrapperStructCore ( T, T init = T.init )
 
     private T value = init;
 
-    /**************************************************************************
-
-        Buffer for exception message.
-
-    ***************************************************************************/
-
-    private char[] exception_msg;
 
     /***************************************************************************
 
@@ -289,7 +284,7 @@ template WrapperStructCore ( T, T init = T.init )
 
     ***************************************************************************/
 
-    private void check ( bool found, char[] group, char[] name )
+    private void check ( bool found, cstring group, cstring name )
     {
         static if ( !is (BaseType!(T) == T) )
         {
@@ -331,17 +326,11 @@ struct Required ( T )
 
     ***************************************************************************/
 
-    private void check_ ( bool found, char[] group, char[] name )
+    private void check_ ( bool found, cstring group, cstring name )
     {
-        if ( !found )
-        {
-            Format.format(this.exception_msg,
-                "Mandatory variable {}.{} not set.",
-                group, name);
-
-            throw new ConfigException(this.exception_msg,
-                                      __FILE__, __LINE__);
-        }
+        enforce!(ConfigException)(
+            found,
+            Format("Mandatory variable {}.{} not set.", group, name));
     }
 }
 
@@ -382,28 +371,16 @@ struct MinMax ( T, T min, T max, T init = T.init )
 
     ***************************************************************************/
 
-    private void check_ ( bool found, char[] group, char[] name )
+    private void check_ ( bool found, cstring group, cstring name )
     {
-        if ( Value(this.value) < min )
-        {
-            Format.format(this.exception_msg,
-                "Configuration key {}.{} is smaller than allowed minimum of {}",
-                group, name, min);
-
-            throw new ConfigException(this.exception_msg,
-                                __FILE__, __LINE__);
-        }
-
-
-        if ( Value(this.value) > max )
-        {
-            Format.format(this.exception_msg,
-                "Configuration key {}.{} is bigger than allowed maximum of {}",
-                group, name, max);
-
-            throw new ConfigException(this.exception_msg,
-                                __FILE__, __LINE__);
-        }
+        enforce!(ConfigException)(
+            Value(this.value) >= min,
+            Format("Configuration key {}.{} is smaller than allowed minimum of {}",
+                   group, name, min));
+        enforce!(ConfigException)(
+            Value(this.value) <= max,
+            Format("Configuration key {}.{} is bigger than allowed maximum of {}",
+                   group, name, max));
     }
 }
 
@@ -442,17 +419,12 @@ struct Min ( T, T min, T init = T.init )
 
     ***************************************************************************/
 
-    private void check_ ( bool found, char[] group, char[] name )
+    private void check_ ( bool found, cstring group, cstring name )
     {
-        if ( Value(this.value) < min )
-        {
-            Format.format(this.exception_msg,
-                "Configuration key {}.{} is smaller than allowed minimum of {}",
-                group, name, min);
-
-            throw new ConfigException(this.exception_msg,
-                    __FILE__, __LINE__);
-        }
+        enforce!(ConfigException)(
+            Value(this.value) >= min,
+            Format("Configuration key {}.{} is smaller than allowed minimum of {}",
+                   group, name, min));
     }
 }
 
@@ -492,17 +464,12 @@ struct Max ( T, T max, T init = T.init )
 
     ***************************************************************************/
 
-    private void check_ ( bool found, char[] group, char[] name )
+    private void check_ ( bool found, cstring group, cstring name )
     {
-        if ( Value(this.value) > max )
-        {
-            Format.format(this.exception_msg,
-                "Configuration key {}.{} is bigger than allowed maximum of {}",
-                group, name, max);
-
-            throw new ConfigException(this.exception_msg,
-                    __FILE__, __LINE__);
-        }
+        enforce!(ConfigException)(
+            Value(this.value) <= max,
+            Format("Configuration key {}.{} is bigger than allowed maximum of {}",
+                   group, name, max));
     }
 }
 
@@ -561,7 +528,7 @@ struct LimitCmp ( T, T init = T.init, alias comp = defComp!(T), Set... )
 
     ***************************************************************************/
 
-    private void check_ ( bool found, char[] group, char[] name )
+    private void check_ ( bool found, cstring group, cstring name )
     {
         if ( found == false ) return;
 
@@ -574,22 +541,17 @@ struct LimitCmp ( T, T init = T.init, alias comp = defComp!(T), Set... )
                 return;
         }
 
-        char[] allowed_vals;
+        istring allowed_vals;
 
         foreach ( el ; Set )
         {
-            allowed_vals ~= ", " ~ to!(char[])(el);
+            allowed_vals ~= ", " ~ to!(istring)(el);
         }
 
-        Format.format(this.exception_msg,
-                "Value '{}'"
-                "of configuration key {}.{} "
-                "is not within the set of allowed values "
-                "({})",
-                Value(this.value), group, name, allowed_vals[2 .. $]);
-
-        throw new ConfigException(this.exception_msg,
-                __FILE__, __LINE__);
+        throw new ConfigException(
+            Format("Value '{}' of configuration key {}.{} is not within the "
+                   ~ "set of allowed values ({})",
+                   Value(this.value), group, name, allowed_vals[2 .. $]));
     }
 }
 
@@ -597,7 +559,7 @@ struct LimitCmp ( T, T init = T.init, alias comp = defComp!(T), Set... )
 unittest
 {
     test(is(typeof({LimitCmp!(short, 1, defComp!(short), 0, 1) val; })));
-    test(is(typeof({ LimitCmp!(char[], "", defComp!(char[]), "red", "green") val; })));
+    test(is(typeof({ LimitCmp!(istring, "", defComp!(istring), "red", "green") val; })));
 }
 
 /*******************************************************************************
@@ -619,7 +581,7 @@ template LimitInit ( T, T init = T.init, Set... )
 unittest
 {
     test(is(typeof({LimitInit!(short, 1, 0, 1) val;})));
-    test(is(typeof({LimitInit!(char[], "green", "red", "green") val;})));
+    test(is(typeof({LimitInit!(istring, "green", "red", "green") val;})));
 }
 
 
@@ -694,7 +656,7 @@ struct SetInfo ( T )
 
     ***************************************************************************/
 
-    private void check_ ( bool found, char[] group, char[] name )
+    private void check_ ( bool found, cstring group, cstring name )
     {
         this.set = found;
     }
@@ -790,7 +752,7 @@ public bool enable_loose_parsing ( bool state = true )
 *******************************************************************************/
 
 public T fill ( T : Object, Source = ConfigParser )
-              ( char[] group, Source config = null )
+              ( cstring group, Source config = null )
 {
     T reference;
     return fill(group, reference, config);
@@ -825,7 +787,7 @@ public T fill ( T : Object, Source = ConfigParser )
 *******************************************************************************/
 
 public T fill ( T : Object, Source = ConfigParser )
-              ( char[] group, ref T reference, Source config = null )
+              ( cstring group, ref T reference, Source config = null )
 {
     if ( reference is null )
     {
@@ -843,11 +805,8 @@ public T fill ( T : Object, Source = ConfigParser )
         {
             auto msg = "Invalid configuration key " ~ group ~ "." ~ var;
 
-            if ( !loose_parsing )
-            {
-                throw new ConfigException(msg, __FILE__, __LINE__);
-            }
-            else Stderr.formatln("#### WARNING: {}", msg);
+            enforce!(ConfigException)(loose_parsing, msg);
+            Stderr.formatln("#### WARNING: {}", msg);
         }
     }
 
@@ -872,7 +831,7 @@ public T fill ( T : Object, Source = ConfigParser )
 
 ***************************************************************************/
 
-private bool hasField ( T : Object ) ( T reference, char[] field )
+private bool hasField ( T : Object ) ( T reference, cstring field )
 {
     foreach ( si, unused; reference.tupleof )
     {
@@ -910,7 +869,7 @@ private bool hasField ( T : Object ) ( T reference, char[] field )
 struct ClassIterator ( T, Source = ConfigParser )
 {
     Source config;
-    char[] root;
+    istring root;
 
     /***********************************************************************
 
@@ -918,7 +877,7 @@ struct ClassIterator ( T, Source = ConfigParser )
 
     ***********************************************************************/
 
-    public int opApply ( int delegate ( ref char[] name, ref T x ) dg )
+    public int opApply ( int delegate ( ref cstring name, ref T x ) dg )
     {
         static if ( is(Source : ConfigParser)) if ( config is null )
         {
@@ -967,7 +926,7 @@ struct ClassIterator ( T, Source = ConfigParser )
 ***************************************************************************/
 
 public ClassIterator!(T) iterate ( T, Source = ConfigParser )
-                                 ( char[] root, Source config = null )
+                                 ( istring root, Source config = null )
 {
     return ClassIterator!(T, Source)(config, root);
 }
@@ -986,7 +945,7 @@ public ClassIterator!(T) iterate ( T, Source = ConfigParser )
 *******************************************************************************/
 
 protected void readFields ( T, Source )
-                          ( char[] group, T reference, Source config )
+                          ( cstring group, T reference, Source config )
 {
     static if ( is(Source : ConfigParser)) if ( config is null )
     {
@@ -1058,10 +1017,10 @@ version ( UnitTest )
 
     class DummyParser : ConfigParser
     {
-        char[][] categories = ["ROOT.valid", "ROOT-invalid", "ROOT_invalid",
+        istring[] categories = ["ROOT.valid", "ROOT-invalid", "ROOT_invalid",
                                 "ROOTINVALID"];
 
-        override public int opApply ( int delegate ( ref char[] key ) dg )
+        override public int opApply ( int delegate ( ref cstring key ) dg )
         {
             int result;
             foreach ( cat ; categories )
@@ -1074,7 +1033,7 @@ version ( UnitTest )
         }
     }
 
-    class Dummy {};
+    class Dummy {}
 }
 
 unittest
@@ -1090,7 +1049,7 @@ unittest
     const config_text =
 `
 [Section]
-string = I'm a string
+str = I'm a string
 integer = -300
 pi = 3.14
 
@@ -1116,7 +1075,7 @@ float_arr = 10.2
 
     class SingleValues
     {
-        char[] string;
+        istring str;
         int integer;
         float pi;
         uint default_value = 99;
@@ -1126,7 +1085,7 @@ float_arr = 10.2
     config_parser.parseString(config_text);
 
     readFields("Section", single_values, config_parser);
-    test(single_values.string == "I'm a string",
+    test(single_values.str == "I'm a string",
                                          "classFiller: Wrong string parse");
     test(single_values.integer == -300, "classFiller: Wrong int parse");
     test(single_values.pi == cast(float)3.14,
@@ -1137,7 +1096,7 @@ float_arr = 10.2
 
     class ArrayValues
     {
-        char[][] string_arr;
+        istring[] string_arr;
         int[] int_arr;
         ulong[] ulong_arr;
         float[] float_arr;
@@ -1156,4 +1115,3 @@ float_arr = 10.2
     test(array_values.float_arr == float_array,
                                     "classFiller: Wrong float-array parse");
 }
-
