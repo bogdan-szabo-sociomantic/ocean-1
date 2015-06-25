@@ -526,7 +526,7 @@ class SignalHandler
 }
 
 ///
-unittest
+deprecated unittest
 {
     class MyClass
     {
