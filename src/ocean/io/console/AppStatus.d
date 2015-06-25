@@ -99,9 +99,9 @@ import ocean.time.model.IMicrosecondsClock;
 
 import ocean.core.Array;
 
-import ocean.core.DeepCopy;
-
 import ocean.core.TypeConvert;
+
+import ocean.core.StructConverter;
 
 import ocean.io.Stdout;
 
@@ -638,8 +638,10 @@ public class AppStatus
         this.static_lines[index].length = 0;
         Format.vformat(this.static_lines[index], format, _arguments, _argptr);
 
-        DeepCopy!(DisplayProperties)(this.current_display_props,
-                                     this.static_lines_display_props[index]);
+        structCopy!(DisplayProperties)(
+            this.current_display_props,
+            this.static_lines_display_props[index]
+        );
 
         return this;
     }

@@ -131,8 +131,8 @@ version(UnitTest):
 
 ******************************************************************************/
 
-import ocean.core.Test,
-       ocean.core.DeepCopy;
+import ocean.core.Test;
+import ocean.core.StructConverter;
 
 /******************************************************************************
 
@@ -204,7 +204,7 @@ S defaultS()
     s.s2.a = [ 1, 2, 3, 4 ];
     s.s2.b = [ [ 0 ], [ 20, 21 ], [ 22 ] ];
 
-    DeepCopy!(S.S_2)(s.s2, s.s2_static_array[0]);
+    structCopy(s.s2, s.s2_static_array[0]);
 
     s.s3.a[0] = [ 1.0, 2.0 ];
     s.s3.a[1] = [ 100.1, 200.2 ];
