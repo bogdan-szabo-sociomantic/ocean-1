@@ -754,7 +754,7 @@ class MessageFiber
     in
     {
         assert (this.fiber.state == this.fiber.State.EXEC, "attempt to suspend a non-active fiber");
-        assert (this.fiber == Fiber.getThis, "attempt to suspend fiber externally");
+        assert (this.fiber is Fiber.getThis, "attempt to suspend fiber externally");
     }
     body
     {
