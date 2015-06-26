@@ -15,15 +15,15 @@ module ocean.util.config.ConfigParser;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.core.Array : copy;
 
 import ocean.core.Exception;
 
 import ocean.io.Stdout;
 
-import tango.io.device.File;
-
-import tango.io.stream.Lines;
+import tango.io.stream.TextFile;
 
 import tango.io.stream.Format;
 
@@ -37,7 +37,7 @@ import tango.text.Util: locate, trim, delimit, lines;
 
 import tango.text.convert.Utf;
 
-import tango.core.Exception;
+import tango.core.Exception, tango.core.Enforce;
 
 import tango.core.Traits : DynamicArrayType;
 
@@ -94,13 +94,13 @@ class ConfigException : Exception
         Config.parseFile("etc/my_config.ini");
 
         // Read a single value
-        char[] value = Config.Char["category", "key"];
+        istring value = Config.Char["category", "key"];
 
         // Set a single value
         Config.set("category", "key", "new value");
 
         // Read a multi-line value
-        char[][] values = Config.getListStrict("category", "key");
+        istring[] values = Config.getListStrict("category", "key");
 
     ---
 
@@ -128,7 +128,7 @@ class ConfigParser
 
     public struct VarIterator
     {
-        ValueNode[char[]]* vars;
+        ValueNode[istring]* vars;
 
 
         /***********************************************************************
@@ -137,7 +137,7 @@ class ConfigParser
 
         ***********************************************************************/
 
-        public int opApply ( int delegate ( ref char[] x ) dg )
+        public int opApply ( int delegate ( ref istring x ) dg )
         {
             int result = 0;
 
@@ -172,7 +172,7 @@ class ConfigParser
 
         ***********************************************************************/
 
-        char[] category;
+        mstring category;
 
 
         /***********************************************************************
@@ -181,7 +181,7 @@ class ConfigParser
 
         ***********************************************************************/
 
-        char[] key;
+        mstring key;
 
 
         /***********************************************************************
@@ -190,7 +190,7 @@ class ConfigParser
 
         ***********************************************************************/
 
-        char[] value;
+        mstring value;
 
 
         /***********************************************************************
@@ -219,7 +219,7 @@ class ConfigParser
 
         ***********************************************************************/
 
-        char[] value;
+        istring value;
 
 
         /***********************************************************************
@@ -245,7 +245,7 @@ class ConfigParser
 
     ***************************************************************************/
 
-    alias char[] String;
+    alias istring String;
     private ValueNode[String][String] properties;
 
 
@@ -255,7 +255,7 @@ class ConfigParser
 
     ***************************************************************************/
 
-    private char[] configFile;
+    private istring configFile;
 
 
     /***************************************************************************
@@ -277,7 +277,7 @@ class ConfigParser
 
     ***************************************************************************/
 
-    public this ( char[] config )
+    public this ( istring config )
     {
         this.parseFile(config);
     }
@@ -295,7 +295,7 @@ class ConfigParser
 
     ***************************************************************************/
 
-    public VarIterator iterateCategory ( char[] category )
+    public VarIterator iterateCategory ( cstring category )
     {
         return VarIterator(category in this.properties);
     }
@@ -307,7 +307,7 @@ class ConfigParser
 
     ***************************************************************************/
 
-    public int opApply ( int delegate ( ref char[] x ) dg )
+    public int opApply ( int delegate ( ref istring x ) dg )
     {
         int result = 0;
 
@@ -366,12 +366,12 @@ class ConfigParser
 
     ***************************************************************************/
 
-    public void parseFile ( char[] filePath = "etc/config.ini",
+    public void parseFile ( istring filePath = "etc/config.ini",
                             bool clean_old = true )
     {
         this.configFile = filePath;
 
-        auto get_line = new Lines!(char) (new File(this.configFile));
+        auto get_line = new TextFileInput(this.configFile);
 
         this.parseIter(get_line, clean_old);
     }
@@ -405,9 +405,9 @@ class ConfigParser
 
     ***************************************************************************/
 
-    public void parseString ( char[] str, bool clean_old = true )
+    public void parseString ( istring str, bool clean_old = true )
     {
-        int get_line ( int delegate ( ref char[] x ) dg )
+        int get_line ( int delegate ( ref istring x ) dg )
         {
             int result = 0;
 
@@ -453,7 +453,7 @@ class ConfigParser
 
     ***************************************************************************/
 
-    public bool exists ( char[] category, char[] key )
+    public bool exists ( cstring category, cstring key )
     {
         return ((category in this.properties) &&
                 (key in this.properties[category]));
@@ -465,7 +465,7 @@ class ConfigParser
         Strict method to get the value of a config key. If the requested key
         cannot be found, an exception is thrown.
 
-        Template can be instantiated with integer, float or string (char[])
+        Template can be instantiated with integer, float or string (istring)
         type.
 
         Usage Example:
@@ -474,7 +474,7 @@ class ConfigParser
 
             Config.parseFile("some-config.ini");
             // throws if not found
-            auto str = Config.getStrict!(char[])("some-cat", "some-key");
+            auto str = Config.getStrict!(istring)("some-cat", "some-key");
             auto n = Config.getStrict!(int)("some-cat", "some-key");
 
         ---
@@ -491,7 +491,7 @@ class ConfigParser
 
     ***************************************************************************/
 
-    public T getStrict ( T ) ( char[] category, char[] key )
+    public T getStrict ( T ) ( cstring category, cstring key )
     {
         enforce!(ConfigException)(
             exists(category, key),
@@ -522,7 +522,7 @@ class ConfigParser
         value via a reference. (The advantage being that the template type can
         then be inferred by the compiler.)
 
-        Template can be instantiated with integer, float or string (char[])
+        Template can be instantiated with integer, float or string (istring)
         type.
 
         Usage Example:
@@ -531,7 +531,7 @@ class ConfigParser
 
             Config.parseFile("some-config.ini");
             // throws if not found
-            char[] str;
+            istring str;
             int n;
 
             Config.getStrict(str, "some-cat", "some-key");
@@ -553,7 +553,7 @@ class ConfigParser
 
     ***************************************************************************/
 
-    public void getStrict ( T ) ( ref T value, char[] category, char[] key )
+    public void getStrict ( T ) ( ref T value, cstring category, cstring key )
     {
         value = this.getStrict!(T)(category, key);
     }
@@ -565,7 +565,7 @@ class ConfigParser
         output value. If the config key does not exist, the given default value
         is returned.
 
-        Template can be instantiated with integer, float or string (char[])
+        Template can be instantiated with integer, float or string (istring)
         type.
 
         Usage Example:
@@ -573,7 +573,7 @@ class ConfigParser
         ---
 
             Config.parseFile("some-config.ini");
-            char[] str = Config.get("some-cat", "some-key", "my_default_value");
+            auto str = Config.get("some-cat", "some-key", "my_default_value");
             int n = Config.get("some-cat", "some-int", 5);
 
         ---
@@ -588,7 +588,7 @@ class ConfigParser
 
     ***************************************************************************/
 
-    public DynamicArrayType!(T) get ( T ) ( char[] category, char[] key,
+    public DynamicArrayType!(T) get ( T ) ( cstring category, cstring key,
             T default_value )
     {
         if ( exists(category, key) )
@@ -605,7 +605,7 @@ class ConfigParser
         value via a reference. (For interface consistency with the reference
         version of getStrict(), above.)
 
-        Template can be instantiated with integer, float or string (char[])
+        Template can be instantiated with integer, float or string (istring)
         type.
 
         Usage Example:
@@ -613,7 +613,7 @@ class ConfigParser
         ---
 
             Config.parseFile("some-config.ini");
-            char[] str;
+            istring str;
             int n;
 
             Config.get(str, "some-cat", "some-key", "default value");
@@ -633,8 +633,8 @@ class ConfigParser
 
     ***************************************************************************/
 
-    public void get ( T ) ( ref T value, char[] category,
-        char[] key, T default_value )
+    public void get ( T ) ( ref T value, cstring category,
+        cstring key, T default_value )
     {
         value = this.get(category, key, default_value);
     }
@@ -660,9 +660,9 @@ class ConfigParser
 
     ***************************************************************************/
 
-    public T[] getListStrict ( T = char[] ) ( char[] category, char[] key )
+    public T[] getListStrict ( T = istring ) ( cstring category, cstring key )
     {
-        auto value = this.getStrict!(char[])(category, key);
+        auto value = this.getStrict!(istring)(category, key);
         T[] r;
         foreach ( elem; delimit(value, "\n") )
         {
@@ -692,7 +692,7 @@ class ConfigParser
 
     ***************************************************************************/
 
-    public T[] getList ( T = char[] ) ( char[] category, char[] key,
+    public T[] getList ( T = istring ) ( cstring category, cstring key,
             T[] default_value )
     {
         if ( exists(category, key) )
@@ -724,7 +724,7 @@ class ConfigParser
 
     ***************************************************************************/
 
-    public void set ( char[] category, char[] key, char[] value )
+    public void set ( istring category, istring key, istring value )
     {
         if ( category == "" || key == "" || value == "" )
         {
@@ -764,7 +764,7 @@ class ConfigParser
 
     ***************************************************************************/
 
-    public void remove ( char[] category, char[] key )
+    public void remove ( istring category, istring key )
     {
         if ( category == "" || key == "" )
         {
@@ -833,7 +833,7 @@ class ConfigParser
             this.clearAllValueNodeFlags();
         }
 
-        foreach ( ref char[] line; iter )
+        foreach ( ref line; iter )
         {
             this.parseLine(line);
         }
@@ -864,9 +864,9 @@ class ConfigParser
 
     ***************************************************************************/
 
-    private static bool toBool ( char[] property )
+    private static bool toBool ( cstring property )
     {
-        const char[][2][] BOOL_IDS =
+        const istring[2][] BOOL_IDS =
         [
            ["false",    "true"],
            ["disabled", "enabled"],
@@ -898,7 +898,7 @@ class ConfigParser
 
     ***************************************************************************/
 
-    private static T conv ( T ) ( char[] property )
+    private static T conv ( T ) ( cstring property )
     {
         static if ( is(T : bool) )
         {
@@ -906,16 +906,22 @@ class ConfigParser
         }
         else static if ( is(T : long) )
         {
-            return toLong(property);
+            auto v = toLong(property);
+            enforce!(IllegalArgumentException)(
+                v >= T.min && v <= T.max,
+                "Value of " ~ cast(istring) property ~ " is out of " ~ T.stringof ~ " bounds");
+            return cast(T) v;
         }
         else static if ( is(T : real) )
         {
             return toFloat(property);
         }
         else static if ( is(T U : U[]) &&
-                       ( is(U : char) || is(U : wchar) || is(U:dchar)) )
+                         ( is(Unqual!(U) : char) || is(Unqual!(U) : wchar)
+                           || is(Unqual!(U) : dchar)) )
         {
-            return fromString8!(U)(property, T.init);
+            auto r = fromString8!(Unqual!(U))(property, T.init);
+            return assumeUnique(r);
         }
         else static assert(false,
                            Format("{} : get(): type '{}' is not supported",
@@ -946,7 +952,7 @@ class ConfigParser
 
             if ( value_node.value != ctx.value )
             {
-                value_node.value.copy(ctx.value);
+                value_node.value = idup(ctx.value);
             }
 
             value_node.present_in_config = true;
@@ -955,7 +961,7 @@ class ConfigParser
         {
             ValueNode value_node = { ctx.value.dup, true };
 
-            this.properties[ctx.category.dup][ctx.key.dup] = value_node;
+            this.properties[idup(ctx.category)][idup(ctx.key)] = value_node;
         }
 
         ctx.value.length = 0;
@@ -991,8 +997,8 @@ class ConfigParser
 
     private void pruneConfiguration ( )
     {
-        char[][] keys_to_remove;
-        char[][] categories_to_remove;
+        istring[] keys_to_remove;
+        istring[] categories_to_remove;
 
         // Remove obsolete keys
 
@@ -1071,7 +1077,7 @@ class ConfigParser
 
     ***************************************************************************/
 
-    private void parseLine ( char[] line )
+    private void parseLine ( cstring line )
     {
         auto ctx = &this.context;
 
@@ -1154,17 +1160,17 @@ unittest
     {
         uint num_categories;
 
-        char[][] categories;
+        cstring[] categories;
 
-        char[][] keys;
+        cstring[] keys;
     }
 
     void parsedConfigSanityCheck ( ConfigParser config, ConfigSanity expected,
-                                   char[] test_name )
+                                   istring test_name )
     {
         auto t = new NamedTest(test_name);
-        char[][] obtained_categories;
-        char[][] obtained_keys;
+        cstring[] obtained_categories;
+        cstring[] obtained_keys;
 
         t.test!("==")(config.isEmpty, (expected.num_categories == 0));
 
@@ -1190,11 +1196,11 @@ unittest
     // slightly different variations of the same basic type of test need to be
     // performed.
     void parsedConfigSanityCheckN ( ConfigParser config, ConfigSanity expected,
-        char[] test_name, size_t line_num = __LINE__ )
+                                    cstring test_name,
+                                    typeof(__LINE__) line_num = __LINE__ )
     {
-        Format.format(test_name, " (line: {})", line_num);
-
-        parsedConfigSanityCheck(config, expected, test_name);
+        parsedConfigSanityCheck(config, expected,
+                                Format("{} (line: {})", test_name, line_num));
     }
 
     scope Config = new ConfigParser();
@@ -1272,7 +1278,7 @@ bool_arr = true
     // Manually set a property (new category).
     Config.set("Section2", "set_key", "set_value");
 
-    char[] new_val;
+    istring new_val;
     Config.getStrict(new_val, "Section2", "set_key");
     test!("==")(new_val, "set_value");
 
@@ -1319,7 +1325,7 @@ bool_arr = true
 
     // Whitespaces handling
 
-    char[] white_str =
+    istring white_str =
 `
 [ Section1 ]
 key = val
