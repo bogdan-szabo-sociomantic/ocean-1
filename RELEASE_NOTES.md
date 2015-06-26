@@ -16,6 +16,15 @@ Migration Instructions
   is no longer a valid argument (use `""` or `[]` instead), explicit template parameter
   may not work (but should be never needed)
 
+* `ocean.core.ErrnoIOException`
+
+  In most cases it should be possible to simply replace all mentions of `ErrnoIOException`
+  with `ocean.sys.ErrnoException` and all usage of `assertEx` / `opCall` with
+  `enforce` / `useGlobalErrno()` respectively. In cases where manually setting error number
+  is necessary, `set` method can be used.
+  If there is a custom exception class that
+  inherited `ErrnoIOException`, detailed examination of docs may be unavoidable.
+
 * `ocean.util.app.ext.ConfigExt`
 
   Handling of the old argument format for overriding config values from the command line
@@ -38,6 +47,12 @@ Removed Deprecated Modules
 
 Deprecations
 ============
+
+* `ocean.core.ErrnoIOException`
+
+  This module has been deprecated in favor of new `ocean.sys.ErrnoException` because functionality
+  of the old one was lacking and exception hierarchy it forced was too narrow-minded. See documentation
+  of new module for more details.
 
 * `ocean.sys.SignalHandler`
 
@@ -90,6 +105,14 @@ New Features
 
   New utility `identifier!(alias Sym)` returns name of any symbol as string, including function
   symbols
+
+* `ocean.sys.ErrnoException`
+
+  New module that provides `ErrnoException` class which is capable of automatic capturing of last
+  global `errno` and formatting it into exception error message. It also optionally can remember
+  name of extern function that failed.
+
+  Please refer to documented unittests of each `ErrnoException` method for more details.
 
 * `ocean.util.cipher.HMAC.hexDigest` and `ocean.util.cipher.ByteConverter.hexEncode`
 

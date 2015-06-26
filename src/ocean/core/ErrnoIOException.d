@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module ocean.core.ErrnoIOException;
+deprecated module ocean.core.ErrnoIOException;
 
 
 /*******************************************************************************
@@ -36,6 +36,7 @@ import ocean.core.Array : concat, append, toArray;
 
 *******************************************************************************/
 
+deprecated ("Use ocean.sys.ErrnoException instead")
 public class ErrnoIOException : IOException
 {
     /**************************************************************************
