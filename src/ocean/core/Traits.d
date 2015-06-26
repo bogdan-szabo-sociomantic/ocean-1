@@ -65,9 +65,9 @@ version (UnitTest)
 
 *******************************************************************************/
 
-public bool isKeyword ( char[] string )
+public bool isKeyword ( cstring str )
 {
-    const char[][] keywords = [
+    const istring[] keywords = [
         "abstract",     "alias",        "align",        "asm",
         "assert",       "auto",         "body",         "bool",
         "break",        "byte",         "case",         "cast",
@@ -97,7 +97,7 @@ public bool isKeyword ( char[] string )
 
     for ( int i; i < keywords.length; i++ )
     {
-        if ( string == keywords[i] ) return true;
+        if ( str == keywords[i] ) return true;
     }
     return false;
 }
