@@ -352,7 +352,7 @@ class FiberSelectWriter : IFiberSelectProtocol
             {
                 this.error_e.checkDeviceError("write error", __FILE__, __LINE__);
 
-                this.warning_e.assertEx(!(events & events.EPOLLHUP), "connection hung up", __FILE__, __LINE__);
+                this.warning_e.enforce(!(events & events.EPOLLHUP), "connection hung up");
 
                 int errnum = .errno;
 

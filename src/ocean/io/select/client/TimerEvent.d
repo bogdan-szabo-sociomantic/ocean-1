@@ -20,8 +20,9 @@ module ocean.io.select.client.TimerEvent;
 
 import ocean.io.select.client.model.ISelectClient: ISelectClient;
 
-import ocean.core.ErrnoIOException;
+import ocean.sys.ErrnoException;
 import ocean.core.Array : copy;
+import ocean.core.Traits;
 
 import tango.io.model.IConduit: ISelectable;
 
@@ -45,7 +46,9 @@ const TFD_TIMER_ABSTIME = 1,
 
 const CLOCK_MONOTONIC = 1;
 
-extern (C) private
+// TODO: move into C bindings after tango/ocean merge
+
+extern (C)
 {
     /**************************************************************************
 
@@ -314,11 +317,7 @@ abstract class ITimerEvent : ISelectClient, ISelectable
     {
         this.fd = .timerfd_create(realtime? CLOCK_REALTIME : CLOCK_MONOTONIC,
                                   TFD_NONBLOCK);
-
-        if (this.fd < 0)
-        {
-            throw this.e("timerfd_create", __FILE__, __LINE__);
-        }
+        this.e.enforce(this.fd >= 0, identifier!(.timerfd_create), "");
 
         this.e = new TimerException;
     }
@@ -380,7 +379,7 @@ abstract class ITimerEvent : ISelectClient, ISelectable
     {
         itimerspec t;
 
-        this.e.check(timerfd_gettime(this.fd, &t), "timerfd_gettime", __FILE__, __LINE__);
+        this.e.enforceRetCode!(.timerfd_gettime)().call(this.fd, &t);
 
         return t;
     }
@@ -409,10 +408,8 @@ abstract class ITimerEvent : ISelectClient, ISelectable
         itimerspec t_new = itimerspec(interval, first),
                    t_old;
 
-        this.e.check(timerfd_settime(this.fd,
-                                     this.absolute? TFD_TIMER_ABSTIME : 0,
-                                     &t_new, &t_old),
-                                     "timerfd_settime", __FILE__, __LINE__);
+        this.e.enforceRetCode!(.timerfd_settime)().call(
+            this.fd, this.absolute ? TFD_TIMER_ABSTIME : 0, &t_new, &t_old);
 
         return t_old;
     }
@@ -499,18 +496,16 @@ abstract class ITimerEvent : ISelectClient, ISelectable
 
         if (.read(this.fd, &n, n.sizeof) < 0)
         {
-            scope (exit) errno = 0;
+            scope (exit) .errno = 0;
 
-            int errnum = errno;
-
-            switch (errnum)
+            switch (.errno)
             {
                 case EAGAIN:
                 static if (EAGAIN != EWOULDBLOCK) case EWOULDBLOCK:
                     return true;
 
                 default:
-                    throw this.e(errnum, "reading from timerfd", __FILE__, __LINE__);
+                    throw this.e.useGlobalErrno(identifier!(.read));
             }
         }
         else
@@ -545,36 +540,5 @@ abstract class ITimerEvent : ISelectClient, ISelectable
 
     /**************************************************************************/
 
-    static class TimerException : ErrnoIOException
-    {
-        /***********************************************************************
-
-            Throws this instance if n is different from 0.
-
-            Params:
-                n    = return code to check
-                msg  = error message
-                file = source code file name
-                line = source code line number
-
-            Returns:
-                n
-
-            Throws:
-                this instance if n is different from 0.
-
-        ***********************************************************************/
-
-        int check ( int n, char[] msg, char[] file = "", long line = 0 )
-        {
-            if (n)
-            {
-                throw this.opCall(msg, file, line);
-            }
-            else
-            {
-                return n;
-            }
-        }
-    }
+    static class TimerException : ErrnoException { }
 }

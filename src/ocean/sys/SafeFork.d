@@ -28,7 +28,7 @@ module ocean.sys.SafeFork;
 
 *******************************************************************************/
 
-import ocean.util.ReusableException;
+import ocean.sys.ErrnoException;
 
 import tango.stdc.posix.stdlib : exit;
 
@@ -63,9 +63,12 @@ version ( TimeFork )
 
     External C
 
+    // TODO: forced to be public to be used with reflection, must be moved to
+        tango bindings
+
 *******************************************************************************/
 
-private extern (C)
+extern (C)
 {
     enum idtype_t
     {
@@ -130,7 +133,7 @@ public class SafeFork
 
     ***************************************************************************/
 
-    private ReusableException exception;
+    private ErrnoException exception;
 
     /***************************************************************************
 
@@ -161,7 +164,7 @@ public class SafeFork
     {
         this.dg = dg;
 
-        this.exception = new ReusableException;
+        this.exception = new ErrnoException;
     }
 
     /***************************************************************************
@@ -235,11 +238,9 @@ public class SafeFork
                         (cast(float)sw.microsec) / 1_000_000.0f);
                 }
 
-                if ( this.child_pid < 0 )
-                {
-                    throw this.exception("Failed to fork", __FILE__, __LINE__);
-                }
-                else if ( this.child_pid == 0 )
+                this.exception.enforce(this.child_pid >= 0, "failed to fork");
+
+                if ( this.child_pid == 0 )
                 {
                     this.dg();
                     exit(0);
@@ -278,19 +279,12 @@ public class SafeFork
 
         siginfo_t siginfo;
 
-        auto result = waitid(idtype_t.P_PID, this.child_pid, &siginfo,
-                             WEXITED |
-                             (block ? 0 : WNOHANG) |
-                             (clear ? 0 : WNOWAIT) );
+        this.exception.enforceRetCode!(waitid)().call(
+            idtype_t.P_PID, this.child_pid, &siginfo,
+                 WEXITED | (block ? 0 : WNOHANG) | (clear ? 0 : WNOWAIT)
+        );
 
-        if (result < 0)
-        {
-            auto err = strerror(errno);
-
-            throw exception(err[0 .. strlen(err)], __FILE__, __LINE__);
-        }
-
-        return result == 0 && siginfo._sifields._kill.si_pid == 0;
+        return siginfo._sifields._kill.si_pid == 0;
     }
 }
 

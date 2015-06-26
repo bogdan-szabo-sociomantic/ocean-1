@@ -345,9 +345,10 @@ class FiberSelectReader : IFiberSelectProtocol
 
     public typeof (this) readRaw ( ubyte[] data_out )
     {
-        this.warning_e.assertEx(data_out.length <= this.default_buffer_size,
-                                "Requested array length longer than internal buffer",
-                                __FILE__, __LINE__);
+        this.warning_e.enforce(
+            data_out.length <= this.default_buffer_size,
+            "Requested array length longer than internal buffer"
+        );
 
         while ( this.available < data_out.length )
         {
@@ -493,8 +494,8 @@ class FiberSelectReader : IFiberSelectProtocol
 
             this.error_e.checkDeviceError(n? "read error" : "end of flow whilst reading", __FILE__, __LINE__);
 
-            this.warning_e.assertEx(!(events & events.EPOLLRDHUP), "connection hung up on read", __FILE__, __LINE__);
-            this.warning_e.assertEx(!(events & events.EPOLLHUP),   "connection hung up", __FILE__, __LINE__);
+            this.warning_e.enforce(!(events & events.EPOLLRDHUP), "connection hung up on read");
+            this.warning_e.enforce(!(events & events.EPOLLHUP), "connection hung up");
 
             if (n)
             {
@@ -502,12 +503,11 @@ class FiberSelectReader : IFiberSelectProtocol
                 // errno. Carry on if there are just currently no data available
                 // (EAGAIN/EWOULDBLOCK/EINTR) or throw error otherwise.
 
-                int errnum = .errno;
-
-                switch (errnum)
+                switch (.errno)
                 {
                     default:
-                        throw this.error_e(errnum, "read error", __FILE__, __LINE__);
+                        this.error_e.enforce(false, "read error");
+                        assert (false);
 
                     case EINTR, EAGAIN:
                         static if ( EAGAIN != EWOULDBLOCK )
@@ -525,8 +525,7 @@ class FiberSelectReader : IFiberSelectProtocol
             else
             {
                 // EOF and no socket error or hung-up event: Throw EOF warning.
-
-                throw this.warning_e("end of flow whilst reading", __FILE__, __LINE__);
+                this.warning_e.enforce(false, "end of flow whilst reading");
             }
         }
         else

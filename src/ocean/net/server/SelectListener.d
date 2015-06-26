@@ -69,8 +69,6 @@ import ocean.net.server.connection.IConnectionHandler;
 import ocean.net.server.connpool.SelectListenerPool;
 import ocean.net.server.connpool.ISelectListenerPoolInfo;
 
-import ocean.core.ErrnoIOException;
-
 import ocean.util.container.pool.model.IPoolInfo;
 
 import tango.text.convert.Format;
@@ -209,14 +207,15 @@ abstract class ISelectListener : ISelectClient
 
         this.e = new SocketError(this.socket);
 
-        this.e.assertEx(this.socket.tcpSocket(true) >= 0,
-                        "error creating socket", __FILE__, __LINE__);
+        this.e.enforce(
+            this.socket.tcpSocket(true) >= 0,
+            "error creating socket"
+        );
 
-        this.e.assertEx(!this.socket.setsockoptVal(SOL_SOCKET, SO_REUSEADDR, true),
-                        "error enabling reuse of address", __FILE__, __LINE__);
-
-//        this.e.assertEx!(true)(!this.socket.setsockoptVal(SOL_SOCKET, SO_REUSEPORT, true),
-//                               "error enabling reuse of port", __FILE__, __LINE__);
+        this.e.enforce(
+            !this.socket.setsockoptVal(SOL_SOCKET, SO_REUSEADDR, true),
+            "error enabling reuse of address"
+        );
     }
 
     /**************************************************************************
@@ -322,8 +321,10 @@ abstract class ISelectListener : ISelectClient
 
             try
             {
-                this.e.assertEx!(true)(!this.socket.shutdown(),
-                                       "error on socket shutdown", __FILE__, __LINE__);
+                this.e.enforce(
+                    !this.socket.shutdown(),
+                    "error on socket shutdown"
+                );
             }
             finally
             {

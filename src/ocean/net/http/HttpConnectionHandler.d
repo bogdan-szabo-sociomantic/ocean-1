@@ -35,7 +35,7 @@ import ocean.net.http.consts.HeaderFieldNames;
 import ocean.net.server.connection.IFiberConnectionHandler,
        ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
 
-import ocean.core.ErrnoIOException;
+import ocean.sys.ErrnoException;
 
 /******************************************************************************/
 
@@ -53,7 +53,7 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
     protected alias .HttpMethod                         HttpMethod;
     protected alias .HttpException                      HttpException;
     protected alias .HttpServerException                HttpServerException;
-    protected alias .ErrnoIOException                   ErrnoIOException;
+    protected alias .ErrnoException                     ErrnoException;
     protected alias .IFiberSelectProtocol.IOError       IOError;
     protected alias .IFiberSelectProtocol.IOWarning     IOWarning;
 
@@ -459,7 +459,7 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
 
      **************************************************************************/
 
-    protected void notifyIOException ( ErrnoIOException e, bool is_error ) { }
+    protected void notifyIOException ( ErrnoException e, bool is_error ) { }
 
     /**************************************************************************
 

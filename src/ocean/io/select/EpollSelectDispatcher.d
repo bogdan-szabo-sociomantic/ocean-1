@@ -40,6 +40,8 @@ import ocean.io.select.selector.SelectedKeysHandler,
        ocean.io.select.selector.TimeoutSelectedKeysHandler,
        ocean.io.select.selector.EpollException;
 
+import ocean.util.ReusableException;
+
 import ocean.io.select.client.SelectEvent;
 
 import ocean.io.select.selector.RegisteredClients;
@@ -122,11 +124,11 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
     /***************************************************************************
 
-        Re-usable exceptions
+        Re-usable errno exception
 
      **************************************************************************/
 
-    private EpollException e;
+    private EpollException    e;
 
     /***************************************************************************
 
@@ -216,10 +218,11 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
         this.e = new EpollException;
 
-        if (this.epoll.create() < 0)
-        {
-            throw this.e("error creating epoll object", __FILE__, __LINE__);
-        }
+        this.e.enforce(
+            this.epoll.create() >= 0,
+            "error creating epoll object",
+            "epoll_create"
+        );
 
         this.timeout_manager = timeout_manager;
 
@@ -303,11 +306,12 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
         }
         else
         {
-            if (this.epoll.ctl(epoll.CtlOp.EPOLL_CTL_ADD, client.fileHandle,
-                client.events, client))
-            {
-                throw this.e("error adding epoll registration", __FILE__, __LINE__);
-            }
+            this.e.enforce(
+                this.epoll.ctl(epoll.CtlOp.EPOLL_CTL_ADD, client.fileHandle,
+                    client.events, client) == 0,
+                "error adding epoll registration",
+                "epoll_ctl"
+            );
 
             this.registered_clients += client;
 
@@ -370,7 +374,8 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
                         return errnum;
 
                     case ENOMEM, EINVAL:
-                        throw this.e(errnum, "error removing epoll client", __FILE__, __LINE__);
+                        throw this.e.set(errnum)
+                            .message("error removing epoll client");
                 }
             }
         }
@@ -589,14 +594,16 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
                 }
                 else
                 {
-                    throw this.e("error adding epoll registration "
-                                 "after modification resulted in ENOENT",
-                                 __FILE__, __LINE__);
+                    throw this.e.useGlobalErrno().message(
+                        "error adding epoll registration "
+                            ~ "after modification resulted in ENOENT"
+                    );
                 }
             }
             else
             {
-                throw this.e(errnum, "error modifying epoll registration", __FILE__, __LINE__);
+                throw this.e.useGlobalErrno().message(
+                    "error modifying epoll registration");
             }
         }
     }
@@ -731,7 +738,8 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
                 if (errnum != EINTR)
                 {
-                    throw this.e(errnum, "error waiting for epoll events", __FILE__, __LINE__);
+                    throw this.e.useGlobalErrno().message(
+                        "error waiting for epoll events");
                 }
             }
         }

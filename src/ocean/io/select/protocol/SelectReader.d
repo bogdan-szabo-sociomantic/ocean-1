@@ -177,8 +177,8 @@ class SelectReader : IAdvancedSelectClient
 
             this.error_e.checkDeviceError(n? "read error" : "end of flow whilst reading", __FILE__, __LINE__);
 
-            this.warning_e.assertEx(!(events & events.EPOLLRDHUP), "connection hung up on read", __FILE__, __LINE__);
-            this.warning_e.assertEx(!(events & events.EPOLLHUP),   "connection hung up", __FILE__, __LINE__);
+            this.warning_e.enforce(!(events & events.EPOLLRDHUP), "connection hung up on read");
+            this.warning_e.enforce(!(events & events.EPOLLHUP), "connection hung up");
 
             if (n)
             {

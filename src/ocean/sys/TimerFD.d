@@ -16,7 +16,9 @@ module ocean.sys.TimerFD;
 
 *******************************************************************************/
 
-import ocean.core.ErrnoIOException;
+import ocean.sys.ErrnoException;
+
+import ocean.core.Traits;
 
 import tango.io.model.IConduit: ISelectable;
 
@@ -47,7 +49,9 @@ const TFD_TIMER_ABSTIME = 1,
 
 const CLOCK_MONOTONIC = 1;
 
-extern (C) private
+// TODO: move into C bindings after merging tango/ocean
+
+extern (C)
 {
     /**************************************************************************
 
@@ -215,39 +219,7 @@ public class TimerFD : ISelectable
 
     ***************************************************************************/
 
-    static public class TimerException : ErrnoIOException
-    {
-        /***********************************************************************
-
-            Throws this instance if n is different from 0.
-
-            Params:
-                n    = return code to check
-                msg  = error message
-                file = source code file name
-                line = source code line number
-
-            Returns:
-                n
-
-            Throws:
-                this instance if n is different from 0.
-
-        ***********************************************************************/
-
-        public int check ( int n, char[] msg, char[] file = "", long line = 0 )
-        {
-            if (n)
-            {
-                throw this.opCall(msg, file, line);
-            }
-            else
-            {
-                return n;
-            }
-        }
-    }
-
+    static public class TimerException : ErrnoException { }
 
     /***************************************************************************
 
@@ -308,16 +280,10 @@ public class TimerFD : ISelectable
     public this ( TimerException e, bool realtime = false )
     {
         this.e = e;
-
-        this.fd = .timerfd_create(realtime? CLOCK_REALTIME : CLOCK_MONOTONIC,
-            TFD_NONBLOCK);
-
-        if ( this.fd < 0 )
-        {
-            throw this.e("timerfd_create", __FILE__, __LINE__);
-        }
+        static bool verify (int fd) { return fd >= 0; }
+        this.fd = this.e.enforceRet!(.timerfd_create)(&verify)
+            .call(realtime ? CLOCK_REALTIME : CLOCK_MONOTONIC, TFD_NONBLOCK);
     }
-
 
     /***************************************************************************
 
@@ -367,10 +333,7 @@ public class TimerFD : ISelectable
     public itimerspec time ( )
     {
         itimerspec t;
-
-        this.e.check(
-            timerfd_gettime(this.fd, &t), "timerfd_gettime", __FILE__, __LINE__);
-
+        this.e.enforceRetCode!(timerfd_gettime)().call(this.fd, &t);
         return t;
     }
 
@@ -402,10 +365,12 @@ public class TimerFD : ISelectable
         itimerspec t_new = itimerspec(interval, first);
         itimerspec t_old;
 
-        this.e.check(timerfd_settime(this.fd,
+        this.e.enforceRetCode!(timerfd_settime)().call(
+            this.fd,
             this.absolute? TFD_TIMER_ABSTIME : 0,
-            &t_new, &t_old),
-            "timerfd_settime", __FILE__, __LINE__);
+            &t_new,
+            &t_old
+        );
 
         return t_old;
     }
@@ -495,8 +460,7 @@ public class TimerFD : ISelectable
                     return true;
 
                 default:
-                    throw this.e(errnum, "reading from timerfd", __FILE__,
-                    __LINE__);
+                    throw this.e.set(errnum, identifier!(.read));
             }
         }
         else

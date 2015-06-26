@@ -283,7 +283,7 @@ abstract class IFiberSelectProtocol : IFiberSelectClient
             // sets this.events_reported to the event reported by epoll.
             super.fiber.suspend(IOReady, this, fiber.Message(true));
 
-            this.error_e.assertEx(!(this.events_reported & Event.EPOLLERR), "I/O error", __FILE__, __LINE__);
+            this.error_e.enforce(!(this.events_reported & Event.EPOLLERR), "I/O error");
         }
         catch (SelectFiber.KilledException e)
         {

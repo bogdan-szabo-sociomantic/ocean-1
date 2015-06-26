@@ -96,9 +96,11 @@ else
     static assert(false, "module ocean.sys.SignalFD only supported in posix environments");
 }
 
-import ocean.core.ErrnoIOException;
+import ocean.sys.ErrnoException;
 
 import ocean.sys.SignalMask;
+
+import ocean.core.Traits;
 
 import tango.io.model.IConduit;
 
@@ -122,7 +124,7 @@ extern ( C )
 
     ***************************************************************************/
 
-    private int signalfd ( int fd, sigset_t* mask, int flags );
+    public int signalfd ( int fd, sigset_t* mask, int flags );
 
 
 
@@ -173,7 +175,7 @@ public class SignalFD : ISelectable
 
     ***************************************************************************/
 
-    private static class SignalErrnoException : ErrnoIOException { }
+    private static class SignalErrnoException : ErrnoException { }
 
 
     /***************************************************************************
@@ -349,8 +351,7 @@ public class SignalFD : ISelectable
         {
             scope ( exit ) .errno = 0;
             auto errnum = .errno;
-            throw this.errno_exception(errnum, "creating signalfd", __FILE__,
-                __LINE__);
+            throw this.errno_exception.set(errnum, identifier!(.signalfd));
         }
 
         if ( mask )
@@ -509,8 +510,7 @@ public class SignalFD : ISelectable
                     }
 
                     default:
-                        throw this.errno_exception(errnum, "reading from signalfd",
-                                __FILE__, __LINE__);
+                        throw this.errno_exception.set(errnum, identifier!(.read));
                 }
             }
             else
