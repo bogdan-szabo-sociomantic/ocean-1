@@ -22,51 +22,13 @@ module ocean.core.Exception;
 import tango.text.convert.Format;
 import tango.transition;
 
-public import tango.core.Enforce : enforce, enforceImpl;
+public import tango.core.Enforce;
 
 version (UnitTest)
 {
     import ocean.core.Test;
 }
 
-/******************************************************************************
-
-    Throws a new exception E chained together with an existing exception.
-
-    Template params:
-        E = type of exception to throw
-
-    Params:
-        e = existing exception to chain with new exception
-        msg  = message to pass to exception constructor
-        file = file from which this exception was thrown
-        line = line from which this exception was thrown
-
-*******************************************************************************/
-
-void throwChained ( E : Exception = Exception )
-                  ( lazy Throwable e, lazy istring msg, istring file = __FILE__,
-                    size_t line = __LINE__ )
-{
-    throw new E(msg, file, line, e);
-}
-
-unittest
-{
-    auto next_e = new Exception("1");
-
-    try
-    {
-        throwChained!(Exception)(next_e, "2");
-        assert (false);
-    }
-    catch (Exception e)
-    {
-        assert (e.next is next_e);
-        assert (e.msg == "2");
-        assert (e.next.msg == "1");
-    }
-}
 
 /******************************************************************************
 
