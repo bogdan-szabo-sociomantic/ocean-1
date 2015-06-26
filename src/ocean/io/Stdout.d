@@ -153,7 +153,7 @@ public class TerminalOutput ( T ) : FormatOutput!(T)
 
     ***************************************************************************/
 
-    public this (OutputStream output, T[] eol = Eol)
+    public this (OutputStream output, Immut!(T)[] eol = Eol)
     {
         this (Layout!(T).instance, output, eol);
     }
@@ -166,7 +166,7 @@ public class TerminalOutput ( T ) : FormatOutput!(T)
 
     ***************************************************************************/
 
-    public this (Layout!(T) convert, OutputStream output, T[] eol = Eol)
+    public this (Layout!(T) convert, OutputStream output, Immut!(T)[] eol = Eol)
     {
         super(convert, output, eol);
     }
