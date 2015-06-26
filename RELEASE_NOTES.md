@@ -114,6 +114,12 @@ New Features
 
   Please refer to documented unittests of each `ErrnoException` method for more details.
 
+* `ocean.io.FileException`
+
+  Inherits `ErrnoException` and provides additional utility method for handling error conditions
+  of C file I/O. Suggested as standard replacement of many similar `FileException` implementations
+  in different projects.
+
 * `ocean.util.cipher.HMAC.hexDigest` and `ocean.util.cipher.ByteConverter.hexEncode`
 
   These methods now both support taking a reusable buffer as their second
