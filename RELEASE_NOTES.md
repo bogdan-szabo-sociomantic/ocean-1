@@ -79,6 +79,13 @@ Deprecations
 New Features
 ============
 
+* `ocean.core.Exception`
+
+  Now provides `ReusableExceptionImplementation` template mixin that allows to quickly create new
+  exception classes with reusability semantics : it adds new mutable string field to be used
+  for formatting instead of `Exception.msg` and overrides `toString` to use that mutable field
+  if not empty.
+
 * `ocean.core.Traits`
 
   New utility `identifier!(alias Sym)` returns name of any symbol as string, including function
