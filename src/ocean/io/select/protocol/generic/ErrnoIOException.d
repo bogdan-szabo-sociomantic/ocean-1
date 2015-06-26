@@ -18,7 +18,7 @@ module ocean.io.select.protocol.generic.ErrnoIOException;
 
  ******************************************************************************/
 
-import ocean.core.ErrnoIOException;
+import ocean.sys.ErrnoException;
 
 import ocean.sys.socket.IPSocket: IIPSocket;
 
@@ -33,7 +33,7 @@ import tango.stdc.errno: errno;
 
  ******************************************************************************/
 
-class IOWarning : ErrnoIOException
+class IOWarning : ErrnoException
 {
     /**************************************************************************
 
@@ -79,9 +79,11 @@ class IOWarning : ErrnoIOException
 
      **************************************************************************/
 
-    public override typeof (this) opCall ( char[] msg, char[] file = "", long line = 0 )
+    public typeof (this) opCall ( char[] msg, char[] file = __FILE__,
+        int line = __LINE__ )
     {
-        super.opCall(msg, file, line);
+        super.useGlobalErrno("<unknown>", file, line)
+            .append(" (").append(msg).append(")");
         this.handle = this.conduit.fileHandle;
 
         return this;
@@ -102,12 +104,34 @@ class IOWarning : ErrnoIOException
 
      **************************************************************************/
 
-    public override typeof (this) opCall  ( int errnum, char[] msg, char[] file = "", long line = 0 )
+    public typeof (this) opCall  ( int errnum, char[] msg,
+        char[] file = __FILE__, int line = __LINE__ )
     {
-        super.opCall(errnum, msg, file, line);
+        super.set(errnum, "", file, line).append(" ").append(msg);
         this.handle = this.conduit.fileHandle;
 
         return this;
+    }
+
+    /**************************************************************************
+
+        Provided instead of old ErrnoIOException.assertEx to minimize breakage
+        with new base class.
+
+        Params:
+            ok    = success condition
+            msg   = message
+
+        Throws:
+            this if !ok
+
+    ***************************************************************************/
+
+    deprecated ("use ocean.sys.ErrnoException.enforce instead")
+    void assertEx ( bool ok, cstring msg, istring file = __FILE__,
+        int line = __LINE__ )
+    {
+        this.enforce(ok, "<unknown name>", msg, file, line);
     }
 }
 
@@ -162,7 +186,7 @@ class IOError : IOWarning
 
      **************************************************************************/
 
-    public void checkDeviceError ( char[] msg, char[] file = "", long line = 0 )
+    public void checkDeviceError ( char[] msg, char[] file = "", int line = 0 )
     {
         int device_errnum = this.error_code;
 
@@ -220,7 +244,7 @@ class SocketError : IOError
 
      **************************************************************************/
 
-    void assertExSock ( bool ok, char[] msg, char[] file = "", long line = 0 )
+    void assertExSock ( bool ok, char[] msg, char[] file = "", int line = 0 )
     {
         if (!ok) throw this.setSock(msg, file, line);
     }
@@ -239,7 +263,8 @@ class SocketError : IOError
 
      **************************************************************************/
 
-    public typeof (this) setSock ( lazy int errnum, char[] msg, char[] file = "", long line = 0 )
+    public typeof (this) setSock ( lazy int errnum, char[] msg, char[] file = "",
+        int line = 0 )
     {
         int socket_errnum = this.error_code;
 
@@ -262,7 +287,7 @@ class SocketError : IOError
 
      **************************************************************************/
 
-    public typeof (this) setSock ( char[] msg, char[] file = "", long line = 0 )
+    public typeof (this) setSock ( char[] msg, char[] file = "", int line = 0 )
     {
         return this.setSock(.errno, msg, file, line);
     }

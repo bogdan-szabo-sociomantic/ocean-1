@@ -34,6 +34,11 @@ Migration Instructions
 
   The parser will no longer warn on spaces in the category name.
 
+* `ocean.io.select.protocol.generic.ErrnoIOException`
+
+  `IOWarning` does not inherit `IOException` anymore, only `ErrnoException`. All projects
+  have been updated to account for that before ocean release, no action required.
+
 Removed Deprecated Modules
 --------------------------
 
