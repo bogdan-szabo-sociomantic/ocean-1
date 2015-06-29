@@ -545,4 +545,3 @@ public class TerminalOutput ( T ) : FormatOutput!(T)
         public alias setCol!("white_bg") white;
     }
 }
-

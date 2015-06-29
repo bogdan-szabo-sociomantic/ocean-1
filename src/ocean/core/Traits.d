@@ -563,7 +563,7 @@ unittest
     auto s = TestStruct(10, 10, 10.0);
     initFields(s);
     // test(s.b == 42); // DMD1 BUG!
-    test(s.b == 0); 
+    test(s.b == 0);
 }
 
 
