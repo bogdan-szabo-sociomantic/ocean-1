@@ -153,6 +153,8 @@ class SerializerException : Exception
 
 struct StructSerializer ( bool AllowUnions = false )
 {
+    import ocean.core.Traits : FieldName;
+
     static:
 
     /**************************************************************************
@@ -1528,47 +1530,6 @@ struct StructSerializer ( bool AllowUnions = false )
     template FieldInfo ( T, S, size_t i )
     {
         const FieldInfo = '\'' ~ S.tupleof[i].stringof ~ "' of type '" ~ T.stringof ~ '\'';
-    }
-
-    /**************************************************************************
-
-        Evaluates to the name of the ith field.
-
-        Template parameter:
-            i = struct field index
-            S = struct type
-
-        Evaluates to:
-            name of the ith field
-
-     **************************************************************************/
-
-    template FieldName ( size_t i, S )
-    {
-        static assert (is (S == struct), typeof (*this).stringof ~ ".FieldName:"
-                       " need a struct, not '" ~ S.stringof ~ '\'');
-
-        const FieldName = StripFieldName!(S.tupleof[i].stringof);
-    }
-
-    template StripFieldName ( char[] name, size_t n = size_t.max )
-    {
-        static if (n >= name.length)
-        {
-            const StripFieldName = StripFieldName!(name, name.length - 1);
-        }
-        else static if (name[n] == '.')
-        {
-            const StripFieldName = name[n + 1 .. $];
-        }
-        else static if (n)
-        {
-            const StripFieldName = StripFieldName!(name, n - 1);
-        }
-        else
-        {
-            const StripFieldName = name;
-        }
     }
 }
 
