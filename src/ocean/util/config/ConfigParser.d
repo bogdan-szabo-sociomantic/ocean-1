@@ -1191,6 +1191,18 @@ unittest
         t.test!("==")(obtained_keys.sort, expected.keys.sort);
     }
 
+    // Wrapper function that just calls the 'parsedConfigSanityCheck' function,
+    // but appends the line number to the test name. This is useful when
+    // slightly different variations of the same basic type of test need to be
+    // performed.
+    void parsedConfigSanityCheckN ( ConfigParser config, ConfigSanity expected,
+        char[] test_name, size_t line_num = __LINE__ )
+    {
+        Format.format(test_name, " (line: {})", line_num);
+
+        parsedConfigSanityCheck(config, expected, test_name);
+    }
+
     scope Config = new ConfigParser();
 
     /***************************************************************************
@@ -1325,7 +1337,7 @@ key = val
         };
 
     Config.parseString(white_str);
-    parsedConfigSanityCheck(Config, white_str_expectations, "white spaces 1");
+    parsedConfigSanityCheckN(Config, white_str_expectations, "white spaces");
 
     white_str =
 `
@@ -1333,7 +1345,7 @@ key = val
 key = val
 `;
     Config.parseString(white_str);
-    parsedConfigSanityCheck(Config, white_str_expectations, "white spaces 2");
+    parsedConfigSanityCheckN(Config, white_str_expectations, "white spaces");
 
     white_str =
 `
@@ -1341,7 +1353,7 @@ key = val
 key = val
 `;
     Config.parseString(white_str);
-    parsedConfigSanityCheck(Config, white_str_expectations, "white spaces 3");
+    parsedConfigSanityCheckN(Config, white_str_expectations, "white spaces");
 
     white_str =
 `
@@ -1349,7 +1361,7 @@ key = val
 key =		   val
 `;
     Config.parseString(white_str);
-    parsedConfigSanityCheck(Config, white_str_expectations, "white spaces 4");
+    parsedConfigSanityCheckN(Config, white_str_expectations, "white spaces");
 
     white_str =
 `
@@ -1357,7 +1369,7 @@ key =		   val
 key	     = val
 `;
     Config.parseString(white_str);
-    parsedConfigSanityCheck(Config, white_str_expectations, "white spaces 5");
+    parsedConfigSanityCheckN(Config, white_str_expectations, "white spaces");
 
     white_str =
 `
@@ -1365,7 +1377,7 @@ key	     = val
 	  key	     = val
 `;
     Config.parseString(white_str);
-    parsedConfigSanityCheck(Config, white_str_expectations, "white spaces 6");
+    parsedConfigSanityCheckN(Config, white_str_expectations, "white spaces");
 
     white_str =
 `
@@ -1373,7 +1385,7 @@ key	     = val
 	  key	     =		       val
 `;
     Config.parseString(white_str);
-    parsedConfigSanityCheck(Config, white_str_expectations, "white spaces 7");
+    parsedConfigSanityCheckN(Config, white_str_expectations, "white spaces");
 
     // Parse a new configuration
 
