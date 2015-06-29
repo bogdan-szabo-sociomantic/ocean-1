@@ -39,6 +39,7 @@ version(UnitTest) import ocean.core.Test;
 public struct MissingVersion
 {
     const exists = false;
+    const ubyte number = 0;
 }
 
 /*******************************************************************************
