@@ -539,9 +539,7 @@ public class StatsLog : IStatsLog
         of the aggregate will be output as <member name>:<member value>.
 
         Params:
-            values = aggregate containing values to write to the log. Passed
-                as ref purely to avoid making a copy -- the aggregate is not
-                modified.
+            values = aggregate containing values to write to the log.
 
         Note:
             values can also be an associative array, in which case every
@@ -551,7 +549,7 @@ public class StatsLog : IStatsLog
 
     ***************************************************************************/
 
-    public typeof(this) add ( T ) ( ref T values )
+    public typeof(this) add ( T ) ( T values )
     {
         static if (isAssocArrayType!(T))
         {
@@ -580,13 +578,11 @@ public class StatsLog : IStatsLog
         Params:
             instance = Name of the object to add.
             values = aggregate containing values to write to the log.
-                     Passed as ref purely to avoid making a copy --
-                     the aggregate is not modified.
 
     ***************************************************************************/
 
     public typeof(this) addObject (istring category, T)
-        (cstring instance, ref T values)
+        (cstring instance, T values)
     in
     {
         static assert (is(T == struct) || is(T == class),
@@ -641,9 +637,7 @@ public class StatsLog : IStatsLog
         * <member name><suffix>:<member value>.
         *
         * Params:
-        *     values = aggregate containing values to write to the log. Passed
-        *         as ref purely to avoid making a copy -- the aggregate is not
-        *         modified.
+        *     values = aggregate containing values to write to the log.
         *     suffix = suffix to append to the values' names
         * ---
         * public typeof(this) add ( T ) ( T values )
