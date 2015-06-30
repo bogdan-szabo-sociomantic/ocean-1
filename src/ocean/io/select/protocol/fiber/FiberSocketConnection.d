@@ -257,8 +257,8 @@ public class FiberSocketConnection ( bool IPv6 = false ) : IFiberSocketConnectio
     {
         InetAddress address;
 
-        this.socket_error.assertEx(address.inet_pton(ip_address_str) == 1,
-                                   "invalid IP address", __FILE__, __LINE__);
+        this.socket_error.enforce(address.inet_pton(ip_address_str) == 1,
+            "invalid IP address");
 
         address.port = port;
 
