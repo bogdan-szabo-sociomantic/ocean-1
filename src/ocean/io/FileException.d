@@ -28,6 +28,9 @@ class FileException : ErrnoException
 {
     import tango.stdc.stdio: FILE, ferror, feof, clearerr;
 
+    /// Make ErrnoException's enforce available
+    public alias ErrnoException.enforce enforce;
+
     /**************************************************************************
 
         Enforces success of file I/O operation
