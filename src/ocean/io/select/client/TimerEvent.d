@@ -317,9 +317,9 @@ abstract class ITimerEvent : ISelectClient, ISelectable
     {
         this.fd = .timerfd_create(realtime? CLOCK_REALTIME : CLOCK_MONOTONIC,
                                   TFD_NONBLOCK);
-        this.e.enforce(this.fd >= 0, identifier!(.timerfd_create), "");
 
         this.e = new TimerException;
+        this.e.enforce(this.fd >= 0, "", identifier!(.timerfd_create));
     }
 
     /***************************************************************************
