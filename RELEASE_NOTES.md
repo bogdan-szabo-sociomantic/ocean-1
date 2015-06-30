@@ -155,3 +155,11 @@ New Features
   `structCopy` now uses default delegate argument which allocates GC memory if no
   explicit delegate agument was specified. That will make it more convenient to use
   it in tests.
+
+* `ocean.io.serialize.StructSerializer`
+
+  Now supports serialization of multi-dimensional arrays
+
+* `ocean.util.log.Stats`
+
+  Now supports interface parameters as logged objects 
