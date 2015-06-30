@@ -181,6 +181,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
      **************************************************************************/
 
+    deprecated("For binary serialization, use ocean.util.serialize")
     size_t length ( S ) ( S* s )
     in
     {
@@ -205,6 +206,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
      **************************************************************************/
 
+    deprecated("For binary serialization, use ocean.util.serialize")
     size_t dump ( S, D ) ( S* s, ref D[] data )
     {
         mixin AssertSingleByteType!(D, typeof (*this).stringof ~ ".dump");
@@ -243,6 +245,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
      **************************************************************************/
 
+    deprecated("For binary serialization, use ocean.util.serialize")
     size_t dumpStatic ( S, D ) ( S* s, D[] data )
     {
         mixin AssertSingleByteType!(D, typeof (*this).stringof ~ ".dump");
@@ -279,6 +282,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
      **************************************************************************/
 
+    deprecated("For binary serialization, use ocean.util.serialize")
     size_t load ( S, D ) ( S* s, D[] data )
     {
         mixin AssertSingleByteType!(D, typeof (*this).stringof ~ ".load");
@@ -315,6 +319,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
      **************************************************************************/
 
+    deprecated("For binary serialization, use ocean.util.serialize")
     size_t loadSlice ( D, S ) ( out S* s, D[] data )
     {
         mixin AssertSingleByteType!(D, typeof (*this).stringof ~ ".loadSlice");
@@ -358,6 +363,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
      **************************************************************************/
 
+    deprecated("For binary serialization, use ocean.util.serialize")
     S loadSlice ( S, D ) ( D[] data, out size_t n )
     in
     {
@@ -636,7 +642,8 @@ struct StructSerializer ( bool AllowUnions = false )
 
      **************************************************************************/
 
-    size_t subArrayLength ( S ) ( S* s )
+    deprecated("For binary serialization, use ocean.util.serialize")
+    public size_t subArrayLength ( S ) ( S* s )
     {
         size_t result = 0;
 
@@ -674,7 +681,8 @@ struct StructSerializer ( bool AllowUnions = false )
 
      **************************************************************************/
 
-    size_t arrayLength ( T ) ( T[] array )
+    deprecated("For binary serialization, use ocean.util.serialize")
+    public size_t arrayLength ( T ) ( T[] array )
     {
         size_t len = size_t.sizeof;
 
@@ -913,6 +921,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
      **************************************************************************/
 
+    deprecated("For binary serialization, use ocean.util.serialize")
     size_t sliceArrays ( S ) ( S* s, void[] data )
     {
         size_t pos = 0;
@@ -956,6 +965,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
      **************************************************************************/
 
+    deprecated("For binary serialization, use ocean.util.serialize")
     size_t sliceArray ( T ) ( out T[] array, void[] data )
     {
         size_t end = size_t.sizeof;
@@ -987,6 +997,7 @@ struct StructSerializer ( bool AllowUnions = false )
         return end;
     }
 
+    deprecated("For binary serialization, use ocean.util.serialize")
     T[] resizeArray ( T ) ( ref T[] array, size_t len )
     {
         static if (is (T U == U[]))
@@ -1245,6 +1256,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
      **************************************************************************/
 
+    deprecated("For binary serialization, use ocean.util.serialize")
     private void assertLongEnough ( size_t pos, size_t data_length )
     {
         enforce(pos <= data_length, typeof (*this).stringof ~ " input data too short");
@@ -1313,6 +1325,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
      **************************************************************************/
 
+    deprecated("For binary serialization, use ocean.util.serialize")
     template ContainsReferenceType ( T ... )
     {
         static if (is (T[0] == struct))
@@ -1455,6 +1468,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
      **************************************************************************/
 
+    deprecated("For binary serialization, use ocean.util.serialize")
     template AssertSingleByteType ( T, char[] context )
     {
         static assert (T.sizeof == 1, context ~ ": only single-byte element"
@@ -1749,7 +1763,7 @@ version (UnitTest)
     }
 }
 
-unittest
+deprecated unittest
 {
     with (StructSerializer!())
     {
