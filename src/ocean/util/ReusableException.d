@@ -24,6 +24,8 @@ import tango.transition;
 
 class ReusableException : Exception
 {
+    import ocean.core.Exception : ReusableExceptionImplementation;
+
     mixin ReusableExceptionImplementation!();
 
     /**************************************************************************
