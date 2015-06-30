@@ -30,8 +30,8 @@ class FileException : ErrnoException
 
     /**************************************************************************
 
-        Enforces success of file I/O operation 
-        
+        Enforces success of file I/O operation
+
         Params:
             ok = I/O expression that returns `false` on failure
             filename =  filename that was used for the I/O (only used in
@@ -40,7 +40,7 @@ class FileException : ErrnoException
 
         Throws:
             `this` upon any of conditions:
-                - !ok 
+                - !ok
                 - handle has error status
                 - handle has EOF status
                 - errno != 0
@@ -72,7 +72,7 @@ class FileException : ErrnoException
                     .append("')");
             }
         }
-        
+
         if (handle !is null && !ok)
         {
             if (feof(handle) != 0)
