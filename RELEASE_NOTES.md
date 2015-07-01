@@ -85,8 +85,12 @@ Deprecations
 
 * `ocean.core.DeepCopy`
 
-  This module was proved to be very hard to port to D2 with no semantic changes and all
-  existing use cases are already covered by `ocean.core.StructConverter`.
+  This module was proved to be very hard to port to D2 with no semantic changes. Search has
+  shown that is is exclusively used in tests and similar non-critical application parts - thus,
+  simple `deepCopy` wrapper has been provided as a replacement as part of
+  `ocean.util.serialize.contiguous.Util`. In performance-critical applications it is necessary
+  to store structs as `Contiguous!(S)` instead and use `copy` with it, as that is much
+  faster and GC-friendly.
 
 * `ocean.sys.SignalMask`
 

@@ -57,7 +57,7 @@ version (UnitTest)
 
 *******************************************************************************/
 
-deprecated("Use ocean.core.StructConverter.structCopy instead")
+deprecated("Use ocean.util.serialize.contiguous.Util.deepCopy instead")
 public template DeepCopy ( T )
 {
     static if ( isTypedef!(T) )
