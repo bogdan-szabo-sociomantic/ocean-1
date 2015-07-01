@@ -159,7 +159,3 @@ New Features
 * `ocean.io.serialize.StructSerializer`
 
   Now supports serialization of multi-dimensional arrays
-
-* `ocean.util.log.Stats`
-
-  Now supports interface parameters as logged objects 

@@ -557,9 +557,8 @@ public class StatsLog : IStatsLog
         }
         else
         {
-            static assert (is(T == struct) || is(T == class) || is(T == interface),
-                           "Parameter to add must be a struct, class or " ~
-                           "interface, not '" ~ T.stringof ~ "'");
+            static assert (is(T == struct) || is(T == class),
+                           "Parameter to add must be a struct or a class");
             this.format!(null)(values, cstring.init);
         }
         this.add_separator = true;
@@ -586,9 +585,8 @@ public class StatsLog : IStatsLog
         (cstring instance, T values)
     in
     {
-        static assert (is(T == struct) || is(T == class) || is(T == interface),
-                       "Parameter to add must be a struct, class or " ~
-                       "interface, not '" ~ T.stringof ~ "'");
+        static assert (is(T == struct) || is(T == class),
+                       "Parameter to add must be a struct or a class");
         static assert(category.length,
                       "Template parameter 'category' should not be null");
         assert (instance.length, "Object name should not be null");
@@ -671,9 +669,8 @@ public class StatsLog : IStatsLog
         }
         else
         {
-            static assert (is(T == struct) || is(T == class) || is(T == interface),
-                           "Parameter to add must be a struct, class or " ~
-                           "interface, not '" ~ T.stringof ~ "'");
+            static assert (is (T == struct) || is (T == class),
+                           "Parameter to add must be a struct or a class");
             foreach ( i, value; parameter.tupleof )
             {
                 this.formatValue(FieldName!(i, T), value,
