@@ -32,6 +32,7 @@ import tango.core.Traits : ReturnTypeOf, ParameterTupleOf;
 
 version (UnitTest)
 {
+    import tango.core.Memory; // to check GC usage
     import ocean.core.Test;
 
     /***************************************************************************
@@ -1134,7 +1135,7 @@ private istring _identifier(alias Sym)()
         // Sym.stringof is treated as Sym().stringof
         // ugly workaround:
         ParameterTupleOf!(Sym) args;
-        auto name = Sym(args).stringof;
+        auto name = Sym(args).stringof[];
         size_t bracketIndex = 0;
         while (name[bracketIndex] != '(' && bracketIndex < name.length)
             ++bracketIndex;
@@ -1161,4 +1162,21 @@ unittest
 
     static assert (identifier!(funcNameArgs) == "funcNameArgs");
     assert (identifier!(funcNameArgs) == "funcNameArgs");
+}
+
+unittest
+{
+    // #741 regression test
+
+    size_t used1, free1;
+    GC.usage(used1, free1);
+
+    static void foo () {}
+    auto str = identifier!(foo);
+
+    size_t used2, free2;
+    GC.usage(used2, free2);
+
+    test!("==")(used1, used2);
+    test!("==")(free1, free2);
 }
