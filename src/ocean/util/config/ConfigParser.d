@@ -382,8 +382,6 @@ class ConfigParser
         this.parseIter(get_line, clean_old);
     }
 
-    deprecated alias parseFile parse;
-
 
     /***************************************************************************
 

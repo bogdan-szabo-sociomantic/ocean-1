@@ -12,6 +12,14 @@ Migration Instructions
 Removed Deprecated Modules
 --------------------------
 
+Removed Deprecated Symbols
+--------------------------
+
+* `ocean.util.config.ConfigParser`
+
+  `parse` has been taken out of the ConfigParser API. `parse` used to be an
+  alias for the `parseFile` method, and has been deprecated since Oct 2014.
+
 Deprecations
 ============
 
