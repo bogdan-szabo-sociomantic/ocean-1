@@ -86,3 +86,52 @@ unittest
     test!("==")(two.ptr.arr, t.arr);
     two.enforceIntegrity();
 }
+
+/*******************************************************************************
+
+    Simple wrapper on top of (de)serializer which allows to deep copy
+    a given struct by storing all indirections in contiguous buffer. Most
+    commonly used in tests - performance-critical applications should store
+    `Contiguous!(S)` instead and copy it as it is much faster.
+
+    Params:
+        dst = resizable buffer used to serialize `src`
+        src = struct to copy
+
+    Returns:
+        new struct instance stored in `dst` cast to S
+
+*******************************************************************************/
+
+public S deepCopy (S) (  ref S src, ref void[] dst )
+{
+    Serializer.serialize!(S)(src, dst);
+    return *Deserializer.deserialize!(S)(dst).ptr;
+}
+
+/*******************************************************************************
+
+    Ditto, but allocates new buffer each time called
+
+*******************************************************************************/
+
+public S deepCopy (S) ( ref S src )
+{
+    void[] empty;
+    return deepCopy(src, empty);
+}
+
+///
+unittest
+{
+    struct Test
+    {
+        int[] arr;
+    }
+
+    auto s1 = Test([ 1, 2, 3 ]);
+    auto s2 = deepCopy(s1);
+    
+    test!("==")(s1.arr, s2.arr);
+    test!("!is")(s1.arr.ptr, s2.arr.ptr);
+}
