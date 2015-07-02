@@ -1060,4 +1060,68 @@ unittest
             assert(*int_ptr == i + NEW_VALUE, "Unexpected item value");
         }
     }
+
+
+    // Test dropped items are correctly reported
+    {
+        const CACHE_SIZE = 10;
+        const ITEMS_INSERTED = 150;
+
+        uint items_removed_count;
+
+        class PriorityNotify : PriorityCache!(uint)
+        {
+            public this (size_t max_items)
+            {
+                super(max_items);
+            }
+
+            protected override void itemDropped (hash_t key, ref uint value)
+            {
+                assert(key == value, "Wrong key/value are reported");
+                items_removed_count++;
+            }
+        }
+
+        auto test_cache = new PriorityNotify(CACHE_SIZE);
+        for (uint i = 0; i < ITEMS_INSERTED; i++)
+        {
+            bool existed;
+            auto int_ptr = test_cache.getOrCreate(i, i, existed);
+            *int_ptr = i;
+        }
+
+        assert(items_removed_count == ITEMS_INSERTED - CACHE_SIZE,
+               "Not all dropped items were reported");
+    }
+
+
+    // Test dropped items are passed by ref
+    {
+        const CACHE_SIZE = 10;
+        bool item_dropped = false;
+
+        class PriorityNotify2 : PriorityCache!(uint)
+        {
+            public this (size_t max_items)
+            {
+                super(max_items);
+            }
+
+            protected override void itemDropped (hash_t key, ref uint value)
+            {
+                item_dropped = true;
+                value = 10;
+            }
+        }
+
+        auto test_cache = new PriorityNotify2(CACHE_SIZE);
+        bool existed;
+        auto new_value = test_cache.getOrCreate(20, 20, existed);
+        *new_value = 50;
+        test_cache.remove(20);
+
+        assert(item_dropped, "Item was not dropped");
+        assert(*new_value == 10, "Item was not dropped by ref");
+    }
 }
