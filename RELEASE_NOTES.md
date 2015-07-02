@@ -65,3 +65,8 @@ New Features
    non-versioned keys or values to maps that start using a version for either.
    Additionally, the map now also always does a struct hash validation in case
    the versioning code was wrong.
+
+* `ocean.core.Test`
+
+  New test helper, `testNoAlloc`, which checks GC usage stats before and after
+  calling given expression and ensures no allocations happen.

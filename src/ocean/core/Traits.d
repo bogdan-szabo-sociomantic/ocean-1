@@ -32,7 +32,6 @@ import tango.core.Traits : ReturnTypeOf, ParameterTupleOf;
 
 version (UnitTest)
 {
-    import tango.core.Memory; // to check GC usage
     import ocean.core.Test;
 
     /***************************************************************************
@@ -1168,15 +1167,6 @@ unittest
 {
     // #741 regression test
 
-    size_t used1, free1;
-    GC.usage(used1, free1);
-
     static void foo () {}
-    auto str = identifier!(foo);
-
-    size_t used2, free2;
-    GC.usage(used2, free2);
-
-    test!("==")(used1, used2);
-    test!("==")(free1, free2);
+    testNoAlloc({ auto str = identifier!(foo); } ());
 }
