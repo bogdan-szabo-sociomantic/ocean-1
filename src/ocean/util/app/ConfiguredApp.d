@@ -116,8 +116,8 @@ abstract class ConfiguredApp : Application, IConfigExtExtension
             loose_config_parsing = if true, configuration files will be parsed
                                    in a more relaxed way
             default_configs = default configuration files to parse
-            config = configuration parser to use, defaults to the global
-                     instance provided by the ocean.util.Config module.
+            config = configuration parser to use, instantiate one if null
+                     is passed
 
     ***************************************************************************/
 
@@ -126,6 +126,8 @@ abstract class ConfiguredApp : Application, IConfigExtExtension
             ConfigParser config = null )
     {
         super(name, desc);
+        if (config is null)
+            config = new ConfigParser();
         this.config_ext = new ConfigExt(loose_config_parsing, default_configs,
                 config);
         this.config = this.config_ext.config;

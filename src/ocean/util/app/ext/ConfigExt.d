@@ -25,7 +25,6 @@ import ocean.util.app.ext.model.IConfigExtExtension;
 import ocean.util.app.ext.model.IArgumentsExtExtension;
 import ocean.util.app.ext.ArgumentsExt;
 
-import ocean.util.Config;
 import ocean.util.config.ConfigParser;
 import ocean.text.Arguments;
 import ocean.io.Stdout : Stderr;
@@ -99,8 +98,8 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
             loose_config_parsing = if true, configuration files will be parsed
                                    in a more relaxed way
             default_configs = default configuration files to parse
-            config = configuration parser to use, defaults to the global
-                     instance provided by the ocean.util.Config module.
+            config = configuration parser to use, instantiate one if null
+                     is passed
 
     ***************************************************************************/
 
@@ -112,7 +111,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
         this.default_configs = default_configs;
         if ( config is null )
         {
-            config = Config;
+            config = new ConfigParser;
         }
         this.config = config;
     }

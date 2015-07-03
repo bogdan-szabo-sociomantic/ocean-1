@@ -27,6 +27,12 @@ Migration Instructions
   It previously threw `IOException`, making it impossible to distinguish between
   EOF and other I/O errors.
 
+* `ocean.util.config.ClassFiller`
+
+   Both `fill` overloads and `iterate` will now trigger an assertion failure
+   if `null` is provided as the `config` parameter.
+   The default parameter (which was `null`) has also been removed.
+
 Removed Deprecated Modules
 --------------------------
 
@@ -80,6 +86,14 @@ Deprecations
 * `ocean.core.StructConverter.structCopy`
 
   The function has been renamed. See Migration Instructions.
+
+* `ocean.util.Config`
+
+   The module and it's globally-available `ConfigParser Config` member have been
+   deprecated.  The app framework (`ConfigExt`, `ConfiguredApp` and `ConfiguredCliApp`)
+   have been updated to instantiate it itself instead of relying on this global instance.
+   This change is mostly transparent for applications, with the exception of the part
+   mentioned in the Migrations Instructions.
 
 New Features
 ============

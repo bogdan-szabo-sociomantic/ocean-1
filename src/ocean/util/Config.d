@@ -13,7 +13,7 @@
 
 *******************************************************************************/
 
-module ocean.util.Config;
+deprecated module ocean.util.Config;
 
 
 /*******************************************************************************
@@ -31,6 +31,7 @@ import ocean.util.config.ConfigParser;
 
 *******************************************************************************/
 
+deprecated("Use app's instance, or instantiate it in your code")
 ConfigParser Config;
 
 

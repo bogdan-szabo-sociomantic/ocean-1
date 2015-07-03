@@ -80,7 +80,6 @@ module ocean.util.log.Config;
 
 import ocean.io.Stdout;
 import ocean.core.Array : removePrefix, removeSuffix;
-import ocean.util.Config;
 import ocean.util.config.ClassFiller;
 import ocean.util.config.ConfigParser;
 import ocean.text.util.StringSearch;

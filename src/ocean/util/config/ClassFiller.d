@@ -8,9 +8,8 @@
 
     authors:        Mathias Baumann
 
-    Provides functions that use a given source (by default the global Config
-    instance) to fill the member variables of a provided or newly
-    created instance of a given class.
+    Provides functions that use a given source to fill the member variables
+    of a provided or newly created instance of a given class.
 
     The provided class can use certain wrappers to add conditions or
     informations to the variable in question. The value of a wrapped variable
@@ -136,8 +135,6 @@ import ocean.core.Traits;
 import tango.core.Exception, tango.core.Enforce;
 
 import tango.core.Traits;
-
-import ocean.util.Config;
 
 import ocean.util.config.ConfigParser;
 
@@ -741,7 +738,7 @@ public bool enable_loose_parsing ( bool state = true )
 
     Params:
         group     = the group/section of the variable
-        config    = instance of the source to use (defaults to Config)
+        config    = instance of the source to use
 
     Returns:
         a new instance filled with values from the configuration file
@@ -752,7 +749,12 @@ public bool enable_loose_parsing ( bool state = true )
 *******************************************************************************/
 
 public T fill ( T : Object, Source = ConfigParser )
-              ( cstring group, Source config = null )
+              ( cstring group, Source config )
+in
+{
+    assert(config !is null, "ClassFiller.fill: Cannot use null config");
+}
+body
 {
     T reference;
     return fill(group, reference, config);
@@ -776,7 +778,7 @@ public T fill ( T : Object, Source = ConfigParser )
         reference = the instance to fill. If null it will be created
         loose     = whether to throw when configuration keys exist
                     that aren't used(false) or to output a warning(true)
-        config    = instance of the source to use (defaults to Config)
+        config    = instance of the source to use
 
     Returns:
         an instance filled with values from the configuration file
@@ -787,16 +789,16 @@ public T fill ( T : Object, Source = ConfigParser )
 *******************************************************************************/
 
 public T fill ( T : Object, Source = ConfigParser )
-              ( cstring group, ref T reference, Source config = null )
+              ( cstring group, ref T reference, Source config )
+in
+{
+    assert(config !is null, "ClassFiller.fill: Cannot use null config");
+}
+body
 {
     if ( reference is null )
     {
         reference = new T;
-    }
-
-    static if ( is(Source : ConfigParser)) if ( config is null )
-    {
-        config = Config;
     }
 
     foreach ( var; config.iterateCategory(group) )
@@ -871,6 +873,11 @@ struct ClassIterator ( T, Source = ConfigParser )
     Source config;
     istring root;
 
+    invariant()
+    {
+        assert(this.config !is null, "ClassFiller.ClassIterator: Cannot have null config");
+    }
+
     /***********************************************************************
 
         Variable Iterator. Iterates over variables of a category
@@ -879,14 +886,9 @@ struct ClassIterator ( T, Source = ConfigParser )
 
     public int opApply ( int delegate ( ref cstring name, ref T x ) dg )
     {
-        static if ( is(Source : ConfigParser)) if ( config is null )
-        {
-            config = Config;
-        }
-
         int result = 0;
 
-        if ( config !is null ) foreach ( key; config )
+        foreach ( key; config )
         {
             scope T instance = new T;
 
@@ -914,11 +916,11 @@ struct ClassIterator ( T, Source = ConfigParser )
 
     TemplateParams:
         T = type of the class to fill
-        Source = source to use (defaults to ConfigParser)
+        Source = source to use
 
     Params:
         root = start of the group name
-        config = instance of the source to use (defaults to Config)
+        config = instance of the source to use
 
     Returns:
         iterator that iterates over all groups matching the pattern
@@ -926,7 +928,12 @@ struct ClassIterator ( T, Source = ConfigParser )
 ***************************************************************************/
 
 public ClassIterator!(T) iterate ( T, Source = ConfigParser )
-                                 ( istring root, Source config = null )
+                                 ( istring root, Source config )
+in
+{
+    assert(config !is null, "ClassFiller.iterate: Cannot use null config");
+}
+body
 {
     return ClassIterator!(T, Source)(config, root);
 }
@@ -937,7 +944,7 @@ public ClassIterator!(T) iterate ( T, Source = ConfigParser )
 
     Params:
         property = value to convert
-        config = instance of the source to use (defaults to Config)
+        config = instance of the source to use
 
     Returns:
         property converted to T
@@ -946,14 +953,12 @@ public ClassIterator!(T) iterate ( T, Source = ConfigParser )
 
 protected void readFields ( T, Source )
                           ( cstring group, T reference, Source config )
+in
 {
-    static if ( is(Source : ConfigParser)) if ( config is null )
-    {
-        config = Config;
-    }
-
-    assert ( config !is null, "Source is null :(");
-
+    assert ( config !is null, "ClassFiller.readFields: Cannot use null config");
+}
+body
+{
     foreach ( si, field; reference.tupleof )
     {
         alias BaseType!(typeof(field)) Type;
