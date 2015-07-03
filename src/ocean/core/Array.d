@@ -149,6 +149,7 @@ unittest
 public T[] copy ( T, TC ) ( ref T[] dest, TC[] src )
 {
     dest.length = src.length;
+    enableStomping(dest);
 
     if (src.length)
     {
