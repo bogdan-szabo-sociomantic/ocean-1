@@ -2,12 +2,6 @@
 
     Provides convenient functions to fill the values of a given class
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        November 2011
-
-    authors:        Mathias Baumann
-
     Provides functions that use a given source to fill the member variables
     of a provided or newly created instance of a given class.
 
@@ -114,6 +108,7 @@
     }
     -------
 
+    Copyright:      Copyright (c) 2011-2015 sociomantic labs. All rights reserved
 
 *******************************************************************************/
 
