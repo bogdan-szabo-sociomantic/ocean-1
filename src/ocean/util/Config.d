@@ -44,4 +44,3 @@ static this ( )
 {
     Config = new ConfigParser();
 }
-

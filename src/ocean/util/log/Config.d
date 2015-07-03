@@ -493,4 +493,3 @@ public void setupLoggerLevel ( Logger log, char[] name, Config config )
         }
     }
 }
-
