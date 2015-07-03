@@ -345,7 +345,7 @@ unittest
                 this.item_dropped = item_dropped;
             }
 
-            protected override void droppingItem (lazy CacheImpl.Value value)
+            protected override void itemDropped (hash_t key, ref CacheImpl.Value value)
             {
                 *item_dropped = true;
             }

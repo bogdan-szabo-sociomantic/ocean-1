@@ -403,10 +403,8 @@ class PriorityCache(T) : ICacheInfo
     public bool remove ( hash_t key )
     {
         TimeToIndex.Node** node = this.getNode(key);
-
         if (node)
         {
-            this.whenCacheItemDropped(this.getNodeIndex(**node));
             this.remove_(key, **node);
             return true;
         }
@@ -556,12 +554,27 @@ class PriorityCache(T) : ICacheInfo
 
         A notifier which is fired and an item is removed from the cache.
 
+        The notifier is called after the item has already been removed.
+        The default implementation of the notifier inits the value of the item
+        to remove any references to it.
+
+        When overriding this method, make sure this cache is not manipulated
+        while this method is executing (i.e. don't add or remove items) so make
+        sure that:
+        - neither the overriding method nor a callee manipulates this cache and
+        - if using fibers which can be suspended while this method is running,
+        that this cache cannot be manipulated by another fiber in this case.
+
         Params:
-            item = the item that will be dropped
+            key = the key of the dropped item
+            value = the dropped item
 
     ***************************************************************************/
 
-    protected void droppingItem (lazy T item ) { }
+    protected void itemDropped (hash_t key, ref T value)
+    {
+        value = value.init;
+    }
 
     /***************************************************************************
 
@@ -780,6 +793,9 @@ class PriorityCache(T) : ICacheInfo
     {
         size_t index;
 
+        auto is_key_removed = false;
+        hash_t removed_key;
+
         if ( this.insert < this.max_length )
         {
             index = this.insert++;
@@ -809,13 +825,14 @@ class PriorityCache(T) : ICacheInfo
                 }
             }
 
-            // Call the notifier method before actual removal
-            this.whenCacheItemDropped(index);
+            // Call the notifier at the end of the method so that the old key is
+            // already removed and the new key is added
+            is_key_removed = true;
+            removed_key = this.items[index].key;
 
             // Remove old item in tree map
             this.time_to_index.remove(*oldest_time_node);
-
-            this.key_to_node.remove(this.items[index].key);
+            this.key_to_node.remove(removed_key);
         }
 
         auto node_key = TimeToIndex.Key(index, priority);
@@ -823,25 +840,12 @@ class PriorityCache(T) : ICacheInfo
         this.items[index].key = key;
         item_added = true;
 
+        if (is_key_removed)
+        {
+            this.itemDropped(removed_key, this.items[index].value);
+        }
+
         return index;
-    }
-
-    /***************************************************************************
-
-        A notifier which is called when the lowest priority item is dropped
-        from the cache. This takes place when a new item will be added and the
-        cache is full.
-
-        The method calls this.droppingItem() notifier.
-
-        Params:
-            index = index of the cache item that will be dropped.
-
-    ***************************************************************************/
-
-    private void whenCacheItemDropped ( size_t index )
-    {
-        this.droppingItem( this.items[index].value );
     }
 
     /***************************************************************************
@@ -919,6 +923,8 @@ class PriorityCache(T) : ICacheInfo
 
             *src_node_in_map = this.time_to_index.update(*src_node, src_node_key);
         }
+
+        this.itemDropped(dst_key, this.items[this.insert].value);
     }
 }
 

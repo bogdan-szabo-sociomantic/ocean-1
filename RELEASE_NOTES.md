@@ -11,6 +11,13 @@ Migration Instructions
 
 Removed Deprecated Modules
 --------------------------
+* `ocean.util.container.cache.PriorityCache
+
+  `droppingItem()` method has been replaced with `itemDropped()`. Also the
+  notifier is now called after the item has already been removed from the
+  cache. The refactored method passes the key as well as a reference to the
+  dropped item as parameters. The default implementation of the method is
+  to set the item to its init value.
 
 Removed Deprecated Symbols
 --------------------------
