@@ -124,8 +124,8 @@ class LogExt : IConfigExtExtension
                     this.use_insert_appender);
         }
 
-        auto log_config = ClassFiller.iterate!(LogUtil.Config)("LOG");
-        auto log_meta_config = ClassFiller.fill!(LogUtil.MetaConfig)("LOG");
+        auto log_config = ClassFiller.iterate!(LogUtil.Config)("LOG", config);
+        auto log_meta_config = ClassFiller.fill!(LogUtil.MetaConfig)("LOG", config);
 
         Appender appender ( char[] file, LogUtil.Layout layout )
         {

@@ -84,7 +84,7 @@ class StatsExt : IConfigExtExtension
 
     public void processConfig ( IApplication app, ConfigParser config )
     {
-        auto stats_config = ClassFiller.fill!(IStatsLog.Config)("STATS");
+        auto stats_config = ClassFiller.fill!(IStatsLog.Config)("STATS", config);
 
         Appender newAppender ( char[] file, Appender.Layout layout )
         {
