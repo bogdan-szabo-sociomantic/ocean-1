@@ -1,12 +1,6 @@
-/******************************************************************************
+/*******************************************************************************
 
     HTTP exception classes
-
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        May 2011: Initial release
-
-    author:         David Eckardt
 
     - HttpServerException is the base class.
     - HttpException is thrown when a request cannot be fulfilled to abort
@@ -17,7 +11,9 @@
     - HeaderParameterException is thrown when a required HTTP message header
       parameter is missing or contains an invalid value.
 
- ******************************************************************************/
+    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
+
+*******************************************************************************/
 
 module ocean.net.http.HttpException;
 
