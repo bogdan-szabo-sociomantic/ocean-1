@@ -260,7 +260,7 @@ template ConvertMethod(Serializer, Deserializer)
 
         auto tmp_struct = Deserializer.deserialize!(Source)(this.struct_buffer);
         S result_struct;
-        structCopy!(Source, S)(
+        structConvert!(Source, S)(
             *tmp_struct.ptr,
             result_struct,
             &this.convert_buffer.add

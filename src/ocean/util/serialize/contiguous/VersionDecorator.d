@@ -18,7 +18,7 @@ module ocean.util.serialize.contiguous.VersionDecorator;
 
 import ocean.core.Exception,
        ocean.util.container.ConcatBuffer,
-       ocean.core.StructConverter : structCopy;
+       ocean.core.StructConverter : structConvert;
 
 import ocean.util.serialize.Version,
        ocean.util.serialize.model.Traits,

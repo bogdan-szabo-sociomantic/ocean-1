@@ -26,6 +26,14 @@ import tango.transition;
 import ocean.core.Traits,
        tango.core.Traits;
 
+/*******************************************************************************
+
+    Deprecated alias for structConvert
+
+*******************************************************************************/
+
+deprecated("Use structConvert instead")
+alias structConvert structCopy;
 
 /***************************************************************************
 
@@ -72,12 +80,12 @@ import ocean.core.Traits,
 
 ***************************************************************************/
 
-public void structCopy ( From, To ) ( ref From from, out To to,
+public void structConvert ( From, To ) ( ref From from, out To to,
     void[] delegate ( size_t ) requestBuffer
         = ( size_t n ) { return new void[n]; } )
 {
     static assert ( is ( From == struct ) && is ( To == struct ),
-            "structCopy works only on structs, not on " ~
+            "structConvert works only on structs, not on " ~
             From.stringof ~ " / " ~ To.stringof);
 
     static if (is(From == To))
@@ -113,7 +121,7 @@ public void structCopy ( From, To ) ( ref From from, out To to,
 
 /*******************************************************************************
 
-    Helper function for structCopy().
+    Helper function for structConvert().
 
     Copies a field to another field, doing a conversion if required and
     possible.
@@ -147,7 +155,7 @@ private void copyField ( From, To ) ( From* from_field, To* to_field,
     else static if ( is ( typeof((*to_field)) == struct ) &&
                      is ( typeof(*from_field) == struct ) )
     {
-        alias structCopy!(typeof(*from_field), typeof((*to_field))) copyMember;
+        alias structConvert!(typeof(*from_field), typeof((*to_field))) copyMember;
 
         copyMember(*from_field, *to_field,
                    requestBuffer);
@@ -163,7 +171,7 @@ private void copyField ( From, To ) ( From* from_field, To* to_field,
         {
             foreach ( i, ref el; *to_field )
             {
-                structCopy!(FromBaseType, ToBaseType)((*from_field)[i],
+                structConvert!(FromBaseType, ToBaseType)((*from_field)[i],
                                                        el, requestBuffer);
             }
         }
@@ -192,7 +200,7 @@ private void copyField ( From, To ) ( From* from_field, To* to_field,
 
                 foreach ( i, ref el; *to_field )
                 {
-                    structCopy!(FromBaseType, ToBaseType)((*from_field)[i],
+                    structConvert!(FromBaseType, ToBaseType)((*from_field)[i],
                                                           el, requestBuffer);
                 }
             }
@@ -377,7 +385,7 @@ unittest
     A a1, a2;
     a1.x = 42;
 
-    structCopy(a1, a2, toDg(&testAlloc));
+    structConvert(a1, a2, toDg(&testAlloc));
     assert ( a1.x == a2.x, "failure to copy same type instances" );
 }
 
@@ -401,7 +409,7 @@ unittest
     auto a = A(1,2,3);
     B b;
 
-    structCopy(a, b, toDg(&testAlloc));
+    structConvert(a, b, toDg(&testAlloc));
 
     assert ( a.a == b.a, "a != a" );
     assert ( a.b == b.b, "b != b" );
@@ -424,7 +432,7 @@ unittest
 
     A a; B b;
 
-    static assert (!is(typeof(structCopy(a, b, toDg(&testAlloc)))));
+    static assert (!is(typeof(structConvert(a, b, toDg(&testAlloc)))));
 }
 
 // multiple conversions at once
@@ -482,7 +490,7 @@ unittest
     auto a = A(1,2, [[1,2], [45,234], [53],[3]],3, "THE TEH THE RTANEIARTEN".dup);
     B b_loaded;
 
-    structCopy!(A, B)(a, b_loaded, toDg(&testAlloc));
+    structConvert!(A, B)(a, b_loaded, toDg(&testAlloc));
 
     assert ( b_loaded.a == a.a, "Conversion failure" );
     assert ( b_loaded.b == a.b, "Conversion failure" );
@@ -545,17 +553,17 @@ unittest
     A a; B b; C c;
 
     a.x = 42;
-    structCopy(a, b, toDg(&testAlloc));
+    structConvert(a, b, toDg(&testAlloc));
     assert(b.x == 42);
 
     b.x = 43;
-    structCopy(b, a, toDg(&testAlloc));
+    structConvert(b, a, toDg(&testAlloc));
     assert(a.x == 43);
 
-    structCopy(b, c, toDg(&testAlloc));
+    structConvert(b, c, toDg(&testAlloc));
     assert(c.x == 43);
 
     c.x = 44;
-    structCopy(c, b, toDg(&testAlloc));
+    structConvert(c, b, toDg(&testAlloc));
     assert(b.x == 44);
 }

@@ -638,7 +638,7 @@ public class AppStatus
         this.static_lines[index].length = 0;
         Format.vformat(this.static_lines[index], format, _arguments, _argptr);
 
-        structCopy!(DisplayProperties)(
+        structConvert!(DisplayProperties)(
             this.current_display_props,
             this.static_lines_display_props[index]
         );

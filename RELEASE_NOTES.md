@@ -26,6 +26,15 @@ Removed Deprecated Symbols
   `parse` has been taken out of the ConfigParser API. `parse` used to be an
   alias for the `parseFile` method, and has been deprecated since Oct 2014.
 
+Migration Instructions
+======================
+
+* `ocean.core.StructConverter`
+
+  `structCopy()` was frequently mistaken for an equivalent of `deepCopy()`, however
+  it doesn't do a true deep copy as it avoids copying memory when possible. To
+  make this more clear the function was renamed to `structConvert()`.
+
 Deprecations
 ============
 
@@ -35,6 +44,10 @@ Deprecations
   code which is still using this should be adjusted to use the new serializer in
   `ocean.util.serialize`. (The stream and plugin serialization facilities of
   `StructSerializer` remain unchanged.)
+
+* `ocean.core.StructConverter.structCopy`
+
+  The function has been renamed. See Migration Instructions.
 
 New Features
 ============
