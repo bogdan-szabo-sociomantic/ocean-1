@@ -1631,5 +1631,3 @@ unittest
     testCombination!(OldKey, OldStruct, NewerKey, NewStruct, version4_load_code)(Iterations);
     testCombination!(OldKey, OldStruct, NewerKey, NewerStruct,version4_load_code)(Iterations);
 }
-
-

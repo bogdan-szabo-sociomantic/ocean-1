@@ -367,4 +367,3 @@ unittest
                 h.name~": ("~mac~") != ("~test_results[i]~")");
     }
 }
-

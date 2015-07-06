@@ -218,7 +218,7 @@ public template ReusableExceptionImplementation()
         {
             sink(this.msg is null ? this.reused_msg : this.msg);
         }
-        
+
         alias toString = super.toString;
         `);
     }
@@ -249,7 +249,7 @@ public template ReusableExceptionImplementation()
 
         Params:
             msg = string to append to the message
-        
+
         Returns:
             this instance
 

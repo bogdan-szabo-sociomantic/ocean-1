@@ -731,4 +731,3 @@ unittest
 {
     auto srlz = new JsonStructDeserializer!(char);
 }
-
