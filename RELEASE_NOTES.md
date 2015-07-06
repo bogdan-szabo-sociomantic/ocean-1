@@ -68,3 +68,9 @@ New Features
 
   New test helper, `testNoAlloc`, which checks GC usage stats before and after
   calling given expression and ensures no allocations happen.
+
+* `ocean.core.Exception`
+
+   A new `DefaultExceptionCtor` mixin template has been introduced.
+   Similar to `DefaultExceptionImpl`, you can mix it in to get the usual
+   constructor for exceptions.

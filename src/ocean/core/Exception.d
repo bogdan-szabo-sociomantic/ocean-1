@@ -24,6 +24,11 @@ import tango.transition;
 
 public import tango.core.Enforce : enforce, enforceImpl;
 
+version (UnitTest)
+{
+    import ocean.core.Test;
+}
+
 /******************************************************************************
 
     Throws a new exception E chained together with an existing exception.
@@ -340,5 +345,47 @@ version (UnitTest)
         }
 
         mixin ReusableExceptionImplementation!();
+    }
+}
+
+
+/******************************************************************************
+
+    Common code to implement exception constructor, which takes a message as
+    a required parameter, and file and line with default value, and forward
+    it to the `super` constructor
+
+******************************************************************************/
+
+public template DefaultExceptionCtor()
+{
+    public this (istring msg, istring file = __FILE__,
+                 typeof(__LINE__) line = __LINE__)
+    {
+        super (msg, file, line);
+    }
+}
+
+version (UnitTest)
+{
+    public class CardBoardException : Exception
+    {
+        mixin DefaultExceptionCtor;
+    }
+}
+
+///
+unittest
+{
+    auto e = new CardBoardException("Transmogrification failed");
+    try
+    {
+        throw e;
+    }
+    catch (CardBoardException e)
+    {
+        test!("==")(e.msg, "Transmogrification failed");
+        test!("==")(e.file, __FILE__);
+        test!("==")(e.line, __LINE__ - 9);
     }
 }
