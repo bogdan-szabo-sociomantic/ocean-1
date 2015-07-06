@@ -36,6 +36,7 @@ import ocean.net.server.connection.IFiberConnectionHandler,
        ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
 
 import ocean.sys.ErrnoException;
+import tango.core.Enforce;
 
 /******************************************************************************/
 
@@ -330,8 +331,8 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
              return this.request.finished? consumed : data.length + 1;
         });
 
-        this.http_exception.assertEx!(__FILE__, __LINE__)(this.request.method in this.supported_methods,
-                                                          StatusCode.NotImplemented);
+        enforce(this.http_exception.set(StatusCode.NotImplemented),
+                this.request.method in this.supported_methods);
     }
 
     /**************************************************************************

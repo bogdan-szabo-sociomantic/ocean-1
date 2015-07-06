@@ -24,6 +24,7 @@ module ocean.net.http.message.HttpHeaderParser;
 
  ******************************************************************************/
 
+import tango.core.Enforce;
 import ocean.text.util.SplitIterator: ChrSplitIterator, ISplitIterator;
 
 import ocean.net.http.HttpException: HttpParseException;
@@ -668,8 +669,9 @@ class HttpHeaderParser : IHttpHeaderParser
 
             char* header_end = g_strstr_len(chunk.ptr, max_len, end_of_header.ptr);
 
-            this.exception.assertEx!(__FILE__, __LINE__)
-                                    (header_end !is null, "request header too long: ", this.start_line_tokens[1]);
+            enforce(this.exception.set("request header too long: ")
+                    .append(this.start_line_tokens[1]),
+                    header_end !is null);
 
             consumed = (header_end - chunk.ptr) + end_of_header.length;
 
@@ -714,8 +716,8 @@ class HttpHeaderParser : IHttpHeaderParser
     private void parseRegularHeaderLine ( char[] header_line )
     {
 
-        this.exception.assertEx!(__FILE__, __LINE__)(this.n_header_lines <= this.header_lines_.length,
-                                                     "too many request header lines");
+        enforce(this.exception.set("too many request header lines"),
+                this.n_header_lines <= this.header_lines_.length);
 
         scope split_tokens = new ChrSplitIterator(':');
 
@@ -731,7 +733,8 @@ class HttpHeaderParser : IHttpHeaderParser
             break;
         }
 
-        this.exception.assertEx!(__FILE__, __LINE__)(split_tokens.n, "invalid header line (no ':')");
+        enforce(this.exception.set("invalid header line (no ':')"),
+                split_tokens.n);
 
         this.header_lines_[this.n_header_lines++] = header_line;
     }
@@ -782,8 +785,8 @@ class HttpHeaderParser : IHttpHeaderParser
             }
         }
 
-        this.exception.assertEx!(__FILE__, __LINE__)(i == this.start_line_tokens.length,
-                                                     "invalid start line (too few tokens)");
+        enforce(this.exception.set("invalid start line (too few tokens)"),
+                i == this.start_line_tokens.length);
     }
 }
 

@@ -54,6 +54,7 @@ import ocean.net.http.consts.HttpVersion: HttpVersionIds;
 
 import ocean.net.http.HttpException: HttpException, HeaderParameterException;
 
+import tango.core.Enforce;
 import tango.net.Uri: Uri;
 
 import tango.net.http.HttpConst: HttpResponseCode;
@@ -285,8 +286,12 @@ class HttpRequest : HttpHeader
         bool is_set,
              ok = super.getUnsigned(header_field_name, n, is_set);
 
-        this.header_param_exception.assertEx!(__FILE__, __LINE__)(is_set, header_field_name, "header parameter missing");
-        this.header_param_exception.assertEx!(__FILE__, __LINE__)(ok,     header_field_name, "decimal unsigned integer number expected");
+        enforce(this.header_param_exception.set("Missing header parameter : ")
+                .append(header_field_name),
+                is_set);
+        enforce(this.header_param_exception.set("Expected decimal unsigned integer for header : ")
+                .append(header_field_name),
+                ok);
 
         return n;
     }
@@ -448,7 +453,9 @@ class HttpRequest : HttpHeader
     {
         this.method = HttpMethodNames[this.method_name];
 
-        this.http_exception.assertEx!(__FILE__, __LINE__)(this.method, StatusCode.BadRequest, "invalid HTTP method");
+        enforce(this.http_exception.set(StatusCode.BadRequest)
+                .append(" : invalid HTTP method"),
+                this.method);
 
         this.http_version_ = HttpVersionIds[this.parser.start_line_tokens[2]];
 
@@ -458,16 +465,20 @@ class HttpRequest : HttpHeader
 
             if (HttpVersionIds.validSyntax(this.parser.start_line_tokens[2]))
             {
-                throw this.http_exception!(__FILE__, __LINE__)(StatusCode.VersionNotSupported);
+                throw this.http_exception.set(StatusCode.VersionNotSupported);
             }
             else
             {
-                throw this.http_exception!(__FILE__, __LINE__)(StatusCode.BadRequest, "invalid HTTP version");
+                throw this.http_exception.set(StatusCode.BadRequest)
+                    .append(" : invalid HTTP version");
             }
         }
 
-        this.http_exception.assertEx!(__FILE__, __LINE__)(this.parser.start_line_tokens[1].length,StatusCode.BadRequest, "no uri in request");
-        this.http_exception.assertEx!(__FILE__, __LINE__)(this.parser.start_line_tokens[1].length <= this.max_uri_length, StatusCode.RequestURITooLarge);
+        enforce(this.http_exception.set(StatusCode.BadRequest)
+                .append(" : no uri in request"),
+                this.parser.start_line_tokens[1].length);
+        enforce(this.http_exception.set(StatusCode.RequestURITooLarge),
+                this.parser.start_line_tokens[1].length <= this.max_uri_length);
 
         this._uri.parse(this.parser.start_line_tokens[1]);
     }

@@ -23,146 +23,54 @@ module ocean.net.http.HttpException;
 
  ******************************************************************************/
 
+import ocean.core.Array: copy, concat;
+import ocean.core.Exception;
 import ocean.net.http.consts.StatusCodes;
 
+import tango.core.Enforce;
 import tango.net.http.HttpConst: HttpResponseCode;
 
-import ocean.core.Array: copy, concat;
 
 /******************************************************************************/
 
 class HttpServerException : Exception
 {
-    this ( ) {super("");}
-
-    protected void set ( char[] file, typeof (__LINE__) line, T ... ) ( T msg )
-    {
-        super.file = file;
-        super.line = line;
-
-        .concat(super.msg, msg);
-    }
-
-    protected void set ( T ... ) ( T msg )
-    {
-        .concat(super.msg, msg);
-    }
-
-
-    version (D_Version2) {}
-    else
-    {
-        /***********************************************************************
-
-            Called immediately when this instance is deleted.
-            (Must be protected to prevent an invariant from failing.)
-
-        ***********************************************************************/
-
-        protected override void dispose ( )
-        {
-            delete super.msg;
-        }
-    }
+    mixin ReusableExceptionImplementation;
 }
+
 
 /******************************************************************************/
 
 class HttpException : HttpServerException
 {
-    StatusCode status;
+    public StatusCode status;
 
-    void assertEx ( char[] file, typeof (__LINE__) line, T, U ... ) ( T ok, HttpResponseCode status, U msg )
+    public override typeof (this) set ( cstring msg, istring file = __FILE__,
+                                        long line = __LINE__ )
     {
-        if (!ok) throw this.opCall!(file, line, U)(status, msg);
-    }
-
-    void assertEx ( T, U ... ) ( T ok, HttpResponseCode status, U msg )
-    {
-        if (!ok) throw this.opCall(status, msg);
-    }
-
-    typeof (this) opCall ( char[] file, typeof (__LINE__) line, T ... ) ( HttpResponseCode status, T msg )
-    {
-        this.status = cast (StatusCode) status;
-
-        super.set!(file, line, T)(msg);
-
+        super.set(msg, file, line);
         return this;
     }
 
-    typeof (this) opCall ( T ... ) ( HttpResponseCode status, T msg )
+    public typeof (this) set (StatusCode code, istring file = __FILE__,
+                              typeof(__LINE__) line = __LINE__)
     {
-        this.status = cast (StatusCode) status;
-
-        super.set(msg);
-
-        return this;
+        this.status = code;
+        return this.set(this.status_phrase, file, line);
     }
 
-    char[] status_phrase ( )
+    istring status_phrase ( )
     {
         return StatusPhrases[this.status];
     }
 }
 
-/******************************************************************************/
-
-class HttpParseException : HttpException
-{
-    void assertEx ( char[] file, typeof (__LINE__) line, T, U ... ) ( T ok, U msg )
-    {
-        if (!ok) throw this.opCall!(file, line, U)(msg);
-    }
-
-    void assertEx ( T, U ... ) ( T ok, U msg )
-    {
-        if (!ok) throw this.opCall(msg);
-    }
-
-    typeof (this) opCall ( char[] file, typeof (__LINE__) line, T ... ) ( T msg )
-    {
-        super.opCall!(file, line, T)(super.status.BadRequest, msg);
-
-        return this;
-    }
-
-    typeof (this) opCall ( T ... ) ( T msg )
-    {
-        super.opCall(super.status.BadRequest, msg);
-
-        return this;
-    }
-
-}
 
 /******************************************************************************/
 
-class HeaderParameterException : HttpServerException
-{
-    char[] header_field_name;
+class HttpParseException : HttpException {}
 
-    void assertEx ( char[] file, typeof (__LINE__) line, T, U ... ) ( T ok, char[] header_field_name, U msg )
-    {
-        if (!ok) throw this.opCall!(file, line, U)(header_field_name, msg);
-    }
 
-    void assertEx ( T, U ... ) ( T ok, char[] header_field_name, U msg )
-    {
-        if (!ok) throw this.opCall(header_field_name, msg);
-    }
+/******************************************************************************/
 
-    typeof (this) opCall ( char[] file, typeof (__LINE__) line, T ... ) ( char[] header_field_name, T msg )
-    {
-        this.header_field_name.copy(header_field_name);
-        super.set!(file, line, T)(msg);
-        return this;
-    }
-
-    typeof (this) opCall ( T ... ) ( char[] header_field_name, T msg )
-    {
-        this.header_field_name.copy(header_field_name);
-        super.set(msg);
-        return this;
-    }
-}
+class HeaderParameterException : HttpServerException {}
