@@ -14,6 +14,9 @@
 
 module ocean.db.tokyocabinet.util.TokyoCabinetException;
 
+
+import ocean.core.Exception;
+
 /******************************************************************************
 
     TokyoCabinetException
@@ -22,8 +25,7 @@ module ocean.db.tokyocabinet.util.TokyoCabinetException;
 
 class TokyoCabinetException : Exception
 {
-    this ( char[] msg ) { super(msg); }
-    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+    mixin DefaultExceptionCtor;
 
     static void opCall ( Args ... ) ( Args args )
     {
@@ -32,8 +34,7 @@ class TokyoCabinetException : Exception
 
     static class Cursor : TokyoCabinetException
     {
-        this ( char[] msg ) { super(msg); }
-        this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+        mixin DefaultExceptionCtor;
 
         static void opCall ( Args ... ) ( Args args )
         {

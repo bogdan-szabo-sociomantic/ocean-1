@@ -62,8 +62,7 @@ import tango.util.digest.MerkleDamgard;
 
 class HMACException : Exception
 {
-    this ( char[] msg ) { super(msg); }
-    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+    mixin DefaultExceptionCtor;
 
     static void opCall ( Args ... ) ( Args args )
     {

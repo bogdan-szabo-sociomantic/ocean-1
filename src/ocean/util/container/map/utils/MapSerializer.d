@@ -35,6 +35,7 @@ import ocean.io.digest.Fnv1,
        ocean.util.container.map.Map,
        ocean.core.Traits : ContainsDynamicArray;
 import ocean.core.Array : copy;
+import ocean.core.Exception;
 
 import tango.core.Exception    : IOException;
 import tango.io.model.IConduit : IOStream;
@@ -347,10 +348,7 @@ class MapSerializer
 
     class UnexpectedEndException : Exception
     {
-        this ( char[] msg, char[] file, size_t line )
-        {
-            super(msg, file, line);
-        }
+        mixin DefaultExceptionCtor;
     }
 
     /***************************************************************************

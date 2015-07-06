@@ -103,8 +103,7 @@ debug ( Json ) import ocean.io.Stdout : Stderr;
 
 class JsonException : Exception
 {
-    this ( char[] msg ) { super(msg); }
-    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+    mixin DefaultExceptionCtor;
 
     static void opCall ( Args ... ) ( Args args )
     {

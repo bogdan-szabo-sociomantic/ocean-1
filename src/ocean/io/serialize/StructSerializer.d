@@ -113,8 +113,7 @@ import tango.core.Traits;
 
 class SerializerException : Exception
 {
-    this ( char[] msg ) { super(msg); }
-    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+    mixin DefaultExceptionCtor;
 
     static void opCall ( Args ... ) ( Args args )
     {
@@ -131,16 +130,8 @@ class SerializerException : Exception
     {
         size_t bytes_expected, bytes_got;
 
-        this ( char[] msg, size_t bytes_expected, size_t bytes_got )
-        {
-            super(msg);
-
-            this.bytes_expected = bytes_expected;
-            this.bytes_got      = bytes_got;
-        }
-
-        this ( char[] msg, char[] file, long line,
-               size_t bytes_expected, size_t bytes_go )
+        this ( size_t bytes_expected, size_t bytes_got,
+               istring msg, istring file, typeof(__LINE__) line )
         {
             super(msg, file, line);
 

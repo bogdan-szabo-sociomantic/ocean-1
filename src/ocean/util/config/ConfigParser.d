@@ -17,7 +17,7 @@ module ocean.util.config.ConfigParser;
 
 import ocean.core.Array : copy;
 
-public  import ocean.core.Exception : enforce;
+import ocean.core.Exception;
 
 import ocean.io.Stdout;
 
@@ -51,8 +51,7 @@ import tango.core.Traits : DynamicArrayType;
 
 class ConfigException : Exception
 {
-    this ( char[] msg ) { super(msg); }
-    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+    mixin DefaultExceptionCtor;
 
     static void opCall ( Args ... ) ( Args args )
     {
