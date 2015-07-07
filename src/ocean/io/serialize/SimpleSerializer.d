@@ -96,7 +96,8 @@ static:
             number of bytes transmitted
 
         Throws:
-            EofException on End Of Flow condition
+            EofException on End Of Flow condition (note that the exception is
+            always newed)
 
     ***************************************************************************/
 
@@ -119,7 +120,8 @@ static:
             number of bytes transmitted
 
         Throws:
-            EofException on End Of Flow condition
+            EofException on End Of Flow condition (note that the exception is
+            always newed)
 
     ***************************************************************************/
 
@@ -141,7 +143,8 @@ static:
             number of bytes transmitted
 
         Throws:
-            EofException on End Of Flow condition
+            EofException on End Of Flow condition (note that the exception is
+            always newed)
 
     ***************************************************************************/
 
@@ -170,7 +173,8 @@ static:
             number of bytes transmitted
 
         Throws:
-            EofException on End Of Flow condition
+            EofException on End Of Flow condition (note that the exception is
+            always newed)
 
     ***************************************************************************/
 
@@ -192,7 +196,8 @@ static:
             number of bytes transmitted
 
         Throws:
-            EofException on End Of Flow condition
+            EofException on End Of Flow condition (note that the exception is
+            always newed)
 
     ***************************************************************************/
 
@@ -213,7 +218,8 @@ static:
             number of bytes transmitted
 
         Throws:
-            EofException on End Of Flow condition
+            EofException on End Of Flow condition (note that the exception is
+            always newed)
 
     ***************************************************************************/
 
@@ -243,7 +249,8 @@ static:
             number of bytes transmitted
 
         Throws:
-            EofException on End Of Flow condition
+            EofException on End Of Flow condition (note that the exception is
+            always newed)
 
     ***************************************************************************/
 
@@ -330,7 +337,8 @@ static:
             number of bytes transmitted
 
         Throws:
-            EofException on End Of Flow condition
+            EofException on End Of Flow condition (note that the exception is
+            always newed)
 
     ***************************************************************************/
 
@@ -357,7 +365,8 @@ static:
             number of bytes transmitted
 
         Throws:
-            EofException on End Of Flow condition
+            EofException on End Of Flow condition (note that the exception is
+            always newed)
 
     ***************************************************************************/
 
@@ -411,7 +420,8 @@ static:
             number of bytes transmitted
 
         Throws:
-            EofException on End Of Flow condition
+            EofException on End Of Flow condition (note that the exception is
+            always newed)
 
     ***************************************************************************/
 
