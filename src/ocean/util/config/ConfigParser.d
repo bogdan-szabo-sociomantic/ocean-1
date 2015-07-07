@@ -1419,13 +1419,7 @@ three = teen
     // Test to ensure that an additional parse of the same configuration does
     // not allocate at all.
 
-    size_t memused1, memused2, memfree;
-
-    Config.parseString(str2);
-    GC.usage(memused1, memfree);
-    Config.parseString(str2);
-    GC.usage(memused2, memfree);
-    test!("==")(memused1, memused2);
+    testNoAlloc(Config.parseString(str2));
 
     debug ( ConfigParser )
     {
