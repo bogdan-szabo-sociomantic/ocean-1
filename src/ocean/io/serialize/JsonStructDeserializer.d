@@ -104,11 +104,6 @@ debug ( Json ) import ocean.io.Stdout : Stderr;
 class JsonException : Exception
 {
     mixin DefaultExceptionCtor;
-
-    static void opCall ( Args ... ) ( Args args )
-    {
-        throw new JsonException(args);
-    }
 }
 
 

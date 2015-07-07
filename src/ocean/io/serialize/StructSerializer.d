@@ -115,11 +115,6 @@ class SerializerException : Exception
 {
     mixin DefaultExceptionCtor;
 
-    static void opCall ( Args ... ) ( Args args )
-    {
-        throw new SerializerException(args);
-    }
-
     /***************************************************************************
 
         StructSerializer Exception

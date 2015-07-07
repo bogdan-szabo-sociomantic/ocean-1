@@ -63,11 +63,6 @@ import tango.util.digest.MerkleDamgard;
 class HMACException : Exception
 {
     mixin DefaultExceptionCtor;
-
-    static void opCall ( Args ... ) ( Args args )
-    {
-        throw new HMACException(args);
-    }
 }
 
 

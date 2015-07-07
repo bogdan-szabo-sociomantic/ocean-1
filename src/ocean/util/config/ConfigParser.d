@@ -52,11 +52,6 @@ import tango.core.Traits : DynamicArrayType;
 class ConfigException : Exception
 {
     mixin DefaultExceptionCtor;
-
-    static void opCall ( Args ... ) ( Args args )
-    {
-        throw new ConfigException(args);
-    }
 }
 
 

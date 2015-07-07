@@ -40,6 +40,27 @@ Removed Deprecated Symbols
   `parse` has been taken out of the ConfigParser API. `parse` used to be an
   alias for the `parseFile` method, and has been deprecated since Oct 2014.
 
+Removed Symbols
+---------------
+
+* `ocean.db.tokyocabinet.util.TokyoCabinetException`,
+  `ocean.io.serialize.JsonStructDeserializer`,
+  `ocean.io.serialize.StructSerializer`,
+  `ocean.util.cipher.HMAC`,
+  `ocean.util.config.ConfigParser`
+
+   The following static opCall which trivially wrapped the exception constructor
+   have been removed:
+   - `ocean.db.tokyocabinet.util.TokyoCabinetException.TokyoCabinetException`
+   - `ocean.db.tokyocabinet.util.TokyoCabinetException.TokyoCabinetException.Cursor`
+   - `ocean.io.serialize.JsonStructDeserializer.JsonException`
+   - `ocean.io.serialize.StructSerializer.SerializerException`
+   - `ocean.util.cipher.HMAC.HMACException`
+   - `ocean.util.config.ConfigParser.ConfigException`
+
+   They can be replaced in a backward-compatible way by calling the constructor
+   directly (prepend a `new`).
+
 Deprecations
 ============
 

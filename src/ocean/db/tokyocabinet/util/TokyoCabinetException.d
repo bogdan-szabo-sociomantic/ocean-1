@@ -27,18 +27,8 @@ class TokyoCabinetException : Exception
 {
     mixin DefaultExceptionCtor;
 
-    static void opCall ( Args ... ) ( Args args )
-    {
-        throw new TokyoCabinetException(args);
-    }
-
     static class Cursor : TokyoCabinetException
     {
         mixin DefaultExceptionCtor;
-
-        static void opCall ( Args ... ) ( Args args )
-        {
-            throw new Cursor(args);
-        }
     }
 }
