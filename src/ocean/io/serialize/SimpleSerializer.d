@@ -389,7 +389,8 @@ static:
 
             }
 
-            enforce!(EofException)(ret != stream.Eof, "end of flow while " ~ act);
+            enforce!(EofException)(ret != stream.Eof, "end of flow while "
+                ~ act ~ " '" ~ stream.conduit.toString() ~ "'");
 
             transmitted += ret;
         }
