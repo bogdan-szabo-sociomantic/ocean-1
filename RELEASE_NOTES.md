@@ -23,7 +23,8 @@ Migration Instructions
 
 Removed Deprecated Modules
 --------------------------
-* `ocean.util.container.cache.PriorityCache
+
+* `ocean.util.container.cache.PriorityCache`
 
   `droppingItem()` method has been replaced with `itemDropped()`. Also the
   notifier is now called after the item has already been removed from the
