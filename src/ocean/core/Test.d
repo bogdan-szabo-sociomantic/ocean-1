@@ -12,6 +12,7 @@ module ocean.core.Test;
 
 public import tango.core.Test;
 
+import tango.transition;
 import tango.core.Memory;
 import tango.core.Enforce;
 
