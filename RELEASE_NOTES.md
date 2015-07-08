@@ -21,6 +21,12 @@ Migration Instructions
   it doesn't do a true deep copy as it avoids copying memory when possible. To
   make this more clear the function was renamed to `structConvert()`.
 
+* `ocean.io.serialize.SimpleSerializer`
+
+  Upon EOF, `SimpleSerializer` now throws a new exception type, `EofException`.
+  It previously threw `IOException`, making it impossible to distinguish between
+  EOF and other I/O errors.
+
 Removed Deprecated Modules
 --------------------------
 

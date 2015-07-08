@@ -54,8 +54,6 @@ module ocean.io.serialize.SimpleSerializer;
 
 import ocean.core.Exception: enforce;
 
-import tango.core.Exception: IOException;
-
 import tango.core.Traits;
 
 import tango.io.model.IConduit: IOStream, InputStream, OutputStream;
@@ -98,7 +96,7 @@ static:
             number of bytes transmitted
 
         Throws:
-            IOException on End Of Flow condition
+            EofException on End Of Flow condition
 
     ***************************************************************************/
 
@@ -121,7 +119,7 @@ static:
             number of bytes transmitted
 
         Throws:
-            IOException on End Of Flow condition
+            EofException on End Of Flow condition
 
     ***************************************************************************/
 
@@ -143,7 +141,7 @@ static:
             number of bytes transmitted
 
         Throws:
-            IOException on End Of Flow condition
+            EofException on End Of Flow condition
 
     ***************************************************************************/
 
@@ -172,7 +170,7 @@ static:
             number of bytes transmitted
 
         Throws:
-            IOException on End Of Flow condition
+            EofException on End Of Flow condition
 
     ***************************************************************************/
 
@@ -194,7 +192,7 @@ static:
             number of bytes transmitted
 
         Throws:
-            IOException on End Of Flow condition
+            EofException on End Of Flow condition
 
     ***************************************************************************/
 
@@ -215,7 +213,7 @@ static:
             number of bytes transmitted
 
         Throws:
-            IOException on End Of Flow condition
+            EofException on End Of Flow condition
 
     ***************************************************************************/
 
@@ -245,7 +243,7 @@ static:
             number of bytes transmitted
 
         Throws:
-            IOException on End Of Flow condition
+            EofException on End Of Flow condition
 
     ***************************************************************************/
 
@@ -332,7 +330,7 @@ static:
             number of bytes transmitted
 
         Throws:
-            IOException on End Of Flow condition
+            EofException on End Of Flow condition
 
     ***************************************************************************/
 
@@ -359,7 +357,7 @@ static:
             number of bytes transmitted
 
         Throws:
-            IOException on End Of Flow condition
+            EofException on End Of Flow condition
 
     ***************************************************************************/
 
@@ -391,7 +389,7 @@ static:
 
             }
 
-            enforce!(IOException)(ret != stream.Eof, "end of flow while " ~ act);
+            enforce!(EofException)(ret != stream.Eof, "end of flow while " ~ act);
 
             transmitted += ret;
         }
@@ -412,7 +410,7 @@ static:
             number of bytes transmitted
 
         Throws:
-            IOException on End Of Flow condition
+            EofException on End Of Flow condition
 
     ***************************************************************************/
 
@@ -432,6 +430,39 @@ static:
     }
 }
 
+
+/*******************************************************************************
+
+    End Of Flow exception class, thrown when an I/O operation on an IOStream
+    results in EOF.
+
+*******************************************************************************/
+
+public class EofException : Exception
+{
+    import ocean.core.Exception : DefaultExceptionCtor;
+
+    mixin DefaultExceptionCtor;
+
+    version ( UnitTest )
+    {
+        import ocean.io.device.MemoryDevice;
+    }
+
+    /***************************************************************************
+
+        Test that reading from an empty conduit throws an instance of this
+        class.
+
+    ***************************************************************************/
+
+    unittest
+    {
+        auto f = new MemoryDevice;
+        int x;
+        testThrown!(typeof(this))(SimpleSerializer.read(f, x));
+    }
+}
 
 
 version ( UnitTest )
