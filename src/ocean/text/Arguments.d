@@ -14,7 +14,7 @@
 
     ---
 
-        void main ( char[][] cmdl )
+        void main ( istring[] cmdl )
         {
             // Parse command line args
             scope args = new Arguments(cmdl[0],
@@ -57,6 +57,8 @@ module ocean.text.Arguments;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import Tango = tango.text.Arguments;
 
 import tango.io.Stdout;
@@ -84,7 +86,7 @@ class Arguments : Tango.Arguments
 
     ***************************************************************************/
 
-    private char[] spaces;
+    private mstring spaces;
 
 
     /***************************************************************************
@@ -111,7 +113,7 @@ class Arguments : Tango.Arguments
 
     ***************************************************************************/
 
-    public char[] name;
+    public istring name;
 
 
     /***************************************************************************
@@ -135,7 +137,7 @@ class Arguments : Tango.Arguments
 
     ***************************************************************************/
 
-    public char[] usage = "{0} [OPTIONS] [ARGS]";
+    public istring usage = "{0} [OPTIONS] [ARGS]";
 
 
     /***************************************************************************
@@ -148,7 +150,7 @@ class Arguments : Tango.Arguments
 
     ***************************************************************************/
 
-    public char[] desc;
+    public istring desc;
 
 
     /***************************************************************************
@@ -162,7 +164,7 @@ class Arguments : Tango.Arguments
 
     ***************************************************************************/
 
-    public char[] help;
+    public istring help;
 
 
     /***************************************************************************
@@ -178,8 +180,8 @@ class Arguments : Tango.Arguments
 
     ***************************************************************************/
 
-    public this ( char[] app_name = null, char[] desc = null,
-            char[] usage = null, char[] help = null )
+    public this ( istring app_name = null, istring desc = null,
+            istring usage = null, istring help = null )
     {
         this.name = app_name;
         this.desc = desc;
@@ -260,7 +262,7 @@ class Arguments : Tango.Arguments
 
     ***************************************************************************/
 
-    public bool getBool ( char[] name )
+    public bool getBool ( cstring name )
     {
         auto arg = this.get(name);
         if ( arg )
@@ -291,10 +293,10 @@ class Arguments : Tango.Arguments
 
     ***************************************************************************/
 
-    public T getInt ( T ) ( char[] name )
+    public T getInt ( T ) ( cstring name )
     {
         auto arg = this.get(name);
-        char[] value;
+        cstring value;
 
         if ( arg && arg.assigned.length == 1)
         {
@@ -320,10 +322,10 @@ class Arguments : Tango.Arguments
 
     ***************************************************************************/
 
-    public char[] getString ( char[] name )
+    public istring getString ( cstring name )
     {
         auto arg = this.get(name);
-        char[] value;
+        istring value;
 
         if ( arg && arg.assigned.length == 1)
         {
@@ -480,7 +482,7 @@ class Arguments : Tango.Arguments
 
     ***************************************************************************/
 
-    private char[] space ( size_t width )
+    private mstring space ( size_t width )
     {
         this.spaces.length = width;
         if ( width > 0 )
