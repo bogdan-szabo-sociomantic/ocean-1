@@ -9,7 +9,7 @@
 module ocean.sys.ErrnoException;
 
 /*******************************************************************************
-    
+
     Imports
 
 *******************************************************************************/
@@ -35,7 +35,7 @@ public class ErrnoException : Exception
 
     import ocean.core.Exception : ReusableExceptionImplementation;
     import ocean.core.Traits : identifier;
-    
+
     /**************************************************************************
 
         Provides standard reusable exception API
@@ -96,7 +96,7 @@ public class ErrnoException : Exception
             msg = extra error message to append after main error
                 description, can be empty
             name = extern function name that is expected to set errno
-        
+
         Throws:
             this if 'expr' is false
 
@@ -124,7 +124,7 @@ public class ErrnoException : Exception
             );
             assert (false);
         }
-        catch (ErrnoException e) 
+        catch (ErrnoException e)
         {
             test!("==")(e.toString(), "FUNCTION: Too many open files (extra)");
             test!("==")(e.errorNumber(), EMFILE);
@@ -327,7 +327,7 @@ public class ErrnoException : Exception
     {
         auto e = new ErrnoException;
         e.set(0);
-        test!("==")(e.toString(), "Expected non-zero errno after failure");    
+        test!("==")(e.toString(), "Expected non-zero errno after failure");
     }
 
     /**************************************************************************
@@ -358,12 +358,12 @@ public class ErrnoException : Exception
     {
         auto e = new ErrnoException;
         e.set(ENOTBLK).message("msg");
-        test!("==")(e.toString(), "Block device required (msg)");    
+        test!("==")(e.toString(), "Block device required (msg)");
     }
 }
 
 /*******************************************************************************
-    
+
     Struct that captures callable object together with ErrnoException exception
     object and line/file values of original context.
 
@@ -386,7 +386,7 @@ public struct Caller ( T )
     private int            original_line;
     /// exception to throw if `verify` fails
     private ErrnoException e;
-    /// function that checks if return value of `this.fn` is "success" 
+    /// function that checks if return value of `this.fn` is "success"
     private bool function (ReturnTypeOf!(T)) verify;
 
     /***************************************************************************
