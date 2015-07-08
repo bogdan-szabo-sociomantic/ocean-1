@@ -319,7 +319,7 @@ unittest
     {
         // can't use char for i because of expected overflow
         auto c = castFrom!(int).to!(char)(i);
-        if ( good.contains(c) )
+        if ( contains(good, c) )
         {
             assert(isHex(c));
         }
