@@ -11,6 +11,7 @@ module ocean.util.log.Stats_slowtest;
 import ocean.core.Test,
        ocean.util.log.Stats;
 
+import tango.transition;
 import tango.io.device.TempFile;
 
 unittest

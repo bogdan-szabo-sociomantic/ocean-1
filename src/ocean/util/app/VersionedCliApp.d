@@ -23,6 +23,7 @@ public import ocean.util.app.Application : Application;
 public import ocean.text.Arguments : Arguments;
 public import ocean.util.app.ext.VersionInfo : VersionInfo;
 
+import tango.transition;
 import ocean.util.app.CommandLineApp;
 import ocean.util.app.ext.VersionArgsExt;
 

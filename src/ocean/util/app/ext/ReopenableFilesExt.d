@@ -19,6 +19,8 @@ module ocean.util.app.ext.ReopenableFilesExt;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.util.app.model.IApplication;
 import ocean.util.app.model.IApplicationExtension;
 

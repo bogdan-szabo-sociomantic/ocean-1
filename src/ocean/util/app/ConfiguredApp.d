@@ -22,6 +22,7 @@ module ocean.util.app.ConfiguredApp;
 public import ocean.util.app.Application : Application;
 public import ocean.util.config.ConfigParser : ConfigParser;
 
+import tango.transition;
 import ocean.util.app.Application;
 import ocean.util.app.ext.model.IConfigExtExtension;
 import ocean.util.app.ext.ConfigExt;

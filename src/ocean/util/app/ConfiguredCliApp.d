@@ -27,6 +27,7 @@ import ocean.util.app.CommandLineApp;
 import ocean.util.app.ext.model.IConfigExtExtension;
 import ocean.util.app.ext.ConfigExt;
 
+import tango.transition;
 
 
 /*******************************************************************************

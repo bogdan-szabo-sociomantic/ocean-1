@@ -32,6 +32,7 @@ import ocean.util.config.ConfigParser;
 import ocean.util.log.Stats;
 import ClassFiller = ocean.util.config.ClassFiller;
 
+import tango.transition;
 import tango.io.device.File;
 
 import tango.util.log.Log;

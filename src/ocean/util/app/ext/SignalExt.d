@@ -83,12 +83,13 @@
 module ocean.util.app.ext.SignalExt;
 
 
-
 /*******************************************************************************
 
     Imports
 
 *******************************************************************************/
+
+import tango.transition;
 
 import ocean.util.app.model.IApplicationExtension;
 import ocean.util.app.model.ExtensibleClassMixin;

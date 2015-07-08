@@ -25,6 +25,7 @@ import ocean.util.app.ext.model.IArgumentsExtExtension;
 import ocean.text.Arguments;
 import ocean.io.Stdout : Stdout, Stderr;
 
+import tango.transition;
 import tango.io.stream.Format : FormatOutput;
 
 

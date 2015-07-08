@@ -14,6 +14,7 @@ module ocean.sys.ErrnoException;
 
 *******************************************************************************/
 
+import tango.transition;
 import tango.stdc.errno;
 
 version (UnitTest)

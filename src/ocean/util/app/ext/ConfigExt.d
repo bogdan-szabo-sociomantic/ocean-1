@@ -11,7 +11,6 @@
 module ocean.util.app.ext.ConfigExt;
 
 
-
 /*******************************************************************************
 
     Imports
@@ -29,6 +28,7 @@ import ocean.util.config.ConfigParser;
 import ocean.text.Arguments;
 import ocean.io.Stdout : Stderr;
 
+import tango.transition;
 import tango.text.Util : join, locate, locatePrior, trim;
 import tango.core.Exception : IOException;
 

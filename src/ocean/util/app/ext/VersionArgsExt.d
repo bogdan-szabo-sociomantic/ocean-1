@@ -32,6 +32,7 @@ import ocean.util.config.ConfigParser;
 import ocean.io.Stdout;
 import ocean.core.Array: startsWith;
 
+import tango.transition;
 import tango.util.log.Log;
 import tango.util.log.AppendFile;
 import tango.util.log.LayoutDate;

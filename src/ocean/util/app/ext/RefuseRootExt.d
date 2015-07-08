@@ -10,8 +10,17 @@
 
 module ocean.util.app.ext.RefuseRootExt;
 
+
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
+
+import tango.transition;
 import ocean.util.app.ext.model.IArgumentsExtExtension;
 import tango.stdc.posix.unistd;
+
 
 /*******************************************************************************
 

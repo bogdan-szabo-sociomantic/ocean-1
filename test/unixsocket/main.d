@@ -26,6 +26,7 @@ import ocean.core.Exception;
 import ocean.core.Test;
 import ocean.sys.socket.UnixSocket;
 
+import tango.transition;
 import tango.stdc.posix.sys.socket;
 import tango.stdc.posix.sys.wait;
 import tango.stdc.posix.unistd;

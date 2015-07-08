@@ -14,7 +14,6 @@
 module ocean.util.log.Stats;
 
 
-
 /*******************************************************************************
 
     Imports
@@ -33,6 +32,7 @@ import ocean.text.convert.Layout: StringLayout;
 
 import ocean.util.log.layout.LayoutStatsLog;
 
+import tango.transition;
 import tango.core.Traits;
 import tango.util.log.Log;
 import tango.util.log.AppendSyslog;

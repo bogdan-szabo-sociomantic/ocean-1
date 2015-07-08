@@ -23,6 +23,7 @@ public import ocean.util.config.ConfigParser : ConfigParser;
 
 import ocean.util.app.model.IExtension;
 
+import tango.transition;
 
 
 /*******************************************************************************

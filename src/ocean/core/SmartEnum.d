@@ -183,6 +183,8 @@ unittest
 
 private template SmartEnumCore ( BaseType )
 {
+    import tango.transition;
+
     /***************************************************************************
 
         Two way mapping between codes <-> descriptions.

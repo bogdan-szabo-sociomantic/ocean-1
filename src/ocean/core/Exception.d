@@ -136,6 +136,7 @@ unittest
 
 public template ReusableExceptionImplementation()
 {
+    import tango.transition;
     import tango.text.convert.Integer;
     static import ocean.core.Array;
 
@@ -359,6 +360,8 @@ version (UnitTest)
 
 public template DefaultExceptionCtor()
 {
+    import tango.transition;
+
     public this (istring msg, istring file = __FILE__,
                  typeof(__LINE__) line = __LINE__)
     {

@@ -28,6 +28,7 @@ import ocean.core.Test;
 import ocean.sys.Epoll;
 import ocean.sys.SignalMask;
 
+import tango.transition;
 import tango.core.Array : contains;
 
 import tango.stdc.posix.signal : kill, pid_t, sigaction, sigaction_t,
@@ -494,4 +495,3 @@ unittest
             SIGBUS]);
     }
 }
-

@@ -18,6 +18,8 @@ module ocean.util.app.model.IApplicationExtension;
 
 *******************************************************************************/
 
+import tango.transition;
+
 public import ocean.util.app.ExitException : ExitException;
 
 import ocean.util.app.model.IExtension;

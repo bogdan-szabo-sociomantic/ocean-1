@@ -14,6 +14,7 @@ import ocean.util.app.model.IApplicationExtension;
 import ClassFiller = ocean.util.config.ClassFiller;
 import ocean.util.app.ext.model.IConfigExtExtension;
 
+import tango.transition;
 import tango.stdc.posix.unistd : setuid, setgid;
 import tango.stdc.posix.pwd;
 import tango.stdc.string;

@@ -28,6 +28,7 @@ import ocean.util.app.ext.model.ILogExtExtension;
 import ocean.util.app.ext.LogExt;
 import ocean.util.app.ExitException;
 
+import tango.transition;
 import tango.util.log.Log;
 
 
