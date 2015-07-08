@@ -888,16 +888,17 @@ struct ClassIterator ( T, Source = ConfigParser )
     {
         int result = 0;
 
-        foreach ( key; config )
+        foreach ( key; this.config )
         {
             scope T instance = new T;
 
-            if ( key.length > root.length && key[0 .. root.length] == root &&
-                 key[root.length] == '.' )
+            if ( key.length > this.root.length
+                 && key[0 .. this.root.length] == this.root
+                 && key[this.root.length] == '.' )
             {
-                fill(key, instance, config);
+                fill(key, instance, this.config);
 
-                auto name = key[root.length + 1 .. $];
+                auto name = key[this.root.length + 1 .. $];
                 result = dg(name, instance);
 
                 if (result) break;
