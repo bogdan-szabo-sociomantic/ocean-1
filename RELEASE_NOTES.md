@@ -52,6 +52,11 @@ Removed Deprecated Symbols
   `parse` has been taken out of the ConfigParser API. `parse` used to be an
   alias for the `parseFile` method, and has been deprecated since Oct 2014.
 
+* `ocean.text.util.StringSearch`
+
+   Two overload of `split` and `splitCollapse` which created arrays of slices
+   and have been deprecated since late 2011 have been removed.
+
 Removed Symbols
 ---------------
 
