@@ -19,7 +19,8 @@
 *******************************************************************************/
 
 module ocean.text.convert.Integer;
-
+ 
+import tango.transition;
 
 import tango.core.Traits;
 
@@ -328,7 +329,7 @@ private bool toUnsignedInteger ( T, U ) ( T[] digits, out U value, uint radix = 
 private bool convert ( T ) ( T[] digits, out ulong value, out uint eaten,
     uint radix = 10 )
 {
-    foreach (c; digits)
+    foreach (Unqual!(T) c; digits)
     {
         if (c >= '0' && c <= '9')
         {}
@@ -388,9 +389,9 @@ private bool convert ( T ) ( T[] digits, out ulong value, out uint eaten,
 
 private ptrdiff_t trim ( T ) ( T[] digits, ref bool negative, ref uint radix )
 {
-    T       c;
-    T*      p = digits.ptr;
-    auto    len = digits.length;
+    Unqual!(T) c;
+    T*         p = digits.ptr;
+    auto       len = digits.length;
 
     if (len)
        {

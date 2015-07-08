@@ -27,6 +27,8 @@ module ocean.text.convert.Hash;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import Integer = ocean.text.convert.Integer;
 
 import ocean.core.TypeConvert;
@@ -58,11 +60,11 @@ public const HashDigits = hash_t.sizeof * 2;
 
 *******************************************************************************/
 
-public bool toHashT ( char[] str, out hash_t hash,
+public bool toHashT ( cstring str, out hash_t hash,
     bool allow_radix = false )
 {
     return handleRadix(str, allow_radix,
-        ( char[] str )
+        ( cstring str )
         {
             return Integer.toUlong(str, hash, 16);
         });
@@ -120,11 +122,11 @@ unittest
 
 *******************************************************************************/
 
-public bool hashDigestToHashT ( char[] str, out hash_t hash,
+public bool hashDigestToHashT ( cstring str, out hash_t hash,
     bool allow_radix = false )
 {
     return handleRadix(str, allow_radix,
-        ( char[] str )
+        ( cstring str )
         {
             if ( str.length != HashDigits )
             {
@@ -193,7 +195,7 @@ unittest
 
 *******************************************************************************/
 
-public char[] toHashDigest ( hash_t hash, ref char[] str )
+public mstring toHashDigest ( hash_t hash, ref mstring str )
 {
     str.length = HashDigits;
     foreach_reverse ( ref c; str )
@@ -206,7 +208,7 @@ public char[] toHashDigest ( hash_t hash, ref char[] str )
 
 unittest
 {
-    char[] str;
+    mstring str;
 
     static if ( HashDigits == 16 )
     {
@@ -236,10 +238,10 @@ unittest
 
 *******************************************************************************/
 
-public bool isHex ( char[] str, bool allow_radix = false )
+public bool isHex ( cstring str, bool allow_radix = false )
 {
     return handleRadix(str, allow_radix,
-        ( char[] str )
+        ( cstring str )
         {
             foreach ( c; str )
             {
@@ -301,7 +303,7 @@ public bool isHex ( char c )
 
 unittest
 {
-    bool contains ( char[] str, char c )
+    bool contains ( cstring str, char c )
     {
         foreach ( cc; str )
         {
@@ -313,7 +315,7 @@ unittest
         return false;
     }
 
-    char[] good = "0123456789abcdefABCDEF";
+    istring good = "0123456789abcdefABCDEF";
 
     for ( int i = char.min; i <= char.max; i++ )
     {
@@ -345,10 +347,10 @@ unittest
 
 *******************************************************************************/
 
-public bool isHashDigest ( char[] str, bool allow_radix = false )
+public bool isHashDigest ( cstring str, bool allow_radix = false )
 {
     return handleRadix(str, allow_radix,
-        ( char[] str )
+        ( cstring str )
         {
             if ( str.length != HashDigits )
             {
@@ -410,7 +412,7 @@ unittest
 
 *******************************************************************************/
 
-public char[] hexToLower ( char[] str )
+public mstring hexToLower ( mstring str )
 {
     const to_lower = ('A' - 'a');
     foreach ( ref c; str )
@@ -427,7 +429,7 @@ public char[] hexToLower ( char[] str )
 unittest
 {
     // empty string
-    assert(hexToLower("") == "");
+    assert(hexToLower(null) == "");
 
     // numbers only
     assert(hexToLower("123456678".dup) == "123456678");
@@ -448,7 +450,7 @@ unittest
     assert(hexToLower("12345678abcdefABCDEFUVWXYZ".dup) == "12345678abcdefabcdefUVWXYZ");
 
     // check that string is modified in-place
-    char[] str = "ABCDEF".dup;
+    mstring str = "ABCDEF".dup;
     auto converted = hexToLower(str);
     assert(converted.ptr == str.ptr);
 }
@@ -471,8 +473,8 @@ unittest
 
 *******************************************************************************/
 
-private bool handleRadix ( char[] str, bool allow_radix,
-    bool delegate ( char[] ) process )
+private bool handleRadix ( cstring str, bool allow_radix,
+    bool delegate ( cstring ) process )
 {
     if ( str.length >= 2 && str[0..2] == "0x" )
     {
