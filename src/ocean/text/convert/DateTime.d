@@ -21,6 +21,8 @@ module ocean.text.convert.DateTime;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import tango.stdc.stdio : sscanf;
 
 import tango.stdc.posix.sys.stat;
@@ -77,7 +79,7 @@ public enum DateConversion : uint
 
 *******************************************************************************/
 
-public bool timeToUnixTime ( char[] str, ref time_t time,
+public bool timeToUnixTime ( cstring str, ref time_t time,
     out DateConversion conversion_type )
 {
     tm datetime;
@@ -195,7 +197,7 @@ public bool timeToUnixTime ( char[] str, ref time_t time,
 
 *******************************************************************************/
 
-private bool validCharacters ( char[] str, char[] extra )
+private bool validCharacters ( cstring str, cstring extra )
 {
     foreach ( chr; str )
     {
@@ -281,11 +283,11 @@ private bool validTime ( int hour, int minute, int second )
 
 unittest
 {
-    void testConversion ( int test_number, char[] datetime,
+    void testConversion ( int test_number, cstring datetime,
         time_t expected_time, DateConversion expected_conversion,
         bool should_pass = true )
     {
-        char[] test_name;
+        mstring test_name;
         time_t timestamp;
         auto conversion_type = DateConversion.None;
 
