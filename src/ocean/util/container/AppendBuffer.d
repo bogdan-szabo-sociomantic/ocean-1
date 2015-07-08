@@ -25,6 +25,8 @@ module ocean.util.container.AppendBuffer;
 
  ******************************************************************************/
 
+import tango.transition;
+
 import tango.stdc.stdlib: malloc, realloc, free;
 
 import tango.core.Exception: onOutOfMemoryError;
@@ -313,7 +315,7 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
 
          **************************************************************************/
 
-        T[] opSliceAssign ( T element )
+        T[] opSliceAssign ( Const!(T) element )
         {
             return this.opSlice()[] = element;
         }
@@ -330,7 +332,7 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
 
          **************************************************************************/
 
-        T[] opSliceAssign ( T element, size_t start, size_t end )
+        T[] opSliceAssign ( Const!(T) element, size_t start, size_t end )
         {
             return this.opSlice(start, end)[] = element;
         }
@@ -428,7 +430,7 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
 
      **************************************************************************/
 
-    T[] opSliceAssign ( T[] chunk )
+    T[] opSliceAssign ( Const!(T)[] chunk )
     {
         return cast (T[]) this.copy_(chunk);
     }
@@ -447,7 +449,7 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
 
      **************************************************************************/
 
-    T[] opSliceAssign ( T[] chunk, size_t start, size_t end )
+    T[] opSliceAssign ( Const!(T)[] chunk, size_t start, size_t end )
     {
         return cast (T[]) this.copy_(chunk, start, end);
     }
@@ -464,7 +466,7 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
 
      **************************************************************************/
 
-    T[] opCatAssign ( T[] chunk )
+    T[] opCatAssign ( Const!(T)[] chunk )
     {
         T[] dst = this.extend(chunk.length);
 
@@ -620,7 +622,7 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
 
      **************************************************************************/
 
-    private bool append_ ( T[] chunk )
+    private bool append_ ( Const!(T)[] chunk )
     {
         return chunk.length? this.opCatAssign(chunk).length >= chunk.length : true;
     }
@@ -1126,7 +1128,7 @@ private abstract class AppendBufferImpl: IAppendBufferBase
 
      **************************************************************************/
 
-    protected void[] copy_ ( void[] src )
+    protected void[] copy_ ( Const!(void)[] src )
     in
     {
         assert (!(src.length % this.e), typeof (this).stringof ~ ": data alignment mismatch");
@@ -1167,7 +1169,7 @@ private abstract class AppendBufferImpl: IAppendBufferBase
 
      **************************************************************************/
 
-    protected void[] copy_ ( void[] chunk, size_t start, size_t end )
+    protected void[] copy_ ( Const!(void)[] chunk, size_t start, size_t end )
     in
     {
         assert (!(chunk.length % this.e), typeof (this).stringof ~ ": data alignment mismatch");
