@@ -361,6 +361,8 @@ private template SuperClassIndex ( size_t i, T ... )
 
 public template EnumBase ( T ... )
 {
+    import tango.transition;
+
     alias IEnum.Name Name;
     alias IEnum.Value Value;
 
@@ -798,4 +800,3 @@ unittest
     checkEnum!(Enum1)(["a", "b", "c"], [1, 2, 3]);
     checkEnum!(Enum2)(["a", "b", "c", "d", "e", "f"], [1, 2, 3, 4, 5, 6]);
 }
-
