@@ -36,7 +36,7 @@ public interface IUntypedQueue
     ***************************************************************************/
 
     bool empty ( );
-    
+
 
     /**************************************************************************
 
@@ -69,14 +69,14 @@ public interface IUntypedQueue
 
     /**************************************************************************
 
-        Pushes an item of `size` bytes to the queue. The caller should set the 
+        Pushes an item of `size` bytes to the queue. The caller should set the
         returned item as desired
 
         Params:
             size = number of bytes to push into queue
 
         Returns:
-            Newly pushed item, null if the item could not be pushed (see 
+            Newly pushed item, null if the item could not be pushed (see
             documentation of implementing class for possible failure reasons)
 
     ***************************************************************************/
@@ -133,7 +133,7 @@ public bool push ( IUntypedQueue q, void[] t )
 /******************************************************************************
 
     A helper function to pop from IUntypedQueue.
-    
+
     Note: this function performs a shallow copy of the popped item into t.
     if this is not desired, the caller class is to call `top()` method of
     `IUntypedQueue` and apply desired logic on returned pointer and then call

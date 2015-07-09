@@ -22,15 +22,15 @@ public import ocean.util.container.queue.model.ITypedQueue: push, pop;
     next item.)
 
     The linked list implementation allows the following extensions to ITypedQueue:
-    
+
         * The ability to find a specified value in the queue: contains().
         * The ability to remove one or all instances of a specified value from
           the queue: remove().
-    
+
     The items in the linked list are allocated and deallocated by Malloc allocation
     manager, to avoid the GC from not so efficiently going over the linked list
     (see explanation at LinkedListQueue.heap below).
-    
+
     Template params:
 
         T = Type of values stored in the linked list queue
@@ -41,7 +41,7 @@ public class LinkedListQueue ( T ) : ITypedQueue!( T )
 {
     /**************************************************************************
 
-        Should the values in queue be added to GC as roots, thus 
+        Should the values in queue be added to GC as roots, thus
         preventing the GC from collecting these values.
 
         Since the items in the queue are allocated by the Malloc allocation
@@ -53,7 +53,7 @@ public class LinkedListQueue ( T ) : ITypedQueue!( T )
 
         So we add the values to GC as roots, thus preventing the GC from collecting
         them, depending on the value of 'root_values'
-    
+
     ***************************************************************************/
 
     protected static bool root_values;
@@ -61,12 +61,12 @@ public class LinkedListQueue ( T ) : ITypedQueue!( T )
 
     /**************************************************************************
 
-        Static constructor. 
+        Static constructor.
 
         Checks whether the values in the queue (of Type T) are in GC memory,
         and sets 'root_values' accordingly.
 
-    ***************************************************************************/    
+    ***************************************************************************/
 
     public static this ( )
     {
@@ -155,7 +155,7 @@ public class LinkedListQueue ( T ) : ITypedQueue!( T )
 
         Malloc allocation manager, to allocate and deallocate items in queue.
         We use the malloc allocation manager as to keep the linked list away
-        from the reach of the GC, for efficiency reasons. 
+        from the reach of the GC, for efficiency reasons.
         The reason for this is:
         The GC collector scans the memory in order to identify the root objects,
         and then collect them. The scanning process, roughly speaking, is done in
@@ -245,7 +245,7 @@ public class LinkedListQueue ( T ) : ITypedQueue!( T )
 
     /**************************************************************************
 
-        Pushes an item to the queue. The caller should set the returned item as 
+        Pushes an item to the queue. The caller should set the returned item as
         desired
 
         Returns:
@@ -254,12 +254,12 @@ public class LinkedListQueue ( T ) : ITypedQueue!( T )
     ***************************************************************************/
 
     public override T* push ( )
-    {   
+    {
         auto new_element = this.newItem();
 
         // Just created first item in queue, both head and tail
         // should point to it
-        if ( this.count == 0 ) 
+        if ( this.count == 0 )
         {
             this.head = new_element;
             this.tail = this.head;
@@ -298,7 +298,7 @@ public class LinkedListQueue ( T ) : ITypedQueue!( T )
     /**************************************************************************
 
         Returns:
-            A pointer to the item at the top of the queue, null if the queue is 
+            A pointer to the item at the top of the queue, null if the queue is
             empty
 
     ***************************************************************************/
@@ -323,7 +323,7 @@ public class LinkedListQueue ( T ) : ITypedQueue!( T )
             true if value exists, false otherwise
 
     ***************************************************************************/
-    
+
     public bool contains ( T value )
     {
         if ( this.count == 0 )
@@ -331,7 +331,7 @@ public class LinkedListQueue ( T ) : ITypedQueue!( T )
 
         return this.head.find(value) !is null;
     }
-    
+
 
     /**************************************************************************
 
@@ -339,14 +339,14 @@ public class LinkedListQueue ( T ) : ITypedQueue!( T )
 
         Params:
             value = value to remove
-            all   = if true then remove all values equal to value, othetrwise only 
+            all   = if true then remove all values equal to value, othetrwise only
                     first matching value will be removed
 
         Returns:
             number of removed values
 
     ***************************************************************************/
-    
+
     public size_t remove ( T value, bool all = false )
     {
         // iterate over items in queue
@@ -361,13 +361,13 @@ public class LinkedListQueue ( T ) : ITypedQueue!( T )
         while( iterator )
         {
             auto next = iterator.next;
-            
+
             if ( iterator.value == value )
             {
                 bool is_tail;
                 bool is_head;
 
-                // head item is to be removed 
+                // head item is to be removed
                 // update head to point to next item
                 if ( iterator is this.head )
                 {
@@ -376,7 +376,7 @@ public class LinkedListQueue ( T ) : ITypedQueue!( T )
                     is_head = true;
                 }
 
-                // tail item is to be removed 
+                // tail item is to be removed
                 // update tail to point to previous item
                 if ( iterator is this.tail )
                 {
@@ -397,14 +397,14 @@ public class LinkedListQueue ( T ) : ITypedQueue!( T )
                 // remove
                 this.deleteItem(iterator);
                 this.count--;
-                
+
                 // should we look for more matched values? have we reached the end?
                 if ( !all || this.count == 0 )
                     break;
             }
             else
             {
-                previous = iterator;    
+                previous = iterator;
             }
 
             iterator = next;
@@ -412,7 +412,7 @@ public class LinkedListQueue ( T ) : ITypedQueue!( T )
 
         return old_count - this.count;
     }
-    
+
 
     /**************************************************************************
 
@@ -422,7 +422,7 @@ public class LinkedListQueue ( T ) : ITypedQueue!( T )
             to_delete = pointer to item in queue to delete
 
     ***************************************************************************/
-    
+
     protected void deleteItem ( QueueItem* to_delete )
     {
          if ( root_values )
@@ -430,8 +430,8 @@ public class LinkedListQueue ( T ) : ITypedQueue!( T )
 
         this.heap.collect(to_delete);
     }
-    
-    
+
+
     /**************************************************************************
 
         Allocate an item. Called upon item addition to queue.
@@ -443,7 +443,7 @@ public class LinkedListQueue ( T ) : ITypedQueue!( T )
             pointer to newly allocated item
 
     ***************************************************************************/
-    
+
     protected QueueItem* newItem ( )
     {
         auto new_element = this.heap.allocate();
@@ -477,10 +477,10 @@ unittest
     // empty struct
     test((new LinkedListQueue!(emptyStruct)).root_values == false, "An empty struct should not be added as GC root");
 
-    // struct that points to GC memory 
+    // struct that points to GC memory
     test((new LinkedListQueue!(someStruct)).root_values, "A struct containing an array should be added as GC root!");
 
-    // pointer to struct 
+    // pointer to struct
     test((new LinkedListQueue!(emptyStruct*)).root_values, "A pointer to a struct should be added as GC root!");
 
     // class
@@ -539,11 +539,11 @@ unittest
 {
     /**************************************************************************
 
-        A class to test LinkedListQueue. 
+        A class to test LinkedListQueue.
 
-        The 'invariant' section validates the exact content of the 
-        LinkedListQueue. And in case of validation failure the name of the 
-        particular test is printed. 
+        The 'invariant' section validates the exact content of the
+        LinkedListQueue. And in case of validation failure the name of the
+        particular test is printed.
 
     ***************************************************************************/
 
@@ -588,11 +588,11 @@ unittest
 
         public this (char[] in_name)
         {
-            this.int_queue = new LinkedListQueue!(int)(); 
-            this.name = in_name;    
+            this.int_queue = new LinkedListQueue!(int)();
+            this.name = in_name;
         }
 
-        
+
         /**********************************************************************
 
             Invarinat to validate the contents in int_queue and expected_values
@@ -623,7 +623,7 @@ unittest
 
         /**********************************************************************
 
-            Push values into LinkedListQueue. 
+            Push values into LinkedListQueue.
 
             Params:
                 values = values to push
@@ -633,7 +633,7 @@ unittest
         public void push ( int[] values )
         {
             foreach( value; values )
-            {    
+            {
                 .push(this.int_queue, value);
                 this.expected_values ~= value;
             }
@@ -654,7 +654,7 @@ unittest
         public void remove ( int value, int expected_to_remove = 1, bool all = true )
         {
             bool continue_remove = true;
-            
+
             if ( expected_to_remove )
                 test(this.int_queue.contains(value), name ~ ": value should have been found in LinkedListQueue");
 

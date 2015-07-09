@@ -28,7 +28,7 @@ import ocean.db.tokyocabinet.c.util.tcxstr: TCXSTR,
                                             tcxstrdup, tcxstrcat,
                                             tcxstrptr, tcxstrsize;
 
-import ocean.core.TypeConvert;                                            
+import ocean.core.TypeConvert;
 
 /******************************************************************************
 

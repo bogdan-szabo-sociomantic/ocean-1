@@ -362,7 +362,7 @@ private template SuperClassIndex ( size_t i, T ... )
 public template EnumBase ( T ... )
 {
     alias IEnum.Name Name;
-    alias IEnum.Value Value;    
+    alias IEnum.Value Value;
 
     /***************************************************************************
 

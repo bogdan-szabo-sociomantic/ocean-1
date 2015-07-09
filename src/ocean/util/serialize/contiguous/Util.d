@@ -131,7 +131,7 @@ unittest
 
     auto s1 = Test([ 1, 2, 3 ]);
     auto s2 = deepCopy(s1);
-    
+
     test!("==")(s1.arr, s2.arr);
     test!("!is")(s1.arr.ptr, s2.arr.ptr);
 }

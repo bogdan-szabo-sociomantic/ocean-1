@@ -413,7 +413,7 @@ public T[] remove ( T, TC1, TC2 ) ( TC1[] source, TC2[] match, ref T[] result )
 ///
 unittest
 {
-    mstring result;    
+    mstring result;
     remove("aaabbbaaa", "bbb", result);
     test!("==")(result, "aaaaaa");
 }

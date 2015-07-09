@@ -102,7 +102,7 @@ class VersionDecorator
     }
 
     /***************************************************************************
-    
+
         Check `ocean.util.serialize.model.VersionDecoratorMixins` for
         generic documentation on following methods.
 
@@ -114,12 +114,12 @@ class VersionDecorator
     mixin ConvertMethod!(Serializer, Deserializer);
 
     /***************************************************************************
-    
+
         Check `ocean.util.serialize.model.VersionDecoratorMixins` for
         generic documentation on this method.
 
     ***************************************************************************/
- 
+
     mixin LoadCopyMethod!(This.e);
 }
 

@@ -37,7 +37,7 @@ public interface ITypedQueue ( T )
     ***************************************************************************/
 
     bool empty ( );
-    
+
 
     /**************************************************************************
 
@@ -60,11 +60,11 @@ public interface ITypedQueue ( T )
 
     /**************************************************************************
 
-        Pushes an item to the queue. The caller should set the returned item as 
+        Pushes an item to the queue. The caller should set the returned item as
         desired
 
         Returns:
-            Pointer to the newly pushed item, null if the item could not be pushed 
+            Pointer to the newly pushed item, null if the item could not be pushed
             (see documentation of implementing class for possible failure reasons)
 
     ***************************************************************************/
@@ -84,7 +84,7 @@ public interface ITypedQueue ( T )
     /**************************************************************************
 
         Returns:
-            A pointer to the item at the top of the queue, null if the queue is 
+            A pointer to the item at the top of the queue, null if the queue is
             empty
 
     ***************************************************************************/
@@ -130,7 +130,7 @@ public bool push ( T ) ( ITypedQueue!(T) q, T t )
     if this is not desired, the caller class is to call `top()` method of
     `ITypedQueue` and apply desired logic on returned pointer and then call
     `discardTop()`.
-    
+
     Template params:
         T = type of items stored in queue
 
