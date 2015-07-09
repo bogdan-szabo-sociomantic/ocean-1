@@ -30,6 +30,8 @@ import tango.io.model.IConduit: InputStream, OutputStream;
 
 import ocean.io.serialize.SimpleSerializer;
 
+import ocean.text.util.ClassName;
+
 debug import ocean.io.Stdout;
 
 
@@ -178,6 +180,11 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
     {
         assert(size != 0, typeof(this).stringof ~ ".push - attempted to push zero length content");
     }
+    out (slice)
+    {
+        assert(slice is null || slice.length == size,
+               classname(this) ~ "push: length of returned buffer not as requested");
+    }
     body
     {
         if ( size > 0 && this.willFit(size) )
@@ -261,6 +268,11 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
     ***************************************************************************/
 
     protected override void clear_ ( )
+    out
+    {
+        assert(this); // invariant
+    }
+    body
     {
         this.items = 0;
         this.gap = 0;
@@ -433,7 +445,16 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
     private ubyte[] push_ ( size_t size )
     in
     {
-        assert(this.willFit(size), typeof(this).stringof ~ ".push_: item will not fit");
+        assert(this); // invariant
+        assert(this.willFit(size), classname(this) ~ ".push_: item will not fit");
+    }
+    out (slice)
+    {
+        assert(slice !is null,
+               classname(this) ~ "push_: returned a null slice");
+        assert(slice.length == size,
+               classname(this) ~ "push_: length of returned slice not as requested");
+        assert(this); // invariant
     }
     body
     {
@@ -467,7 +488,13 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
     private ubyte[] pop_ ( )
     in
     {
-        assert(this.items > 0, typeof(this).stringof ~ ".pop_: no items in the queue");
+        assert(this); // invariant
+        assert(this.items, classname(this) ~ ".pop_: no items in the queue");
+    }
+    out (buffer)
+    {
+        assert(buffer, classname(this) ~ ".pop_: returned a null buffer");
+        assert(this); // invariant
     }
     body
     {
