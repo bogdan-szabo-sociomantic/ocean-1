@@ -46,6 +46,11 @@ debug import ocean.io.Stdout;
 
 class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 {
+    import ocean.core.Exception: enforce;
+
+    import Integer = tango.text.convert.Integer: toString;
+    private alias Integer.toString itoa;
+
     /***************************************************************************
 
         Location of the gap at the rear end of the data array where the unused
@@ -54,6 +59,18 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
     ***************************************************************************/
 
     private size_t gap;
+
+
+    /***************************************************************************
+
+        Metadata header for saving/loading the queue state
+
+    ***************************************************************************/
+
+    public struct ExportMetadata
+    {
+        uint items;
+    }
 
 
     /***************************************************************************
@@ -393,6 +410,9 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
         Writes the queue's state and contents to the given output stream.
 
+        Data written by this method are accepted by deserialize() only. Use a
+        queue with the same capacity.
+
         Params:
             stream = output to write to
 
@@ -401,6 +421,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
     ***************************************************************************/
 
+    deprecated("replaced with save()")
     public size_t serialize ( OutputStream stream )
     {
         size_t bytes;
@@ -418,6 +439,11 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
     /***************************************************************************
 
         Reads the queue's state and contents from the given input stream.
+        Warning: Does not validate the input data. Invalid input data or data
+        written with a different queue capacity can cause queue corruption and
+        other serious trouble.
+
+        Accepts only data written by serialize() with the same queue capacity.
 
         Params:
             stream = input to read from
@@ -427,6 +453,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
     ***************************************************************************/
 
+    deprecated("replaced with load()")
     public size_t deserialize ( InputStream stream )
     {
         size_t bytes;
@@ -438,6 +465,200 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
         bytes += SimpleSerializer.read(stream, this.data);
 
         return bytes;
+    }
+
+    /***************************************************************************
+
+        Writes the queue's state and contents to the given output stream in the
+        following format:
+
+        - First ExportMetadata.sizeof bytes: Metadata header
+        - Next size_t.sizeof bytes: Number n of bytes of queue data (possibly 0)
+        - Next n bytes: Queue data
+
+        Params:
+            stream = output to write to
+
+        Returns:
+            number of bytes written to output.
+
+    ***************************************************************************/
+
+    public size_t save ( OutputStream output )
+    {
+        size_t bytes = 0;
+
+        this.save((void[] meta, void[] head, void[] tail = null)
+        {
+            bytes += SimpleSerializer.writeData(output, meta);
+            bytes += SimpleSerializer.write(output, head.length + tail.length);
+            if (head.length) bytes += SimpleSerializer.writeData(output, head);
+            if (tail.length) bytes += SimpleSerializer.writeData(output, tail);
+        });
+
+        return bytes;
+    }
+
+    /***************************************************************************
+
+        Calls the provided delegate, store(), to store the queue state and
+        contents.
+
+        The caller may concatenate the contents of the three buffers because
+          - it is safe to assume that load() will use the same meta.length and
+          - load() expects to receive the head ~ tail data.
+
+        Example:
+
+        ---
+
+            auto queue = new FlexibleRingQueue(/+ ... +/);
+
+            // Populate the queue...
+
+            void[] queue_save_data;
+
+            // Save the populated queue in queue_save_data.
+
+            queue.save((void[] meta, void[] head, void[] tail)
+            {
+                queue_save_data = meta ~ head ~ tail;
+            }
+
+            // Restore queue from queue_save_data.
+
+            queue.load((void[] meta, void[] data)
+            {
+                // It is safe to assume meta.length is the same as in the
+                // queue.save() callback delegate.
+                meta[] = queue_save_data[0 .. meta.length];
+
+                void[] queue_load_data = queue_save_data[meta.length .. $];
+                data[] = queue_load_data[];
+                return queue_load_data.length;
+            }
+
+        ---
+
+        This method can also be called to poll the amount of space required for
+        storing the current queue content, which is
+        meta.length + head.length + tail.length.
+
+        The data produced by this method is accepted by the load() method of any
+        queue where queue.length >= head.length + tail.length.
+
+        Params:
+            store = output delegate
+
+    ***************************************************************************/
+
+    public void save ( void delegate ( void[] meta, void[] head, void[] tail = null ) store )
+    {
+        auto meta = ExportMetadata(this.items);
+
+        if (this.read_from < this.write_to)
+        {
+            store((&meta)[0 .. 1], this.data[this.read_from .. this.write_to]);
+        }
+        else
+        {
+            store((&meta)[0 .. 1],
+                  this.data[this.read_from .. this.gap],
+                  this.data[0 .. this.write_to]);
+        }
+    }
+
+    /***************************************************************************
+
+        Restores the queue state and contents, reading from input and expecting
+        data previously written by save() to an output stream.
+
+        Assumes that the input data do not exceed the queue capacity and throws
+        if they do. If this is possible and you want to handle this gracefully
+        (rather than getting an exception thrown), use the other overload of
+        this method.
+
+        Params:
+            input = input stream
+
+        Returns:
+            the number of bytes read from input.
+
+        Throws:
+            ValidationError if the input data are inconsistent or exceed the
+            queue capacity. When throwing, the queue remains empty.
+
+    ***************************************************************************/
+
+    public size_t load ( InputStream input )
+    {
+        size_t bytes = 0;
+
+        this.load((void[] meta, void[] data)
+        {
+            bytes += SimpleSerializer.readData(input, meta);
+
+            size_t data_length;
+            bytes += SimpleSerializer.read(input, data_length);
+            enforce!(ValidationError)(data_length <= data.length,
+                "Size of loaded data exceeds queue capacity");
+            bytes += SimpleSerializer.readData(input, data[0 .. data_length]);
+            return data_length;
+        });
+
+        return bytes;
+    }
+
+    /***************************************************************************
+
+        Restores the queue state and contents.
+
+        Clears the queue, then calls the provided delegate, restore(), to
+        restore the queue state and contents and validates it.
+
+        restore() should populate the meta and data buffer it receives with data
+        previously obtained from save():
+         - meta should be populated with the data from the store() meta
+           parameter,
+         - data[0 .. head.length + tail.length] should be populated with the
+           head ~ tail data as received by the store() delegate during save(),
+         - restore() should return head.length + tail.length.
+
+        See the example in the documentation of save().
+
+        Params:
+            restore = input delegate
+
+        Throws:
+            ValidationError if the input data are inconsistent. When throwing,
+            the queue remains empty.
+
+    ***************************************************************************/
+
+    public void load ( size_t delegate ( void[] meta, void[] data ) restore )
+    {
+        this.clear();
+
+        /*
+         * Pass this.data as the destination buffer to restore() and validate
+         * its content after restore() populated it. Should the validation fail,
+         * items, read_from, write_to and gap will remain 0 so the queue is
+         * empty and the invalid data in this.data are not harmful.
+         */
+
+        ExportMetadata meta;
+        size_t end = restore((&meta)[0 .. 1], this.data);
+
+        assert(end <= this.data.length,
+               classname(this) ~ ".save(): restore callback expected to " ~
+               "return at most " ~ itoa(this.data.length) ~ ", not" ~ itoa(end));
+
+
+        this.validate(meta, this.data[0 .. end]);
+
+        this.items    = meta.items;
+        this.write_to = end;
+        this.gap      = end;
     }
 
     /***************************************************************************
@@ -590,18 +811,112 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
         return this.data[position .. this.read_from];
     }
-}
 
+    /***************************************************************************
+
+        Validates queue state and content data.
+
+        Params:
+            meta = queue state data as imported by load()
+            data = queue content data
+
+        Throws:
+            ValidationError if meta and/or data are inconsistent.
+
+    ***************************************************************************/
+
+    private static void validate ( ExportMetadata meta, void[] data )
+    {
+        if (meta.items)
+        {
+            enforce!(ValidationError)(data.length,
+                "Expected data for a non-empty queue (" ~ itoa(meta.items) ~
+                " records)");
+
+            enforce!(ValidationError)(data.length >= cast(size_t)meta.items * Header.sizeof,
+                "Queue data shorter than required minimum for " ~
+                itoa(meta.items) ~ " records (got " ~ itoa(data.length) ~
+                " bytes)");
+
+            size_t pos = 0;
+
+            for (typeof(meta.items) i = 0; i < meta.items; i++)
+            {
+                assert(pos <= data.length);
+
+                try
+                {
+                    enforce!(ValidationError)(pos != data.length,
+                                              "Unexpected end of input data");
+
+                    auto start = pos;
+                    pos += Header.sizeof;
+
+                    enforce!(ValidationError)(pos <= data.length,
+                        "End of queue data in the middle of the record header" ~
+                        " which starts at byte " ~ itoa(start));
+
+                    auto header = cast(Header*)data[start .. pos].ptr;
+
+                    enforce!(ValidationError)((data.length - pos) >= header.length,
+                        "End of queue data in the middle of the queue record, " ~
+                        "record length = " ~ itoa(header.length)
+                    );
+
+                    pos += header.length;
+                }
+                catch (ValidationError e)
+                {
+                    e.msg = "Error reading record " ~ itoa(i + i) ~ "/" ~
+                            itoa(meta.items) ~ ": " ~ e.msg;
+                    throw e;
+                }
+            }
+
+            assert(pos <= data.length);
+
+            enforce!(ValidationError)(pos >= data.length,
+                "Queue data  too long (" ~ itoa(meta.items) ~ " records, " ~
+                itoa(pos) ~ "/" ~ itoa(data.length) ~ " bytes used)");
+        }
+        else
+        {
+            enforce!(ValidationError)(!data.length,
+                "Expected no data for an empty queue, not " ~ itoa(data.length) ~
+                " bytes");
+        }
+    }
+
+    /**************************************************************************/
+
+    static class ValidationError: Exception
+    {
+        this ( char[] msg, char[] file = __FILE__, typeof(__LINE__) = __LINE__)
+        {
+            super(msg, file, line);
+        }
+    }
+}
 /*******************************************************************************
 
     UnitTest
 
 *******************************************************************************/
 
+version ( UnitTest )
+{
+    import tango.io.model.IConduit: IConduit;
+}
+
 unittest
 {
-    scope queue = new FlexibleByteRingQueue((9+FlexibleByteRingQueue.Header.sizeof)*10);
-    assert(!queue.free_space == 0);
+    static const queue_size_1 = (9+FlexibleByteRingQueue.Header.sizeof)*10;
+
+    scope queue = new FlexibleByteRingQueue(queue_size_1);
+    assert(queue.free_space >= queue_size_1);
+    assert(queue.is_empty);
+
+    assert(queue.free_space >= queue_size_1);
     assert(queue.is_empty);
 
     assert(queue.push(cast(ubyte[])"Element 1"));
@@ -638,36 +953,209 @@ unittest
     assert(middle.read_from == 1 + FlexibleByteRingQueue.Header.sizeof);
     assert(middle.write_to == (1+FlexibleByteRingQueue.Header.sizeof)*4);
     assert(middle.free_space() == (1+FlexibleByteRingQueue.Header.sizeof)*2);
+
     assert(middle.push(cast(ubyte[])"5"));
     assert(middle.push(cast(ubyte[])"6"));
     assert(middle.free_space() == 0);
+}
 
-    // https://github.com/sociomantic/ocean/issues/5
-    void bug5()
+/*******************************************************************************
+
+    Save/load test. Uses the unittest above, adding save/load sequences in the
+    middle. This test is separate to allow for changing the above push/pop test
+    without breaking the save/load test.
+
+*******************************************************************************/
+
+version ( UnitTest )
+{
+    import ocean.io.device.MemoryDevice;
+}
+
+unittest
+{
+    // Buffers and callback functions for the delegate based save() & load().
+
+    void[] saved_meta, saved_data;
+
+    void store ( void[] meta, void[] head, void[] tail )
+    {
+        saved_meta = meta.dup;
+        saved_data = head.dup ~ tail;
+    }
+
+    size_t restore ( void[] meta, void[] data )
+    {
+        meta[] = saved_meta;
+        data[0 .. saved_data.length] = saved_data;
+        return saved_data.length;
+    }
+
+    // Memory I/O stream device for the stream based save() & load().
+
+    scope backup = new MemoryDevice;
+
+    static const queue_size_1 = (9+FlexibleByteRingQueue.Header.sizeof)*10;
+
+    scope queue = new FlexibleByteRingQueue(queue_size_1);
+    assert(queue.free_space >= queue_size_1);
+    assert(queue.is_empty);
+
+    queue.save(&store);
+    queue.load(&restore);
+
+    assert(queue.free_space >= queue_size_1);
+    assert(queue.is_empty);
+
+    assert(queue.push(cast(ubyte[])"Element 1"));
+    assert(queue.pop() == cast(ubyte[])"Element 1");
+    assert(queue.items == 0);
+    assert(!queue.free_space == 0);
+    assert(queue.is_empty);
+    assert(queue.used_space() == 0);
+
+    assert(queue.push(cast(ubyte[])"Element 1"));
+    assert(queue.push(cast(ubyte[])"Element 2"));
+    assert(queue.push(cast(ubyte[])"Element 3"));
+    assert(queue.push(cast(ubyte[])"Element 4"));
+    assert(queue.push(cast(ubyte[])"Element 5"));
+    assert(queue.push(cast(ubyte[])"Element 6"));
+    assert(queue.push(cast(ubyte[])"Element 7"));
+    assert(queue.push(cast(ubyte[])"Element 8"));
+    assert(queue.push(cast(ubyte[])"Element 9"));
+    assert(queue.push(cast(ubyte[])"Element10"));
+
+    // Save and restore the queue status in the middle of a test.
+
+    queue.save(&store);
+    queue.clear();
+    queue.load(&restore);
+
+    assert(queue.length == 10);
+    assert(queue.free_space == 0);
+    assert(!queue.is_empty);
+
+    assert(!queue.push(cast(ubyte[])"more"));
+    assert(queue.length == 10);
+
+    scope middle = new FlexibleByteRingQueue((1+FlexibleByteRingQueue.Header.sizeof)*5);
+    middle.push(cast(ubyte[])"1");
+    middle.push(cast(ubyte[])"2");
+    middle.push(cast(ubyte[])"3");
+    middle.push(cast(ubyte[])"4");
+    assert(middle.pop == cast(ubyte[])"1");
+    assert(middle.read_from == 1 + FlexibleByteRingQueue.Header.sizeof);
+    assert(middle.write_to == (1+FlexibleByteRingQueue.Header.sizeof)*4);
+    assert(middle.free_space() == (1+FlexibleByteRingQueue.Header.sizeof)*2);
+
+    // Save and restore the queue status in the middle of a test.
+
+    middle.save(backup);
+    middle.clear();
+    backup.seek(0);
+    middle.load(backup);
+    assert(backup.read(null) == backup.Eof);
+    backup.close();
+
+    assert(middle.push(cast(ubyte[])"5"));
+    assert(middle.push(cast(ubyte[])"6"));
+    assert(middle.free_space() == 0);
+}
+
+/*******************************************************************************
+
+    Test for the corner case of saving the queue state after wrapping around.
+
+*******************************************************************************/
+
+unittest
+{
+    enum Save {Dont = 0, Dg, Stream}
+
+    // Buffers and callback functions for the delegate based save() & load().
+
+    void[] saved_meta, saved_data;
+
+    void store ( void[] meta, void[] head, void[] tail )
+    {
+        saved_meta = meta.dup;
+        saved_data = head.dup ~ tail;
+    }
+
+    size_t restore ( void[] meta, void[] data )
+    {
+        meta[] = saved_meta;
+        data[0 .. saved_data.length] = saved_data;
+        return saved_data.length;
+    }
+
+    // Memory I/O stream device for the stream based save() & load().
+
+    scope backup = new MemoryDevice;
+
+    void save_wraparound ( Save save )
     {
         const Q_SIZE = 20;
         FlexibleByteRingQueue q = new FlexibleByteRingQueue(Q_SIZE);
 
-        void push(size_t n)
+        void push(uint n)
+        in
         {
-            for (size_t i = 0; i < n; i++)
+            assert(n <= ubyte.max);
+        }
+        body
+        {
+            for (ubyte i = 0; i < n; i++)
             {
-                ubyte[] push_slice = q.push(1);
-                if (push_slice is null)
+                if (ubyte[] push_slice = q.push(1))
+                {
+                    push_slice[0] = i;
+                }
+                else
+                {
                     break;
-                push_slice[] = cast(ubyte[]) [i];
+                }
+
+                // Save and restore the queue status after wrapping around.
+
+                if (q.write_to <= q.read_from) switch (save)
+                {
+                    case save.Dont: break;
+
+                    case save.Dg:
+                        q.save(&store);
+                        q.clear();
+                        q.load(&restore);
+                        break;
+
+                    case save.Stream:
+                        q.save(backup);
+                        q.clear();
+                        backup.seek(0);
+                        q.load(backup);
+                        assert(backup.read(null) == backup.Eof);
+                        backup.close();
+                        break;
+
+                    default: assert(false);
+                }
             }
         }
 
-        void pop(size_t n)
+        void pop(uint n)
         {
-            for (size_t i = 0; i < n; i++)
+            for (uint i = 0; i < n; i++)
             {
-                auto popped = q.pop();
-                if (!popped.length)
+                if (ubyte[] popped = q.pop())
+                {
+                    assert (popped.length == 1);
+                    assert (popped[0] != Q_SIZE+1);
+                    popped[0] = Q_SIZE+1;
+                }
+                else
+                {
                     break;
-                assert (popped[0] != Q_SIZE+1);
-                popped[0] = Q_SIZE+1;
+                }
             }
         }
 
@@ -679,8 +1167,9 @@ unittest
         pop(4);
         pop(1);
     }
-    bug5();
-
+    save_wraparound(Save.Dont);
+    save_wraparound(Save.Dg);
+    save_wraparound(Save.Stream);
 }
 
 /*******************************************************************************

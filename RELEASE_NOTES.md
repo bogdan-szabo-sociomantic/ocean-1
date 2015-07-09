@@ -100,6 +100,19 @@ Deprecations
    This change is mostly transparent for applications, with the exception of the part
    mentioned in the Migrations Instructions.
 
+* `ocean.util.container.queue.FlexibleRingQueue.serialize()/deserialize()`
+
+  `serialize()` and `deserialize()` are deprecated and replaced with `save()`
+   and `load()`.
+   - `load()` validates the input data while `deserialize()` does not.
+   - `deserialize()` causes the following memory allocation problems if the
+     capacity of the queue is different to the one that produced the input data:
+     1. If reading data produced with a lower capacity, assertions can fail and
+        array bounds violated.
+     2. If reading data produced with a higher capacity, the queue buffer size
+        is set to the higher capacity. If a custom non-GC allocator is used, the
+        buffer is allocated again by the GC.
+
 New Features
 ============
 
@@ -126,3 +139,18 @@ New Features
    A new `DefaultExceptionCtor` mixin template has been introduced.
    Similar to `DefaultExceptionImpl`, you can mix it in to get the usual
    constructor for exceptions.
+
+*  `ocean.util.container.queue.FlexibleRingQueue.save()/load()`
+
+  These new methods use a compact and more flexible storage format:
+  - `save()` only stores as much data as are currently in the queue while
+    `serialize()` always stores as much data as the queue capacity.
+  - The data produced by `save()` can be loaded by a queue of the same or
+    higher capacity. In general a queue data string output by `save()` can be
+    loaded by any queue whose capacity is at least the length of that data
+    string. Note that a queue can still not load more saved data than its
+    capacity, this needs still to be addressed.
+
+    Note that the data format used by the new `save()` and `load()` methods is
+    not compatible to the one used by the now deprecated `serialize()` and
+    `deserialize()`.
