@@ -138,6 +138,8 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
         Pushes an item into the queue.
 
+        item.length = 0 is allowed.
+
         Params:
             item = data item to push
 
@@ -166,20 +168,23 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
         fill the content. The caller is expected to fill in the content using
         the returned slice.
 
+        size = 0 is allowed.
+
         Params:
             size = size of the space of the item that should be reserved
 
         Returns:
-            slice to the reserved space if it was successfully reserved,
-            else null
+            slice to the reserved space if it was successfully reserved, else
+            null. Returns non-null empty string if size = 0 and the item was
+            successfully pushed.
+
+        Out:
+            The length of the returned array slice is size unless the slice is
+            null.
 
     ***************************************************************************/
 
     public ubyte[] push ( size_t size )
-    in
-    {
-        assert(size != 0, typeof(this).stringof ~ ".push - attempted to push zero length content");
-    }
     out (slice)
     {
         assert(slice is null || slice.length == size,
@@ -187,12 +192,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
     }
     body
     {
-        if ( size > 0 && this.willFit(size) )
-        {
-            return this.push_(size);
-        }
-
-        return null;
+        return this.willFit(size) ? this.push_(size) : null;
     }
 
 

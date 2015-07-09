@@ -103,6 +103,12 @@ Deprecations
 New Features
 ============
 
+* `ocean.util.container.queue.FlexibleRingQueue`
+
+  `push()` now accepts records of zero length. Note that such a record does
+  occupy a few bytes of space in the queue. Also bear in mind that `pop()` will
+  return an empty non-`null` slice when popping such a record.
+
 * `ocean.util.container.map.utils.MapSerializer`
 
    `MapSerializer` now provides an easier path to update from maps using
