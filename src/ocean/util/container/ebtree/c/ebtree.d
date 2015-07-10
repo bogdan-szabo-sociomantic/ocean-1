@@ -264,7 +264,7 @@ import tango.transition;
  *  - 0=left, 1=right to designate the parent's branch for leaf_p/node_p
  *  - 0=link, 1=leaf  to designate the branch's type for branch[]
  */
-mixin(Typedef!(void, "eb_troot_t"));
+alias void eb_troot_t;
 
 /* The eb_root connects the node which contains it, to two nodes below it, one
  * of which may be the same node. At the top of the tree, we use an eb_root
