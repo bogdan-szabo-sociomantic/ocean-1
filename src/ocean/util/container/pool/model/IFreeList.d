@@ -31,7 +31,7 @@ public interface IFreeListInfo
 
     ***************************************************************************/
 
-    uint num_idle ( );
+    size_t num_idle ( );
 }
 
 
@@ -315,4 +315,3 @@ version ( UnitTest )
         }
     }
 }
-
