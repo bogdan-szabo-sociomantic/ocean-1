@@ -1411,7 +1411,7 @@ public class Table
     }
 }
 
-version ( UnitTest ) import tango.io.device.Array : Array, FormatOutput;
+version ( UnitTest ) import tango.io.device.Array : Array;
 
 unittest
 {

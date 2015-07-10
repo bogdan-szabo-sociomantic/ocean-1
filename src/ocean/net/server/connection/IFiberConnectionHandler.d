@@ -28,7 +28,6 @@ import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol,
 import ocean.net.server.connection.IConnectionHandler;
 
 import ocean.io.select.fiber.SelectFiber;
-import ocean.core.MessageFiber : MessageFiberControl;
 import ocean.util.container.pool.model.IResettable;
 
 import ocean.sys.Epoll : epoll_event_t;
@@ -476,4 +475,3 @@ abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase, Resettable
         this.reader.reset();
     }
 }
-
