@@ -55,7 +55,7 @@ struct HttpTimeFormatter
 
      **************************************************************************/
 
-    private char[this.ResultLength] buf;
+    private char[ResultLength] buf;
 
     /**************************************************************************
 
@@ -217,4 +217,3 @@ unittest
     char[HttpTimeFormatter.ResultLength] buf;
     assert (HttpTimeFormatter.format(buf, 352716457) == "Fri, 06 Mar 1981 08:47:37 GMT");
 }
-
