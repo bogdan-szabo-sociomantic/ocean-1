@@ -43,9 +43,7 @@ class AddressIPSocket ( bool IPv6 = false ) : IPSocket!(IPv6), IAddressIPSocketI
 
      **************************************************************************/
 
-    alias InetAddress!(IPv6).Addr InAddr;
-
-    private InetAddress!(IPv6) in_address;
+    private InetAddress in_address;
 
     /**************************************************************************
 
@@ -150,7 +148,7 @@ class AddressIPSocket ( bool IPv6 = false ) : IPSocket!(IPv6), IAddressIPSocketI
 
      **************************************************************************/
 
-    public InetAddress!(IPv6).Addr in_addr ( )
+    public InAddr in_addr ( )
     {
         return this.in_address.addr;
     }
