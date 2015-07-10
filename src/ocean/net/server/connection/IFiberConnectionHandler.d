@@ -437,6 +437,8 @@ abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase, Resettable
 
      **************************************************************************/
 
+    version (D_Version2) {}
+    else
     protected override void dispose ( )
     {
         super.dispose();

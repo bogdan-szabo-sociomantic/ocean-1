@@ -116,6 +116,8 @@ abstract class IEBTree
 
     ***************************************************************************/
 
+    version (D_Version2) {}
+    else
     protected override void dispose ( )
     {
         this.clear();
