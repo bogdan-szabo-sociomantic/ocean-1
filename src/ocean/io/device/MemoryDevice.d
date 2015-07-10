@@ -23,6 +23,7 @@ module ocean.io.device.MemoryDevice;
 
 *******************************************************************************/
 
+import tango.transition;
 import tango.io.model.IConduit;
 import tango.stdc.string : memmove;
 
@@ -70,7 +71,12 @@ class MemoryDevice : IConduit
 
     ***************************************************************************/
 
-    override char[] toString ( )
+    public Const!(void)[] peek ()
+    {
+        return data;
+    }
+
+    deprecated("Use peek") override char[] toString ( )
     {
         return cast(char[]) data;
     }
@@ -103,7 +109,7 @@ class MemoryDevice : IConduit
 
     ***************************************************************************/
 
-    override void error ( char[] msg )
+    override void error ( istring msg )
     {
         throw new Exception ( msg );
     }
@@ -120,7 +126,7 @@ class MemoryDevice : IConduit
 
     ***************************************************************************/
 
-    override size_t write ( void[] src )
+    override size_t write ( Const!(void)[] src )
     {
         if ( this.position + src.length > this.data.length )
         {
