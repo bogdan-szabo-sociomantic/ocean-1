@@ -47,6 +47,8 @@ module ocean.text.regex.PCRE;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.core.Array : copy, concat;
 import ocean.text.util.StringC;
 import ocean.text.regex.c.pcre;
@@ -106,10 +108,10 @@ public class PCRE
 
         ***********************************************************************/
 
-        private void set ( int code, char[] msg )
+        private void set ( int code, istring msg )
         {
             this.error = code;
-            super.msg.copy(msg);
+            this.msg = msg;
         }
     }
 
@@ -160,7 +162,7 @@ public class PCRE
 
     ***************************************************************************/
 
-    private char[] buffer_char;
+    private mstring buffer_char;
 
     /***************************************************************************
 
@@ -227,7 +229,7 @@ public class PCRE
 
         ***********************************************************************/
 
-        public void compile ( char[] pattern, bool case_sens = true )
+        public void compile ( cstring pattern, bool case_sens = true )
         out
         {
             assert(this.pcre_object);
@@ -247,9 +249,10 @@ public class PCRE
             if ( !this.pcre_object )
             {
                 this.outer.exception.msg.length = 0;
-                Format.format(this.outer.exception.msg,
+                this.outer.exception.msg = Format(
                     "Error compiling regular expression: {} - on pattern: {} at position {}",
-                    StringC.toDString(errmsg), pattern, error_offset);
+                    StringC.toDString(errmsg), pattern, error_offset
+                );
                 this.outer.exception.error = error_code;
                 throw this.outer.exception;
             }
@@ -273,7 +276,7 @@ public class PCRE
 
         ***********************************************************************/
 
-        public bool match ( char[] subject )
+        public bool match ( cstring subject )
         {
             //"" matches against the pattern ""
             if ( this.outer.buffer_char == "\0" && subject == "" )
@@ -302,7 +305,7 @@ public class PCRE
 
         ***********************************************************************/
 
-        public char[] findFirst ( char[] subject )
+        public cstring findFirst ( cstring subject )
         in
         {
             assert(this.pcre_object);
@@ -370,7 +373,7 @@ public class PCRE
 
         ***********************************************************************/
 
-        public char[][] findAll ( char[] subject, ref char[][] matches_buffer )
+        public cstring[] findAll ( cstring subject, ref cstring[] matches_buffer )
         in
         {
             assert(this.pcre_object);
@@ -422,7 +425,8 @@ public class PCRE
             auto res = pcre_study(this.pcre_object, 0, &errmsg);
             if ( errmsg )
             {
-                this.outer.exception.set(0, StringC.toDString(errmsg));
+                auto derrmsg = StringC.toDString(errmsg);
+                this.outer.exception.set(0, assumeUnique(derrmsg));
                 throw this.outer.exception;
             }
             if ( res )
@@ -479,7 +483,7 @@ public class PCRE
 
     ***************************************************************************/
 
-    public bool preg_match ( char[] subject, char[] pattern, bool case_sens = true )
+    public bool preg_match ( cstring subject, cstring pattern, bool case_sens = true )
     {
         scope regex = new CompiledRegex;
         regex.compile(pattern, case_sens);
@@ -497,9 +501,7 @@ version ( UnitTest )
 
         this ( )
         {
-            char[] test_name;
-            Format.format(test_name, "PCRE test #{}", ++test_num);
-            super(test_name);
+            super(Format("PCRE test #{}", ++test_num));
         }
     }
 }
@@ -569,7 +571,7 @@ unittest
     auto pcre = new PCRE;
     auto regex = pcre.new CompiledRegex;
 
-    void testFind ( char[] needle, char[] pre, char[] match, char[] post )
+    void testFind ( cstring needle, cstring pre, cstring match, cstring post )
     {
         regex.compile(needle);
 
@@ -616,7 +618,7 @@ unittest
 {
     auto pcre = new PCRE;
     auto regex = pcre.new CompiledRegex;
-    char[][] matches_buffer;
+    cstring[] matches_buffer;
 
     auto t = new NamedTest("PCRE findAll");
 
@@ -635,7 +637,7 @@ unittest
     }
 
     {
-        char[][3] exp = ["ast", "at", "ast"];
+        istring[3] exp = ["ast", "at", "ast"];
         const str = "en hast at en annan hast";
         regex.compile("a[s]*t", false);
 
@@ -650,7 +652,7 @@ unittest
     }
 
     {
-        char[][3] exp = ["ta", "tb", "td"];
+        istring[3] exp = ["ta", "tb", "td"];
         const str = "tatb t c Tf td";
         regex.compile("t[\\w]", true);
         regex.study();

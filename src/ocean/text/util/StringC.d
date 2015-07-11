@@ -42,6 +42,8 @@ module ocean.text.util.StringC;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import  tango.stdc.string: strlen, wcslen;
 import  tango.stdc.stddef: wchar_t;
 
@@ -123,7 +125,7 @@ class StringC
 
      ***************************************************************************/
 
-    public static char[] toDString ( char* str )
+    public static cstring toDString ( char* str )
     {
         return str? str[0 .. strlen(str)] : "";
     }
@@ -142,7 +144,7 @@ class StringC
 
     ***************************************************************************/
 
-    public static Wchar[] toDString ( Wchar* str )
+    public static Const!(Wchar)[] toDString ( Wchar* str )
     {
         return str? str[0 .. wcslen(str)] : "";
     }
