@@ -20,6 +20,8 @@ module ocean.text.xml.c.LibXml2;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.core.Array;
 
 import tango.stdc.string;
@@ -89,8 +91,10 @@ extern ( C )
 
     ***************************************************************************/
 
-    extern int xmlLoadExtDtdDefaultValue;
-
+    extern
+    {
+        mixin (global("int xmlLoadExtDtdDefaultValue"));
+    }
 
     /***************************************************************************
 
@@ -211,9 +215,9 @@ extern ( C )
 
 *******************************************************************************/
 
-public void formatXmlErrorString ( xmlErrorPtr err, ref char[] str )
+public void formatXmlErrorString ( xmlErrorPtr err, ref mstring str )
 {
-    char[] dstr ( char* cstr )
+    cstring dstr ( char* cstr )
     {
         if ( cstr )
         {

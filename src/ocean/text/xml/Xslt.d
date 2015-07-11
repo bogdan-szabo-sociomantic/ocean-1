@@ -30,6 +30,8 @@ module ocean.text.xml.Xslt;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.core.Array;
 
 import ocean.text.xml.c.LibXml2,
@@ -62,7 +64,9 @@ private void throwXmlErrors ( Exception exception )
     auto err = xmlGetLastError();
     if ( err )
     {
-        formatXmlErrorString(err, exception.msg);
+        mstring err_msg;
+        formatXmlErrorString(err, err_msg);
+        exception.msg = assumeUnique(err_msg);
 
         // Ensure that we don't see this error again
 
@@ -143,7 +147,7 @@ class XsltStylesheet
 
     ***************************************************************************/
 
-    public void set ( ref char[] xslt )
+    public void set ( ref mstring xslt )
     {
         this.cleanup();
 
@@ -195,7 +199,7 @@ public class XsltResult
 
     ***************************************************************************/
 
-    private char[] str;
+    private mstring str;
 
 
     /***************************************************************************
@@ -216,7 +220,7 @@ public class XsltResult
 
     ***************************************************************************/
 
-    public char[] opCall ( )
+    public cstring opCall ( )
     {
         return this.str;
     }
@@ -248,7 +252,7 @@ public class XsltResult
         }
         else
         {
-            this.str = "";
+            this.str = null;
         }
     }
 
@@ -287,7 +291,7 @@ public class XsltParameters
 
     ***************************************************************************/
 
-    private char *[] c_params;
+    private Const!(char)*[] c_params;
 
     /***************************************************************************
 
@@ -299,7 +303,7 @@ public class XsltParameters
 
     ***************************************************************************/
 
-    void setParams(char[][] keyvaluelist...)
+    void setParams(cstring[] keyvaluelist...)
     {
         // Check that it is even
         assert(!(keyvaluelist.length & 1), "XSLT parameters must have equal number of keys and values");
@@ -448,7 +452,7 @@ public class XsltProcessor
 
     ***************************************************************************/
 
-    public void transform ( ref char[] source, XsltResult result, XsltStylesheet stylesheet, XsltParameters params = null )
+    public void transform ( ref mstring source, XsltResult result, XsltStylesheet stylesheet, XsltParameters params = null )
     in
     {
         assert(stylesheet.stylesheet !is null, typeof(this).stringof ~ ".transform: xslt stylesheet not initialised");

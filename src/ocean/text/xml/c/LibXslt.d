@@ -20,6 +20,8 @@ module ocean.text.xml.c.LibXslt;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.text.xml.c.LibXml2;
 
 import tango.stdc.stdio;
@@ -64,7 +66,8 @@ extern ( C )
 
     ***************************************************************************/
 
-    xmlDocPtr xsltApplyStylesheet ( xsltStylesheetPtr style, xmlDocPtr doc, char** params = null );
+    xmlDocPtr xsltApplyStylesheet ( xsltStylesheetPtr style, xmlDocPtr doc,
+        Const!(char)** params = null );
 
 
     /***************************************************************************
