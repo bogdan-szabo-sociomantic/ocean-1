@@ -30,6 +30,8 @@ module ocean.util.container.ConcatBuffer;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.core.Array : removeShift;
 
 
@@ -129,7 +131,7 @@ public class ConcatBuffer ( T )
 
     ***************************************************************************/
 
-    public T[] add ( T[] data )
+    public T[] add ( Const!(T)[] data )
     {
         return this.add(data.length)[] = data[];
     }
@@ -280,7 +282,7 @@ public class SliceBuffer ( T ) : ConcatBuffer!(T)
 
     ***************************************************************************/
 
-    override public T[] add ( T[] data )
+    override public T[] add ( Const!(T)[] data )
     {
         auto slice = super.add(data);
         this.slices ~= slice;

@@ -57,6 +57,8 @@ module ocean.text.csv.HeadingsCSV;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.text.csv.CSV;
 
 import ocean.util.container.AppendBuffer;
@@ -97,8 +99,8 @@ public class HeadingsCSV
 
     public struct Field
     {
-        char[] name;
-        char[] value;
+        cstring name;
+        cstring value;
     }
 
 
@@ -197,7 +199,7 @@ public class HeadingsCSV
 
         size_t row;
         this.csv.parse(stream,
-        ( char[][] parsed_fields )
+        ( cstring[] parsed_fields )
         {
             // First row (headings)
             if ( row++ == 0 )
@@ -248,7 +250,7 @@ public class HeadingsCSV
 
     ***************************************************************************/
 
-    public void parse ( InputStream stream, char[][] include_headings,
+    public void parse ( InputStream stream, cstring[] include_headings,
         RowDg row_dg )
     {
         this.headings.clear();
@@ -256,7 +258,7 @@ public class HeadingsCSV
 
         size_t row;
         this.csv.parse(stream,
-        ( char[][] parsed_fields )
+        ( cstring[] parsed_fields )
         {
             //First row (headings)
             if ( row++ == 0 )
@@ -331,7 +333,7 @@ unittest
             return true;
         }
 
-        void test ( HeadingsCSV csv, char[] str, HeadingsCSV.Field[][] expected )
+        void test ( HeadingsCSV csv, cstring str, HeadingsCSV.Field[][] expected )
         {
             this.expected = expected;
             this.test_row = 0;
@@ -342,7 +344,7 @@ unittest
             csv.parse(array, &this.rowDg);
         }
 
-        void test_inc ( HeadingsCSV csv, char[] str, char[][] included_headings,
+        void test_inc ( HeadingsCSV csv, cstring str, cstring[] included_headings,
             HeadingsCSV.Field[][] expected )
         {
             this.expected = expected;

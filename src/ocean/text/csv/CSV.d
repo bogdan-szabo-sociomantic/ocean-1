@@ -51,6 +51,8 @@ module ocean.text.csv.CSV;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.util.container.AppendBuffer;
 
 import tango.io.model.IConduit;
@@ -73,7 +75,7 @@ public class CSV
 
     ***************************************************************************/
 
-    public alias bool delegate ( char[][] fields ) RowDg;
+    public alias bool delegate ( cstring[] fields ) RowDg;
 
 
     /***************************************************************************
@@ -102,7 +104,7 @@ public class CSV
 
     ***************************************************************************/
 
-    private AppendBuffer!(char[]) fields;
+    private AppendBuffer!(cstring) fields;
 
 
     /***************************************************************************
@@ -114,7 +116,7 @@ public class CSV
     public this ( )
     {
         this.row = new AppendBuffer!(char);
-        this.fields = new AppendBuffer!(char[]);
+        this.fields = new AppendBuffer!(cstring);
     }
 
 
@@ -273,14 +275,14 @@ version ( UnitTest )
 
 unittest
 {
-    void test ( CSV csv, char[] str, char[][][] expected )
+    void test ( CSV csv, cstring str, cstring[][] expected )
     {
         scope array = new Array(1024);
         array.append(str);
 
         size_t test_row;
         csv.parse(array,
-        ( char[][] parsed_fields )
+        ( cstring[] parsed_fields )
         {
             auto fields = expected[test_row++];
 
