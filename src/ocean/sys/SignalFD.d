@@ -96,6 +96,7 @@ else
     static assert(false, "module ocean.sys.SignalFD only supported in posix environments");
 }
 
+import ocean.core.Exception;
 import ocean.sys.ErrnoException;
 
 import ocean.sys.SignalMask;
@@ -186,39 +187,7 @@ public class SignalFD : ISelectable
 
     private static class SignalException : Exception
     {
-        /***********************************************************************
-
-            Constructor.
-
-        ***********************************************************************/
-
-        public this ( )
-        {
-            super("");
-        }
-
-
-        /***********************************************************************
-
-            Sets the exception parameters.
-
-            Params:
-                msg    = message
-                file   = source code file name
-                line   = source code line
-
-            Returns:
-                this instance
-
-        ***********************************************************************/
-
-        public typeof (this) opCall ( char[] msg, char[] file = "", long line = 0 )
-        {
-            super.msg = msg;
-            super.file = file;
-            super.line = line;
-            return this;
-        }
+        mixin ReusableExceptionImplementation;
     }
 
 
@@ -518,11 +487,9 @@ public class SignalFD : ISelectable
                 // This should not happen: read(siginfo.sizeof) from a signal FD
                 // returns either siginfo.sizeof for success or -1 for failure.
 
-                throw this.exception("read invalid bytes from signalfd",
-                        __FILE__, __LINE__);
+                throw this.exception.set("read invalid bytes from signalfd");
             }
         }
         while ( bytes > 0 );
     }
 }
-
