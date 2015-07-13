@@ -650,7 +650,7 @@ struct StringSearch ( bool wide_char = false )
             }
         }
 
-        return "";
+        return null;
     }
 
     /**************************************************************************

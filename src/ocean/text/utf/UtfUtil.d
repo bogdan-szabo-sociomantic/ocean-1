@@ -39,6 +39,8 @@ module ocean.text.utf.UtfUtil;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import tango.core.Exception: onUnicodeError;
 
 import tango.stdc.string: memrchr;
@@ -96,7 +98,7 @@ private const ubyte[char.max + 1] utf8_stride =
 
 *******************************************************************************/
 
-public size_t utf8Length ( char[] str )
+public size_t utf8Length ( cstring str )
 {
     void error ( size_t i )
     {
@@ -124,7 +126,7 @@ public size_t utf8Length ( char[] str )
 
 *******************************************************************************/
 
-public size_t utf8Length ( char[] str, void delegate ( size_t ) error_dg )
+public size_t utf8Length ( cstring str, void delegate ( size_t ) error_dg )
 {
     size_t length;
     size_t i;
@@ -171,14 +173,14 @@ unittest
 
     // test if error delegate is called for an invalid string
     bool error_caught = false;
-    const char[] error_str = "error in " ~ char.init ~ " the middle";
+    const istring error_str = "error in " ~ char.init ~ " the middle";
     utf8Length(error_str, ( size_t i ) { error_caught = true; });
     assert(error_caught,
         "the call to utf8Length should have caught an error");
 
     // test if error delegate is called for a valid string
     error_caught = false;
-    const char[] valid_str = "There are no errors in this string!";
+    const istring valid_str = "There are no errors in this string!";
     utf8Length(valid_str, ( size_t i ) { error_caught = true; });
     assert(!error_caught,
         "the call to utf8Length should not have caught an error");
@@ -203,7 +205,7 @@ unittest
 
 *******************************************************************************/
 
-public char[] truncateAtWordBreak ( ref char[] str, size_t n )
+public mstring truncateAtWordBreak ( ref mstring str, size_t n )
 out (result)
 {
     if (result.length > n)
@@ -254,9 +256,9 @@ body
 
 unittest
 {
-    char[] buffer;
+    mstring buffer;
 
-    void doTest ( char[] input, char[] expected_output, int length, int line = __LINE__ )
+    void doTest ( cstring input, cstring expected_output, int length, int line = __LINE__ )
     {
         buffer.copy(input);
         test!("==")(truncateAtWordBreak(buffer, length), expected_output, __FILE__, line);
@@ -296,7 +298,7 @@ unittest
 
 *******************************************************************************/
 
-public char[] truncateAppendEnding ( ref char[] str, size_t n, char[] ending = "...")
+public mstring truncateAppendEnding ( ref mstring str, size_t n, cstring ending = "...")
 in
 {
     assert (n >= ending.length);
@@ -318,10 +320,10 @@ body
 
 unittest
 {
-    char[] buffer;
+    mstring buffer;
 
-    void doTest ( char[] input, char[] expected_output, int length,
-        char[] ending = "..." , int line = __LINE__ )
+    void doTest ( cstring input, cstring expected_output, int length,
+        cstring ending = "..." , int line = __LINE__ )
     {
         buffer.copy(input);
         test!("==")(truncateAppendEnding(buffer, length, ending),

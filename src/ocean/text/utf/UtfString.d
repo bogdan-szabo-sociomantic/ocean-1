@@ -66,6 +66,7 @@ module ocean.text.utf.UtfString;
 
 import Utf = tango.text.convert.Utf;
 
+import tango.transition;
 
 
 /*******************************************************************************
@@ -147,9 +148,12 @@ public struct UtfString ( Char = char, bool pull_dchars = false )
 
     ***************************************************************************/
 
-    static assert(is(Char == char) || is(Char == wchar) || is(Char == dchar),
-            This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof);
-
+    static assert(
+        is(Unqual!(Char) == char)
+            || is(Unqual!(Char) == wchar)
+            || is(Unqual!(Char) == dchar),
+        This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof
+    );
 
     /***************************************************************************
 
@@ -590,8 +594,8 @@ public struct UtfString ( Char = char, bool pull_dchars = false )
 
 unittest
 {
-    char[] str1 = "hello world ®"; // utf8 encoding
-    dchar[] str2 = "hello world ®"; // utf32 encoding
+    istring str1 = "hello world ®"; // utf8 encoding
+    Const!(dchar)[] str2 = "hello world ®"; // utf32 encoding
 
     assert(utf_match(str1, str2));
 }
