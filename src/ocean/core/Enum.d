@@ -280,6 +280,10 @@ public interface IEnum
     strings specify the names of the enum members, and the integers their
     values.
 
+    This template is public for technical reason, and should not be needed
+    in client code - See IEnum and EnumBase for template / interface you
+    should use.
+
     Template params:
         T = tuple:
             T[0] must be an array of strings
@@ -290,7 +294,7 @@ public interface IEnum
 
 *******************************************************************************/
 
-private template EnumValues ( size_t i, T ... )
+public template EnumValues ( size_t i, T ... )
 {
     static assert(T.length == 2);
     static assert(is(typeof(T[0]) : Const!(istring[])));
@@ -314,13 +318,17 @@ private template EnumValues ( size_t i, T ... )
     tuple T which contains a class implementing the IEnum interface. If no such
     type exists in T, then the template evaluates to T.length.
 
+    This template is public for technical reason, and should not be needed
+    in client code - See IEnum and EnumBase for template / interface you
+    should use.
+
     Template params:
         i = recursion index over T
         T = type tuple
 
 *******************************************************************************/
 
-private template SuperClassIndex ( size_t i, T ... )
+public template SuperClassIndex ( size_t i, T ... )
 {
     static if ( i == T.length )
     {
