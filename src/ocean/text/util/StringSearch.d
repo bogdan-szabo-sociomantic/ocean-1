@@ -24,10 +24,10 @@ module ocean.text.util.StringSearch;
 
  ******************************************************************************/
 
-import cstddef = tango.stdc.stddef: wchar_t;
-import cwctype = tango.stdc.wctype;
-import cctype  = tango.stdc.ctype;
-import cstring = tango.stdc.string;
+import c_stddef = tango.stdc.stddef: wchar_t;
+import c_wctype = tango.stdc.wctype;
+import c_ctype  = tango.stdc.ctype;
+import c_string = tango.stdc.string;
 
 import tango.math.Math:   min;
 
@@ -166,71 +166,71 @@ import tango.math.Math:   min;
 
 struct StringSearch ( bool wide_char = false )
 {
-    alias cstddef.wchar_t WcharT;
+    alias c_stddef.wchar_t WcharT;
 
     static if (wide_char)
     {
         alias WcharT            Char;
 
-        alias cwctype.iswcntrl  isCntrl;
-        alias cwctype.iswspace  isSpace;
+        alias c_wctype.iswcntrl  isCntrl;
+        alias c_wctype.iswspace  isSpace;
 
-        alias cwctype.iswgraph  isGraph;
-        alias cwctype.iswprint  isPrint;
-        alias cwctype.iswpunct  isPunct;
+        alias c_wctype.iswgraph  isGraph;
+        alias c_wctype.iswprint  isPrint;
+        alias c_wctype.iswpunct  isPunct;
 
-        alias cwctype.iswalpha  isAlpha;
-        alias cwctype.iswalnum  isAlNum;
-        alias cwctype.iswdigit  isDigit;
-        alias cwctype.iswxdigit isHexDigit;
+        alias c_wctype.iswalpha  isAlpha;
+        alias c_wctype.iswalnum  isAlNum;
+        alias c_wctype.iswdigit  isDigit;
+        alias c_wctype.iswxdigit isHexDigit;
 
-        alias cwctype.iswlower  isLower;
-        alias cwctype.iswupper  isUpper;
+        alias c_wctype.iswlower  isLower;
+        alias c_wctype.iswupper  isUpper;
 
-        alias cwctype.towlower  toLower;
-        alias cwctype.towupper  toUpper;
+        alias c_wctype.towlower  toLower;
+        alias c_wctype.towupper  toUpper;
 
-        alias cstring.wcslen    lengthOf;
+        alias c_string.wcslen    lengthOf;
 
-        alias cstring.wmemchr   pLocateBinChar;
+        alias c_string.wmemchr   pLocateBinChar;
 
-        alias cstring.wcsstr    pLocatePattern;
-        alias cstring.wmemmove  pMemMove;
-        alias cstring.wcscspn   pLocateFirstInSet;
+        alias c_string.wcsstr    pLocatePattern;
+        alias c_string.wmemmove  pMemMove;
+        alias c_string.wcscspn   pLocateFirstInSet;
 
-        alias cstring.wcstok    pSplit;
+        alias c_string.wcstok    pSplit;
     }
     else
     {
         alias char              Char;
 
-        alias cctype.iscntrl    isCntrl;
-        alias cctype.isspace    isSpace;
+        alias c_ctype.iscntrl    isCntrl;
+        alias c_ctype.isspace    isSpace;
 
-        alias cctype.isgraph    isGraph;
-        alias cctype.isprint    isPrint;
-        alias cctype.ispunct    isPunct;
+        alias c_ctype.isgraph    isGraph;
+        alias c_ctype.isprint    isPrint;
+        alias c_ctype.ispunct    isPunct;
 
-        alias cctype.isalpha    isAlpha;
-        alias cctype.isalnum    isAlNum;
-        alias cctype.isdigit    isDigit;
-        alias cctype.isxdigit   isHexDigit;
+        alias c_ctype.isalpha    isAlpha;
+        alias c_ctype.isalnum    isAlNum;
+        alias c_ctype.isdigit    isDigit;
+        alias c_ctype.isxdigit   isHexDigit;
 
-        alias cctype.islower    isLower;
-        alias cctype.isupper    isUpper;
+        alias c_ctype.islower    isLower;
+        alias c_ctype.isupper    isUpper;
 
-        alias cctype.tolower    toLower;
-        alias cctype.toupper    toUpper;
+        alias c_ctype.tolower    toLower;
+        alias c_ctype.toupper    toUpper;
 
-        alias cstring.strlen    lengthOf;
+        alias c_string.strlen    lengthOf;
 
-        alias cstring.memchr    pLocateBinChar;
+        alias c_string.memchr    pLocateBinChar;
 
-        alias cstring.strstr    pLocatePattern;
-        alias cstring.memmove   pMemMove;
-        alias cstring.strcspn   pLocateFirstInSet;
+        alias c_string.strstr    pLocatePattern;
+        alias c_string.memmove   pMemMove;
+        alias c_string.strcspn   pLocateFirstInSet;
 
-        alias cstring.strtok    pSplit;
+        alias c_string.strtok    pSplit;
 
     }
 
