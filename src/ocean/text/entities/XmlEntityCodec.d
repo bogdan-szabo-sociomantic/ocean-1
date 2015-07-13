@@ -42,7 +42,7 @@ import ocean.text.entities.model.MarkupEntityCodec;
 
 import ocean.text.entities.XmlEntitySet;
 
-
+import tango.transition;
 
 /*******************************************************************************
 
@@ -61,7 +61,8 @@ public alias MarkupEntityCodec!(XmlEntitySet) XmlEntityCodec;
 
 version ( UnitTest )
 {
-    void encodeTest ( Char ) ( XmlEntityCodec codec, Char[] str, Char[] expected_result )
+    void encodeTest ( Char ) ( XmlEntityCodec codec, Const!(Char)[] str,
+        Const!(Char)[] expected_result )
     {
         Char[] encoded;
 
@@ -72,13 +73,14 @@ version ( UnitTest )
         }
         else
         {
-            encoded = str;
+            encoded = str.dup;
         }
 
         assert(encoded == expected_result);
     }
 
-    void decodeTest ( Char ) ( XmlEntityCodec codec, Char[] str, Char[] expected_result )
+    void decodeTest ( Char ) ( XmlEntityCodec codec, Const!(Char)[] str,
+        Const!(Char)[] expected_result )
     {
         Char[] decoded;
 
@@ -88,7 +90,7 @@ version ( UnitTest )
         }
         else
         {
-            decoded = str;
+            decoded = str.dup;
         }
 
         assert(decoded == expected_result);
@@ -99,8 +101,8 @@ version ( UnitTest )
     {
         struct Test
         {
-            Char[] before;
-            Char[] after;
+            Const!(Char)[] before;
+            Const!(Char)[] after;
         }
 
         scope codec = new XmlEntityCodec;

@@ -23,7 +23,7 @@ import ocean.core.Array;
 
 import ocean.text.entities.model.IEntitySet;
 
-
+import tango.transition;
 
 /*******************************************************************************
 
@@ -64,7 +64,7 @@ public class XmlEntitySet : IEntitySet
 
     ***************************************************************************/
 
-    public override Entity[] entities ( )
+    public override Const!(Entity)[] entities ( )
     {
         return This.xml_entities;
     }

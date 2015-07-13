@@ -45,6 +45,8 @@ module ocean.text.entities.model.MarkupEntityCodec;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.core.Array;
 
 import ocean.text.entities.model.IEntityCodec;
@@ -116,17 +118,17 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 
     ***************************************************************************/
 
-    public override char[] encode ( char[] text, ref char[] encoded )
+    public override char[] encode ( Const!(char)[] text, ref char[] encoded )
     {
         return this.encode_(text, encoded);
     }
 
-    public override wchar[] encode ( wchar[] text, ref wchar[] encoded )
+    public override wchar[] encode ( Const!(wchar)[] text, ref wchar[] encoded )
     {
         return this.encode_(text, encoded);
     }
 
-    public override dchar[] encode ( dchar[] text, ref dchar[] encoded )
+    public override dchar[] encode ( Const!(dchar)[] text, ref dchar[] encoded )
     {
         return this.encode_(text, encoded);
     }
@@ -145,17 +147,17 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 
     ***************************************************************************/
 
-    public override char[] decode ( char[] text, ref char[] decoded )
+    public override mstring decode ( Const!(char)[] text, ref mstring decoded )
     {
         return this.decode_(text, decoded);
     }
 
-    public override wchar[] decode ( wchar[] text, ref wchar[] decoded )
+    public override wchar[] decode ( Const!(wchar)[] text, ref wchar[] decoded )
     {
         return this.decode_(text, decoded);
     }
 
-    public override dchar[] decode ( dchar[] text, ref dchar[] decoded )
+    public override dchar[] decode ( Const!(dchar)[] text, ref dchar[] decoded )
     {
         return this.decode_(text, decoded);
     }
@@ -173,17 +175,17 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 
     ***************************************************************************/
 
-    public override bool containsUnencoded ( char[] text )
+    public override bool containsUnencoded ( Const!(char)[] text )
     {
         return this.containsUnencoded_(text);
     }
 
-    public override bool containsUnencoded ( wchar[] text )
+    public override bool containsUnencoded ( Const!(wchar)[] text )
     {
         return this.containsUnencoded_(text);
     }
 
-    public override bool containsUnencoded ( dchar[] text )
+    public override bool containsUnencoded ( Const!(dchar)[] text )
     {
         return this.containsUnencoded_(text);
     }
@@ -201,17 +203,17 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 
     ***************************************************************************/
 
-    public override bool containsEncoded ( char[] text )
+    public override bool containsEncoded ( Const!(char)[] text )
     {
         return this.containsEncoded_(text);
     }
 
-    public override bool containsEncoded ( wchar[] text )
+    public override bool containsEncoded ( Const!(wchar)[] text )
     {
         return this.containsEncoded_(text);
     }
 
-    public override bool containsEncoded ( dchar[] text )
+    public override bool containsEncoded ( Const!(dchar)[] text )
     {
         return this.containsEncoded_(text);
     }
@@ -236,8 +238,11 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 
     public bool isUnencodedEntity ( Char ) ( Char[] text )
     {
-        static assert(is(Char == char) || is(Char == wchar) || is(Char == dchar),
-                This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof);
+        static assert(
+            is(Unqual!(Char) == char)
+                || is(Unqual!(Char) == wchar)
+                || is(Unqual!(Char) == dchar),
+            This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof);
 
         auto c = UtfString!(Char, true).extract(text);
 
@@ -285,9 +290,13 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 
     public bool isEncodedEntity ( Char ) ( Char[] text, bool exact_match = false )
     {
-        static assert(is(Char == char) || is(Char == wchar) || is(Char == dchar),
-                This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof);
-
+        static assert(
+            is(Unqual!(Char) == char)
+                || is(Unqual!(Char) == wchar)
+                || is(Unqual!(Char) == dchar),
+            This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof
+        );
+ 
         auto entity = this.sliceEncodedEntity(text);
         if ( !entity.length )
         {
@@ -325,9 +334,13 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
     }
     body
     {
-        static assert(is(Char == char) || is(Char == wchar) || is(Char == dchar),
-                This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof);
-
+        static assert(
+            is(Unqual!(Char) == char)
+                || is(Unqual!(Char) == wchar)
+                || is(Unqual!(Char) == dchar),
+            This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof
+        );
+ 
         dchar unicode = InvalidUnicode;
 
         if ( entity.length )
@@ -361,10 +374,17 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 
     ***************************************************************************/
 
-    protected Char[] encode_ ( Char ) ( Char[] text, ref Char[] encoded )
-    {
-        static assert(is(Char == char) || is(Char == wchar) || is(Char == dchar),
-                This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof);
+    protected MutChar[] encode_ ( ConstChar, MutChar ) ( ConstChar[] text,
+        ref MutChar[] encoded )
+    { 
+        static assert (is(Unqual!(ConstChar) == Unqual!(MutChar)));
+
+        static assert(
+            is(MutChar == char)
+                || is(MutChar == wchar)
+                || is(MutChar == dchar),
+            This.stringof ~ " template parameter MutChar must be one of {char, wchar, dchar}, not " ~ MutChar.stringof
+        );
 
         encoded.length = 0;
 
@@ -372,10 +392,10 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
         size_t i;
         while ( i < text.length )
         {
-            Char[] process = text[i..$];
+            ConstChar[] process = text[i..$];
 
             size_t width;
-            auto c = UtfString!(Char, true).extract(process, width);
+            auto c = UtfString!(ConstChar, true).extract(process, width);
 
             if ( this.isUnencodedEntity(process) )
             {
@@ -407,10 +427,17 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 
     ***************************************************************************/
 
-    protected Char[] decode_ ( Char ) ( Char[] text, ref Char[] decoded )
+    protected MutChar[] decode_ ( ConstChar, MutChar ) ( ConstChar[] text,
+        ref MutChar[] decoded )
     {
-        static assert(is(Char == char) || is(Char == wchar) || is(Char == dchar),
-                This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof);
+        static assert (is(Unqual!(ConstChar) == Unqual!(MutChar)));
+
+        static assert(
+            is(MutChar == char)
+                || is(MutChar == wchar)
+                || is(MutChar == dchar),
+            This.stringof ~ " template parameter MutChar must be one of {char, wchar, dchar}, not " ~ MutChar.stringof
+        );
 
         decoded.length = 0;
 
@@ -428,7 +455,7 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
                     dchar unicode = this.decodeEntity(entity);
                     if ( unicode != InvalidUnicode )
                     {
-                        decoded.append(this.dcharTo!(Char)(unicode));
+                        decoded.append(this.dcharTo!(MutChar)(unicode));
                     }
 
                     i += entity.length;
@@ -459,8 +486,12 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 
     protected bool containsUnencoded_ ( Char ) ( Char[] text )
     {
-        static assert(is(Char == char) || is(Char == wchar) || is(Char == dchar),
-                This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof);
+        static assert(
+            is(Unqual!(Char) == char)
+                || is(Unqual!(Char) == wchar)
+                || is(Unqual!(Char) == dchar),
+            This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof
+        );
 
         UtfString!(Char) utf_str = { text };
         foreach ( i, c; utf_str )
@@ -490,8 +521,12 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 
     protected bool containsEncoded_ ( Char ) ( Char[] text )
     {
-        static assert(is(Char == char) || is(Char == wchar) || is(Char == dchar),
-                This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof);
+        static assert(
+            is(Unqual!(Char) == char)
+                || is(Unqual!(Char) == wchar)
+                || is(Unqual!(Char) == dchar),
+            This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof
+        );
 
         UtfString!(Char) utf_str = { text };
         foreach ( i, c; utf_str )
@@ -559,8 +594,12 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 
     protected Char[] sliceEncodedEntity ( Char ) ( Char[] text )
     {
-        static assert(is(Char == char) || is(Char == wchar) || is(Char == dchar),
-                This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof);
+        static assert(
+            is(Unqual!(Char) == char)
+                || is(Unqual!(Char) == wchar)
+                || is(Unqual!(Char) == dchar),
+            This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof
+        );
 
         if ( text.length <= 2 )                             // a) criterion
         {
@@ -616,8 +655,12 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 
     protected bool isSpace ( Char ) ( Char c )
     {
-        static assert(is(Char == char) || is(Char == wchar) || is(Char == dchar),
-                This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof);
+        static assert(
+            is(Unqual!(Char) == char)
+                || is(Unqual!(Char) == wchar)
+                || is(Unqual!(Char) == dchar),
+            This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof
+        );
 
         dchar unicode = c;
         StringSearch!(true) str_search;
@@ -646,8 +689,12 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
     }
     body
     {
-        static assert(is(Char == char) || is(Char == wchar) || is(Char == dchar),
-                This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof);
+        static assert(
+            is(Unqual!(Char) == char)
+                || is(Unqual!(Char) == wchar)
+                || is(Unqual!(Char) == dchar),
+            This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof
+        );
 
         return this.entities.getUnicode(entity[1 .. $ - 1]);
     }
@@ -688,8 +735,12 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
     }
     body
     {
-        static assert(is(Char == char) || is(Char == wchar) || is(Char == dchar),
-                This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof);
+        static assert(
+            is(Unqual!(Char) == char)
+                || is(Unqual!(Char) == wchar)
+                || is(Unqual!(Char) == dchar),
+            This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof
+        );
 
         dchar unicode = InvalidUnicode;
 

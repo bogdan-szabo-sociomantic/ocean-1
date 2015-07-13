@@ -28,6 +28,7 @@ import ocean.text.entities.model.IEntitySet;
 
 import Utf = tango.text.convert.Utf;
 
+import tango.transition;
 
 /*******************************************************************************
 
@@ -48,9 +49,9 @@ public abstract class IEntityCodec ( E : IEntitySet )
 
     ***************************************************************************/
 
-    public abstract char[] encode ( char[] text, ref char[] encoded );
-    public abstract wchar[] encode ( wchar[] text, ref wchar[] encoded );
-    public abstract dchar[] encode ( dchar[] text, ref dchar[] encoded );
+    public abstract char[]  encode ( Const!(char)[]  text, ref char[] encoded );
+    public abstract wchar[] encode ( Const!(wchar)[] text, ref wchar[] encoded );
+    public abstract dchar[] encode ( Const!(dchar)[] text, ref dchar[] encoded );
 
 
     /***************************************************************************
@@ -61,9 +62,9 @@ public abstract class IEntityCodec ( E : IEntitySet )
 
     ***************************************************************************/
 
-    public abstract char[] decode ( char[] text, ref char[] decoded );
-    public abstract wchar[] decode ( wchar[] text, ref wchar[] decoded );
-    public abstract dchar[] decode ( dchar[] text, ref dchar[] decoded );
+    public abstract char[] decode  ( Const!(char)[]  text, ref char[] decoded );
+    public abstract wchar[] decode ( Const!(wchar)[] text, ref wchar[] decoded );
+    public abstract dchar[] decode ( Const!(dchar)[] text, ref dchar[] decoded );
 
 
     /***************************************************************************
@@ -75,9 +76,9 @@ public abstract class IEntityCodec ( E : IEntitySet )
 
     ***************************************************************************/
 
-    public abstract bool containsUnencoded ( char[] text );
-    public abstract bool containsUnencoded ( wchar[] text );
-    public abstract bool containsUnencoded ( dchar[] text );
+    public abstract bool containsUnencoded ( Const!(char)[]  text );
+    public abstract bool containsUnencoded ( Const!(wchar)[] text );
+    public abstract bool containsUnencoded ( Const!(dchar)[] text );
 
 
     /***************************************************************************
@@ -88,9 +89,9 @@ public abstract class IEntityCodec ( E : IEntitySet )
 
     ***************************************************************************/
 
-    public abstract bool containsEncoded ( char[] text );
-    public abstract bool containsEncoded ( wchar[] text );
-    public abstract bool containsEncoded ( dchar[] text );
+    public abstract bool containsEncoded ( Const!(char)[]  text );
+    public abstract bool containsEncoded ( Const!(wchar)[] text );
+    public abstract bool containsEncoded ( Const!(dchar)[] text );
 
 
     /***************************************************************************

@@ -29,7 +29,7 @@ module ocean.text.entities.model.IEntitySet;
 
 import ocean.text.utf.UtfString : InvalidUnicode, utf_match;
 
-
+import tango.transition;
 
 /*******************************************************************************
 
@@ -47,7 +47,7 @@ public abstract class IEntitySet
 
     public struct Entity
     {
-        char[] name;
+        istring name;
         dchar unicode;
     }
 
@@ -58,7 +58,7 @@ public abstract class IEntitySet
 
     ***************************************************************************/
 
-    public abstract Entity[] entities ( );
+    public abstract Const!(Entity)[] entities ( );
 
 
     /***************************************************************************
@@ -113,7 +113,7 @@ public abstract class IEntitySet
 
     ***************************************************************************/
 
-    public char[] getName ( dchar unicode )
+    public istring getName ( dchar unicode )
     {
         foreach ( name, check_unicode; this )
         {
@@ -278,7 +278,7 @@ public abstract class IEntitySet
 
     ***************************************************************************/
 
-    public int opApply ( int delegate ( ref char[], ref dchar ) dg )
+    public int opApply ( int delegate ( ref Const!(istring), ref Const!(dchar) ) dg )
     {
         int res;
         foreach ( ref entity; this.entities )

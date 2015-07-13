@@ -23,7 +23,7 @@ import ocean.text.entities.model.IEntitySet;
 
 import ocean.text.entities.XmlEntitySet;
 
-
+import tango.transition;
 
 /*******************************************************************************
 
@@ -195,7 +195,7 @@ public class HtmlEntitySet : XmlEntitySet
 
     ***************************************************************************/
 
-    public override Entity[] entities ( )
+    public override Const!(Entity)[] entities ( )
     {
         return This.html_entities;
     }
