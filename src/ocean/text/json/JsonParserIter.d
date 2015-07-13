@@ -17,7 +17,7 @@
 
     ---
 
-        char[] json = "{"object":{"cost":12.34,"sub":{"cost":56.78}}}";
+        istring json = "{"object":{"cost":12.34,"sub":{"cost":56.78}}}";
 
         scope parser = new JsonParserIter();
         parser.reset(json);
@@ -39,6 +39,8 @@ module ocean.text.json.JsonParserIter;
     Imports
 
  ******************************************************************************/
+
+import tango.transition;
 
 import tango.text.json.JsonParser;
 
@@ -81,8 +83,7 @@ class JsonParserIter(bool AllowNaN = false) : JsonParser!(char, AllowNaN)
 
      **************************************************************************/
 
-    public const char[][Token.max + 1] type_description =
-    [
+    public static istring[Token.max + 1] type_description = [
         Token.Empty:        "Empty",
         Token.Name:         "Name",
         Token.String:       "String",
@@ -193,7 +194,7 @@ class JsonParserIter(bool AllowNaN = false) : JsonParser!(char, AllowNaN)
 
      **************************************************************************/
 
-    public typeof (this) opCall ( char[] content )
+    public typeof (this) opCall ( cstring content )
     {
         super.reset(content);
 
@@ -206,14 +207,14 @@ class JsonParserIter(bool AllowNaN = false) : JsonParser!(char, AllowNaN)
 
      **************************************************************************/
 
-    public int opApply ( int delegate ( ref Token type, ref char[] value ) dg )
+    public int opApply ( int delegate ( ref Token type, ref cstring value ) dg )
     {
         int result = 0;
 
         do
         {
             Token  type  = super.type;
-            char[] value = super.value;
+            cstring value = super.value;
 
             result = dg(type, value);
         }
@@ -231,17 +232,18 @@ class JsonParserIter(bool AllowNaN = false) : JsonParser!(char, AllowNaN)
 
      **************************************************************************/
 
-    public int opApply ( int delegate ( ref Token type, ref char[] name, ref char[] value ) dg )
+    public int opApply ( int delegate ( ref Token type, ref cstring name,
+        ref cstring value ) dg )
     {
         int result = 0;
 
-        char[] name = null;
+        cstring name = null;
 
         do
         {
             Token type = super.type;
 
-            char[] value = super.value;
+            auto value = super.value;
 
             if (type == Token.Name)
             {
@@ -330,7 +332,7 @@ class JsonParserIter(bool AllowNaN = false) : JsonParser!(char, AllowNaN)
 
      **************************************************************************/
 
-    public bool nextNamedObject ( char[] name )
+    public bool nextNamedObject ( cstring name )
     {
         bool in_object;
         do
@@ -378,7 +380,7 @@ class JsonParserIter(bool AllowNaN = false) : JsonParser!(char, AllowNaN)
 
      **************************************************************************/
 
-    public char[] nextNamed ( char[] name, out bool found )
+    public cstring nextNamed ( cstring name, out bool found )
     {
         return this.nextNamedValue(name, found, ( Token token ) { return true; });
     }
@@ -403,7 +405,7 @@ class JsonParserIter(bool AllowNaN = false) : JsonParser!(char, AllowNaN)
 
      **************************************************************************/
 
-    public bool nextNamedBool ( char[] name, out bool found )
+    public bool nextNamedBool ( cstring name, out bool found )
     {
         return this.nextNamedValue(name, found, ( Token token ) { return token == Token.True || token == Token.False; }) == "true";
     }
@@ -428,7 +430,7 @@ class JsonParserIter(bool AllowNaN = false) : JsonParser!(char, AllowNaN)
 
      **************************************************************************/
 
-    public char[] nextNamedString ( char[] name, out bool found )
+    public cstring nextNamedString ( cstring name, out bool found )
     {
         return this.nextNamedValue(name, found, ( Token token ) { return token == Token.String; });
     }
@@ -459,7 +461,7 @@ class JsonParserIter(bool AllowNaN = false) : JsonParser!(char, AllowNaN)
 
      **************************************************************************/
 
-    public T nextNamedNumber ( T ) ( char[] name, out bool found )
+    public T nextNamedNumber ( T ) ( cstring name, out bool found )
     {
         T ret;
         auto str = this.nextNamedValue(name, found,
@@ -515,7 +517,7 @@ class JsonParserIter(bool AllowNaN = false) : JsonParser!(char, AllowNaN)
 
      **************************************************************************/
 
-    private char[] nextNamedValue ( char[] name, out bool found,
+    private cstring nextNamedValue ( cstring name, out bool found,
         bool delegate ( Token ) type_match_dg )
     {
         bool got_name;

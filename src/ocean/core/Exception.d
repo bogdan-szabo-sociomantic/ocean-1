@@ -261,7 +261,7 @@ public template ReusableExceptionImplementation()
 
     ***************************************************************************/
 
-    public typeof (this) append ( istring msg )
+    public typeof (this) append ( cstring msg )
     {
         ocean.core.Array.append(this.reused_msg, msg);
         return this;

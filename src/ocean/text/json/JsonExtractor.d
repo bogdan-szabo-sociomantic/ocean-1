@@ -83,15 +83,14 @@
     GetObject site = new GetObject(json, ["page": page]),
               user = new GetObject(json, ["uid": uid]),
                             // cast needed to prevent array type inference error
-       imp_element = new GetObject(json, [cast (char[])
-                                          "impid": impid, "w": w, "h": h]);
+       imp_element = new GetObject(json, ["impid"[]: impid, "w": w, "h": h]);
 
 
     // Create one IterateArray instance for each JSON array that contains
     // members to extract.
 
     GetArray imp = new GetArray(json, [imp_element]
-                               (uint i, Type type, char[] value)
+                               (uint i, Type type, cstring value)
                                {
                                    // This delegate will be called for each
                                    // "imp" array element with i as index. Note
@@ -124,8 +123,7 @@
     // Create a Main (GetObject subclass) instance for the main JSON object and
     // pass the top level getters.
 
-    Main main = new Main(json, [cast (char[])
-                                "id": id, "imp": imp, "site": site,
+    Main main = new Main(json, ["id"[]: id, "imp": imp, "site": site,
                                 "user": user]);
 
     // Here we go.
@@ -161,6 +159,8 @@ module ocean.text.json.JsonExtractor;
     Imports
 
 *******************************************************************************/
+
+import tango.transition;
 
 import ocean.text.json.JsonParserIter;
 import ocean.core.Array;
@@ -225,7 +225,7 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        public this ( Parser json, GetField[char[]] get_named_fields,
+        public this ( Parser json, GetField[istring] get_named_fields,
                       GetField[] get_indexed_fields ... )
         {
             super(this.json = json, get_named_fields, get_indexed_fields);
@@ -248,7 +248,7 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        bool parse ( char[] content )
+        bool parse ( cstring content )
         {
             super.reset();
 
@@ -287,7 +287,7 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        public char[] value = null;
+        public cstring value = null;
 
         /***********************************************************************
 
@@ -299,7 +299,7 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        final void set ( Type type, char[] value = null )
+        final void set ( Type type, cstring value = null )
         {
             this.type  = type;
             this.value = value;
@@ -360,7 +360,7 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        private GetField[char[]] get_named_fields;
+        private GetField[istring] get_named_fields;
 
         /***********************************************************************
 
@@ -399,7 +399,7 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        public this ( Parser json, GetField[char[]] get_named_fields,
+        public this ( Parser json, GetField[istring] get_named_fields,
                       GetField[] get_indexed_fields ... )
         {
             this(json, false, get_named_fields, get_indexed_fields);
@@ -424,7 +424,7 @@ struct JsonExtractor
          **********************************************************************/
 
         public this ( Parser json, bool skip_null,
-                      GetField[char[]] get_named_fields,
+                      GetField[istring] get_named_fields,
                       GetField[] get_indexed_fields ... )
         {
             super(json, Type.BeginObject, Type.EndObject, skip_null);
@@ -469,15 +469,10 @@ struct JsonExtractor
                 {
                     if (field.type == Type.Empty)
                     {
-                        this.field_unmatched.file = __FILE__;
-                        this.field_unmatched.line = __LINE__;
-                        concat(
-                            this.field_unmatched.msg,
-                            "Field '",
-                            name,
-                            "' not found in JSON"
-                        );
-                        throw this.field_unmatched;
+                        throw this.field_unmatched
+                            .set("Field '")
+                            .append(name)
+                            .append("' not found in JSON");
                     }
                 }
 
@@ -485,13 +480,8 @@ struct JsonExtractor
                 {
                     if (field.type == Type.Empty)
                     {
-                        this.field_unmatched.file = __FILE__;
-                        this.field_unmatched.line = __LINE__;
-                        copy(
-                            this.field_unmatched.msg,
-                            "Unnamed field not found in JSON"
-                        );
-                        throw this.field_unmatched;
+                        throw this.field_unmatched
+                            .set("Unnamed field not found in JSON");
                     }
                 }
             }
@@ -513,7 +503,7 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        protected override bool setField ( uint i, Type type, char[] name, char[] value )
+        protected override bool setField ( uint i, Type type, cstring name, cstring value )
         {
             GetField get_field = this.getGetField(i, name);
 
@@ -542,7 +532,7 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        private GetField getGetField ( uint i, char[] name )
+        private GetField getGetField ( uint i, cstring name )
         {
             GetField* get_field = name?
                                     name in this.get_named_fields :
@@ -582,7 +572,7 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        public alias bool delegate ( uint i, Type type,char[] value) IteratorDg;
+        public alias bool delegate ( uint i, Type type, cstring value) IteratorDg;
 
         /***********************************************************************
 
@@ -639,7 +629,8 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        protected override bool setField ( uint i, Type type, char[] name, char[] value )
+        protected override bool setField ( uint i, Type type, cstring name,
+            cstring value )
         {
             return this.iterator_dg(i, type, value);
         }
@@ -813,8 +804,8 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        abstract protected bool setField ( uint i, Type type, char[] name,
-                                           char[] value );
+        abstract protected bool setField ( uint i, Type type, cstring name,
+                                           cstring value );
     }
 
     /**************************************************************************/
@@ -878,11 +869,11 @@ struct JsonExtractor
               not         = new GetField,
               site        = new GetObject(json, ["page": page]),
               user        = new GetObject(json, ["uid": uid]),
-              imp_element = new GetObject(json, [cast (char[]) "impid": impid,
+              imp_element = new GetObject(json, ["impid"[]: impid,
                                                  "w": w, "h": h]),
               bcat        = new GetObject(json, true, ["not":not]),
               imp         = new GetArray(json, [imp_element],
-                                       (uint i, Type type, char[] value)
+                                       (uint i, Type type, cstring value)
                                        {
                                            bool handled = i == 0;
 
@@ -895,7 +886,7 @@ struct JsonExtractor
 
                                            return handled;
                                        }),
-           main          = new Main(json, [cast (char[]) "id": id, "imp": imp,
+           main          = new Main(json, ["id"[]: id, "imp": imp,
                                            "site": site, "user": user]);
 
         bool ok = main.parse(content);
@@ -960,7 +951,7 @@ struct JsonExtractor
             t.test!("==")(e.msg, "type mismatch");
         }
 
-        bool fun (uint i, Type type, char[] value)
+        bool fun (uint i, Type type, cstring value)
         {
             return false;
         }
