@@ -1,17 +1,19 @@
 module ocean.text.util.ClassName;
 
-extern (C) private void* memrchr(void* s, int c, size_t n);
+import tango.transition;
 
-char[] classname ( Object o )
+extern (C) private void* memrchr(Const!(void)* s, int c, size_t n);
+
+istring classname ( Object o )
 {
-    char[] mod;
+    istring mod;
 
     return classname(o, mod);
 }
 
-char[] classname ( Object o, out char[] mod )
+istring classname ( Object o, out istring mod )
 {
-    char[] str = o.classinfo.name;
+    istring str = o.classinfo.name;
 
     char* lastdot = cast (char*) memrchr(str.ptr, '.', str.length);
 

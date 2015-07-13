@@ -22,6 +22,8 @@ module ocean.text.util.SplitIterator;
 
 ******************************************************************************/
 
+import tango.transition;
+
 import ocean.core.Array: concat, copy;
 
 import tango.stdc.string: strlen, memchr, strcspn;
@@ -50,6 +52,8 @@ import tango.text.Search: SearchFruct, search;
 
 class StrSplitIterator : ISplitIterator
 {
+    alias typeof(.search(cstring.init)) Search;
+
     /**************************************************************************
 
         Contains the delimiter as match string and manages a table of indices to
@@ -58,7 +62,7 @@ class StrSplitIterator : ISplitIterator
 
      **************************************************************************/
 
-    public SearchFruct!(char) sf;
+    public Search sf;
 
     /**************************************************************************
 
@@ -69,7 +73,7 @@ class StrSplitIterator : ISplitIterator
 
      **************************************************************************/
 
-    public this ( char[] delim_ )
+    public this ( cstring delim_ )
     {
         this.sf = .search(delim_);
     }
@@ -86,7 +90,7 @@ class StrSplitIterator : ISplitIterator
 
      **************************************************************************/
 
-    public this ( SearchFruct!(char) sf_in )
+    public this ( Search sf_in )
     {
         this.sf = sf_in;
     }
@@ -105,7 +109,7 @@ class StrSplitIterator : ISplitIterator
 
      **************************************************************************/
 
-    public char[] delim ( char[] delim_ )
+    public cstring delim ( cstring delim_ )
     {
         this.sf.match = delim_;
 
@@ -120,7 +124,7 @@ class StrSplitIterator : ISplitIterator
 
      **************************************************************************/
 
-    public char[] delim ( )
+    public cstring delim ( )
     {
         return this.sf.match;
     }
@@ -140,7 +144,7 @@ class StrSplitIterator : ISplitIterator
 
      **************************************************************************/
 
-    public override size_t locateDelim ( char[] str, size_t start = 0 )
+    public override size_t locateDelim ( cstring str, size_t start = 0 )
     {
         return this.sf.forward(str, start);
     }
@@ -159,7 +163,7 @@ class StrSplitIterator : ISplitIterator
 
      **************************************************************************/
 
-    protected override size_t skipDelim ( char[] str )
+    protected override size_t skipDelim ( cstring str )
     {
         assert (str.length >= this.delim.length);
 
@@ -183,7 +187,7 @@ unittest
     {
         foreach (element; split.reset(str))
         {
-            const char[][] elements = ["ab", "cd", "efg"];
+            istring[] elements = ["ab", "cd", "efg"];
 
             assert (split.n);
             assert (split.n <= elements.length);
@@ -195,7 +199,7 @@ unittest
 
     foreach (element; split.reset("ab""123""cd""123""efg"))
     {
-        const char[][] elements = ["ab", "cd", "efg"];
+        istring[] elements = ["ab", "cd", "efg"];
 
         assert (split.n);
         assert (split.n <= elements.length);
@@ -204,7 +208,7 @@ unittest
 
     foreach (element; split.reset("123""ab""123""cd""123""efg""123"))
     {
-        const char[][] elements = ["", "ab", "cd", "efg", ""];
+        istring[] elements = ["", "ab", "cd", "efg", ""];
 
         assert (split.n);
         assert (split.n <= elements.length);
@@ -264,7 +268,7 @@ class ChrSplitIterator : ISplitIterator
 
      **************************************************************************/
 
-    public override size_t locateDelim ( char[] str, size_t start = 0 )
+    public override size_t locateDelim ( cstring str, size_t start = 0 )
     in
     {
         assert (start < str.length, typeof (this).stringof ~ ".locateDelim: start index out of range");
@@ -290,7 +294,7 @@ class ChrSplitIterator : ISplitIterator
 
      **************************************************************************/
 
-    protected override size_t skipDelim ( char[] str )
+    protected override size_t skipDelim ( cstring str )
     in
     {
         assert (str.length >= 1);
@@ -333,7 +337,7 @@ abstract class ISplitIterator
 
      **************************************************************************/
 
-    private char[] content, remaining_;
+    private cstring content, remaining_;
 
     /**************************************************************************
 
@@ -351,9 +355,9 @@ abstract class ISplitIterator
 
     protected union IterationDelegate
     {
-        int delegate ( ref size_t pos, ref char[] segment ) with_pos;
+        int delegate ( ref size_t pos, ref cstring segment ) with_pos;
 
-        int delegate ( ref char[] segment ) without_pos;
+        int delegate ( ref cstring segment ) without_pos;
     }
 
     /**************************************************************************
@@ -399,7 +403,7 @@ abstract class ISplitIterator
 
      **************************************************************************/
 
-    public typeof (this) reset ( char[] content = null )
+    public typeof (this) reset ( cstring content = null )
     {
         this.content    = content;
         this.remaining_ = this.content;
@@ -422,7 +426,7 @@ abstract class ISplitIterator
 
      **************************************************************************/
 
-    public int opApply ( int delegate ( ref char[] segment ) dg_in )
+    public int opApply ( int delegate ( ref cstring segment ) dg_in )
     {
         IterationDelegate dg;
 
@@ -449,7 +453,7 @@ abstract class ISplitIterator
 
      **************************************************************************/
 
-    public int opApply ( int delegate ( ref size_t pos, ref char[] segment ) dg_in )
+    public int opApply ( int delegate ( ref size_t pos, ref cstring segment ) dg_in )
     {
         IterationDelegate dg;
 
@@ -485,7 +489,7 @@ abstract class ISplitIterator
 
      **************************************************************************/
 
-    public char[] remaining ( )
+    public cstring remaining ( )
     {
         return this.remaining_;
     }
@@ -506,7 +510,7 @@ abstract class ISplitIterator
 
      **************************************************************************/
 
-    abstract size_t locateDelim ( char[] str, size_t start = 0 );
+    abstract size_t locateDelim ( cstring str, size_t start = 0 );
 
     /**************************************************************************
 
@@ -546,7 +550,7 @@ abstract class ISplitIterator
 
      **************************************************************************/
 
-    public char[] skipLeadingDelims ( )
+    public cstring skipLeadingDelims ( )
     {
         size_t start = 0,
                pos   = this.locateDelim(this.remaining_);
@@ -572,7 +576,7 @@ abstract class ISplitIterator
 
      **************************************************************************/
 
-    public char[] next ( )
+    public cstring next ( )
     {
         if (this.remaining_.length)
         {
@@ -646,7 +650,7 @@ abstract class ISplitIterator
                 {
                     this.n_++;
 
-                    char[] segment  = this.content[start ..  pos];
+                    cstring segment  = this.content[start ..  pos];
                     this.remaining_ = this.content[next .. $];
 
                     if (with_pos)
@@ -677,7 +681,7 @@ abstract class ISplitIterator
             {
                 this.n_++;
 
-                char[] segment = this.remaining_;
+                cstring segment = this.remaining_;
 
                 this.remaining_ = "";
 
@@ -706,7 +710,7 @@ abstract class ISplitIterator
 
      **************************************************************************/
 
-    abstract protected size_t skipDelim ( char[] str );
+    abstract protected size_t skipDelim ( cstring str );
 
     /***************************************************************************
 
@@ -720,7 +724,7 @@ abstract class ISplitIterator
 
     ***************************************************************************/
 
-    static char[] trim ( char[] str )
+    static cstring trim ( cstring str )
     {
         foreach_reverse (i, c; str)
         {

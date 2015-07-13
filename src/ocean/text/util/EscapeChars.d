@@ -18,6 +18,8 @@ module ocean.text.util.EscapeChars;
 
  ******************************************************************************/
 
+import tango.transition;
+
 import ocean.core.Array: concat;
 
 import tango.stdc.string: strcspn, memmove, memcpy, memchr, strlen;
@@ -40,7 +42,7 @@ struct EscapeChars
 
      **************************************************************************/
 
-    private char[] tokens;
+    private mstring tokens;
 
     /**************************************************************************
 
@@ -66,8 +68,8 @@ struct EscapeChars
 
      **************************************************************************/
 
-    public char[] opCall ( ref char[] str, char[] escape = `\`,
-                           char[] tokens = this.Tokens )
+    public mstring opCall ( ref mstring str, cstring escape = `\`,
+                           cstring tokens = Tokens )
     {
         if (tokens.length)
         {
@@ -121,7 +123,7 @@ struct EscapeChars
 
      **************************************************************************/
 
-    private void copyTokens ( char[] tokens )
+    private void copyTokens ( cstring tokens )
     in
     {
         assert (tokens);

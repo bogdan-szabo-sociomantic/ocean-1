@@ -41,6 +41,8 @@ module ocean.text.util.DigitGrouping;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.core.TypeConvert;
 
 import ocean.core.Array;
@@ -132,7 +134,7 @@ public class DigitGrouping
 
     ***************************************************************************/
 
-    public static char[] format ( T ) ( T num, ref char[] output )
+    public static mstring format ( T ) ( T num, ref mstring output )
     {
         static assert(isIntegerType!(T), This.stringof ~ ".format - only works with integer types");
 
@@ -141,7 +143,7 @@ public class DigitGrouping
         char[20] string_buf; // 20 characters is enough to store ulong.max
         size_t layout_pos;
 
-        uint layoutSink ( char[] s )
+        uint layoutSink ( cstring s )
         {
             string_buf[layout_pos .. layout_pos + s.length] = s[];
             layout_pos += s.length;
@@ -150,7 +152,7 @@ public class DigitGrouping
 
         // Format number into a string
         Format.convert(&layoutSink, "{}", num);
-        char[] num_as_string = string_buf[0.. layout_pos];
+        mstring num_as_string = string_buf[0.. layout_pos];
 
         bool comma;
         size_t left = 0;
@@ -185,7 +187,7 @@ public class DigitGrouping
                 comma = false;
             }
 
-            char[] digits = num_as_string[left..right];
+            mstring digits = num_as_string[left..right];
             if ( comma )
             {
                 output.append(digits, ",");
@@ -225,7 +227,7 @@ unittest
     test!("==")(DigitGrouping.length( 100000),   "100,000".length);
     test!("==")(DigitGrouping.length(1000000), "1,000,000".length);
 
-    char[] buf;
+    mstring buf;
 
     test!("==")(DigitGrouping.format(-100000, buf),  "-100,000");
     test!("==")(DigitGrouping.format( -10000, buf),   "-10,000");
@@ -268,7 +270,7 @@ public class BitGrouping
 
     ***************************************************************************/
 
-    public static char[] format ( ulong num, ref char[] output, char[] unit = null )
+    public static mstring format ( ulong num, ref mstring output, cstring unit = null )
     {
         output.length = 0;
 
@@ -308,7 +310,7 @@ public class BitGrouping
 
 unittest
 {
-    char[] buf;
+    mstring buf;
 
     test!("==")(BitGrouping.format(0, buf), "0");
     test!("==")(BitGrouping.format(0, buf, "X"), "0X");

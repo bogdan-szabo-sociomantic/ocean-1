@@ -209,7 +209,9 @@ public struct MetricPrefix
 
 public void splitBinaryPrefix ( ulong n, void delegate ( char prefix, uint order, ulong order_val ) output_dg )
 {
-    for ( int order = MetricPrefix.BinaryPrefixes.length - 1; order >= 0; order-- )
+    auto length = MetricPrefix.BinaryPrefixes.length;
+    assert (length < int.max);
+    for ( int order = cast(int) length - 1;  order >= 0; order-- )
     {
         auto shift = order * 10;
 

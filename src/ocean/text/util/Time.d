@@ -46,6 +46,8 @@ module ocean.text.util.Time;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.core.Array : copy;
 
 import tango.stdc.time : gmtime, strftime, time_t, tm;
@@ -73,7 +75,7 @@ import tango.text.convert.Format;
 
 *******************************************************************************/
 
-public char[] formatTime ( time_t utc, char[] output )
+public mstring formatTime ( time_t utc, mstring output )
 in
 {
     assert(output.length >= 20);
@@ -108,7 +110,7 @@ body
 
 *******************************************************************************/
 
-public char[] formatDuration ( uint s, ref char[] output )
+public mstring formatDuration ( uint s, ref mstring output )
 {
     output.length = 0;
 
@@ -127,7 +129,7 @@ public char[] formatDuration ( uint s, ref char[] output )
 
     ***************************************************************************/
 
-    void append ( uint number, char[] name )
+    void append ( uint number, cstring name )
     {
         if ( number > 0 )
         {
@@ -173,7 +175,7 @@ public char[] formatDuration ( uint s, ref char[] output )
 
 *******************************************************************************/
 
-public char[] formatDurationShort ( uint s, ref char[] output )
+public mstring formatDurationShort ( uint s, ref mstring output )
 {
     output.length = 0;
 
@@ -190,7 +192,7 @@ public char[] formatDurationShort ( uint s, ref char[] output )
 
     ***************************************************************************/
 
-    void append ( uint number, char[] name )
+    void append ( uint number, cstring name )
     {
         if ( number > 0 )
         {

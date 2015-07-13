@@ -38,6 +38,8 @@ module ocean.text.util.StringEncode;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.text.util.c.iconv;
 
 import tango.stdc.errno;
@@ -52,9 +54,12 @@ class IconvException : Exception
 {
     const MSG = "Iconv: Error";
 
-    this ( char[] msg = MSG ) { super(msg); }
-    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+    this ( istring msg = MSG, istring file = __FILE__, int line = __LINE__ )
+    {
+        super(msg, file, line);
+    }
 
+    deprecated("Use plain constructor/throw instead")
     static void opCall ( Args ... ) ( Args args )
     {
         throw new IconvException(args);
@@ -70,7 +75,10 @@ class IconvException : Exception
     {
         const msg = "Iconv: Invalid Multibyte Sequence";
 
-        this ( ) { super(this.msg); }
+        this ( istring file = __FILE__, int line = __LINE__ )
+        {
+            super(this.msg, file, line);
+        }
     }
 
     /**************************************************************************
@@ -83,7 +91,10 @@ class IconvException : Exception
     {
         const msg = "Iconv: Incomplete Multibyte Sequence";
 
-        this ( ) { super(this.msg); }
+        this ( istring file = __FILE__, int line = __LINE__ )
+        {
+            super(this.msg, file, line);
+        }
     }
 }
 

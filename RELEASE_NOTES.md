@@ -33,6 +33,11 @@ Migration Instructions
    if `null` is provided as the `config` parameter.
    The default parameter (which was `null`) has also been removed.
 
+* `ocean.util.text.StringEncode`
+
+  `IconvException.opCall` has been deprecated in favor of `enforce` or explicit
+  constructor + throw.
+
 Removed Deprecated Modules
 --------------------------
 
