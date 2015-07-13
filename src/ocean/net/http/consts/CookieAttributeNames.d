@@ -19,11 +19,21 @@
 
 module ocean.net.http.consts.CookieAttributeNames;
 
+
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
+
+import tango.transition;
+
+
 /******************************************************************************/
 
 struct CookieAttributeNames
 {
-    char[] Comment, Domain,
+    istring Comment, Domain,
            Expires,
            Path, Secure, Version;
 
@@ -41,14 +51,14 @@ const CookieAttributeNames CookieAttributeNameStrings =
     Version: "version"
 };
 
-char[][] CookieAttributeNameList ( )
+istring[] CookieAttributeNameList ( )
 {
     return _CookieAttributeNameList;
 }
 
-private char[][] _CookieAttributeNameList;
+private istring[] _CookieAttributeNameList;
 
-private char[][CookieAttributeNames.tupleof.length] CookieAttributeNameList_;
+private istring[CookieAttributeNames.tupleof.length] CookieAttributeNameList_;
 
 static this ( )
 {
