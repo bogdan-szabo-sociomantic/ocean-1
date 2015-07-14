@@ -141,7 +141,7 @@ public struct Range ( T )
 
     ***************************************************************************/
 
-    static Range opCall ( T min, T max )
+    public static Range opCall ( T min, T max )
     {
         Range r;
         r.min_ = min;
