@@ -113,23 +113,23 @@ class DeserializationException : Exception
 
     The contents of dynamic arrays are stored in the buffer with the array
     length prepended. For dynamic arrays of dynamic arrays that means that only
-    single length field gets stored for top-level array.
-    When such array is encountered Deserializer needs to extend the buffer
-    and put expanded array slice (with all ppointers restored) in the end.
+    one single length field gets stored for each top-level array.
+    When such an array is encountered the Deserializer needs to extend the buffer
+    and put the expanded array slice (with all ppointers restored) to the end.
     This process is called "array branching".
 
-    All deserialization methods that return struct instance or pointer do
-    in fact use one of argument data buffers as backing memory storage.
+    All deserialization methods that return a struct instance or a pointer
+    use in fact one of the argument data buffers as backing memory storage.
     Modifying those directly will invalidate/corrupt your struct pointer.
 
     Deserialized structures can be written to, as well as any referenced
     arrays / structures. However, resizing arrays (i.e. appending) will cause
     the buffer to be reallocated, causing the struct to no longer be contiguous.
-    As contiguity invariant is disabled by default that may result in udnefined
+    As contiguity invariant is disabled by default that may result in undefined
     behaviour.
 
     For copying structures obtained via deserialization you must use
-    `copy` function defined above in this module.
+    the `copy` function defined above in this module.
 
     Example:
     ---
