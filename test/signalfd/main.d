@@ -261,6 +261,8 @@ private class SignalFDTest
     private void run ( )
     {
         SigHandler[] handlers;
+        auto sigset = SignalSet.getCurrent();
+
         scope ( exit )
         {
             foreach ( handler; handlers )
@@ -268,9 +270,8 @@ private class SignalFDTest
                 handler.restore();
             }
 
-            auto sigset = getSignalMask();
             sigset.remove(this.handled_signals);
-            setSignalMask(sigset);
+            sigset.mask();
         }
 
         // Set up normal (i.e. non-fd) handler for non-handled signals.
@@ -289,7 +290,8 @@ private class SignalFDTest
         // registered with epoll.)
         // The signals are unmasked again when the test is over (see
         // scope(exit), above), in order to not affect subsequent tests.
-        maskSignals(this.handled_signals);
+        sigset.add(this.handled_signals);
+        sigset.block();
         this.pid = fork();
         // FLAKY: call to fork() may fail
         test!(">=")(this.pid, 0); // fork() error
