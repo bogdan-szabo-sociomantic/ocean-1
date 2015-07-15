@@ -52,6 +52,10 @@ Removed Deprecated Modules
 
   It was deprecated in 1.22.0
 
+* `ocean.util.serialize.model.Version`
+
+  It was deprecated int 1.22.0
+
 Removed Deprecated Symbols
 --------------------------
 
