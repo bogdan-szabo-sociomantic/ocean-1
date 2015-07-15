@@ -83,7 +83,7 @@ class IOWarning : ErrnoException
      **************************************************************************/
 
     deprecated ("Use ocean.sys.ErrnoException.enforce() instead")
-    public typeof (this) opCall ( char[] msg, char[] file = __FILE__,
+    public typeof (this) opCall ( istring msg, istring file = __FILE__,
         int line = __LINE__ )
     {
         super.useGlobalErrno("<unknown>", file, line)
@@ -107,8 +107,8 @@ class IOWarning : ErrnoException
      **************************************************************************/
 
     deprecated ("Use ocean.sys.ErrnoException.set() instead")
-    public typeof (this) opCall  ( int errnum, char[] msg,
-        char[] file = __FILE__, int line = __LINE__ )
+    public typeof (this) opCall  ( int errnum, istring msg,
+        istring file = __FILE__, int line = __LINE__ )
     {
         super.set(errnum, "", file, line).append(" ").append(msg);
         return this;
@@ -187,7 +187,8 @@ class IOError : IOWarning
 
      **************************************************************************/
 
-    public void checkDeviceError ( char[] msg, char[] file = "", int line = 0 )
+    public void checkDeviceError ( istring msg, istring file = __FILE__,
+                                   int line = __LINE__ )
     {
         int device_errnum = this.error_code;
 
@@ -243,7 +244,8 @@ class SocketError : IOError
 
      **************************************************************************/
 
-    void assertExSock ( bool ok, char[] msg, char[] file = "", int line = 0 )
+    void assertExSock ( bool ok, istring msg, istring file = __FILE__,
+                        int line = __LINE__ )
     {
         if (!ok) throw this.setSock(msg, file, line);
     }
@@ -262,8 +264,9 @@ class SocketError : IOError
 
      **************************************************************************/
 
-    public typeof (this) setSock ( lazy int errnum, char[] msg, char[] file = "",
-        int line = 0 )
+    public typeof (this) setSock ( lazy int errnum, istring msg,
+                                   istring file = __FILE__,
+                                   int line = __LINE__ )
     {
         int socket_errnum = this.error_code;
 
@@ -286,7 +289,8 @@ class SocketError : IOError
 
      **************************************************************************/
 
-    public typeof (this) setSock ( char[] msg, char[] file = "", int line = 0 )
+    public typeof (this) setSock ( istring msg, istring file = __FILE__,
+                                   int line = __LINE__ )
     {
         return this.setSock(.errno, msg, file, line);
     }
