@@ -44,6 +44,10 @@ Removed Deprecated Modules
   dropped item as parameters. The default implementation of the method is
   to set the item to its init value.
 
+* `ocean.crypt.HMAC`
+
+  It was deprecated in 1.20.0
+
 Removed Deprecated Symbols
 --------------------------
 
