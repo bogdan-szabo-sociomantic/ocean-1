@@ -48,6 +48,10 @@ Removed Deprecated Modules
 
   It was deprecated in 1.20.0
 
+* `ocean.sys.SignalHandler`
+
+  It was deprecated in 1.22.0
+
 Removed Deprecated Symbols
 --------------------------
 
