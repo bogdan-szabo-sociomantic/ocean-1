@@ -359,7 +359,7 @@ class FiberSelectWriter : IFiberSelectProtocol
                 switch (errnum)
                 {
                     default:
-                        throw this.error_e(errnum, "write error", __FILE__, __LINE__);
+                        throw this.error_e.set(errnum, "write error");
 
                     case EINTR, EAGAIN:
                         static if ( EAGAIN != EWOULDBLOCK )

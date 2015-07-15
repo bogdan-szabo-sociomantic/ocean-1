@@ -41,7 +41,10 @@ class IOWarning : ErrnoException
 
      **************************************************************************/
 
-    int handle;
+    public int handle ()
+    {
+        return this.conduit.fileHandle;
+    }
 
     /**************************************************************************
 
@@ -79,13 +82,12 @@ class IOWarning : ErrnoException
 
      **************************************************************************/
 
+    deprecated ("Use ocean.sys.ErrnoException.enforce() instead")
     public typeof (this) opCall ( char[] msg, char[] file = __FILE__,
         int line = __LINE__ )
     {
         super.useGlobalErrno("<unknown>", file, line)
             .append(" (").append(msg).append(")");
-        this.handle = this.conduit.fileHandle;
-
         return this;
     }
 
@@ -104,12 +106,11 @@ class IOWarning : ErrnoException
 
      **************************************************************************/
 
+    deprecated ("Use ocean.sys.ErrnoException.set() instead")
     public typeof (this) opCall  ( int errnum, char[] msg,
         char[] file = __FILE__, int line = __LINE__ )
     {
         super.set(errnum, "", file, line).append(" ").append(msg);
-        this.handle = this.conduit.fileHandle;
-
         return this;
     }
 
@@ -192,7 +193,7 @@ class IOError : IOWarning
 
         if (device_errnum)
         {
-            throw this.opCall(device_errnum, msg, file, line);
+            throw this.set(device_errnum, msg, file, line);
         }
     }
 }
@@ -223,8 +224,6 @@ class SocketError : IOError
 
     override int error_code ( )
     {
-        this.handle = this.conduit.fileHandle;
-
         return IIPSocket.error(this.conduit);
     }
 
@@ -268,7 +267,7 @@ class SocketError : IOError
     {
         int socket_errnum = this.error_code;
 
-        this.opCall(socket_errnum? socket_errnum : errnum, msg, file, line);
+        this.set(socket_errnum? socket_errnum : errnum, msg, file, line);
 
         return this;
     }

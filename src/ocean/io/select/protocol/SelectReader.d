@@ -191,7 +191,7 @@ class SelectReader : IAdvancedSelectClient
                 switch (errnum)
                 {
                     default:
-                        throw this.error_e(errnum, "read error", __FILE__, __LINE__);
+                        throw this.error_e.set(errnum, "read error");
 
                     case EINTR, EAGAIN:
                         static if ( EAGAIN != EWOULDBLOCK )
@@ -210,7 +210,7 @@ class SelectReader : IAdvancedSelectClient
             {
                 // EOF and no socket error or hung-up event: Throw EOF warning.
 
-                throw this.warning_e("end of flow whilst reading", __FILE__, __LINE__);
+                this.warning_e.enforce(false, "end of flow whilst reading");
             }
         }
         else
@@ -250,4 +250,3 @@ class SelectReader : IAdvancedSelectClient
         return true;
     }
 }
-

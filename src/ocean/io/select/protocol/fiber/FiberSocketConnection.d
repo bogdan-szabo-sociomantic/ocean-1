@@ -705,11 +705,8 @@ public class IFiberSocketConnection : IFiberSelectProtocol
 
         if ( this.transmit_calls > 0 )
         {
-            if ( events & Event.EPOLLHUP )
-            {
-                throw this.warning_e("Hangup on connect", __FILE__, __LINE__);
-            }
-
+            this.warning_e.enforce(!(events & Event.EPOLLHUP),
+                                   "Hangup on connect");
             return false;
         }
         else
