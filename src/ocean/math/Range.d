@@ -550,6 +550,92 @@ public struct Range ( T )
 
     /***************************************************************************
 
+        Predicate that checks whether the provided array of ranges exactly
+        tessellates this range.  The term "tessellation" means that this
+        range is a union of the given ranges and that the given ranges form
+        a contiguous chain without gap or overlap.
+
+        It is assumed that the array is already sorted.
+
+        This method can be used as a replacement for the now-deprecated
+        opEquals ( Range[] )
+
+        Params:
+            ranges = a sorted array of Range!T
+
+        Returns:
+            true if this instance is tessellated by the given array
+            of ranges, false otherwise
+
+    ***************************************************************************/
+
+    public bool isTessellatedBy ( Range[] ranges )
+    {
+        return (*this == extent(ranges)) && isContiguous(ranges);
+    }
+
+    unittest
+    {
+        // minimal case: one range, test covers and not-covers
+        test(Range(0, 0).isTessellatedBy([Range(0, 0)]));
+        test(!Range(0, 0).isTessellatedBy([Range(1, 1)]));
+
+        // tessellation by itself
+        test(Range(3, 12).isTessellatedBy([Range(3, 12)]), "Any range should tessellate itself");
+
+        // proper subset or proper superset can't be tessellation
+        test(!Range(3, 12).isTessellatedBy([Range(4, 11)]), "Proper superset can't be tessellation");
+        test(!Range(3, 12).isTessellatedBy([Range(3, 11)]), "Proper superset can't be tessellation");
+        test(!Range(3, 12).isTessellatedBy([Range(4, 12)]), "Proper superset can't be tessellation");
+        test(!Range(3, 12).isTessellatedBy([Range(2, 13)]), "Proper subset can't be tessellation");
+        test(!Range(3, 12).isTessellatedBy([Range(3, 13)]), "Proper subset can't be tessellation");
+        test(!Range(3, 12).isTessellatedBy([Range(2, 12)]), "Proper subset can't be tessellation");
+
+        // complete
+        test(Range(0, 10).isTessellatedBy([Range(0, 1),
+                                           Range(2, 5),
+                                           Range(6, 10)]));
+
+        // missing start
+        test(!Range(0, 10).isTessellatedBy([Range(1, 1),
+                                            Range(2, 5),
+                                            Range(6, 10)]));
+
+        // missing middle
+        test(!Range(0, 10).isTessellatedBy([Range(0, 1),
+                                                  Range(3, 5),
+                                                  Range(6, 10)]));
+
+        // missing end
+        test(!Range(0, 10).isTessellatedBy([Range(0, 1),
+                                            Range(2, 5),
+                                            Range(6, 9)]));
+
+        // overlapped ranges in list
+        test(!Range(0, 10).isTessellatedBy([Range(0, 2),
+                                            Range(2, 5),
+                                            Range(6, 10)]));
+
+        // empty ranges skipped
+        Range empty;
+        test(Range(0, 10).isTessellatedBy([empty,
+                                           empty,
+                                           Range(0, 1),
+                                           Range(2, 5),
+                                           Range(6, 10)]));
+
+        // union of empty ranges and empty list
+        test(!Range(0, 10).isTessellatedBy([empty,
+                                            empty,
+                                            empty]));
+        test(!Range(0, 10).isTessellatedBy([empty]));
+        test(!Range(0, 10).isTessellatedBy([]));
+        test(!Range(0, 10).isTessellatedBy(null));
+    }
+
+
+    /***************************************************************************
+
         Calculates the number of values shared by this range and the other range
         specified.
 
