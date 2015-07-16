@@ -63,6 +63,48 @@ public struct Range ( T )
 
     /***************************************************************************
 
+        Helper structure for sortEndpoints function.  This is used to provide
+        detailed information about the relative positions of endpoints in a
+        sequence of ranges.
+
+    ***************************************************************************/
+
+    private static struct RangeEndpoint
+    {
+        /***********************************************************************
+
+            Value of the endpoint: may be either min or max of the underlying
+            range.
+
+        ***********************************************************************/
+
+        T value;
+
+        /***********************************************************************
+
+            Index of the owner range in the sequence of range arguments
+            provided to sortEndpoints.
+
+        ***********************************************************************/
+
+        ubyte owner_index;
+
+        version ( UnitTest )
+        {
+            import tango.util.Convert;
+
+            // useful for test!("==") 
+            public istring toString ()
+            {
+                return "<" ~ to!(istring)(this.value) ~ "|"
+                        ~ cast(char)('A' + this.owner_index) ~ ">";
+            }
+        }
+    }
+
+
+    /***************************************************************************
+
         Checks whether the specified range is empty.
 
         Params:
@@ -1201,6 +1243,151 @@ public struct Range ( T )
         assert(test(Range(5, 15), Range(5, 10), Range(11, 15)));
         assert(test(Range(5, 15), Range(10, 20), Range(5, 9)));
         assert(test(Range(5, 15), Range(10, 15), Range(5, 9)));
+    }
+
+
+    /***************************************************************************
+
+        Helper function used by overlapAmount and subtract.  Calculates a
+        specially sorted static array of RangeEndpoint values corresponding
+        to the endpoints of the two non-empty ranges 'first' and 'second'
+        provided as input.  The sorting is stable (i.e. initial order of
+        equal values is preserved).
+
+        The owner_index values of the RangeEndpoints correspond to the first
+        and second parameters, so e.g. if a given endpoint comes from the
+        first range, its owner_index will be 0; if from the second, it will
+        be 1.
+
+        Note: the sort will preserve the order {second.min, first.max} if
+        their values are equal.
+
+        Note: In D2 it may be better to rewrite this function to:
+                    RangeEndpoint[4] sortEndpoints ( Range first, Range second )
+
+        Params:
+            first = the first of the two Ranges
+            second = the second of the two Ranges
+            array = (preferably static) array of 4 RangeEndpoints,
+                    which will be filled with the sorted endpoints
+                    of the first and second ranges
+
+    ***************************************************************************/
+
+    private static void sortEndpoints ( Range first, Range second,
+                                        RangeEndpoint[] array )
+    in
+    {
+        assert(!first.is_empty);
+        assert(!second.is_empty);
+        assert(array.length == 4);
+    }
+    body
+    {
+        // N.B!  the initial order is sufficient
+        // being that stable sort preserve order of equal elements
+        array[0] = RangeEndpoint(first.min, 0);
+        array[1] = RangeEndpoint(second.min, 1);
+        array[2] = RangeEndpoint(first.max, 0);
+        array[3] = RangeEndpoint(second.max, 1);
+
+        // stable insert sort
+        for (size_t i = 1; i < array.length; ++i)
+        {
+            auto pivot_index = i;
+            auto pivot = array[pivot_index];
+            while (pivot_index > 0  && array[pivot_index - 1].value > pivot.value)
+            {
+                array[pivot_index] = array[pivot_index - 1];
+                --pivot_index;
+            }
+            array[pivot_index] = pivot;
+        }
+    }
+
+    unittest
+    {
+        RangeEndpoint[4] a;
+
+        // no overlap
+        sortEndpoints(Range(0, 10), Range(15, 20), a);
+        test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(10, 0),
+                        RangeEndpoint(15, 1), RangeEndpoint(20, 1)]);
+        sortEndpoints(Range(15, 20), Range(0, 10), a);
+        test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(10, 1),
+                        RangeEndpoint(15, 0), RangeEndpoint(20, 0)]);
+
+        // overlap
+        sortEndpoints(Range(0, 15), Range(10, 20), a);
+        test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(10, 1),
+                        RangeEndpoint(15, 0), RangeEndpoint(20, 1)]);
+        sortEndpoints(Range(10, 20), Range(0, 15), a);
+        test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(10, 0),
+                        RangeEndpoint(15, 1), RangeEndpoint(20, 0)]);
+
+        // outer touch
+        sortEndpoints(Range(0, 10), Range(10, 20), a);
+        test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(10, 1),
+                        RangeEndpoint(10, 0), RangeEndpoint(20, 1)]);
+        sortEndpoints(Range(10, 20), Range(0, 10), a);
+        test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(10, 0),
+                        RangeEndpoint(10, 1), RangeEndpoint(20, 0)]);
+
+        // inner touch
+        sortEndpoints(Range(0, 10), Range(5, 10), a);
+        test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(5, 1),
+                        RangeEndpoint(10, 0), RangeEndpoint(10, 1)]);
+        sortEndpoints(Range(5, 10), Range(0, 10), a);
+        test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(5, 0),
+                        RangeEndpoint(10, 0), RangeEndpoint(10, 1)]);
+        sortEndpoints(Range(0, 10), Range(0, 5), a);
+        test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(0, 1),
+                        RangeEndpoint(5, 1), RangeEndpoint(10, 0)]);
+        sortEndpoints(Range(0, 5), Range(0, 10), a);
+        test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(0, 1),
+                        RangeEndpoint(5, 0), RangeEndpoint(10, 1)]);
+
+        // ultra proper subrange
+        sortEndpoints(Range(0, 10), Range(3, 7), a);
+        test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(3, 1),
+                        RangeEndpoint(7, 1), RangeEndpoint(10, 0)]);
+        sortEndpoints(Range(3, 7), Range(0, 10), a);
+        test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(3, 0),
+                        RangeEndpoint(7, 0), RangeEndpoint(10, 1)]);
+
+        // equal
+        sortEndpoints(Range(0, 10), Range(0, 10), a);
+        test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(0, 1),
+                        RangeEndpoint(10, 0), RangeEndpoint(10, 1)]);
+        sortEndpoints(Range(5, 5), Range(5, 5), a);
+        test!("==")(a, [RangeEndpoint(5, 0), RangeEndpoint(5, 1),
+                        RangeEndpoint(5, 0), RangeEndpoint(5, 1)]);
+
+        // one point range
+        sortEndpoints(Range(4, 4), Range(5, 5), a);
+        test!("==")(a, [RangeEndpoint(4, 0), RangeEndpoint(4, 0),
+                        RangeEndpoint(5, 1), RangeEndpoint(5, 1)]);
+        sortEndpoints(Range(5, 5), Range(4, 4), a);
+        test!("==")(a, [RangeEndpoint(4, 1), RangeEndpoint(4, 1),
+                        RangeEndpoint(5, 0), RangeEndpoint(5, 0)]);
+        sortEndpoints(Range(5, 5), Range(0, 10), a);
+        test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(5, 0),
+                        RangeEndpoint(5, 0), RangeEndpoint(10, 1)]);
+        sortEndpoints(Range(0, 10), Range(5, 5), a);
+        test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(5, 1),
+                        RangeEndpoint(5, 1), RangeEndpoint(10, 0)]);
+        sortEndpoints(Range(5, 5), Range(5, 10), a);
+        test!("==")(a, [RangeEndpoint(5, 0), RangeEndpoint(5, 1),
+                        RangeEndpoint(5, 0), RangeEndpoint(10, 1)]);
+        sortEndpoints(Range(5, 10), Range(5, 5), a);
+        test!("==")(a, [RangeEndpoint(5, 0), RangeEndpoint(5, 1),
+                        RangeEndpoint(5, 1), RangeEndpoint(10, 0)]);
+        sortEndpoints(Range(5, 5), Range(0, 5), a);
+        test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(5, 0),
+                        RangeEndpoint(5, 0), RangeEndpoint(5, 1)]);
+        sortEndpoints(Range(0, 5), Range(5, 5), a);
+        test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(5, 1),
+                        RangeEndpoint(5, 0), RangeEndpoint(5, 1)]);
     }
 }
 
