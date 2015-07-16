@@ -746,6 +746,77 @@ public struct Range ( T )
 
     /***************************************************************************
 
+        Predicate that checks whether this range is covered by the given array
+        of ranges (i.e. whether it is a subset of the union of the array
+        of ranges).
+
+        It is assumed that the array is already sorted.
+
+        Params:
+            ranges = a sorted array of Range!T to be checked
+                     that covers this instance
+
+        Returns:
+            true if this range instance is covered by the given array of ranges,
+            false otherwise
+
+    ***************************************************************************/
+
+    public bool isCoveredBy ( Range[] ranges )
+    {
+        return this.isSubsetOf(extent(ranges)) && !hasGap(ranges);
+    }
+
+    unittest
+    {
+        // minimal case: one hash range, test covers and not-covers
+        test(Range(0, 0).isCoveredBy([Range(0, 0)]));
+        test(!Range(0, 0).isCoveredBy([Range(1, 1)]));
+
+        // coverage by itself
+        test(Range(3, 12).isCoveredBy([Range(3, 12)]), "Any range should cover itself");
+
+        // any superset can be coverage
+        test(Range(3, 12).isCoveredBy([Range(3, 13)]), "Proper superset should be coverage");
+        test(Range(3, 12).isCoveredBy([Range(2, 12)]), "Proper superset should be coverage");
+        test(Range(3, 12).isCoveredBy([Range(2, 13)]), "Proper superset should be coverage");
+
+        // any subset can't be coverage
+        test(!Range(3, 12).isCoveredBy([Range(3, 11)]), "Proper subset can't be coverage");
+        test(!Range(3, 12).isCoveredBy([Range(4, 12)]), "Proper subset can't be coverage");
+        test(!Range(3, 12).isCoveredBy([Range(4, 11)]), "Proper subset can't be coverage");
+
+        // a tessellation is a coverage
+        test(Range(3, 12).isCoveredBy([Range(3, 5), Range(6, 12)]));
+
+        // overlap allowed
+        test(Range(3, 12).isCoveredBy([Range(3, 7), Range(4, 12)]));
+        test(Range(3, 12).isCoveredBy([Range(1, 7), Range(4, 15)]));
+
+        // gap not allowed
+        test(!Range(3, 12).isCoveredBy([Range(3, 5), Range(7, 12)]));
+        test(!Range(3, 12).isCoveredBy([Range(1, 5), Range(7, 15)]));
+
+        // empty ranges skipped
+        Range empty;
+        test(Range(0, 10).isCoveredBy([empty,
+                                       empty,
+                                       Range(0, 3),
+                                       Range(2, 5),
+                                       Range(6, 11)]));
+
+        // union of empty ranges and empty list
+        test(!Range(0, 10).isCoveredBy([empty,
+                                        empty,
+                                        empty]));
+        test(!Range(0, 10).isCoveredBy([empty]));
+        test(!Range(0, 10).isCoveredBy([]));
+        test(!Range(0, 10).isCoveredBy(null));
+    }
+
+
+    /***************************************************************************
+
         Calculates the number of values shared by this range and the other range
         specified.
 
