@@ -1572,6 +1572,105 @@ struct StructSerializer ( bool AllowUnions = false )
     }
 }
 
+
+/*******************************************************************************
+
+    Test for plugin serializer
+
+*******************************************************************************/
+
+version ( UnitTest )
+{
+    import ocean.core.Test;
+
+    struct TestSerializer
+    {
+        import tango.text.convert.Format;
+
+        void open ( ref char[] dst, char[] name )
+        {
+            dst ~= "{";
+        }
+
+        void close ( ref char[] dst, char[] name )
+        {
+            dst ~= "}";
+        }
+
+        void serialize ( T ) ( ref char[] dst, ref T item, char[] name )
+        {
+            Format.format(dst, "{} {}={} ", T.stringof, name, item);
+        }
+
+        void openStruct ( ref char[] dst, char[] name )
+        {
+            dst ~= name ~ "={";
+        }
+
+        void closeStruct ( ref char[] dst, char[] name )
+        {
+            dst ~= "} ";
+        }
+
+        void serializeArray ( T ) ( ref char[] dst, char[] name, T[] array )
+        {
+            static if ( is(T == char) )
+            {
+                Format.format(dst, "{}[] {}=\"{}\" ", T.stringof, name, array);
+            }
+            else
+            {
+                Format.format(dst, "{}[] {}={} ", T.stringof, name, array);
+            }
+        }
+
+        void serializeStaticArray ( T ) ( ref char[] dst, char[] name, T[] array )
+        {
+            Format.format(dst, "{}[{}] {}={} ", T.stringof, array.length, name, array);
+        }
+
+        void openStructArray ( T ) ( ref char[] dst, char[] name, T[] array )
+        {
+            dst ~= name ~ "={";
+        }
+
+        void closeStructArray ( T ) ( ref char[] dst, char[] name, T[] array )
+        {
+            dst ~= "} ";
+        }
+    }
+}
+
+unittest
+{
+    struct TestStruct
+    {
+        char[] name;
+        int[] numbers;
+        int x;
+        float y;
+        struct InnerStruct
+        {
+            int z;
+        }
+
+        int[4] static_array;
+        InnerStruct a_struct;
+        InnerStruct[] some_structs;
+    }
+
+    TestStruct s;
+    s.name = "hello";
+    s.numbers = [12, 23];
+    s.some_structs.length = 2;
+
+    TestSerializer ser;
+    char[] dst;
+    StructSerializer!().serialize(&s, ser, dst);
+    test!("==")(dst, "{char[] name=\"hello\" int[] numbers=[12, 23] int x=0 float y=nan int[4] static_array=[0, 0, 0, 0] a_struct={int z=0 } some_structs={InnerStruct={int z=0 } InnerStruct={int z=0 } } }");
+}
+
+
 /*******************************************************************************
 
     Unittests
