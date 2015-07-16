@@ -154,6 +154,7 @@ class SerializerException : Exception
 struct StructSerializer ( bool AllowUnions = false )
 {
     import ocean.core.Traits : FieldName;
+    import tango.core.Traits : isAssocArrayType;
 
     static:
 
@@ -1420,29 +1421,12 @@ struct StructSerializer ( bool AllowUnions = false )
         }
         else
         {
-            const isReferenceType = is (T == class)    ||
-                                    is (T == interface)||
-                                    isAssocArray!(T)   ||
-                                    is (T == delegate) ||
+            const isReferenceType = is (T == class)      ||
+                                    is (T == interface)  ||
+                                    isAssocArrayType!(T) ||
+                                    is (T == delegate)   ||
                                     is (T == function);
         }
-    }
-
-    /**************************************************************************
-
-        Tells whether T is an associative array type
-
-        Template parameter:
-            T = type to check
-
-        Evaluates to:
-            true if T is an associative array type or false otherwise
-
-     **************************************************************************/
-
-    template isAssocArray ( T )
-    {
-        const isAssocArray = is (typeof (*T.init.values)[typeof (*T.init.keys)] == T);
     }
 
     /**************************************************************************
@@ -1485,7 +1469,7 @@ struct StructSerializer ( bool AllowUnions = false )
                         "(affects " ~ FieldInfo!(T, S, i) ~ ") -- use AllowUnions "
                         "template flag to enable shallow serialization of unions");
 
-        static if (isAssocArray!(T)) pragma (msg, typeof (*this).stringof ~
+        static if (isAssocArrayType!(T)) pragma (msg, typeof (*this).stringof ~
                                              " - Warning: content of associative array will be discarded "
                                              "(affects " ~ FieldInfo!(T, S, i) ~ ')');
     }
