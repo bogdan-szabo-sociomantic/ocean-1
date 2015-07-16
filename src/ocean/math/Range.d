@@ -200,6 +200,15 @@ public struct Range ( T )
     ***************************************************************************/
 
     public static Range opCall ( T min, T max )
+    in
+    {
+        assert(min <= max);
+    }
+    out(result)
+    {
+        assert(&result);
+    }
+    body
     {
         Range r;
         r.min_ = min;
