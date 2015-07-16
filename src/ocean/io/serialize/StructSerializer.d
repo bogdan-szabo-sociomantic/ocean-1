@@ -153,7 +153,7 @@ class SerializerException : Exception
 
 struct StructSerializer ( bool AllowUnions = false )
 {
-    import ocean.core.Traits : FieldName, FieldType;
+    import ocean.core.Traits : FieldName, FieldType, GetField;
     import tango.core.Traits : isAssocArrayType;
 
     static:
@@ -638,7 +638,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
         foreach (i, T; typeof (S.tupleof))
         {
-            T* field = getField!(i, T, S)(s);
+            T* field = GetField!(i, T, S)(s);
 
             static if (is (T == struct))
             {
@@ -710,7 +710,7 @@ struct StructSerializer ( bool AllowUnions = false )
     {
         foreach (i, T; typeof (S.tupleof))
         {
-            T* field = getField!(i, T, S)(s);
+            T* field = GetField!(i, T, S)(s);
 
             static if (is (T == struct))
             {
@@ -739,8 +739,8 @@ struct StructSerializer ( bool AllowUnions = false )
     {
         foreach (i, T; typeof (S.tupleof))
         {
-            T* src_field = getField!(i, T, S)(src),
-               dst_field = getField!(i, T, S)(dst);
+            T* src_field = GetField!(i, T, S)(src),
+               dst_field = GetField!(i, T, S)(dst);
 
             static if (is (T == struct))
             {
@@ -796,7 +796,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
         foreach (i, T; typeof (S.tupleof))
         {
-            T* field = getField!(i, T, S)(s);
+            T* field = GetField!(i, T, S)(s);
 
             static if (is (T == struct))
             {
@@ -917,7 +917,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
         foreach (i, T; typeof (S.tupleof))
         {
-            T* field = getField!(i, T, S)(s);
+            T* field = GetField!(i, T, S)(s);
 
             static if (is (T == struct))
             {
@@ -1027,7 +1027,7 @@ struct StructSerializer ( bool AllowUnions = false )
     {
         foreach (i, T; typeof (S.tupleof))
         {
-            T*    field = getField!(i, T, S)(s);
+            T*    field = GetField!(i, T, S)(s);
             const field_name = FieldName!(i, S);
 
             static if ( is(T == struct) )
@@ -1136,7 +1136,7 @@ struct StructSerializer ( bool AllowUnions = false )
     {
         foreach (i, T; typeof (S.tupleof))
         {
-            T*    field      = getField!(i, T, S)(s);
+            T*    field      = GetField!(i, T, S)(s);
             const field_name = FieldName!(i, S);
 
             static if ( is(T == struct) )
@@ -1188,46 +1188,6 @@ struct StructSerializer ( bool AllowUnions = false )
                 }
             }
         }
-    }
-
-    /**************************************************************************
-
-        Returns a pointer to the i-th field of s
-
-        Template parameter:
-            i = struct field index
-
-        Params:
-            s = struct instance (pointer)
-
-        Returns:
-            pointer to the i-th field of s
-
-     **************************************************************************/
-
-    FieldType!(S, i)* getField ( size_t i, S ) ( S* s )
-    {
-        return getField!(i, FieldType!(S, i), S)(s);
-    }
-
-    /**************************************************************************
-
-        Returns a pointer to the i-th field of s
-
-        Template parameter:
-            i = struct field index
-
-        Params:
-            s = struct instance (pointer)
-
-        Returns:
-            pointer to the i-th field of s
-
-     **************************************************************************/
-
-    T* getField ( size_t i, T, S ) ( S* s )
-    {
-        return cast (T*) ((cast (void*) s) + S.tupleof[i].offsetof);
     }
 
     /**************************************************************************
