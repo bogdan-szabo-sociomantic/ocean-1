@@ -153,7 +153,7 @@ class SerializerException : Exception
 
 struct StructSerializer ( bool AllowUnions = false )
 {
-    import ocean.core.Traits : FieldName;
+    import ocean.core.Traits : FieldName, FieldType;
     import tango.core.Traits : isAssocArrayType;
 
     static:
@@ -1281,22 +1281,6 @@ struct StructSerializer ( bool AllowUnions = false )
 
         assert (s, typeof (*this).stringof ~ '.' ~ func ~ ": "
                 "pointer of type '" ~ S.stringof ~ "*' is null");
-    }
-
-
-    /**************************************************************************
-
-        Generates the type of the i-th field of struct type S
-
-        Template parameters:
-            S = struct type
-            i = struct field index
-
-     **************************************************************************/
-
-    template FieldType ( S, size_t i )
-    {
-        alias typeof (S.tupleof)[i] FieldType;
     }
 
     /**************************************************************************
