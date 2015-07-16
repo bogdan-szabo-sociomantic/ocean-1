@@ -529,7 +529,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
             void close ( D, char[] name );
 
-            void serialize ( T ) ( D, T* item, char[] name );
+            void serialize ( T ) ( D, ref T item, char[] name );
 
             void openStruct ( D, char[] name );
 
