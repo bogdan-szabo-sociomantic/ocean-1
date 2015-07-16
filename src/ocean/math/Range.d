@@ -210,6 +210,122 @@ public struct Range ( T )
 
     /***************************************************************************
 
+        Range factory which provides extended wrapper to opCall. It returns
+        empty range when min > max or when it is impossible to respect
+        the specified boundaries.
+
+        Template params:
+            boundaries = string which denotes which kind of boundaries
+                         will be provided. Square "[" bracket denotes inclusive
+                         boundary, round "(" one denotes exclusive boundary
+
+        Params:
+            min = minimum value of range
+            max = maximum value of range
+
+        Returns:
+            new Range instance
+
+    ***************************************************************************/
+
+    public static Range makeRange ( istring boundaries = "[]" ) ( T min, T max )
+    out(result)
+    {
+        assert(&result);
+    }
+    body
+    {
+        static assert(boundaries == "[]" || boundaries == "[)"
+                      || boundaries == "(]" || boundaries == "()",
+                      "only four kinds of range are supported: [], [), (], ()");
+
+        if ( min > max )
+            return Range.init;
+
+        static if (boundaries != "[]")
+        {
+            if (min == max)
+            {
+                return Range.init;
+            }
+        }
+
+        static if (boundaries == "()")
+        {
+            if (min + 1 == max)
+            {
+                return Range.init;
+            }
+        }
+
+        static if (boundaries[0] == '(')
+        {
+            assert(min < T.max);
+            ++min;
+        }
+
+        static if (boundaries[1] == ')')
+        {
+            assert(max > T.min);
+            --max;
+        }
+
+        assert(min <= max);
+
+        return Range(min, max);
+    }
+
+    unittest
+    {
+        test!("==")(Range(3, 7), makeRange!("[]")(3, 7));
+        test!("==")(Range(3, 7), makeRange(3, 7));
+        test!("==")(Range(5, 5), makeRange(5, 5));
+        test!("==")(Range.init, makeRange(7, 3));
+        test!("==")(Range(0, 0), makeRange(0, 0));
+        test!("==")(Range(T.max, T.max), makeRange(T.max, T.max));
+        test!("==")(Range(0, T.max), makeRange(0, T.max));
+        test!("==")(Range.init, makeRange(T.max, 0));
+
+        test!("==")(Range(3, 6), makeRange!("[)")(3, 7));
+        test!("==")(Range.init, makeRange!("[)")(5, 5));
+        test!("==")(Range(4, 4), makeRange!("[)")(4, 5));
+        test!("==")(Range.init, makeRange!("[)")(7, 3));
+        test!("==")(Range.init, makeRange!("[)")(0, 0));
+        test!("==")(Range.init, makeRange!("[)")(T.max, T.max));
+        test!("==")(Range(0, T.max - 1), makeRange!("[)")(0, T.max));
+        test!("==")(Range.init, makeRange!("[)")(T.max, 0));
+        test!("==")(Range(0, 0), makeRange!("[)")(0, 1));
+        test!("==")(Range(T.max - 1, T.max - 1), makeRange!("[)")(T.max - 1, T.max));
+
+        test!("==")(Range(4, 7), makeRange!("(]")(3, 7));
+        test!("==")(Range.init, makeRange!("(]")(5, 5));
+        test!("==")(Range(5, 5), makeRange!("(]")(4, 5));
+        test!("==")(Range.init, makeRange!("(]")(7, 3));
+        test!("==")(Range.init, makeRange!("(]")(0, 0));
+        test!("==")(Range.init, makeRange!("(]")(T.max, T.max));
+        test!("==")(Range(1, T.max), makeRange!("(]")(0, T.max));
+        test!("==")(Range.init, makeRange!("(]")(T.max, 0));
+        test!("==")(Range(1, 1), makeRange!("(]")(0, 1));
+        test!("==")(Range(T.max, T.max), makeRange!("(]")(T.max - 1, T.max));
+
+        test!("==")(Range(4, 6), makeRange!("()")(3, 7));
+        test!("==")(Range.init, makeRange!("()")(5, 5));
+        test!("==")(Range.init, makeRange!("()")(4, 5));
+        test!("==")(Range(5, 5), makeRange!("()")(4, 6));
+        test!("==")(Range.init, makeRange!("()")(7, 3));
+        test!("==")(Range.init, makeRange!("()")(0, 0));
+        test!("==")(Range.init, makeRange!("()")(T.max, T.max));
+        test!("==")(Range(1, T.max - 1), makeRange!("()")(0, T.max));
+        test!("==")(Range.init, makeRange!("()")(T.max, 0));
+        test!("==")(Range.init, makeRange!("()")(0, 1));
+        test!("==")(Range.init, makeRange!("()")(T.max - 1, T.max));
+        test!("==")(Range(1, 1), makeRange!("()")(0, 2));
+        test!("==")(Range(T.max - 1, T.max - 1), makeRange!("()")(T.max - 2, T.max));
+    }
+
+
+    /***************************************************************************
+
         Returns:
             the minimum value of the range
 
