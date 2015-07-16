@@ -1129,26 +1129,11 @@ public struct Range ( T )
     {
         if ( this.is_empty || other.is_empty ) return 0;
 
-        if ( *this == other || other.supersetOf(*this) ) return this.length;
+        RangeEndpoint[4] a;
+        sortEndpoints(*this, other, a);
 
-        if ( other.subsetOf(*this) ) return other.length;
-
-        if ( other.min < this.min ) // starts before this
-        {
-            assert(other.max <= this.max); // also ends within this, otherwise superset
-
-            if ( other.max < this.min ) return 0;   // ends before this
-            return (other.max - this.min) + 1;      // ends within this
-        }
-        else if ( other.min <= this.max ) // starts within this
-        {
-            if ( other.max <= this.max ) return other.length; // ends within this
-            return (this.max - other.min) + 1;                // ends outside this
-        }
-        else // starts after this
-        {
-            return 0;
-        }
+        return a[0].owner_index != a[1].owner_index
+               ? Range(a[1].value, a[2].value).length : 0;
     }
 
     unittest
