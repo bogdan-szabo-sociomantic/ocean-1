@@ -817,6 +817,100 @@ public struct Range ( T )
 
     /***************************************************************************
 
+        Special unittest which checks that isTessellatedBy implies isCoveredBy
+        (but isCoveredBy does not necessarily imply isTessellatedBy).
+
+    ***************************************************************************/
+
+    unittest
+    {
+        // Note that given two logical conditions A and B,
+        // "A implies B" is equivalent to (A == true) <= (B == true)
+
+        auto target = Range(12, 17);
+        Range[] ranges;
+
+        // neither tessellated nor covered
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+
+        ranges ~= [Range(1, 5)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+
+        ranges ~= [Range(12, 15)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+
+        ranges ~= [Range(14, 17)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+
+        ranges ~= [Range(18, 25)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+
+        ranges ~= [Range(1, 5), Range(19, 20)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+
+        ranges ~= [Range(1, 13), Range(16, 20)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+
+        // covered, but not tessellated
+        ranges ~= [Range(11, 17)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+
+        ranges ~= [Range(12, 18)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+
+        ranges ~= [Range(11, 18)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+
+        ranges ~= [Range(1, 15), Range(14, 20)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+
+        ranges ~= [Range(12, 15), Range(15, 17)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+
+        ranges ~= [Range(12, 16), Range(14, 17)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+
+        // tessellated
+        ranges ~= [Range(12, 17)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+
+        ranges ~= [Range(12, 14), Range(15, 17)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+    }
+
+
+    /***************************************************************************
+
         Calculates the number of values shared by this range and the other range
         specified.
 
