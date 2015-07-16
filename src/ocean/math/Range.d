@@ -1264,45 +1264,30 @@ public struct Range ( T )
             return;
         }
 
-        // equal -- empty result
-        if ( *this == other ) return;
+        RangeEndpoint[4] a;
+        sortEndpoints(*this, other, a);
 
-        // other is proper superset of this -- empty result
-        if ( other.supersetOf(*this) ) return;
-
-        // ranges do not overlap -- no change
-        if ( !this.overlaps(other) )
+        // no overlap 
+        if (a[0].owner_index == a[1].owner_index)
         {
             lower = *this;
             return;
         }
 
-        // other is proper subset of this -- two ranges result
-        if ( other.subsetOf(*this) )
-        {
-            lower = Range(this.min, other.min - 1);
-            upper = Range(other.max + 1, this.max);
-            return;
-        }
+        auto first = a[0].owner_index < a[1].owner_index
+                     ? makeRange!("[)")(a[0].value, a[1].value) : Range.init;
+        auto second = a[2].owner_index > a[3].owner_index
+                      ? makeRange!("(]")(a[2].value, a[3].value) : Range.init;
 
-        // ranges overlap (but not proper superset or subset)
-        assert(this.overlaps(other));
-
-        if ( other.min <= this.min )
+        if (first.is_empty)
         {
-            assert(other.max < this.max);
-            lower = Range(other.max + 1, this.max);
-            return;
+            lower = second;
         }
         else
         {
-            assert(other.min > this.min);
-            assert(other.max >= this.max);
-            lower = Range(this.min, other.min - 1);
-            return;
+            lower = first;
+            upper = second;
         }
-
-        assert(false);
     }
 
     unittest
@@ -1322,7 +1307,9 @@ public struct Range ( T )
 
         // equal
         assert(test(Range(0, 0), Range(0, 0), Range.init));
+        assert(test(Range(T.max, T.max), Range(T.max, T.max), Range.init));
         assert(test(Range(0, 10), Range(0, 10), Range.init));
+        assert(test(Range(0, T.max), Range(0, T.max), Range.init));
 
         // superset
         assert(test(Range(1, 9), Range(0, 10), Range.init));
