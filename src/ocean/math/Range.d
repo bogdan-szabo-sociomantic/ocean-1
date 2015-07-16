@@ -557,6 +557,60 @@ public struct Range ( T )
 
     /***************************************************************************
 
+        Determines whether this instance is a superset of the non-empty
+        specified range. All values in the other range must be within this range.
+
+        Note: For practical reasons, this isn't conforming strictly to
+        the mathematical definition, where an empty set is considered to be
+        a subset of any set. However, two equal ranges will be considered
+        to be supersets of one another.
+
+        Params:
+            other = instance to compare with this
+
+        Returns:
+            true if this range is a superset of the other range
+
+    ***************************************************************************/
+
+    public bool isSupersetOf ( Range other )
+    {
+        return other.isSubsetOf(*this);
+    }
+
+    unittest
+    {
+        // empty
+        test(!Range.init.isSupersetOf(Range(0, 10)), "Empty range can't be superset");
+        test(!Range(0, 10).isSupersetOf(Range.init),  "Empty range doesn't count as subset");
+
+        // very proper superset
+        test(Range(0, 10).isSupersetOf(Range(1, 9)));
+
+        // equal
+        test(Range(0, 10).isSupersetOf(Range(0, 10)), "Equal range is a superset too");
+
+        // ends touch, inside
+        test(Range(0, 10).isSupersetOf(Range(0, 9)));
+        test(Range(0, 10).isSupersetOf(Range(1, 10)));
+
+        // ends touch, outside
+        test(!Range(5, 10).isSupersetOf(Range(0, 5)));
+        test(!Range(5, 10).isSupersetOf(Range(10, 15)));
+
+        // very proper subset
+        test(!Range(1, 9).isSupersetOf(Range(0, 10)), "Proper subset can't be superset");
+
+        // overlap
+        test(!Range(0, 10).isSupersetOf(Range(5, 15)));
+
+        // no overlap
+        test(!Range(5, 10).isSupersetOf(Range(15, 20)));
+    }
+
+
+    /***************************************************************************
+
         Determines whether this instance is a proper superset of the specified
         range. All values in the other range must be within this range and not
         extend to either the start or end of this range.
