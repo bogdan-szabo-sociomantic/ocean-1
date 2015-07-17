@@ -143,11 +143,11 @@ public class DigitGrouping
         char[20] string_buf; // 20 characters is enough to store ulong.max
         size_t layout_pos;
 
-        uint layoutSink ( cstring s )
+        size_t layoutSink ( cstring s )
         {
             string_buf[layout_pos .. layout_pos + s.length] = s[];
             layout_pos += s.length;
-            return castFrom!(size_t).to!(uint)(s.length);
+            return s.length;
         }
 
         // Format number into a string
