@@ -713,18 +713,27 @@ public struct Range ( T )
 
 
     /***************************************************************************
-        Determines whether this instance is a proper subset of the specified
-        range. All values in this range must be within the other range and not
-        extend to either the start or end of this range.
+
+        Determines whether this non empty instance is a proper subset of the
+        specified range. All values in this range must be within the other range
+        and not extend to either the start or end of this range.
+
+        Note: From mathematical POV this condition is more strict than
+        "proper subset", because in math [3, 15] is a proper subset of [3, 16]
+
+        Note: For practical reasons, this isn't conforming strictly to
+        the mathematical definition, where an empty set is considered to be
+        a subset of any set.
 
         Params:
             other = instance to compare with this
 
         Returns:
-            true if this range is a subset of the other range
+            true if this range is a proper subset of the other range
 
     ***************************************************************************/
 
+    deprecated ("similar but not equal behaviour you can find in isSubsetOf")
     public bool subsetOf ( Range other )
     {
         if ( this.is_empty || other.is_empty ) return false;
@@ -732,6 +741,7 @@ public struct Range ( T )
         return this.min > other.min && this.max < other.max;
     }
 
+    deprecated
     unittest
     {
         // empty
