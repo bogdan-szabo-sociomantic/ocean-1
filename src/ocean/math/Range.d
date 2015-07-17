@@ -534,6 +534,7 @@ public struct Range ( T )
 
     ***************************************************************************/
 
+    deprecated ("use isTessellatedBy instead")
     public bool opEquals ( Range[] sub_ranges )
     {
         if ( sub_ranges.length == 0 ) return false;
@@ -557,6 +558,7 @@ public struct Range ( T )
         return true;
     }
 
+    deprecated
     unittest
     {
         // minimal case: one hash range, test covers and not-covers
