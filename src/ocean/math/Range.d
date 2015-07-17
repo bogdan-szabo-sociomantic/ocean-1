@@ -279,6 +279,51 @@ public struct Range ( T )
 
     /***************************************************************************
 
+        Predicate that checks whether the specified value is inside this range.
+
+        Params:
+            x = value to check
+
+        Returns:
+            true if this range includes x, false otherwise
+
+    ***************************************************************************/
+
+    public bool contains ( T x )
+    {
+        if (this.is_empty)
+            return false;
+
+        return this.min <= x && x <= this.max;
+    }
+
+    unittest
+    {
+        // empty
+        test(!Range.init.contains(0), "Empty range can't contain any value");
+        test(!Range.init.contains(17), "Empty range can't contain any value");
+        test(!Range.init.contains(T.max), "Empty range can't contain any value");
+
+        // one point
+        test(Range(0, 0).contains(0), "One point range should contain this point");
+        test(Range(17, 17).contains(17), "One point range should contain this point");
+        test(Range(T.max, T.max).contains(T.max), "One point range should contain this point");
+
+        test(!Range(0, 0).contains(1), "One point range can't contain other point");
+        test(!Range(17, 17).contains(16), "One point range can't contain other point");
+        test(!Range(T.max, T.max).contains(T.max - 1), "One point range can't contain other point");
+
+        // more-point
+        test(!Range(3, 24).contains(2), "Range can't contain outside point");
+        test(Range(3, 24).contains(3), "Range should contain boundary point");
+        test(Range(3, 24).contains(11), "Range should contain inner point");
+        test(Range(3, 24).contains(24), "Range should contain boundary point");
+        test(!Range(3, 24).contains(25), "Range can't contain outside point");
+    }
+
+
+    /***************************************************************************
+
         Checks whether the specified range is exactly identical to this range.
 
         Params:
