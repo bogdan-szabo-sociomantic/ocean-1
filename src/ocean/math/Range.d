@@ -827,24 +827,32 @@ public struct Range ( T )
     /***************************************************************************
 
         Determines whether this instance is a proper superset of the specified
-        range. All values in the other range must be within this range and not
-        extend to either the start or end of this range.
+        non empty range. All values in the other range must be within this range
+        and not extend to either the start or end of this range.
+
+        Note: From mathematical POV this condition is more strict than
+        "proper superset", because in math [3, 16] is a proper
+        superset of [3, 15].
+
+        Note: For practical reasons, this isn't conforming strictly to
+        the mathematical definition, where an empty set is considered to be
+        a subset of any set.
 
         Params:
             other = instance to compare with this
 
         Returns:
-            true if this range is a superset of the other range
+            true if this range is a proper superset of the other range
 
     ***************************************************************************/
 
+    deprecated ("similar but not equal behaviour you can find in isSupersetOf")
     public bool supersetOf ( Range other )
     {
-        if ( this.is_empty || other.is_empty ) return false;
-
-        return other.min > this.min && other.max < this.max;
+        return other.subsetOf(*this);
     }
 
+    deprecated
     unittest
     {
         // empty
