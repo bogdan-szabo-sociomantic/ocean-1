@@ -20,7 +20,9 @@ module ocean.net.util.UrlEncoder;
 
  **************************************************************************/
 
+import tango.transition;
 import tango.stdc.ctype: isgraph;
+
 
 /******************************************************************************
 
@@ -83,7 +85,7 @@ class EncodeNonUnreserved : PercentEncoder
 
      **************************************************************************/
 
-    public this ( char[] source_in = null )
+    public this ( cstring source_in = null )
     {
         super(source_in);
     }
@@ -124,7 +126,7 @@ class EncodeExceptAsciiGraph : PercentEncoder
 
      **************************************************************************/
 
-    public this ( char[] source_in = null )
+    public this ( cstring source_in = null )
     {
         super(source_in);
     }
@@ -162,7 +164,7 @@ class PercentEncoder
 
      **************************************************************************/
 
-    public char[] source;
+    public cstring source;
 
     /**************************************************************************
 
@@ -173,7 +175,7 @@ class PercentEncoder
 
      **************************************************************************/
 
-    public this ( char[] source_in = null )
+    public this ( cstring source_in = null )
     {
         this.source = source_in;
     }
@@ -185,11 +187,11 @@ class PercentEncoder
 
      **************************************************************************/
 
-    public int opApply ( int delegate ( ref char[] chunk ) dg )
+    public int opApply ( int delegate ( ref cstring chunk ) dg )
     {
         int result = 0;
 
-        int callDg ( char[] chunk )
+        int callDg ( cstring chunk )
         {
             return result = dg(chunk);
         }
@@ -264,7 +266,7 @@ unittest
     "\"%7E\" by older URI processing implementations; the \"%7E\" can be "
     "replaced by \"~\" without chänging its interpretation.");
 
-    const char[][] chunks =
+    const istring[] chunks =
     [
         "For", "%20", "example", "%2C", "%20", "the", "%20", "octet", "%20",
         "corresponding","%20", "to", "%20", "the", "%20", "tilde", "%20",
@@ -286,4 +288,3 @@ unittest
         assert (chunks[i++] == chunk);
     }
 }
-

@@ -24,6 +24,8 @@ module ocean.net.util.UrlDecoder;
 
  ******************************************************************************/
 
+import tango.transition;
+
 import ocean.text.util.SplitIterator: ChrSplitIterator;
 
 import tango.stdc.string: memmove;
@@ -83,7 +85,7 @@ class UrlDecoder
 
      **************************************************************************/
 
-    public char[] source;
+    public cstring source;
 
     /**************************************************************************
 
@@ -94,7 +96,7 @@ class UrlDecoder
 
      **************************************************************************/
 
-    public this ( char[] source_in = null )
+    public this ( cstring source_in = null )
     {
         this.source = source_in;
     }
@@ -112,9 +114,9 @@ class UrlDecoder
 
     **************************************************************************/
 
-    public int opApply ( int delegate ( ref char[] chunk ) dg )
+    public int opApply ( int delegate ( ref cstring chunk ) dg )
     {
-        int callDg ( char[] str )
+        int callDg ( cstring str )
         {
             return dg(str);
         }
@@ -135,18 +137,18 @@ class UrlDecoder
 
                 if (result) break;
 
-                char[] remaining = iterate_markers.remaining;
+                auto remaining = iterate_markers.remaining;
 
                 char[6] decoded_buf;
                 size_t read_pos = 0;
 
-                char[] decoded = decoded_buf.decodeCharacter(remaining, read_pos);
+                auto decoded = decodeCharacter(decoded_buf, remaining, read_pos);
 
                 if (decoded.length)
                 {
                     assert (read_pos);
 
-                    char[] original = this.source[0 .. read_pos];
+                    auto original = this.source[0 .. read_pos];
 
                     result = callDg(this.copyDecoded(decoded, original)?
                                         decoded : original);
@@ -199,7 +201,7 @@ class UrlDecoder
 
     ***************************************************************************/
 
-    public static char[] decodeCharacter ( char[6] dst, char[] source, ref size_t pos )
+    public static mstring decodeCharacter ( mstring dst, cstring source, ref size_t pos )
     in
     {
         assert(pos <= source.length, typeof (this).stringof ~ ".decodeCharacter (in): offset out of array bounds");
@@ -280,7 +282,7 @@ class UrlDecoder
 
     ***************************************************************************/
 
-    public static char[] decode ( char[] str )
+    public static mstring decode ( mstring str )
     out (str_out)
     {
         assert (str_out.ptr is str.ptr);
@@ -306,8 +308,6 @@ class UrlDecoder
             foreach (chunk; iterator)
             {
                 size_t read, written = 0;
-
-                char[] c = chunk;
 
                 if (chunk.length)
                 {
@@ -380,7 +380,7 @@ class UrlDecoder
 
                 if (chunk.length > read)
                 {
-                    char[] between = chunk[read .. $];
+                    cstring between = chunk[read .. $];
 
                     memmove(&str[pos], &between[0], between.length);
 
@@ -418,7 +418,7 @@ class UrlDecoder
 
         if (xhi >= 0 && xlo >= 0)
         {
-            c = ((cast (char) xhi) << 4) | (cast (char) xlo);
+            c = cast(char) ((xhi << 4) | xlo);
 
             return true;
         }
@@ -452,7 +452,7 @@ class UrlDecoder
 
     ***************************************************************************/
 
-    static char[] hex4 ( char[] hex, char[] utf8_buf )
+    static mstring hex4 ( cstring hex, mstring utf8_buf )
     in
     {
         assert (hex.length == 4);
@@ -504,7 +504,7 @@ class UrlDecoder
 
      **************************************************************************/
 
-    protected bool copyDecoded ( char[] decoded, char[] original )
+    protected bool copyDecoded ( cstring decoded, cstring original )
     {
         return true;
     }
@@ -526,4 +526,3 @@ unittest
     assert (UrlDecoder.decode("%Die %uKatze %u221E%u221E tritt die Treppe %% krumm. %u2207".dup) ==
                    "%Die %uKatze ∞∞ tritt die Treppe % krumm. ∇");
 }
-

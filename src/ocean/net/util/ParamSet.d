@@ -34,6 +34,8 @@ module ocean.net.util.ParamSet;
 
  ******************************************************************************/
 
+import tango.transition;
+
 import ocean.core.TypeConvert;
 
 import ocean.text.util.SplitIterator: ISplitIterator;
@@ -61,7 +63,7 @@ import tango.core.Exception: ArrayBoundsException;
 
  ******************************************************************************/
 
-extern (C) private int g_ascii_strncasecmp ( char* s1, char* s2, size_t n );
+extern (C) private int g_ascii_strncasecmp ( Const!(char)* s1, Const!(char)* s2, size_t n );
 
 /******************************************************************************/
 
@@ -69,7 +71,7 @@ class ParamSet
 {
     struct Element
     {
-        char[] key, val;
+        cstring key, val;
     }
 
     /**************************************************************************
@@ -99,7 +101,7 @@ class ParamSet
 
      **************************************************************************/
 
-    private Element[char[]] paramset;
+    private Element[istring] paramset;
 
     /**************************************************************************
 
@@ -107,7 +109,7 @@ class ParamSet
 
      **************************************************************************/
 
-    private char[] tolower_buf;
+    private mstring tolower_buf;
 
 
     version (D_Version2) {}
@@ -145,7 +147,7 @@ class ParamSet
 
      **************************************************************************/
 
-    char[] opIndex ( char[] key )
+    cstring opIndex ( cstring key )
     {
         try
         {
@@ -172,7 +174,7 @@ class ParamSet
 
      **************************************************************************/
 
-    char[]* opIn_r ( char[] key )
+    cstring* opIn_r ( cstring key )
     {
         Element* element = this.get_(key);
 
@@ -194,7 +196,7 @@ class ParamSet
 
      **************************************************************************/
 
-    Element getElement ( char[] key )
+    Element getElement ( cstring key )
     out (element)
     {
        assert (element.key || !element.val);
@@ -228,9 +230,9 @@ class ParamSet
 
      **************************************************************************/
 
-    bool getUnsigned ( T : ulong ) ( char[] key, ref T n, out bool is_set )
+    bool getUnsigned ( T : ulong ) ( cstring key, ref T n, out bool is_set )
     {
-        char[] val = this[key];
+        cstring val = this[key];
 
         is_set = val !is null;
 
@@ -243,9 +245,9 @@ class ParamSet
 
      **************************************************************************/
 
-    bool getUnsigned ( T : ulong ) ( char[] key, ref T n )
+    bool getUnsigned ( T : ulong ) ( cstring key, ref T n )
     {
-        char[] val = this[key];
+        cstring val = this[key];
 
         return val.length? !this.readUnsigned(val, n).length : false;
     }
@@ -269,7 +271,7 @@ class ParamSet
 
      **************************************************************************/
 
-    char[] opIndexAssign ( char[] val, char[] key )
+    cstring opIndexAssign ( cstring val, cstring key )
     {
         Element* element = this.get_(key);
 
@@ -294,9 +296,9 @@ class ParamSet
 
      **************************************************************************/
 
-    bool set ( char[] key, char[] val )
+    bool set ( cstring key, cstring val )
     {
-        return this.access(key, (char[], ref char[] dst){dst = val;});
+        return this.access(key, (cstring, ref cstring dst){dst = val;});
     }
 
     /**************************************************************************
@@ -315,9 +317,9 @@ class ParamSet
 
      **************************************************************************/
 
-    bool set ( char[] key, size_t val, char[] dec )
+    bool set ( cstring key, size_t val, mstring dec )
     {
-        return this.access(key, (char[], ref char[] dst)
+        return this.access(key, (cstring, ref cstring dst)
                                 {
                                     dst = this.writeUnsigned(dec, val);
                                 });
@@ -340,13 +342,13 @@ class ParamSet
 
      **************************************************************************/
 
-    bool access ( char[] key, void delegate ( char[] key, ref char[] val ) dg )
+    bool access ( cstring key, void delegate ( cstring key, ref cstring val ) dg )
     {
         Element* element = this.get_(key);
 
-        if (element) with (*element)
+        if (element)
         {
-            dg(key, val);
+            dg(element.key, element.val);
         }
 
         return element !is null;
@@ -367,7 +369,7 @@ class ParamSet
 
      **************************************************************************/
 
-    bool matches ( char[] key, char[] val )
+    bool matches ( cstring key, cstring val )
     {
         Element* element = this.get_(key);
 
@@ -383,7 +385,7 @@ class ParamSet
 
      **************************************************************************/
 
-    public int opApply ( int delegate ( ref char[] key, ref char[] val ) dg )
+    public int opApply ( int delegate ( ref cstring key, ref cstring val ) dg )
     {
         int result = 0;
 
@@ -437,7 +439,7 @@ class ParamSet
 
      **************************************************************************/
 
-    public static int strncasecmp ( char[] a, char[] b )
+    public static int strncasecmp ( cstring a, cstring b )
     {
         if ( a.length && b.length )
         {
@@ -484,7 +486,7 @@ class ParamSet
 
      **************************************************************************/
 
-    protected void addKeys ( char[][] keys ... )
+    protected void addKeys ( cstring[] keys ... )
     {
         foreach (key; keys)
         {
@@ -501,13 +503,13 @@ class ParamSet
 
      **************************************************************************/
 
-    protected char[] addKey ( char[] key )
+    protected cstring addKey ( cstring key )
     {
-        char[] lower_key = this.tolower(key);
+        mstring lower_key = this.tolower(key);
 
         if (!(lower_key in this.paramset))
         {
-            this.paramset[lower_key.dup] = Element(key);
+            this.paramset[idup(lower_key)] = Element(key);
         }
 
         return lower_key;
@@ -528,7 +530,7 @@ class ParamSet
 
      **************************************************************************/
 
-    protected Element* get_ ( char[] key )
+    protected Element* get_ ( cstring key )
     out (element)
     {
         if (element) with (*element) assert (key || !val);
@@ -551,7 +553,7 @@ class ParamSet
 
      **************************************************************************/
 
-    protected char[] tolower ( char[] key )
+    protected mstring tolower ( cstring key )
     {
         if (this.tolower_buf.length < key.length)
         {
@@ -590,7 +592,7 @@ class ParamSet
      **************************************************************************/
 
     final protected void iterate ( ref Element element,
-                                   int delegate ( ref char[] key, ref char[] val ) dg,
+                                   int delegate ( ref cstring key, ref cstring val ) dg,
                                    ref int result )
     {
         with (element) if (val || !this.skip_null_values_on_iteration)
@@ -614,7 +616,7 @@ class ParamSet
 
      **************************************************************************/
 
-    protected static char[] writeUnsigned ( char[] dst, ulong n )
+    protected static mstring writeUnsigned ( mstring dst, ulong n )
     out (dec)
     {
         assert (!n);
@@ -642,11 +644,11 @@ class ParamSet
     {
         char[ulong_dec_length] dec;
 
-        assert (dec.writeUnsigned(4711)     == "4711");
-        assert (dec.writeUnsigned(0)        == "0");
+        assert (writeUnsigned(dec, 4711)     == "4711");
+        assert (writeUnsigned(dec, 0)        == "0");
 
-        assert (dec.writeUnsigned(uint.max) == "4294967295");
-        assert (dec.writeUnsigned(ulong.max) == "18446744073709551615");
+        assert (writeUnsigned(dec, uint.max) == "4294967295");
+        assert (writeUnsigned(dec, ulong.max) == "18446744073709551615");
 
         assert (strncasecmp("", "a") < 0);
 
@@ -665,7 +667,7 @@ class ParamSet
 
             uint n;
 
-            char[] remaining = readUnsigned("  123abc45  ", n);
+            cstring remaining = readUnsigned("  123abc45  ", n);
 
             // n is now 123
             // remaining is now "abc45"
@@ -682,7 +684,7 @@ class ParamSet
 
      **************************************************************************/
 
-    protected static char[] readUnsigned ( T : ulong ) ( char[] src, out T x )
+    protected static cstring readUnsigned ( T : ulong ) ( cstring src, out T x )
     in
     {
         static assert (T.init == 0, "initial value of type \"" ~ T.stringof ~ "\" is " ~ T.init.stringof ~ " (need 0)");
@@ -690,7 +692,7 @@ class ParamSet
     }
     body
     {
-        char[] trimmed = ISplitIterator.trim(src);
+        cstring trimmed = ISplitIterator.trim(src);
 
         foreach (i, c; trimmed)
         {

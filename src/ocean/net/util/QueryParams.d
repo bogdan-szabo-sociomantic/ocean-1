@@ -26,6 +26,8 @@ module ocean.net.util.QueryParams;
 
  ******************************************************************************/
 
+import tango.transition;
+
 import ocean.net.util.ParamSet;
 
 import ocean.text.util.SplitIterator: ChrSplitIterator;
@@ -82,7 +84,7 @@ class QueryParams
 
      **************************************************************************/
 
-    private char[] query;
+    private cstring query;
 
     /**************************************************************************
 
@@ -126,7 +128,7 @@ class QueryParams
 
      **************************************************************************/
 
-    public typeof (this) set ( char[] query )
+    public typeof (this) set ( cstring query )
     {
         this.query = query;
 
@@ -145,17 +147,17 @@ class QueryParams
 
      **************************************************************************/
 
-    public int opApply ( int delegate ( ref char[] key, ref char[] value ) ext_dg )
+    public int opApply ( int delegate ( ref cstring key, ref cstring value ) ext_dg )
     {
         this.iterating = true;
 
         scope (exit) this.iterating = false;
 
         auto dg = this.trim_whitespace?
-                    (ref char[] key, ref char[] value)
+                    (ref cstring key, ref cstring value)
                     {
-                        char[] tkey = ChrSplitIterator.trim(key),
-                               tval = ChrSplitIterator.trim(value);
+                        auto tkey = ChrSplitIterator.trim(key),
+                             tval = ChrSplitIterator.trim(value);
                         return ext_dg(tkey, tval);
                     } :
                     ext_dg;
@@ -169,9 +171,9 @@ class QueryParams
 
         split_paramlist.reset(this.query);
 
-        return split_paramlist.opApply((ref char[] param)
+        return split_paramlist.opApply((ref cstring param)
         {
-            char[] value = null;
+            cstring value = null;
 
             foreach (key; split_param.reset(param))
             {
@@ -223,7 +225,7 @@ class QueryParamSet: ParamSet
 
      **************************************************************************/
 
-    public this ( char element_delim, char keyval_delim, char[][] keys ... )
+    public this ( char element_delim, char keyval_delim, cstring[] keys ... )
     {
         super.addKeys(keys);
 
@@ -243,7 +245,7 @@ class QueryParamSet: ParamSet
 
      **************************************************************************/
 
-    public void parse ( char[] query )
+    public void parse ( cstring query )
     {
         super.reset();
 
@@ -290,7 +292,7 @@ class FullQueryParamSet: QueryParamSet
 
      **************************************************************************/
 
-    public this ( char element_delim, char keyval_delim, char[][] keys ... )
+    public this ( char element_delim, char keyval_delim, cstring[] keys ... )
     {
         super(element_delim, keyval_delim, keys);
 
@@ -315,7 +317,7 @@ class FullQueryParamSet: QueryParamSet
 
      **************************************************************************/
 
-    public override bool set ( char[] key, char[] val )
+    public override bool set ( cstring key, cstring val )
     {
         if (super.set(key, val))
         {
@@ -335,7 +337,7 @@ class FullQueryParamSet: QueryParamSet
 
      **************************************************************************/
 
-    public override int opApply ( int delegate ( ref char[] key, ref char[] val ) dg )
+    public override int opApply ( int delegate ( ref cstring key, ref cstring val ) dg )
     {
         int result = super.opApply(dg);
 
