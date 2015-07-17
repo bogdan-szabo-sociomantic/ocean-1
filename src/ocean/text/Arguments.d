@@ -233,24 +233,6 @@ class Arguments : Tango.Arguments
 
     /***************************************************************************
 
-        Displays the help text for all arguments which have such defined.
-
-        Params:
-            app_name = name of application
-            output = stream where to print the errors (Stderr by default)
-
-    ***************************************************************************/
-
-    deprecated public void displayHelp ( char[] app_name,
-            typeof(Stderr) output = Stderr )
-    {
-        this.name = app_name;
-        this.displayHelp(output);
-    }
-
-
-    /***************************************************************************
-
         Displays any errors that happened
 
         Params:

@@ -114,60 +114,6 @@ abstract class Layout ( T = char )
         }
     }
 
-    /***************************************************************************
-
-        Outputs a formatted string into the provided buffer.
-
-        Note that the formatted string is appended into the buffer, it will not
-        overwrite any existing content.
-
-        Params:
-            output = output buffer, length will be increased to accommodate
-                formatted string
-            formatStr = format string
-            ... = format string parameters
-
-        Returns:
-            resulting string (output)
-
-     ***************************************************************************/
-
-    deprecated static public T[] print ( ref T[] output, T[] formatStr, ... )
-    {
-        return vprint(output, formatStr, _arguments, _argptr);
-    }
-
-    /***************************************************************************
-
-        Outputs a formatted string into the provided buffer.
-
-        Note that the formatted string is appended into the buffer, it will not
-        overwrite any existing content.
-
-        Params:
-            output = output buffer, length will be increased to accommodate
-                formatted string
-            formatStr = format string
-            arguments = argument types
-            argptr    = argument list
-
-        Returns:
-            resulting string (output)
-
-    ***************************************************************************/
-
-    deprecated static public T[] vprint ( ref T[] output, T[] formatStr, TypeInfo[] arguments, va_list argptr )
-    {
-        TangoLayout.Layout!(T).instance.convert(
-            (T[] s)
-            {
-                return cast (uint) .append(output, s).length;
-            },
-            arguments, argptr, formatStr);
-
-        return output;
-    }
-
     /**************************************************************************
 
         Appends the variable arguments to the content, formatted according to
@@ -479,14 +425,4 @@ public R vaArgCall ( R = void, A ... ) ( R delegate ( A dg_args, TypeInfo[] argu
                                          A dg_args )
 {
     return dg(dg_args, _arguments, _argptr);
-}
-
-/******************************************************************************/
-
-deprecated unittest
-{
-    char[] str;
-
-    assert (Layout!(char).print(str, "{}, {}{}", "Hello", "World", '!') == "Hello, World!");
-    assert (str == "Hello, World!");
 }

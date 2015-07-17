@@ -93,14 +93,6 @@ class StrSplitIterator : ISplitIterator
 
     /**************************************************************************
 
-        Old constructor
-
-     **************************************************************************/
-
-    deprecated public this ( ) {this (this.sf.init);}
-
-    /**************************************************************************
-
         Sets the delimiter string. delim_ may or may not be NUL-terminated;
         however, only the last character may be NUL.
 
@@ -257,14 +249,6 @@ class ChrSplitIterator : ISplitIterator
     {
         this.delim = delim_;
     }
-
-    /**************************************************************************
-
-        Old constructor
-
-     **************************************************************************/
-
-    deprecated public this ( ) { }
 
     /**************************************************************************
 
