@@ -22,6 +22,11 @@ module ocean.math.Range;
 
 import tango.core.Traits : isUnsignedIntegerType;
 
+version ( UnitTest )
+{
+    import ocean.core.Test;
+}
+
 
 
 /*******************************************************************************
@@ -123,6 +128,17 @@ public struct Range ( T )
     invariant()
     {
         assert(isValid(this.min_, this.max_));
+    }
+
+    version ( UnitTest )
+    {
+        import tango.util.Convert;
+
+        public istring toString()
+        {
+            return this.is_empty ? "()"
+                   : "(" ~ to!(istring)(this.min_) ~ ", " ~ to!(istring)(this.max_) ~ ")";
+        }
     }
 
 
