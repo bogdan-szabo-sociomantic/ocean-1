@@ -87,8 +87,6 @@ class ParamSet
 
      **************************************************************************/
 
-    deprecated
-    public const uint_dec_length  = ulong.max.stringof.length;
     public const ulong_dec_length = ulong.max.stringof.length;
 
     /**************************************************************************
@@ -239,11 +237,6 @@ class ParamSet
         return is_set? !this.readUnsigned(val, n).length && val.length : false;
     }
 
-    deprecated bool getUint ( char[] key, ref uint n, out bool is_set )
-    {
-        return getUnsigned(key, n, is_set);
-    }
-
     /**************************************************************************
 
         ditto
@@ -255,11 +248,6 @@ class ParamSet
         char[] val = this[key];
 
         return val.length? !this.readUnsigned(val, n).length : false;
-    }
-
-    deprecated bool getUint ( char[] key, ref uint n )
-    {
-        return getUnsigned(key, n);
     }
 
 
@@ -650,12 +638,6 @@ class ParamSet
         assert (false, typeof (this).stringof ~ ".writeUnsigned: dst too short");
     }
 
-    deprecated
-    protected static char[] writeUint ( char[] dst, ulong n )
-    {
-        return writeUnsigned( dst, n );
-    }
-
     unittest
     {
         char[ulong_dec_length] dec;
@@ -727,11 +709,5 @@ class ParamSet
         }
 
         return src? src[$ .. $] : null;
-    }
-
-    deprecated
-    protected static char[] readUint ( char[] src, out uint x )
-    {
-        return readUnsigned( src, x );
     }
 }

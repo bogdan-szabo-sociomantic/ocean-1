@@ -69,6 +69,10 @@ Removed Deprecated Symbols
    Two overload of `split` and `splitCollapse` which created arrays of slices
    and have been deprecated since late 2011 have been removed.
 
+* `ocean.net.util.ParamsSet`
+
+  Removed `*Uint` methods that where deprecated in 1.21.0
+
 Removed Symbols
 ---------------
 
