@@ -452,6 +452,62 @@ public struct Range ( T )
 
     /***************************************************************************
 
+        Determines whether this instance is non-empty subset of the specified
+        range. All values in this range must be within the other range.
+
+        Note: For practical reasons, this isn't conforming strictly to
+        the mathematical definition, where an empty set is considered to be
+        a subset of any set. However, two equal ranges will be considered
+        to be subsets of one another.
+
+        Params:
+            other = instance to compare with this
+
+        Returns:
+            true if this range is a subset of the other range
+
+    ***************************************************************************/
+
+    public bool isSubsetOf ( Range other )
+    {
+        if ( this.is_empty || other.is_empty )
+            return false;
+
+        return this.min >= other.min && this.max <= other.max;
+    }
+
+    unittest
+    {
+        // empty
+        test(!Range.init.isSubsetOf(Range(0, 10)), "Empty range doesn't count as subset");
+        test(!Range(0, 10).isSubsetOf(Range.init), "Empty range can't be superset");
+
+        // very proper subset
+        test(Range(1, 9).isSubsetOf(Range(0, 10)));
+
+        // equal
+        test(Range(0, 10).isSubsetOf(Range(0, 10)), "Equal range is a subset too");
+
+        // ends touch, inside
+        test(Range(0, 9).isSubsetOf(Range(0, 10)));
+        test(Range(1, 10).isSubsetOf(Range(0, 10)));
+
+        // ends touch, outside
+        test(!Range(0, 5).isSubsetOf(Range(5, 10)));
+        test(!Range(10, 15).isSubsetOf(Range(5, 10)));
+
+        // very proper superset
+        test(!Range(0, 10).isSubsetOf(Range(1, 9)), "Proper superset can't be subset");
+
+        // overlap
+        test(!Range(0, 10).isSubsetOf(Range(5, 15)));
+
+        // no overlap
+        test(!Range(5, 10).isSubsetOf(Range(15, 20)));
+    }
+
+
+    /***************************************************************************
         Determines whether this instance is a proper subset of the specified
         range. All values in this range must be within the other range and not
         extend to either the start or end of this range.
