@@ -14,6 +14,15 @@
 
 module ocean.net.http.consts.HttpMethod;
 
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
+
+import tango.transition;
+
+
 /******************************************************************************
 
     HTTP method enumerator
@@ -49,7 +58,7 @@ struct HttpMethodNames
 
      **************************************************************************/
 
-    const char[][HttpMethod.max + 1] List =
+    const istring[HttpMethod.max + 1] List =
     [
         HttpMethod.Undefined:  "",
         HttpMethod.Get:        "GET",
@@ -68,7 +77,7 @@ struct HttpMethodNames
 
      **************************************************************************/
 
-    private static HttpMethod[char[]] methods_by_name;
+    private static HttpMethod[istring] methods_by_name;
 
     /**************************************************************************
 
@@ -84,7 +93,7 @@ struct HttpMethodNames
 
      **************************************************************************/
 
-    static HttpMethod opIndex ( char[] name )
+    static HttpMethod opIndex ( cstring name )
     {
         HttpMethod* method = name? name in this.methods_by_name : null;
 
@@ -105,7 +114,7 @@ struct HttpMethodNames
 
      **************************************************************************/
 
-    static char[] opIndex ( HttpMethod method )
+    static istring opIndex ( HttpMethod method )
     in
     {
         static assert (method.max < this.List.length);
@@ -172,4 +181,3 @@ unittest
     assert(HttpMethodNames[""]        == HttpMethod.Undefined);
     assert(HttpMethodNames[null]      == HttpMethod.Undefined);
 }
-

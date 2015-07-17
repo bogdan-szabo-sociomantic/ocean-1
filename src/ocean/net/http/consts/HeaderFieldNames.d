@@ -12,6 +12,15 @@
 
 module ocean.net.http.consts.HeaderFieldNames;
 
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
+
+import tango.transition;
+
+
 /******************************************************************************/
 
 struct HeaderFieldNames
@@ -25,9 +34,9 @@ struct HeaderFieldNames
 
     struct General
     {
-        char[] CacheControl,        Connection,         Date,
-               Pragma,              Trailer,            TransferEncoding,
-               Upgrade,             Via,                Warning;
+        istring CacheControl,        Connection,         Date,
+                Pragma,              Trailer,            TransferEncoding,
+                Upgrade,             Via,                Warning;
 
         alias HeaderFieldNames.GeneralNames    Names;
         alias HeaderFieldNames._GeneralNameList NameList;
@@ -61,14 +70,14 @@ struct HeaderFieldNames
 
      **************************************************************************/
 
-    public static char[][] GeneralNameList ( )
+    public static istring[] GeneralNameList ( )
     {
         return _GeneralNameList;
     }
 
-    private static char[][] _GeneralNameList;
+    private static istring[] _GeneralNameList;
 
-    private static char[][GeneralNames.tupleof.length] GeneralNameList_;
+    private static istring[GeneralNames.tupleof.length] GeneralNameList_;
 
     /**************************************************************************
 
@@ -79,13 +88,13 @@ struct HeaderFieldNames
 
     struct Request
     {
-        char[] Accept,              AcceptCharset,      AcceptEncoding,
-               AcceptLanguage,      Authorization,      Cookie,
-               Expect,              From,               Host,
-               IfMatch,             IfModifiedSince,    IfNoneMatch,
-               IfRange,             IfUnmodifiedSince,  MaxForwards,
-               ProxyAuthorization,  Range,              Referer,
-               TE,                  UserAgent;
+        istring Accept,              AcceptCharset,      AcceptEncoding,
+                AcceptLanguage,      Authorization,      Cookie,
+                Expect,              From,               Host,
+                IfMatch,             IfModifiedSince,    IfNoneMatch,
+                IfRange,             IfUnmodifiedSince,  MaxForwards,
+                ProxyAuthorization,  Range,              Referer,
+                TE,                  UserAgent;
 
         alias HeaderFieldNames.RequestNames    Names;
         alias HeaderFieldNames.RequestNameList NameList;
@@ -130,9 +139,9 @@ struct HeaderFieldNames
 
      **************************************************************************/
 
-    public static char[][] RequestNameList;
+    public static istring[] RequestNameList;
 
-    private static char[][RequestNames.tupleof.length] RequestNameList_;
+    private static istring[RequestNames.tupleof.length] RequestNameList_;
 
     /**************************************************************************
 
@@ -143,13 +152,13 @@ struct HeaderFieldNames
 
     struct Response
     {
-        char[] AcceptRanges,        Age,                ETag,
-               Location,            ProxyAuthenticate,  RetryAfter,
-               Server,              Vary,               WwwAuthenticate,
-               Allow,               ContentEncoding,    ContentLanguage,
-               ContentLength,       ContentLocation,    ContentMD5,
-               ContentRange,        ContentType,        Expires,
-               LastModified,        SetCookie;
+        istring AcceptRanges,        Age,                ETag,
+                Location,            ProxyAuthenticate,  RetryAfter,
+                Server,              Vary,               WwwAuthenticate,
+                Allow,               ContentEncoding,    ContentLanguage,
+                ContentLength,       ContentLocation,    ContentMD5,
+                ContentRange,        ContentType,        Expires,
+                LastModified,        SetCookie;
 
         alias HeaderFieldNames.ResponseNames    Names;
         alias HeaderFieldNames.ResponseNameList NameList;
@@ -194,9 +203,9 @@ struct HeaderFieldNames
 
      **************************************************************************/
 
-    public static char[][] ResponseNameList;
+    public static istring[] ResponseNameList;
 
-    private static char[][ResponseNames.tupleof.length] ResponseNameList_;
+    private static istring[ResponseNames.tupleof.length] ResponseNameList_;
 
     /**************************************************************************
 
@@ -207,10 +216,10 @@ struct HeaderFieldNames
 
     struct Entity
     {
-        char[] Allow,               ContentEncoding,    ContentLanguage,
-               ContentLength,       ContentLocation,    ContentMD5,
-               ContentRange,        ContentType,        Expires,
-               LastModified;
+        istring Allow,               ContentEncoding,    ContentLanguage,
+                ContentLength,       ContentLocation,    ContentMD5,
+                ContentRange,        ContentType,        Expires,
+                LastModified;
 
         alias HeaderFieldNames.EntityNames    Names;
         alias HeaderFieldNames.EntityNameList NameList;
@@ -245,9 +254,9 @@ struct HeaderFieldNames
 
      **************************************************************************/
 
-    public static char[][] EntityNameList;
+    public static istring[] EntityNameList;
 
-    private static char[][EntityNames.tupleof.length] EntityNameList_;
+    private static istring[EntityNames.tupleof.length] EntityNameList_;
 
     /**************************************************************************
 

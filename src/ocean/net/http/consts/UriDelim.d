@@ -13,6 +13,13 @@
 
 module ocean.net.http.consts.UriDelim;
 
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
+
+import tango.transition;
 
 
 /*******************************************************************************
@@ -23,9 +30,9 @@ module ocean.net.http.consts.UriDelim;
 
 struct UriDelim
 {
-    const char[] QUERY      = `?`; // seperates uri path & query parameter
-    const char[] FRAGMENT   = `#`; // seperates uri path & fragment
-    const char[] QUERY_URL  = `/`; // separates url path elements
-    const char[] PARAM      = `&`; // seperates key/value pairs
-    const char[] KEY_VALUE  = `=`; // separate key and value
+    const istring QUERY      = `?`; // seperates uri path & query parameter
+    const istring FRAGMENT   = `#`; // seperates uri path & fragment
+    const istring QUERY_URL  = `/`; // separates url path elements
+    const istring PARAM      = `&`; // seperates key/value pairs
+    const istring KEY_VALUE  = `=`; // separate key and value
 }

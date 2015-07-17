@@ -18,7 +18,9 @@ module ocean.net.http.consts.HttpVersion;
 
  ******************************************************************************/
 
+import tango.transition;
 import tango.stdc.ctype: isdigit;
+
 
 /******************************************************************************
 
@@ -49,7 +51,7 @@ struct HttpVersionIds
 
      **************************************************************************/
 
-    const char[][HttpVersion.max + 1] list =
+    const istring[HttpVersion.max + 1] list =
     [
         HttpVersion.v1_1: "HTTP/1.1",
         HttpVersion.v1_0: "HTTP/1.0"
@@ -71,7 +73,7 @@ struct HttpVersionIds
 
      **************************************************************************/
 
-    static char[] opIndex ( HttpVersion ver )
+    static istring opIndex ( HttpVersion ver )
     in
     {
         assert (ver,            "no version id for HttpVersion.Undefined");
@@ -96,7 +98,7 @@ struct HttpVersionIds
 
      **************************************************************************/
 
-    static HttpVersion* opIn_r ( char[] id )
+    static HttpVersion* opIn_r ( cstring id )
     {
         return id.length? id in this.codes : null;
     }
@@ -115,7 +117,7 @@ struct HttpVersionIds
 
      **************************************************************************/
 
-    static HttpVersion opIndex ( char[] id )
+    static HttpVersion opIndex ( cstring id )
     {
         HttpVersion* code = opIn_r(id);
 
@@ -140,7 +142,7 @@ struct HttpVersionIds
 
      **************************************************************************/
 
-    static bool validSyntax ( char[] id )
+    static bool validSyntax ( cstring id )
     {
         const prefix = "HTTP/";
 
@@ -221,7 +223,7 @@ struct HttpVersionIds
 
      **************************************************************************/
 
-    private static HttpVersion[char[]] codes;
+    private static HttpVersion[istring] codes;
 
     /**************************************************************************
 
@@ -269,4 +271,3 @@ unittest
     assert(!(""     in HttpVersionIds));
     assert(!(null   in HttpVersionIds));
 }
-
