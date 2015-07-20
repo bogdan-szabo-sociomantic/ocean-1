@@ -708,17 +708,17 @@ struct StructSerializer ( bool AllowUnions = false )
 
     S* resetReferences ( S ) ( S* s )
     {
-        foreach (i, T; typeof (S.tupleof))
+        foreach (i, ref field; s.tupleof)
         {
-            T* field = GetField!(i, T, S)(s);
+            alias typeof(field) T;
 
             static if (is (T == struct))
             {
-                resetReferences(field);                                         // recursive call
+                resetReferences(&field);                                         // recursive call
             }
             else static if (isReferenceType!(T))
             {
-                *field = null;
+                field = null;
             }
         }
 
@@ -737,18 +737,19 @@ struct StructSerializer ( bool AllowUnions = false )
 
     S* copyReferences ( S ) ( S* src, S* dst )
     {
-        foreach (i, T; typeof (S.tupleof))
+        foreach (i, ref src_field; src.tupleof)
         {
-            T* src_field = GetField!(i, T, S)(src),
-               dst_field = GetField!(i, T, S)(dst);
+            alias typeof(src_field) T;
+
+            T* dst_field = &dst.tupleof[i];
 
             static if (is (T == struct))
             {
-                copyReferences(src_field, dst_field);                           // recursive call
+                copyReferences(&src_field, dst_field);                           // recursive call
             }
             else static if (isReferenceType!(T))
             {
-                *dst_field = *src_field;
+                *dst_field = src_field;
             }
         }
 
@@ -794,19 +795,19 @@ struct StructSerializer ( bool AllowUnions = false )
     {
         size_t bytes = 0;
 
-        foreach (i, T; typeof (S.tupleof))
+        foreach (i, ref field; s.tupleof)
         {
-            T* field = GetField!(i, T, S)(s);
+            alias typeof(field) T;
 
             static if (is (T == struct))
             {
-                bytes += transmitArrays!(receive)(field, transmit);             // recursive call
+                bytes += transmitArrays!(receive)(&field, transmit);             // recursive call
             }
             else static if (is (T U == U[]))
             {
                 mixin AssertSupportedArray!(T, U, S, i);
 
-                bytes += transmitArray!(receive)(*field, transmit);
+                bytes += transmitArray!(receive)(field, transmit);
             }
             else mixin AssertSupportedType!(T, S, i);
         }
@@ -1025,20 +1026,21 @@ struct StructSerializer ( bool AllowUnions = false )
 
     private void serialize_ ( S, Serializer, D ... ) ( S* s, Serializer serializer, ref D data )
     {
-        foreach (i, T; typeof (S.tupleof))
+        foreach (i, ref field; s.tupleof)
         {
-            T*    field = GetField!(i, T, S)(s);
+            alias typeof(field) T;
             const field_name = FieldName!(i, S);
 
             static if ( is(T == struct) )
             {
                 serializer.openStruct(data, field_name);
-                serialize_(field, serializer, data);                            // recursive call
+                serialize_(&field, serializer, data);                            // recursive call
                 serializer.closeStruct(data, field_name);
             }
             else static if( is(T U : U[]) )
             {
-                U[] array = *field;
+                // slice array (passing a static array as ref is not allowed)
+                U[] array = field;
 
                 static if ( is(BaseTypeOfArrays!(U) == struct) )
                 {
@@ -1060,15 +1062,15 @@ struct StructSerializer ( bool AllowUnions = false )
 
                 static if ( is(T B == enum) )
                 {
-                    serializer.serialize(data, cast(B)(*field), field_name);
+                    serializer.serialize(data, cast(B)(field), field_name);
                 }
                 else static if ( is(T B == typedef) )
                 {
-                    serializer.serialize(data, cast(B)(*field), field_name);
+                    serializer.serialize(data, cast(B)(field), field_name);
                 }
                 else
                 {
-                    serializer.serialize(data, *field, field_name);
+                    serializer.serialize(data, field, field_name);
                 }
             }
         }
