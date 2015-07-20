@@ -1027,6 +1027,106 @@ unittest
                       Range!(uint).init]));
 }
 
+/*******************************************************************************
+
+    Predicate that checks contiguity of the array of Range!T.
+
+    This function's result is equivalent to !hasGap && !hasOverlap. There is
+    a special unittest which asserts this (see below). It has been implemented
+    as a separate function because a more efficient implementation is possible.
+
+    It is assumed that the array is already sorted in lexicographical
+    order: first check left boundaries of ranges if equal then right boundaries
+    will be checked (that is current status quo of opCmp). All empty ranges
+    are ignored.
+
+    Params:
+        ranges = a sorted array of Range!T to be checked
+
+    Returns:
+        true if collection is contiguous
+
+*******************************************************************************/
+
+public bool isContiguous ( T ) ( Range!(T)[] ranges )
+{
+    trimEmptyRanges(ranges);
+
+    for (size_t i = 1; i < ranges.length; ++i)
+    {
+        if (ranges[i].min != ranges[i - 1].max + 1)
+            return false;
+    }
+
+    return true;
+}
+
+unittest
+{
+    // contiguous
+    test(isContiguous([Range!(uint)(1, 5),
+                       Range!(uint)(6, 12),
+                       Range!(uint)(13, 15)]));
+
+    // one common point
+    test(!isContiguous([Range!(uint)(1, 5),
+                        Range!(uint)(5, 12),
+                        Range!(uint)(13, 15)]));
+    test(!isContiguous([Range!(uint)(1, 5),
+                        Range!(uint)(6, 13),
+                        Range!(uint)(13, 15)]));
+
+    // gap
+    test(!isContiguous([Range!(uint)(1, 4),
+                        Range!(uint)(6, 12),
+                        Range!(uint)(13, 15)]));
+    test(!isContiguous([Range!(uint)(1, 5),
+                        Range!(uint)(6, 11),
+                        Range!(uint)(13, 15)]));
+
+    // gap and common point
+    test(!isContiguous([Range!(uint)(1, 4),
+                        Range!(uint)(6, 13),
+                        Range!(uint)(13, 15)]));
+
+    // two equal range
+    test(!isContiguous([Range!(uint)(6, 13),
+                        Range!(uint)(6, 13)]));
+
+    // any count of empty ranges has no effect
+    test(isContiguous([Range!(uint).init,
+                       Range!(uint)(1, 5),
+                       Range!(uint)(6, 12),
+                       Range!(uint)(13, 15)]));
+    test(!isContiguous([Range!(uint).init,
+                        Range!(uint)(1, 5),
+                        Range!(uint)(6, 13),
+                        Range!(uint)(13, 15)]));
+    test(!isContiguous([Range!(uint).init,
+                        Range!(uint)(1, 4),
+                        Range!(uint)(6, 12),
+                        Range!(uint)(13, 15)]));
+    test(!isContiguous([Range!(uint).init,
+                        Range!(uint)(1, 4),
+                        Range!(uint)(6, 13),
+                        Range!(uint)(13, 15)]));
+    test(isContiguous([Range!(uint).init,
+                       Range!(uint).init,
+                       Range!(uint)(1, 5),
+                       Range!(uint)(6, 12),
+                       Range!(uint)(13, 15)]));
+
+    // any combination of empty sets is contiguous
+    test(isContiguous!(uint)(null));
+    test(isContiguous!(uint)([]));
+    test(isContiguous([Range!(uint).init]));
+    test(isContiguous([Range!(uint).init,
+                       Range!(uint).init]));
+    test(isContiguous([Range!(uint).init,
+                       Range!(uint).init,
+                       Range!(uint).init]));
+}
+
 
 /*******************************************************************************
 
