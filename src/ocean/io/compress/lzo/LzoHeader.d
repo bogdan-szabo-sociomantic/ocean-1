@@ -566,10 +566,10 @@ align (1) struct LzoHeader ( bool LengthInline = true )
 
         static void[] strip ( void[] chunk )
         {
-            enforce!(CompressException)(chunk.length >= this.read_length,
-                                         this.ErrMsgSource ~ ": Chunk too short to strip header");
+            enforce!(CompressException)(chunk.length >= read_length,
+                                         ErrMsgSource ~ ": Chunk too short to strip header");
 
-            return chunk[this.read_length .. $];
+            return chunk[read_length .. $];
         }
 
         /**************************************************************************

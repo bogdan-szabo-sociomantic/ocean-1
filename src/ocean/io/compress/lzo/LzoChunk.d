@@ -332,7 +332,7 @@ struct Terminator
 
     extern (C) void terminate ( int code )
     {
-        this.terminated = true;
+        terminated = true;
     }
 }
 
