@@ -132,6 +132,16 @@ version (UnitTest)
 }
 
 
+/// Workaround inability to replace those in string.
+version (D_Version2)
+{
+    private const istring enum_id = "enum";
+}
+else
+{
+    private const istring enum_id = "const";
+}
+
 /*******************************************************************************
 
     Abstract base class for SmartEnums. Contains no members, just provided as a
@@ -673,11 +683,11 @@ private template ShortestName ( T ... )
 private template DeclareConstants ( T ... )
 {
     const istring DeclareConstants =
-        "const length = " ~ ctfe_i2a(T.length) ~ "; " ~
-        "const min = " ~ CTFE_Int2String(MinValue!(T)) ~ "; " ~
-        "const max = " ~ CTFE_Int2String(MaxValue!(T)) ~ "; " ~
-        "const min_descr_length = " ~ ctfe_i2a(ShortestName!(T)) ~ "; " ~
-        "const max_descr_length = " ~ ctfe_i2a(LongestName!(T)) ~ "; ";
+        enum_id ~ " length = " ~ ctfe_i2a(T.length) ~ "; " ~
+        enum_id ~ " min = " ~ CTFE_Int2String(MinValue!(T)) ~ "; " ~
+        enum_id ~ " max = " ~ CTFE_Int2String(MaxValue!(T)) ~ "; " ~
+        enum_id ~ " min_descr_length = " ~ ctfe_i2a(ShortestName!(T)) ~ "; " ~
+        enum_id ~ " max_descr_length = " ~ ctfe_i2a(LongestName!(T)) ~ "; ";
 }
 
 

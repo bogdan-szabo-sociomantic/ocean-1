@@ -100,9 +100,7 @@ struct SmartUnion ( U )
 
     mixin (AllMethods!(U, "", 0));
 
-    /// typeof(this) is a pointer in D1, the type in D2.
-    version(D_Version2) private alias typeof(this) Type;
-    else private alias typeof(*this) Type;
+    private alias typeof(*this) Type;
 }
 
 ///
