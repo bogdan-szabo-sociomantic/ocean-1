@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module ocean.util.container.queue.SimplifiedFlexibleRingQueue;
+deprecated module ocean.util.container.queue.SimplifiedFlexibleRingQueue;
 
 
 
@@ -42,6 +42,7 @@ debug import ocean.io.Stdout;
 
 *******************************************************************************/
 
+deprecated("Use ocean.util.container.queue.FlexibleRingQueue instead.")
 class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 {
     /***************************************************************************
@@ -476,7 +477,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
 *******************************************************************************/
 
-unittest
+deprecated unittest
 {
     scope queue = new FlexibleByteRingQueue((9+FlexibleByteRingQueue.Header.sizeof)*10);
     assert(!queue.free_space == 0);
@@ -539,7 +540,7 @@ version ( UnitTest )
     version (UnitTestVerbose) import ocean.io.Stdout;
 }
 
-unittest
+deprecated unittest
 {
      scope random = new Random();
 

@@ -129,6 +129,10 @@ Deprecations
         is set to the higher capacity. If a custom non-GC allocator is used, the
         buffer is allocated again by the GC.
 
+* `ocean.util.container.queue.SimplifiedFlexibleRingQueue`
+
+  Should be replaced with `ocean.util.container.queue.FlexibleRingQueue`.
+
 New Features
 ============
 
