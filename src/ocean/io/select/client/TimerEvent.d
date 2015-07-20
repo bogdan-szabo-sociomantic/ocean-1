@@ -20,13 +20,11 @@ module ocean.io.select.client.TimerEvent;
 
 import ocean.io.select.client.model.ISelectClient: ISelectClient;
 
-import ocean.core.Array : copy;
 import ocean.sys.TimerFD;
 import ocean.core.Traits;
 
 import tango.io.model.IConduit: ISelectable;
 
-import tango.text.convert.Format;
 import tango.stdc.posix.time: time_t, timespec, itimerspec;
 
 class TimerEvent : ITimerEvent
@@ -322,6 +320,9 @@ abstract class ITimerEvent : ISelectClient, ISelectable
 
     debug
     {
+        import ocean.core.Array : copy;
+        import tango.text.convert.Format;
+
         private char[] time_buffer;
 
         public override char[] id ( )
