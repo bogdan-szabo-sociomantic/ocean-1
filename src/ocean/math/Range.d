@@ -1130,6 +1130,57 @@ unittest
 
 /*******************************************************************************
 
+    Special unittest which checks that:
+    isContiguous <=> !hasGap && !hasOverlap
+
+*******************************************************************************/
+
+unittest
+{
+    Range!(uint)[] ranges;
+
+    // ranges is null
+    test!("==")(isContiguous(ranges), !hasGap(ranges) && !hasOverlap(ranges));
+
+    // contiguous ranges
+    ranges ~= [Range!(uint)(1, 5), Range!(uint)(6, 12), Range!(uint)(13, 15)];
+    test!("==")(isContiguous(ranges), !hasGap(ranges) && !hasOverlap(ranges));
+    ranges.length = 0;
+    enableStomping(ranges);
+
+    // overlap
+    ranges ~= [Range!(uint)(1, 5), Range!(uint)(6, 13), Range!(uint)(13, 15)];
+    test!("==")(isContiguous(ranges), !hasGap(ranges) && !hasOverlap(ranges));
+    ranges.length = 0;
+    enableStomping(ranges);
+
+    // gap
+    ranges ~= [Range!(uint)(1, 4), Range!(uint)(6, 12), Range!(uint)(13, 15)];
+    test!("==")(isContiguous(ranges), !hasGap(ranges) && !hasOverlap(ranges));
+    ranges.length = 0;
+    enableStomping(ranges);
+
+    // gap and overlap
+    ranges ~= [Range!(uint)(1, 4), Range!(uint)(6, 13), Range!(uint)(13, 15)];
+    test!("==")(isContiguous(ranges), !hasGap(ranges) && !hasOverlap(ranges));
+    ranges.length = 0;
+    enableStomping(ranges);
+
+    // range.length == 0
+    test!("==")(isContiguous(ranges), !hasGap(ranges) && !hasOverlap(ranges));
+
+    // only empty ranges
+    ranges ~= Range!(uint).init;
+    test!("==")(isContiguous(ranges), !hasGap(ranges) && !hasOverlap(ranges));
+    ranges ~= Range!(uint).init;
+    test!("==")(isContiguous(ranges), !hasGap(ranges) && !hasOverlap(ranges));
+    ranges ~= Range!(uint).init;
+    test!("==")(isContiguous(ranges), !hasGap(ranges) && !hasOverlap(ranges));
+}
+
+
+/*******************************************************************************
+
     Trims any empty ranges from the start of a sorted array of Range!T.
 
     It is assumed that the array is already sorted, which means all empty ranges
