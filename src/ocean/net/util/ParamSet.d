@@ -505,7 +505,7 @@ class ParamSet
     {
         char[] lower_key = this.tolower(key);
 
-        if (!(key in this.paramset))
+        if (!(lower_key in this.paramset))
         {
             this.paramset[lower_key.dup] = Element(key);
         }
