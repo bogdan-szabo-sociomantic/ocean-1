@@ -663,11 +663,9 @@ public class Table
             public void display ( Output output, size_t width, ref char[] content_buf, ref char[] spacing_buf )
             {
                 // sequence of control characters to reset output colors to default
-                // use Terminal.CSI.dup to avoid string constant concatenation issues
-                // see: https://github.com/sociomantic/dmd/issues/3
                 istring default_colours =
-                    Terminal.CSI.dup ~ Terminal.fg_colour_codes[Terminal.Colour.Default] ~
-                    Terminal.CSI.dup ~ Terminal.bg_colour_codes[Terminal.Colour.Default];
+                    Terminal.CSI ~ Terminal.fg_colour_codes[Terminal.Colour.Default] ~
+                    Terminal.CSI ~ Terminal.bg_colour_codes[Terminal.Colour.Default];
 
                 // set the colour of this cell
                 if ( this.fg_colour_string.length > 0 ||

@@ -90,7 +90,7 @@ struct Terminal
 
     ***************************************************************************/
 
-    public const CSI         = "\x1B[";
+    public const istring CSI        = "\x1B[";
 
     /***************************************************************************
 
@@ -100,29 +100,29 @@ struct Terminal
 
     public struct Foreground
     {
-        public const BLACK               = "30m";
-        public const RED                 = "31m";
-        public const GREEN               = "32m";
-        public const YELLOW              = "33m";
-        public const BLUE                = "34m";
-        public const MAGENTA             = "35m";
-        public const CYAN                = "36m";
-        public const WHITE               = "37m";
-        public const DEFAULT_UNDERSCORE  = "38m";
-        public const DEFAULT             = "39m";
+        public const istring BLACK              = "30m";
+        public const istring RED                = "31m";
+        public const istring GREEN              = "32m";
+        public const istring YELLOW             = "33m";
+        public const istring BLUE               = "34m";
+        public const istring MAGENTA            = "35m";
+        public const istring CYAN               = "36m";
+        public const istring WHITE              = "37m";
+        public const istring DEFAULT_UNDERSCORE = "38m";
+        public const istring DEFAULT            = "39m";
     }
 
     public struct Background
     {
-        public const BLACK      = "40m";
-        public const RED        = "41m";
-        public const GREEN      = "42m";
-        public const YELLOW     = "43m";
-        public const BLUE       = "44m";
-        public const MAGENTA    = "45m";
-        public const CYAN       = "46m";
-        public const WHITE      = "47m";
-        public const DEFAULT    = "49m";
+        public const istring BLACK              = "40m";
+        public const istring RED                = "41m";
+        public const istring GREEN              = "42m";
+        public const istring YELLOW             = "43m";
+        public const istring BLUE               = "44m";
+        public const istring MAGENTA            = "45m";
+        public const istring CYAN               = "46m";
+        public const istring WHITE              = "47m";
+        public const istring DEFAULT            = "49m";
     }
 
 
@@ -181,9 +181,9 @@ struct Terminal
 
     ***************************************************************************/
 
-    public const BOLD   = "1m";
+    public const istring BOLD = "1m";
 
-    public const NON_BOLD   = "22m";
+    public const istring NON_BOLD = "22m";
 
     /***************************************************************************
 
@@ -191,7 +191,7 @@ struct Terminal
 
     ***************************************************************************/
 
-    public const CURSOR_UP   = "A";
+    public const istring CURSOR_UP = "A";
 
     /***************************************************************************
 
@@ -199,7 +199,7 @@ struct Terminal
 
     ***************************************************************************/
 
-    public const LINE_UP   = "F";
+    public const istring LINE_UP = "F";
 
     /***************************************************************************
 
@@ -207,7 +207,7 @@ struct Terminal
 
     ***************************************************************************/
 
-    public const SCROLL_UP    = "S";
+    public const istring SCROLL_UP = "S";
 
     /***************************************************************************
 
@@ -215,7 +215,7 @@ struct Terminal
 
     ***************************************************************************/
 
-    public const INSERT_LINE = "L";
+    public const istring INSERT_LINE = "L";
 
     /***************************************************************************
 
@@ -228,7 +228,7 @@ struct Terminal
 
     ***************************************************************************/
 
-    public const ERASE_REST_OF_LINE = "K";
+    public const istring ERASE_REST_OF_LINE = "K";
 
     /***************************************************************************
 
@@ -242,7 +242,7 @@ struct Terminal
 
     ***************************************************************************/
 
-    public const ERASE_REST_OF_SCREEN = "J";
+    public const istring ERASE_REST_OF_SCREEN = "J";
 
     /***************************************************************************
 
@@ -250,7 +250,7 @@ struct Terminal
 
     ***************************************************************************/
 
-    public const HIDE_CURSOR = "?25l";
+    public const istring HIDE_CURSOR = "?25l";
 
     /***************************************************************************
 
@@ -258,7 +258,7 @@ struct Terminal
 
     ***************************************************************************/
 
-    public const SHOW_CURSOR = "?25h";
+    public const istring SHOW_CURSOR = "?25h";
 
     /***************************************************************************
 
@@ -266,7 +266,7 @@ struct Terminal
 
     ***************************************************************************/
 
-    public const HORIZONTAL_MOVE_CURSOR = "G";
+    public const istring HORIZONTAL_MOVE_CURSOR = "G";
 }
 
 /*******************************************************************************
