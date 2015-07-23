@@ -19,6 +19,8 @@ module ocean.net.http.time.HttpTimeParser;
 
  ******************************************************************************/
 
+import tango.transition;
+
 import TimeStamp = tango.text.convert.TimeStamp: rfc1123, rfc850, asctime;
 
 import tango.time.Time: Date, TimeOfDay;
@@ -44,7 +46,7 @@ import tango.stdc.posix.time: timegm;
 
  ******************************************************************************/
 
-bool parse ( char[] timestamp, ref time_t t )
+bool parse ( cstring timestamp, ref time_t t )
 {
     Date      date;
     TimeOfDay tod;

@@ -22,6 +22,7 @@ module ocean.net.http.time.HttpTimeFormatter;
 
  ******************************************************************************/
 
+import tango.transition;
 import tango.stdc.time:       time_t, tm, time;
 import tango.stdc.posix.time: gmtime_r, localtime_r;
 import tango.stdc.stdlib:     lldiv;
@@ -63,8 +64,8 @@ struct HttpTimeFormatter
 
      **************************************************************************/
 
-    private const char[3][7]  weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    private const char[3][12] months   = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    private const istring[7]  weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    private const istring[12] months   = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     /**************************************************************************
 
@@ -82,7 +83,7 @@ struct HttpTimeFormatter
 
      **************************************************************************/
 
-    public char[] format ( time_t t )
+    public mstring format ( time_t t )
     {
         return this.format(this.buf, t);
     }
@@ -100,7 +101,7 @@ struct HttpTimeFormatter
 
      **************************************************************************/
 
-    public char[] format ( )
+    public mstring format ( )
     {
         return this.format(this.buf);
     }
@@ -123,10 +124,10 @@ struct HttpTimeFormatter
 
     **************************************************************************/
 
-    public static char[] format ( char[] dst, time_t t )
+    public static mstring format ( mstring dst, time_t t )
     in
     {
-        assert (dst.length == this.ResultLength);
+        assert (dst.length == ResultLength);
     }
     body
     {
@@ -138,19 +139,19 @@ struct HttpTimeFormatter
 
         with (*datetimep)
         {
-            dst[ 0 ..  3] = this.weekdays[tm_wday];
+            dst[ 0 ..  3] = weekdays[tm_wday];
             dst[ 3 ..  5] = ", ";
-            dst[ 5 ..  7].fmt(tm_mday);
+            fmt(dst[ 5 ..  7], tm_mday);
             dst[ 7      ] = ' ';
-            dst[ 8 .. 11] = this.months[tm_mon];
+            dst[ 8 .. 11] = months[tm_mon];
             dst[11      ] = ' ';
-            dst[12 .. 16].fmt(tm_year + 1900);
+            fmt(dst[12 .. 16], tm_year + 1900);
             dst[16      ] = ' ';
-            dst[17 .. 19].fmt(tm_hour);
+            fmt(dst[17 .. 19], tm_hour);
             dst[19      ] = ':';
-            dst[20 .. 22].fmt(tm_min);
+            fmt(dst[20 .. 22], tm_min);
             dst[22      ] = ':';
-            dst[23 .. 25].fmt(tm_sec);
+            fmt(dst[23 .. 25], tm_sec);
         }
 
         dst[$ - " GMT".length .. $] = " GMT";
@@ -173,7 +174,7 @@ struct HttpTimeFormatter
 
     **************************************************************************/
 
-    public static char[] format ( char[] dst )
+    public static mstring format ( mstring dst )
     {
         return format(dst, now? now() : time(null));
     }
@@ -189,7 +190,7 @@ struct HttpTimeFormatter
 
     **************************************************************************/
 
-    private static void fmt ( char[] dst, long n )
+    private static void fmt ( mstring dst, long n )
     in
     {
        assert (n >= 0);
@@ -204,7 +205,7 @@ struct HttpTimeFormatter
         {
             with (lldiv(n, 10))
             {
-                c = cast(char) rem + '0';
+                c = cast(char) (rem + '0');
                 n = quot;
             }
         }
