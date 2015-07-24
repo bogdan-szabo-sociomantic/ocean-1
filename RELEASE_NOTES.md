@@ -179,3 +179,7 @@ New Features
     Note that the data format used by the new `save()` and `load()` methods is
     not compatible to the one used by the now deprecated `serialize()` and
     `deserialize()`.
+
+* `ocean.io.model.ISuspendable`
+
+   New common interface for any processes that can be suspended/resumed.
