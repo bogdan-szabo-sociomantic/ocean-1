@@ -95,7 +95,7 @@ struct HttpMethodNames
 
     static HttpMethod opIndex ( cstring name )
     {
-        HttpMethod* method = name? name in this.methods_by_name : null;
+        HttpMethod* method = name? name in methods_by_name : null;
 
         return method? *method : HttpMethod.init;
     }
@@ -117,11 +117,11 @@ struct HttpMethodNames
     static istring opIndex ( HttpMethod method )
     in
     {
-        static assert (method.max < this.List.length);
+        static assert (method.max < List.length);
     }
     body
     {
-        return (method <= method.max)? this.List[method] : null;
+        return (method <= method.max)? List[method] : null;
     }
 
     /**************************************************************************
@@ -132,12 +132,12 @@ struct HttpMethodNames
 
     static this ( )
     {
-        foreach (method, name; this.List)
+        foreach (method, name; List)
         {
-            this.methods_by_name[name] = cast (HttpMethod) method;
+            methods_by_name[name] = cast (HttpMethod) method;
         }
 
-        this.methods_by_name.rehash;
+        methods_by_name.rehash;
     }
 }
 

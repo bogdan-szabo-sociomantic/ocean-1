@@ -39,7 +39,7 @@ struct HeaderFieldNames
                 Upgrade,             Via,                Warning;
 
         alias HeaderFieldNames.GeneralNames    Names;
-        alias HeaderFieldNames._GeneralNameList NameList;
+        alias HeaderFieldNames.GeneralNameList NameList;
     }
 
     /**************************************************************************
@@ -266,33 +266,33 @@ struct HeaderFieldNames
 
     static this ( )
     {
-        foreach (i, name; this.GeneralNames.tupleof)
+        foreach (i, name; GeneralNames.tupleof)
         {
-            this.GeneralNameList_[i] = name;
+            GeneralNameList_[i] = name;
         }
 
-        this._GeneralNameList = this.GeneralNameList_;
+        _GeneralNameList = GeneralNameList_;
 
-        foreach (i, name; this.RequestNames.tupleof)
+        foreach (i, name; RequestNames.tupleof)
         {
-            this.RequestNameList_[i] = name;
+            RequestNameList_[i] = name;
         }
 
-        this.RequestNameList = this.RequestNameList_;
+        RequestNameList = RequestNameList_;
 
-        foreach (i, name; this.ResponseNames.tupleof)
+        foreach (i, name; ResponseNames.tupleof)
         {
-            this.ResponseNameList_[i] = name;
+            ResponseNameList_[i] = name;
         }
 
-        this.ResponseNameList = this.ResponseNameList_;
+        ResponseNameList = ResponseNameList_;
 
-        foreach (i, name; this.EntityNames.tupleof)
+        foreach (i, name; EntityNames.tupleof)
         {
-            this.EntityNameList_[i] = name;
+            EntityNameList_[i] = name;
         }
 
-        this.EntityNameList = this.EntityNameList_;
+        EntityNameList = EntityNameList_;
     }
 
     // Assertion check for the struct members

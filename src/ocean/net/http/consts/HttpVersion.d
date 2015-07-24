@@ -81,7 +81,7 @@ struct HttpVersionIds
     }
     body
     {
-        return this.list[ver];
+        return list[ver];
     }
 
     /**************************************************************************
@@ -100,7 +100,7 @@ struct HttpVersionIds
 
     static HttpVersion* opIn_r ( cstring id )
     {
-        return id.length? id in this.codes : null;
+        return id.length? id in codes : null;
     }
 
     /**************************************************************************
@@ -233,12 +233,12 @@ struct HttpVersionIds
 
     static this ( )
     {
-        foreach (i, str; this.list)
+        foreach (i, str; list)
         {
-            this.codes[str] = cast (HttpVersion) i;
+            codes[str] = cast (HttpVersion) i;
         }
 
-        this.codes.rehash;
+        codes.rehash;
     }
 }
 

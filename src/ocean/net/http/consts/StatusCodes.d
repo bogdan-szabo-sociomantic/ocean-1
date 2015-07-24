@@ -123,7 +123,7 @@ struct StatusPhrases
 
     static istring opIndex ( HttpResponseCode status_code )
     {
-        return this.reason_phrases[status_code];
+        return reason_phrases[status_code];
     }
 
     /**************************************************************************
@@ -134,11 +134,11 @@ struct StatusPhrases
 
     static this ( )
     {
-        foreach (srp; this.StatusReasonPhrases)
+        foreach (srp; StatusReasonPhrases)
         {
-            this.reason_phrases[srp.status_code] = srp.reason_phrase;
+            reason_phrases[srp.status_code] = srp.reason_phrase;
         }
 
-        this.reason_phrases.rehash;
+        reason_phrases.rehash;
     }
 }
