@@ -23,6 +23,10 @@ module ocean.net.http.message.HttpHeader;
 
  ******************************************************************************/
 
+import tango.transition;
+
+import ocean.core.TypeConvert;
+
 import ocean.net.http.consts.HeaderFieldNames,
        ocean.net.http.consts.HttpVersion;
 
@@ -54,9 +58,9 @@ abstract class HttpHeader : ParamSet
 
      **************************************************************************/
 
-    protected this ( char[][][] standard_header_lists ... )
+    protected this ( cstring[][] standard_header_lists ... )
     {
-        super.addKeys(HeaderFieldNames.General.NameList);
+        super.addKeys(castFrom!(istring[]).to!(cstring[])(HeaderFieldNames.General.NameList));
 
         foreach (standard_headers; standard_header_lists)
         {
@@ -121,7 +125,7 @@ abstract class HttpHeader : ParamSet
 
      **************************************************************************/
 
-    public void addCustomHeaders ( char[][] header_field_names ... )
+    public void addCustomHeaders ( cstring[] header_field_names ... )
     {
         super.addKeys(header_field_names);
 

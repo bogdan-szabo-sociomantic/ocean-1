@@ -24,21 +24,13 @@ module ocean.net.http.message.HttpHeaderParser;
 
  ******************************************************************************/
 
+import tango.transition;
 import tango.core.Enforce;
 import ocean.text.util.SplitIterator: ChrSplitIterator, ISplitIterator;
 
 import ocean.net.http.HttpException: HttpParseException;
 
-static if (is (size_t == uint))
-{
-    alias int ssize_t;
-}
-else
-{
-    static assert (is (size_t == ulong), "expected size_t to be uint or ulong, not \"" ~ size_t.stringof ~ '"');
-
-    alias long ssize_t;
-}
+public alias long ssize_t;
 
 /******************************************************************************
 
@@ -63,7 +55,7 @@ else
 
  ******************************************************************************/
 
-extern (C) private char* g_strstr_len(char* haystack, ssize_t haystack_len, char* needle);
+extern (C) private char* g_strstr_len(Const!(char)* haystack, ssize_t haystack_len, Const!(char)* needle);
 
 /******************************************************************************
 
@@ -75,13 +67,13 @@ interface IHttpHeaderParser
 {
     /**************************************************************************
 
-        Heander element
+        Header element
 
      **************************************************************************/
 
     struct HeaderElement
     {
-        char[] key, val;
+        cstring key, val;
     }
 
     /**************************************************************************
@@ -107,7 +99,7 @@ interface IHttpHeaderParser
 
      **************************************************************************/
 
-    char[][] header_lines ( );
+    cstring[] header_lines ( );
 
     /**************************************************************************
 
@@ -116,7 +108,7 @@ interface IHttpHeaderParser
 
      **************************************************************************/
 
-    uint header_lines_limit ( );
+    size_t header_lines_limit ( );
 
     /**************************************************************************
 
@@ -133,7 +125,7 @@ interface IHttpHeaderParser
 
      **************************************************************************/
 
-    uint header_lines_limit ( uint n );
+    size_t header_lines_limit ( size_t n );
 
     /**************************************************************************
 
@@ -142,7 +134,7 @@ interface IHttpHeaderParser
 
      **************************************************************************/
 
-    uint header_length_limit ( );
+    size_t header_length_limit ( );
 
     /**************************************************************************
 
@@ -160,7 +152,7 @@ interface IHttpHeaderParser
 
      **************************************************************************/
 
-    uint header_length_limit ( uint n );
+    size_t header_length_limit ( size_t n );
 }
 
 /******************************************************************************
@@ -186,8 +178,8 @@ class HttpHeaderParser : IHttpHeaderParser
 
      **************************************************************************/
 
-    const uint DefaultSizeLimit  = 16 * 1024,
-               DefaultLinesLimit = 64;
+    const size_t DefaultSizeLimit  = 16 * 1024,
+                 DefaultLinesLimit = 64;
 
     /**************************************************************************
 
@@ -220,7 +212,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
          **************************************************************************/
 
-        public override size_t locateDelim ( char[] str, size_t start = 0 )
+        public override size_t locateDelim ( cstring str, size_t start = 0 )
         in
         {
             assert (start < str.length, typeof (this).stringof ~ ".locateDelim: start index out of range");
@@ -246,7 +238,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
          **************************************************************************/
 
-        protected override size_t skipDelim ( char[] str )
+        protected override size_t skipDelim ( cstring str )
         in
         {
             assert (str.length >= this.EndOfHeaderLine.length);
@@ -264,7 +256,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
      **************************************************************************/
 
-    private char[] content;
+    private mstring content;
 
     /**************************************************************************
 
@@ -305,7 +297,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
      **************************************************************************/
 
-    private char[][] header_lines_;
+    private cstring[] header_lines_;
 
     /**************************************************************************
 
@@ -374,11 +366,11 @@ class HttpHeaderParser : IHttpHeaderParser
 
      **************************************************************************/
 
-    public this ( uint size_limit, uint lines_limit )
+    public this ( size_t size_limit, size_t lines_limit )
     {
         this.exception        = new HttpParseException;
         this.content          = new char[size_limit];
-        this.header_lines_    = new char[][lines_limit];
+        this.header_lines_    = new cstring[lines_limit];
         this.header_elements_ = new HeaderElement[lines_limit];
     }
 
@@ -410,7 +402,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
      **************************************************************************/
 
-    public char[][3] start_line_tokens;
+    public cstring[3] start_line_tokens;
 
     /**************************************************************************
 
@@ -426,7 +418,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
      **************************************************************************/
 
-    public HeaderElement[] header_elements ( )
+    public override HeaderElement[] header_elements ( )
     {
         return this.header_elements_[0 .. this.n_header_lines];
     }
@@ -438,7 +430,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
      **************************************************************************/
 
-    public char[][] header_lines ( )
+    public cstring[] header_lines ( )
     {
         return this.header_lines_[0 .. this.n_header_lines];
     }
@@ -450,7 +442,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
      **************************************************************************/
 
-    public size_t header_lines_limit ( )
+    public override size_t header_lines_limit ( )
     {
         return this.header_lines_.length;
     }
@@ -470,7 +462,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
      **************************************************************************/
 
-    public size_t header_lines_limit ( uint n )
+    public override size_t header_lines_limit ( size_t n )
     {
         if (this.n_header_lines > n)
         {
@@ -487,7 +479,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
      **************************************************************************/
 
-    public size_t header_length_limit ( )
+    public override size_t header_length_limit ( )
     {
         return this.content.length;
     }
@@ -508,7 +500,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
      **************************************************************************/
 
-    public size_t header_length_limit ( uint n )
+    public override size_t header_length_limit ( size_t n )
     {
         this.reset();
 
@@ -575,24 +567,24 @@ class HttpHeaderParser : IHttpHeaderParser
 
      **************************************************************************/
 
-    public char[] parse ( char[] content )
+    public cstring parse ( cstring content )
     in
     {
         assert (!this.finished, "parse() called after finished");
     }
     body
     {
-        char[] msg_body_start = null;
+        cstring msg_body_start = null;
 
         scope split_header = new SplitHeaderLines;
 
         split_header.include_remaining = false;
 
-        char[] content_remaining = this.appendContent(content);
+        cstring content_remaining = this.appendContent(content);
 
         foreach (header_line; split_header.reset(this.content[this.pos .. this.content_length]))
         {
-            char[] remaining = split_header.remaining;
+            cstring remaining = split_header.remaining;
 
             if (header_line.length)
             {
@@ -643,7 +635,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
      **************************************************************************/
 
-    private char[] appendContent ( char[] chunk )
+    private cstring appendContent ( cstring chunk )
     in
     {
         assert (this.content_length <= this.content.length);
@@ -713,7 +705,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
      **************************************************************************/
 
-    private void parseRegularHeaderLine ( char[] header_line )
+    private void parseRegularHeaderLine ( cstring header_line )
     {
 
         enforce(this.exception.set("too many request header lines"),
@@ -754,7 +746,7 @@ class HttpHeaderParser : IHttpHeaderParser
 
      **************************************************************************/
 
-    private void parseStartLine ( char[] start_line )
+    private void parseStartLine ( cstring start_line )
     {
         scope split_tokens = new ChrSplitIterator(' ');
 
@@ -835,7 +827,7 @@ unittest
         catch (HttpParseException e) { }
     }
 
-    const char[] lorem_ipsum =
+    const istring lorem_ipsum =
         "Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod "
         "tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim "
         "veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex "
@@ -890,7 +882,7 @@ unittest
         "kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit "
         "amet.";
 
-    const char[] content =
+    const istring content =
         "POST /dir?query=Hello%20World!&abc=def&ghi HTTP/1.1\r\n"
         "Host: www.example.org:12345\r\n"
         "User-Agent: Mozilla/5.0 (X11; U; Linux i686; de; rv:1.9.2.17) Gecko/20110422 Ubuntu/9.10 (karmic) Firefox/3.6.17\r\n"
@@ -914,7 +906,7 @@ unittest
 
     static size_t random_chunk_length ( )
     {
-        const c = content.length * (2.f / (parts * 3));
+        const c = content.length * (2.0f / (parts * 3));
 
         static assert (c >= 3, "too many parts");
 
@@ -948,7 +940,7 @@ unittest
         {
             size_t next = random_chunk_length();
 
-            char[] msg_body_start = parser.parse(content[0 .. next]);
+            cstring msg_body_start = parser.parse(content[0 .. next]);
 
             while (msg_body_start is null)
             {
