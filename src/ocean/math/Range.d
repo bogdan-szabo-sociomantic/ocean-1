@@ -1181,6 +1181,84 @@ unittest
 
 /*******************************************************************************
 
+    Generate a single Range!T that covers the entire set of values found
+    in an array of Range!T, i.e. whose min, max values reflect the smallest
+    and largest min and max found in the array.
+
+    It is assumed that the array is sorted already in lexicographical order:
+    first compare the left boundaries of the range, if they are equal then
+    the right boundaries will be compared (that is current status quo of opCmp).
+    All empty ranges are ignored.
+
+    Note: Although this method assumes sorted input, it would be possible
+    to provide another implementation without this assumption.
+    However, such an implementation would be more expensive, with
+    an asymptotic complexity of O(n), whereas this version is O(1).
+
+    Params:
+        ranges = a sorted array of Range!T
+
+    Returns:
+        resulting minimal covering range, or an empty range
+        if the input array is empty
+
+*******************************************************************************/
+
+public Range!(T) extent (T) ( Range!(T)[] ranges )
+{
+    trimEmptyRanges(ranges);
+
+    return ranges.length == 0 ? Range!(T).init : Range!(T)(ranges[0].min, ranges[$ - 1].max);
+}
+
+unittest
+{
+    // one range
+    test!("==")(extent([Range!(uint)(3, 5)]), Range!(uint)(3, 5));
+
+    // two equal ranges
+    test!("==")(extent([Range!(uint)(3, 5),
+                        Range!(uint)(3, 5)]), Range!(uint)(3, 5));
+
+    // overlap 
+    test!("==")(extent([Range!(uint)(3, 5),
+                        Range!(uint)(4, 8)]), Range!(uint)(3, 8));
+
+    // gap
+    test!("==")(extent([Range!(uint)(3, 5),
+                        Range!(uint)(7, 9)]), Range!(uint)(3, 9));
+
+    // gap and overlap
+    test!("==")(extent([Range!(uint)(3, 5),
+                        Range!(uint)(7, 12),
+                        Range!(uint)(12, 15)]), Range!(uint)(3, 15));
+
+    // the first has the same min as the second
+    test!("==")(extent([Range!(uint)(3, 5),
+                        Range!(uint)(3, 7)]), Range!(uint)(3, 7));
+
+    // any count of empty ranges has no effect
+    test!("==")(extent([Range!(uint).init,
+                        Range!(uint)(3, 5)]), Range!(uint)(3, 5));
+    test!("==")(extent([Range!(uint).init,
+                        Range!(uint)(3, 5),
+                        Range!(uint)(7, 100)]), Range!(uint)(3, 100));
+    test!("==")(extent([Range!(uint).init,
+                        Range!(uint).init,
+                        Range!(uint)(3, 5),
+                        Range!(uint)(7, 100)]), Range!(uint)(3, 100));
+
+    // any combination of empty sets has emty extent
+    test!("==")(extent!(uint)(null), Range!(uint).init);
+    test!("==")(extent!(uint)([]), Range!(uint).init);
+    test!("==")(extent([Range!(uint).init]), Range!(uint).init);
+    test!("==")(extent([Range!(uint).init,
+                        Range!(uint).init]), Range!(uint).init);
+}
+
+
+/*******************************************************************************
+
     Trims any empty ranges from the start of a sorted array of Range!T.
 
     It is assumed that the array is already sorted, which means all empty ranges
