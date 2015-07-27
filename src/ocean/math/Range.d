@@ -817,6 +817,108 @@ unittest
 
 /*******************************************************************************
 
+    Predicate that checks for the existence of one or more gaps
+    in an array of Range!T.
+
+    It is assumed that the array is already sorted. All empty ranges are ignored.
+
+    Params:
+        ranges = a sorted array of Range!T to be checked
+
+    Returns:
+        true if at least one gap exists in the array
+
+*******************************************************************************/
+
+public bool hasGap ( T ) ( Range!(T)[] ranges )
+{
+    trimEmptyRanges(ranges);
+
+    if (ranges.length > 0)
+    {
+        auto current_threshold = ranges[0].max;
+
+        for (size_t i = 1; i < ranges.length; ++i)
+        {
+            if (ranges[i].min > current_threshold + 1)
+                return true;
+
+            if (ranges[i].max > current_threshold)
+                current_threshold = ranges[i].max;
+        }
+    }
+
+    return false;
+}
+
+unittest
+{
+    // contiguous
+    test(!hasGap([Range!(uint)(1, 5),
+                  Range!(uint)(6, 12),
+                  Range!(uint)(13, 15)]), "Contiguous ranges can't have gap");
+
+    // overlap, but no gaps 
+    test(!hasGap([Range!(uint)(1, 5),
+                  Range!(uint)(3, 14),
+                  Range!(uint)(13, 15)]));
+    test(!hasGap([Range!(uint)(1, 12),
+                  Range!(uint)(4, 7),
+                  Range!(uint)(13, 15)]));
+    test(!hasGap([Range!(uint)(1, 13),
+                  Range!(uint)(4, 7),
+                  Range!(uint)(13, 15)]));
+    test(!hasGap([Range!(uint)(1, 14),
+                  Range!(uint)(4, 7),
+                  Range!(uint)(13, 15)]));
+
+    // gap
+    test(hasGap([Range!(uint)(1, 11),
+                 Range!(uint)(4, 7),
+                 Range!(uint)(13, 15)]));
+
+    // two equal range
+    test(!hasGap([Range!(uint)(3, 17),
+                  Range!(uint)(3, 17)]));
+
+    // any count of empty ranges has no effect
+    test(!hasGap([Range!(uint).init,
+                  Range!(uint)(1, 13),
+                  Range!(uint)(4, 7),
+                  Range!(uint)(13, 15)]));
+    test(!hasGap([Range!(uint).init,
+                  Range!(uint)(1, 14),
+                  Range!(uint)(4, 7),
+                  Range!(uint)(13, 15)]));
+    test(hasGap([Range!(uint).init,
+                 Range!(uint)(1, 11),
+                 Range!(uint)(4, 7),
+                 Range!(uint)(13, 15)]));
+    test(!hasGap([Range!(uint).init,
+                  Range!(uint).init,
+                  Range!(uint)(1, 14),
+                  Range!(uint)(4, 7),
+                  Range!(uint)(13, 15)]));
+    test(hasGap([Range!(uint).init,
+                 Range!(uint).init,
+                 Range!(uint)(1, 11),
+                 Range!(uint)(4, 7),
+                 Range!(uint)(13, 15)]));
+
+    // any combination of empty sets has no gaps
+    test(!hasGap!(uint)(null));
+    test(!hasGap!(uint)([]));
+    test(!hasGap([Range!(uint).init]));
+    test(!hasGap([Range!(uint).init,
+                  Range!(uint).init]));
+    test(!hasGap([Range!(uint).init,
+                  Range!(uint).init,
+                  Range!(uint).init]));
+}
+
+
+/*******************************************************************************
+
     Trims any empty ranges from the start of a sorted array of Range!T.
 
     It is assumed that the array is already sorted, which means all empty ranges
