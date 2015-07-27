@@ -23,6 +23,8 @@ module ocean.net.http.cookie.HttpCookieGenerator;
 
  ******************************************************************************/
 
+import tango.transition;
+
 import ocean.net.util.ParamSet;
 
 import ocean.net.http.consts.CookieAttributeNames;
@@ -41,7 +43,7 @@ class HttpCookieGenerator : ParamSet
 
      **************************************************************************/
 
-    public char[] id;
+    public cstring id;
 
     /**************************************************************************
 
@@ -49,7 +51,7 @@ class HttpCookieGenerator : ParamSet
 
      **************************************************************************/
 
-    public char[] domain, path;
+    public mstring domain, path;
 
     /**************************************************************************
 
@@ -174,7 +176,7 @@ class HttpCookieGenerator : ParamSet
 
          **********************************************************************/
 
-        public char[] format ( )
+        public mstring format ( )
         {
             return super.is_set_? this.formatter.format(super.t) : null;
         }
@@ -204,9 +206,13 @@ class HttpCookieGenerator : ParamSet
             id              = cookie ID
             attribute_names = cookie attribute names
 
+        Note:
+            This constructor takes a reference to id and use it internally,
+            hence 'id' must remain valid for the lifetime of this object.
+
      **************************************************************************/
 
-    this ( char[] id, char[][] attribute_names ... )
+    this ( cstring id, cstring[] attribute_names ... )
     {
         super.addKeys(this.id = id);
 
@@ -246,7 +252,7 @@ class HttpCookieGenerator : ParamSet
 
      **************************************************************************/
 
-    char[] value ( char[] val )
+    cstring value ( cstring val )
     {
         return super[this.id] = val;
     }
@@ -258,7 +264,7 @@ class HttpCookieGenerator : ParamSet
 
      **************************************************************************/
 
-    char[] value ( )
+    cstring value ( )
     {
         return super[this.id];
     }
@@ -273,11 +279,11 @@ class HttpCookieGenerator : ParamSet
 
      **************************************************************************/
 
-    void render ( void delegate ( char[] str ) appendContent )
+    void render ( void delegate ( cstring str ) appendContent )
     {
         uint i = 0;
 
-        void append ( char[] key, char[] val )
+        void append ( cstring key, cstring val )
         {
             if (val)
             {
@@ -315,4 +321,3 @@ class HttpCookieGenerator : ParamSet
         this.expiration_time.clear();
     }
 }
-

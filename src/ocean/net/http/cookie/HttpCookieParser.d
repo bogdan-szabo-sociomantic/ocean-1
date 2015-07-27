@@ -23,13 +23,14 @@ module ocean.net.http.cookie.HttpCookieParser;
 
  ******************************************************************************/
 
+import tango.transition;
 import ocean.net.util.QueryParams: QueryParamSet;
 
 /******************************************************************************/
 
 class HttpCookieParser : QueryParamSet
 {
-    this ( char[][] cookie_names ... )
+    this ( cstring[] cookie_names ... )
     {
         super(';', '=', cookie_names);
     }
@@ -39,9 +40,9 @@ class HttpCookieParser : QueryParamSet
 
 unittest
 {
-    const char[] cookie_header_value = "sonar=2649113645; sonar-expires=1383922851";
+    const istring cookie_header_value = "sonar=2649113645; sonar-expires=1383922851";
 
-    const char[][] cookie_names =
+    const istring[] cookie_names =
     [
         "sonar",
         "sonar-expires"
