@@ -814,3 +814,55 @@ unittest
     Range!(ulong) lr;
 }
 
+
+/*******************************************************************************
+
+    Trims any empty ranges from the start of a sorted array of Range!T.
+
+    It is assumed that the array is already sorted, which means all empty ranges
+    will be at the beginning of the array.
+
+    Params:
+        ranges = sorted array of Range!T from which empties drop out
+
+*******************************************************************************/
+
+private void trimEmptyRanges ( T ) ( ref Range!(T)[] ranges )
+{
+    while (ranges.length > 0 && ranges[0].is_empty)
+    {
+        ranges = ranges[1 .. $];
+    }
+}
+
+unittest
+{
+    // empty and non-empty ranges
+    {
+        Range!(uint)[] a = [Range!(uint).init, Range!(uint).init,
+                            Range!(uint)(2, 9), Range!(uint)(12, 19)];
+        trimEmptyRanges(a);
+        test!("==")(a, [Range!(uint)(2, 9), Range!(uint)(12, 19)]);
+    }
+
+    // only non-empty ranges
+    {
+        Range!(uint)[] a = [Range!(uint)(2, 9), Range!(uint)(12, 19)];
+        trimEmptyRanges(a);
+        test!("==")(a, [Range!(uint)(2, 9), Range!(uint)(12, 19)]);
+    }
+
+    // array of empty ranges
+    {
+        Range!(uint)[] a = [Range!(uint).init, Range!(uint).init];
+        trimEmptyRanges(a);
+        test!("==")(a.length, 0);
+    }
+
+    // empty array
+    {
+        Range!(uint)[] a;
+        trimEmptyRanges(a);
+        test!("==")(a.length, 0);
+    }
+}
