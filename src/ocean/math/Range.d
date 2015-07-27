@@ -919,6 +919,117 @@ unittest
 
 /*******************************************************************************
 
+    Predicate that checks for the existence of overlaps in array of Range!T.
+
+    It is assumed that the array is already sorted. All empty ranges are ignored.
+
+    Params:
+        ranges = a sorted array of Range!T to be checked
+
+    Returns:
+        true if at least one overlap exists in the array
+
+*******************************************************************************/
+
+public bool hasOverlap ( T ) ( Range!(T)[] ranges )
+{
+    trimEmptyRanges(ranges);
+
+    if (ranges.length > 0)
+    {
+        auto current_threshold = ranges[0].max;
+
+        for (size_t i = 1; i < ranges.length; ++i)
+        {
+            if (ranges[i].min <= current_threshold)
+                return true;
+
+            if (ranges[i].max > current_threshold)
+                current_threshold = ranges[i].max;
+        }
+    }
+
+    return false;
+}
+
+unittest
+{
+    // contiguous
+    test(!hasOverlap([Range!(uint)(1, 5),
+                      Range!(uint)(6, 12),
+                      Range!(uint)(13, 15)]), "Contiguous ranges can't overlap");
+
+    // one common point
+    test(hasOverlap([Range!(uint)(1, 5),
+                     Range!(uint)(5, 12),
+                     Range!(uint)(13, 15)]));
+    test(hasOverlap([Range!(uint)(1, 5),
+                     Range!(uint)(6, 13),
+                     Range!(uint)(13, 15)]));
+
+    // overlap range
+    test(hasOverlap([Range!(uint)(1, 5),
+                     Range!(uint)(3, 14),
+                     Range!(uint)(13, 15)]));
+
+    // has gap
+    test(!hasOverlap([Range!(uint)(1, 4),
+                      Range!(uint)(6, 12),
+                      Range!(uint)(13, 15)]));
+    test(hasOverlap([Range!(uint)(1, 4),
+                     Range!(uint)(6, 13),
+                     Range!(uint)(13, 15)]));
+    test(hasOverlap([Range!(uint)(1, 4),
+                     Range!(uint)(6, 14),
+                     Range!(uint)(13, 15)]));
+
+    // the first range mask the second
+    test(hasOverlap([Range!(uint)(1, 12),
+                     Range!(uint)(6, 8),
+                     Range!(uint)(13, 15)]));
+    // the second range mask the first
+    test(hasOverlap([Range!(uint)(3, 8),
+                     Range!(uint)(3, 12),
+                     Range!(uint)(13, 15)]));
+
+    // equal
+    test(hasOverlap([Range!(uint)(3, 17),
+                     Range!(uint)(3, 17)]));
+
+    // any count of empty ranges has no effect
+    test(!hasOverlap([Range!(uint).init,
+                      Range!(uint)(1, 5),
+                      Range!(uint)(6, 12),
+                      Range!(uint)(13, 15)]));
+    test(hasOverlap([Range!(uint).init,
+                     Range!(uint)(1, 5),
+                     Range!(uint)(5, 12),
+                     Range!(uint)(13, 15)]));
+    test(!hasOverlap([Range!(uint).init,
+                      Range!(uint).init,
+                      Range!(uint)(1, 5),
+                      Range!(uint)(6, 12),
+                      Range!(uint)(13, 15)]));
+    test(hasOverlap([Range!(uint).init,
+                     Range!(uint).init,
+                     Range!(uint)(1, 5),
+                     Range!(uint)(5, 12),
+                     Range!(uint)(13, 15)]));
+
+    // any combination of empty sets has no overlaps
+    test(!hasOverlap!(uint)(null));
+    test(!hasOverlap!(uint)([]));
+    test(!hasOverlap([Range!(uint).init]));
+    test(!hasOverlap([Range!(uint).init,
+                      Range!(uint).init]));
+    test(!hasOverlap([Range!(uint).init,
+                      Range!(uint).init,
+                      Range!(uint).init]));
+}
+
+
+/*******************************************************************************
+
     Trims any empty ranges from the start of a sorted array of Range!T.
 
     It is assumed that the array is already sorted, which means all empty ranges
