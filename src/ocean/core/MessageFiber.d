@@ -3,12 +3,6 @@
     Wraps a Fiber allowing to pass a message on suspending/resuming and to kill
     the fiber.
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        Jun 2011: Initial release
-
-    authors:        David Eckardt
-
     Allows passing a message from suspend() to resume() and vice versa.
     Provides a kill() method where kill() resumes suspend() and suspend() throws
     a KilledException when it was resumed by kill().
@@ -26,17 +20,18 @@
 
     See also the documentation of suspend/resume.
 
-    Note: You can use -debug=MessageFiber to print the identifiers that
-          were used in the suspend/resume calls. It uses the FirstNames
-          functions to print pointers as names.
+    Debugging:
+    You can use -debug=MessageFiber to print the identifiers that
+    were used in the suspend/resume calls. It uses the FirstNames
+    functions to print pointers as names.
 
-          You can use -debug=MessageFiberDump to enable a function called
-          'dumpFibers' which can be called from within gdb using
-          'call dumpFibers()'. The performance impact should be relatively low.
-          It will output a list on STDERR listing all fibers and some
-          informations about their state.
+    You can use -debug=MessageFiberDump to enable a function called
+    'dumpFibers' which can be called from within gdb using
+    'call dumpFibers()'. The performance impact should be relatively low.
+    It will output a list on STDERR listing all fibers and some
+    informations about their state.
 
-          Example output:
+    Example output:
 
       Tomsen: State: TERM; Token: GroupRequest; LastSuspend: 1364929361 (157s ago); Addr: 7ff6c9ec8f00; Suspender: core.input.TrackingLoglineSource.FiberGroupRetry!(GetRange).FiberGroupRetry
       Marine: State: TERM; Token:     io_ready; LastSuspend: 1364929357 (161s ago); Addr: 7ff6c9eef100; Suspender: swarm.core.protocol.FiberSelectReader.FiberSelectReader
@@ -46,6 +41,9 @@
        Gavin: State: HOLD; Token:     io_ready; LastSuspend: 1364929357 (161s ago); Addr: 7ff6c9fc7500; Suspender: swarm.core.protocol.FiberSelectReader.FiberSelectReader
     Superman: State: HOLD; Token:  DrizzleData; LastSuspend: 1364929515 (3s ago); Addr: 7ff6cad40800; Suspender: ocean.db.drizzle.Connection.Connection
        Gavin: State: HOLD; Token:  DrizzleData; LastSuspend: 1364929515 (3s ago); Addr: 7ff6cad40600; Suspender: ocean.db.drizzle.Connection.Connection
+
+
+    copyright:      Copyright (c) 2011-2015 sociomantic labs. All rights reserved
 
  ******************************************************************************/
 
@@ -786,4 +784,3 @@ class MessageFiber
         return hash ^ cast(ulong)cast(void*)obj;
     }
 }
-
