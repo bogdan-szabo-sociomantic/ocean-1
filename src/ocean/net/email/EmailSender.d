@@ -21,8 +21,8 @@ module ocean.net.email.EmailSender;
 *******************************************************************************/
 
 import ocean.core.Array : append;
-import ocean.io.Stdout;
 
+import tango.io.Stdout;
 import tango.sys.Process;
 import tango.core.Exception : ProcessException;
 
