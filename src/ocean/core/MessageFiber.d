@@ -723,6 +723,34 @@ class MessageFiber
         this.fiber.reset();
     }
 
+    /**************************************************************************
+
+        Resets the fiber and change the coroutine
+
+        Params:
+            coroutine = fiber coroutine function
+
+     **************************************************************************/
+
+    public void reset ( void function() coroutine )
+    {
+        this.fiber.reset(coroutine);
+    }
+
+    /**************************************************************************
+
+        Resets the fiber and change the coroutine
+
+        Params:
+            coroutine = fiber coroutine delegate
+
+     **************************************************************************/
+
+    public void reset ( void delegate() coroutine )
+    {
+        this.fiber.reset(coroutine);
+    }
+
 
     /**************************************************************************
 
