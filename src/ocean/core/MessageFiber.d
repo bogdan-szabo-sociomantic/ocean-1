@@ -94,7 +94,7 @@ debug ( MessageFiberToken )
 
 debug ( MessageFiberDump ) extern(C) void dumpFibers()
 {
-    char[][] state_str = [ "HOLD" ,"EXEC" ,"TERM" ];
+    istring[] state_str = [ "HOLD" ,"EXEC" ,"TERM" ];
 
     void* wpFiber = MessageFiber.last_fiber;
 
@@ -148,7 +148,7 @@ class MessageFiber
 
         **********************************************************************/
 
-        private char[] suspender;
+        private istring suspender;
 
         /**********************************************************************
 
@@ -191,7 +191,7 @@ class MessageFiber
 
         ***********************************************************************/
 
-        private debug (MessageFiberToken) char[] str;
+        private debug (MessageFiberToken) cstring str;
 
         /***********************************************************************
 
@@ -213,7 +213,7 @@ class MessageFiber
 
         ***********************************************************************/
 
-        public static Token opCall ( char[] s )
+        public static Token opCall ( cstring s )
         {
             Token token;
             token.hash = Fnv1a64(s);
