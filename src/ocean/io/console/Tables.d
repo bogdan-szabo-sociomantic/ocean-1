@@ -194,7 +194,7 @@ public class Table
 
             *******************************************************************/
 
-            static public Cell String ( char[] str )
+            static public Cell String ( cstring str )
             {
                 Cell cell;
                 cell.setString(str);
@@ -241,7 +241,7 @@ public class Table
 
             *******************************************************************/
 
-            static public Cell BinaryMetric ( ulong integer, char[] metric_string = "" )
+            static public Cell BinaryMetric ( ulong integer, cstring metric_string = "" )
             {
                 Cell cell;
                 cell.setBinaryMetric(integer, metric_string);
@@ -264,7 +264,7 @@ public class Table
 
             *******************************************************************/
 
-            static public Cell DecimalMetric ( ulong integer, char[] metric_string = "" )
+            static public Cell DecimalMetric ( ulong integer, cstring metric_string = "" )
             {
                 Cell cell;
                 cell.setDecimalMetric(integer, metric_string);
@@ -358,7 +358,7 @@ public class Table
             {
                 public ulong integer;
                 public double floating;
-                public char[] string;
+                public mstring utf8;
             }
 
             public Contents contents;
@@ -371,7 +371,7 @@ public class Table
 
             *******************************************************************/
 
-            public char[] metric_string;
+            public mstring metric_string;
 
 
             /*******************************************************************
@@ -383,9 +383,9 @@ public class Table
 
             *******************************************************************/
 
-            private char[] fg_colour_string;
+            private mstring fg_colour_string;
 
-            private char[] bg_colour_string;
+            private mstring bg_colour_string;
 
 
             /*******************************************************************
@@ -410,10 +410,10 @@ public class Table
 
             *******************************************************************/
 
-            public typeof(this) setString ( char[] str )
+            public typeof(this) setString ( cstring str )
             {
                 this.type = Type.String;
-                this.contents.string.copy(str);
+                this.contents.utf8.copy(str);
 
                 return this;
             }
@@ -459,7 +459,7 @@ public class Table
 
             *******************************************************************/
 
-            public typeof(this) setBinaryMetric ( ulong num, char[] metric_string = "" )
+            public typeof(this) setBinaryMetric ( ulong num, cstring metric_string = "" )
             {
                 this.type = Type.BinaryMetric;
                 this.contents.integer = num;
@@ -484,7 +484,7 @@ public class Table
 
             *******************************************************************/
 
-            public typeof(this) setDecimalMetric ( ulong num, char[] metric_string = "" )
+            public typeof(this) setDecimalMetric ( ulong num, cstring metric_string = "" )
             {
                 this.type = Type.DecimalMetric;
                 this.contents.integer = num;
@@ -638,7 +638,7 @@ public class Table
                     case Cell.Type.Float:
                         return this.floatWidth(this.contents.floating);
                     case Cell.Type.String:
-                        return utf8Length(this.contents.string);
+                        return utf8Length(this.contents.utf8);
 
                     default:
                         assert(0);
@@ -660,7 +660,8 @@ public class Table
 
             *******************************************************************/
 
-            public void display ( Output output, size_t width, ref char[] content_buf, ref char[] spacing_buf )
+            public void display ( Output output, size_t width, ref mstring
+                content_buf, ref mstring spacing_buf )
             {
                 // sequence of control characters to reset output colors to default
                 istring default_colours =
@@ -751,7 +752,7 @@ public class Table
                                     "{}", this.contents.floating);
                             break;
                         case Type.String:
-                            content_buf = this.contents.string;
+                            content_buf = this.contents.utf8;
                             break;
                         default:
                             return;
@@ -1001,7 +1002,8 @@ public class Table
 
         ***********************************************************************/
 
-        public void display ( Output output, size_t[] column_widths, ref char[] content_buf, ref char[] spacing_buf )
+        public void display ( Output output, size_t[] column_widths, ref mstring
+            content_buf, ref mstring spacing_buf )
         {
             assert(column_widths.length == this.length);
 
