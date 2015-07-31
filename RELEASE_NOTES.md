@@ -138,6 +138,18 @@ Deprecations
 
   Should be replaced with `ocean.util.container.queue.FlexibleRingQueue`.
 
+* `ocean.math.Range`
+
+  `opEquals` has been deprecated in favour of `isTessellatedBy`.  The latter
+  function is exactly equivalent in its behaviour to the old `opEquals`, but
+  its name reflects better the actual comparison that is being made.
+
+  `subsetOf` and `supersetOf` have been deprecated in favour of `isSubsetOf`
+  and `isSupersetOf` respectively.  The newer methods are not quite equivalent
+  as they allow equal ranges to be considered as sub- or supersets of one
+  another.
+
+
 New Features
 ============
 
@@ -183,3 +195,51 @@ New Features
 * `ocean.io.model.ISuspendable`
 
    New common interface for any processes that can be suspended/resumed.
+
+* `ocean.math.Range`
+
+  An extensive amount of new functionality has been added to this module,
+  including both new methods of the `Range` struct and external functions.
+
+  * new methods of `Range!(T)`:
+
+    * `contains` method that checks if a single `T` value falls within the
+      `min`, `max` bounds of the current range
+
+    * `isCoveredBy` method that checks whether the union of elements of a sorted
+      array of `Range!(T)`s is a superset of the current range
+
+    * `isSubsetOf` method that checks whether the range is a non-empty subset
+      of some other `Range!(T)` instance
+
+    * `isSupersetOf` method that checks whether some other `Range!(T)` instance
+      is a non-empty subset of the current range
+
+    * `isTessellatedBy` method that checks whether a sorted array of `Range!(T)`
+      elements is contiguous and that its union is exactly equal to the current
+      range.  (This can be in practice seen as a kind of "equivalence" condition
+      between single ranges and arrays of ranges.)
+
+    * `toString` (`UnitTest` version only) to help provide more informative
+      unittest output
+
+    * static `makeRange` factory method to construct a `Range!(T)` instance
+      based on specified boundary conditions and min/max values.  Unlike
+      `opCall`, this method will not throw or assert if given invalid input:
+      instead it will merely return an empty range.
+
+  * new external functions:
+
+    * `extent` function that returns a single `Range!(T)` value whose `min`
+      and `max` values reflect the smallest and largest `min` and `max` found
+      among all the elements of a (sorted) array of `Range!(T)` elements
+
+    * `hasGap` function that checks if a sorted array of `Range!(T)` elements
+      has any gaps between individual ranges
+
+    * `hasOverlap` function that checks if a sorted array of `Range!(T)`
+      elements has any overlap between individual ranges
+
+    * `isContiguous` function that checks if a sorted array of `Range!(T)`
+      elements has neither gap nor overlap.  This is a more efficient version
+      of the check `!hasGap(...) && !hasOverlap(...)`.

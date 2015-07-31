@@ -22,6 +22,11 @@ module ocean.math.Range;
 
 import tango.core.Traits : isUnsignedIntegerType;
 
+version ( UnitTest )
+{
+    import ocean.core.Test;
+}
+
 
 
 /*******************************************************************************
@@ -54,6 +59,48 @@ public struct Range ( T )
 
     private T min_ = null_min;
     private T max_ = null_max;
+
+
+    /***************************************************************************
+
+        Helper structure for sortEndpoints function.  This is used to provide
+        detailed information about the relative positions of endpoints in a
+        sequence of ranges.
+
+    ***************************************************************************/
+
+    private static struct RangeEndpoint
+    {
+        /***********************************************************************
+
+            Value of the endpoint: may be either min or max of the underlying
+            range.
+
+        ***********************************************************************/
+
+        T value;
+
+        /***********************************************************************
+
+            Index of the owner range in the sequence of range arguments
+            provided to sortEndpoints.
+
+        ***********************************************************************/
+
+        ubyte owner_index;
+
+        version ( UnitTest )
+        {
+            import tango.util.Convert;
+
+            // useful for test!("==") 
+            public istring toString ()
+            {
+                return "<" ~ to!(istring)(this.value) ~ "|"
+                        ~ cast(char)('A' + this.owner_index) ~ ">";
+            }
+        }
+    }
 
 
     /***************************************************************************
@@ -125,6 +172,17 @@ public struct Range ( T )
         assert(isValid(this.min_, this.max_));
     }
 
+    version ( UnitTest )
+    {
+        import tango.util.Convert;
+
+        public istring toString()
+        {
+            return this.is_empty ? "()"
+                   : "(" ~ to!(istring)(this.min_) ~ ", " ~ to!(istring)(this.max_) ~ ")";
+        }
+    }
+
 
     /***************************************************************************
 
@@ -141,12 +199,137 @@ public struct Range ( T )
 
     ***************************************************************************/
 
-    static Range opCall ( T min, T max )
+    public static Range opCall ( T min, T max )
+    in
+    {
+        assert(min <= max);
+    }
+    out(result)
+    {
+        assert(&result);
+    }
+    body
     {
         Range r;
         r.min_ = min;
         r.max_ = max;
         return r;
+    }
+
+
+    /***************************************************************************
+
+        Range factory which provides extended wrapper to opCall. It returns
+        empty range when min > max or when it is impossible to respect
+        the specified boundaries.
+
+        Template params:
+            boundaries = string which denotes which kind of boundaries
+                         will be provided. Square "[" bracket denotes inclusive
+                         boundary, round "(" one denotes exclusive boundary
+
+        Params:
+            min = minimum value of range
+            max = maximum value of range
+
+        Returns:
+            new Range instance
+
+    ***************************************************************************/
+
+    public static Range makeRange ( istring boundaries = "[]" ) ( T min, T max )
+    out(result)
+    {
+        assert(&result);
+    }
+    body
+    {
+        static assert(boundaries == "[]" || boundaries == "[)"
+                      || boundaries == "(]" || boundaries == "()",
+                      "only four kinds of range are supported: [], [), (], ()");
+
+        if ( min > max )
+            return Range.init;
+
+        static if (boundaries != "[]")
+        {
+            if (min == max)
+            {
+                return Range.init;
+            }
+        }
+
+        static if (boundaries == "()")
+        {
+            if (min + 1 == max)
+            {
+                return Range.init;
+            }
+        }
+
+        static if (boundaries[0] == '(')
+        {
+            assert(min < T.max);
+            ++min;
+        }
+
+        static if (boundaries[1] == ')')
+        {
+            assert(max > T.min);
+            --max;
+        }
+
+        assert(min <= max);
+
+        return Range(min, max);
+    }
+
+    unittest
+    {
+        test!("==")(Range(3, 7), makeRange!("[]")(3, 7));
+        test!("==")(Range(3, 7), makeRange(3, 7));
+        test!("==")(Range(5, 5), makeRange(5, 5));
+        test!("==")(Range.init, makeRange(7, 3));
+        test!("==")(Range(0, 0), makeRange(0, 0));
+        test!("==")(Range(T.max, T.max), makeRange(T.max, T.max));
+        test!("==")(Range(0, T.max), makeRange(0, T.max));
+        test!("==")(Range.init, makeRange(T.max, 0));
+
+        test!("==")(Range(3, 6), makeRange!("[)")(3, 7));
+        test!("==")(Range.init, makeRange!("[)")(5, 5));
+        test!("==")(Range(4, 4), makeRange!("[)")(4, 5));
+        test!("==")(Range.init, makeRange!("[)")(7, 3));
+        test!("==")(Range.init, makeRange!("[)")(0, 0));
+        test!("==")(Range.init, makeRange!("[)")(T.max, T.max));
+        test!("==")(Range(0, T.max - 1), makeRange!("[)")(0, T.max));
+        test!("==")(Range.init, makeRange!("[)")(T.max, 0));
+        test!("==")(Range(0, 0), makeRange!("[)")(0, 1));
+        test!("==")(Range(T.max - 1, T.max - 1), makeRange!("[)")(T.max - 1, T.max));
+
+        test!("==")(Range(4, 7), makeRange!("(]")(3, 7));
+        test!("==")(Range.init, makeRange!("(]")(5, 5));
+        test!("==")(Range(5, 5), makeRange!("(]")(4, 5));
+        test!("==")(Range.init, makeRange!("(]")(7, 3));
+        test!("==")(Range.init, makeRange!("(]")(0, 0));
+        test!("==")(Range.init, makeRange!("(]")(T.max, T.max));
+        test!("==")(Range(1, T.max), makeRange!("(]")(0, T.max));
+        test!("==")(Range.init, makeRange!("(]")(T.max, 0));
+        test!("==")(Range(1, 1), makeRange!("(]")(0, 1));
+        test!("==")(Range(T.max, T.max), makeRange!("(]")(T.max - 1, T.max));
+
+        test!("==")(Range(4, 6), makeRange!("()")(3, 7));
+        test!("==")(Range.init, makeRange!("()")(5, 5));
+        test!("==")(Range.init, makeRange!("()")(4, 5));
+        test!("==")(Range(5, 5), makeRange!("()")(4, 6));
+        test!("==")(Range.init, makeRange!("()")(7, 3));
+        test!("==")(Range.init, makeRange!("()")(0, 0));
+        test!("==")(Range.init, makeRange!("()")(T.max, T.max));
+        test!("==")(Range(1, T.max - 1), makeRange!("()")(0, T.max));
+        test!("==")(Range.init, makeRange!("()")(T.max, 0));
+        test!("==")(Range.init, makeRange!("()")(0, 1));
+        test!("==")(Range.init, makeRange!("()")(T.max - 1, T.max));
+        test!("==")(Range(1, 1), makeRange!("()")(0, 2));
+        test!("==")(Range(T.max - 1, T.max - 1), makeRange!("()")(T.max - 2, T.max));
     }
 
 
@@ -263,6 +446,51 @@ public struct Range ( T )
 
     /***************************************************************************
 
+        Predicate that checks whether the specified value is inside this range.
+
+        Params:
+            x = value to check
+
+        Returns:
+            true if this range includes x, false otherwise
+
+    ***************************************************************************/
+
+    public bool contains ( T x )
+    {
+        if (this.is_empty)
+            return false;
+
+        return this.min <= x && x <= this.max;
+    }
+
+    unittest
+    {
+        // empty
+        test(!Range.init.contains(0), "Empty range can't contain any value");
+        test(!Range.init.contains(17), "Empty range can't contain any value");
+        test(!Range.init.contains(T.max), "Empty range can't contain any value");
+
+        // one point
+        test(Range(0, 0).contains(0), "One point range should contain this point");
+        test(Range(17, 17).contains(17), "One point range should contain this point");
+        test(Range(T.max, T.max).contains(T.max), "One point range should contain this point");
+
+        test(!Range(0, 0).contains(1), "One point range can't contain other point");
+        test(!Range(17, 17).contains(16), "One point range can't contain other point");
+        test(!Range(T.max, T.max).contains(T.max - 1), "One point range can't contain other point");
+
+        // more-point
+        test(!Range(3, 24).contains(2), "Range can't contain outside point");
+        test(Range(3, 24).contains(3), "Range should contain boundary point");
+        test(Range(3, 24).contains(11), "Range should contain inner point");
+        test(Range(3, 24).contains(24), "Range should contain boundary point");
+        test(!Range(3, 24).contains(25), "Range can't contain outside point");
+    }
+
+
+    /***************************************************************************
+
         Checks whether the specified range is exactly identical to this range.
 
         Params:
@@ -315,6 +543,7 @@ public struct Range ( T )
 
     ***************************************************************************/
 
+    deprecated ("use isTessellatedBy instead")
     public bool opEquals ( Range[] sub_ranges )
     {
         if ( sub_ranges.length == 0 ) return false;
@@ -338,6 +567,7 @@ public struct Range ( T )
         return true;
     }
 
+    deprecated
     unittest
     {
         // minimal case: one hash range, test covers and not-covers
@@ -436,9 +666,13 @@ public struct Range ( T )
 
     /***************************************************************************
 
-        Determines whether this instance is a proper subset of the specified
-        range. All values in this range must be within the other range and not
-        extend to either the start or end of this range.
+        Determines whether this instance is non-empty subset of the specified
+        range. All values in this range must be within the other range.
+
+        Note: For practical reasons, this isn't conforming strictly to
+        the mathematical definition, where an empty set is considered to be
+        a subset of any set. However, two equal ranges will be considered
+        to be subsets of one another.
 
         Params:
             other = instance to compare with this
@@ -448,6 +682,67 @@ public struct Range ( T )
 
     ***************************************************************************/
 
+    public bool isSubsetOf ( Range other )
+    {
+        if ( this.is_empty || other.is_empty )
+            return false;
+
+        return this.min >= other.min && this.max <= other.max;
+    }
+
+    unittest
+    {
+        // empty
+        test(!Range.init.isSubsetOf(Range(0, 10)), "Empty range doesn't count as subset");
+        test(!Range(0, 10).isSubsetOf(Range.init), "Empty range can't be superset");
+
+        // very proper subset
+        test(Range(1, 9).isSubsetOf(Range(0, 10)));
+
+        // equal
+        test(Range(0, 10).isSubsetOf(Range(0, 10)), "Equal range is a subset too");
+
+        // ends touch, inside
+        test(Range(0, 9).isSubsetOf(Range(0, 10)));
+        test(Range(1, 10).isSubsetOf(Range(0, 10)));
+
+        // ends touch, outside
+        test(!Range(0, 5).isSubsetOf(Range(5, 10)));
+        test(!Range(10, 15).isSubsetOf(Range(5, 10)));
+
+        // very proper superset
+        test(!Range(0, 10).isSubsetOf(Range(1, 9)), "Proper superset can't be subset");
+
+        // overlap
+        test(!Range(0, 10).isSubsetOf(Range(5, 15)));
+
+        // no overlap
+        test(!Range(5, 10).isSubsetOf(Range(15, 20)));
+    }
+
+
+    /***************************************************************************
+
+        Determines whether this non empty instance is a proper subset of the
+        specified range. All values in this range must be within the other range
+        and not extend to either the start or end of this range.
+
+        Note: From mathematical POV this condition is more strict than
+        "proper subset", because in math [3, 15] is a proper subset of [3, 16]
+
+        Note: For practical reasons, this isn't conforming strictly to
+        the mathematical definition, where an empty set is considered to be
+        a subset of any set.
+
+        Params:
+            other = instance to compare with this
+
+        Returns:
+            true if this range is a proper subset of the other range
+
+    ***************************************************************************/
+
+    deprecated ("similar but not equal behaviour you can find in isSubsetOf")
     public bool subsetOf ( Range other )
     {
         if ( this.is_empty || other.is_empty ) return false;
@@ -455,6 +750,7 @@ public struct Range ( T )
         return this.min > other.min && this.max < other.max;
     }
 
+    deprecated
     unittest
     {
         // empty
@@ -485,9 +781,13 @@ public struct Range ( T )
 
     /***************************************************************************
 
-        Determines whether this instance is a proper superset of the specified
-        range. All values in the other range must be within this range and not
-        extend to either the start or end of this range.
+        Determines whether this instance is a superset of the non-empty
+        specified range. All values in the other range must be within this range.
+
+        Note: For practical reasons, this isn't conforming strictly to
+        the mathematical definition, where an empty set is considered to be
+        a subset of any set. However, two equal ranges will be considered
+        to be supersets of one another.
 
         Params:
             other = instance to compare with this
@@ -497,13 +797,71 @@ public struct Range ( T )
 
     ***************************************************************************/
 
-    public bool supersetOf ( Range other )
+    public bool isSupersetOf ( Range other )
     {
-        if ( this.is_empty || other.is_empty ) return false;
-
-        return other.min > this.min && other.max < this.max;
+        return other.isSubsetOf(*this);
     }
 
+    unittest
+    {
+        // empty
+        test(!Range.init.isSupersetOf(Range(0, 10)), "Empty range can't be superset");
+        test(!Range(0, 10).isSupersetOf(Range.init),  "Empty range doesn't count as subset");
+
+        // very proper superset
+        test(Range(0, 10).isSupersetOf(Range(1, 9)));
+
+        // equal
+        test(Range(0, 10).isSupersetOf(Range(0, 10)), "Equal range is a superset too");
+
+        // ends touch, inside
+        test(Range(0, 10).isSupersetOf(Range(0, 9)));
+        test(Range(0, 10).isSupersetOf(Range(1, 10)));
+
+        // ends touch, outside
+        test(!Range(5, 10).isSupersetOf(Range(0, 5)));
+        test(!Range(5, 10).isSupersetOf(Range(10, 15)));
+
+        // very proper subset
+        test(!Range(1, 9).isSupersetOf(Range(0, 10)), "Proper subset can't be superset");
+
+        // overlap
+        test(!Range(0, 10).isSupersetOf(Range(5, 15)));
+
+        // no overlap
+        test(!Range(5, 10).isSupersetOf(Range(15, 20)));
+    }
+
+
+    /***************************************************************************
+
+        Determines whether this instance is a proper superset of the specified
+        non empty range. All values in the other range must be within this range
+        and not extend to either the start or end of this range.
+
+        Note: From mathematical POV this condition is more strict than
+        "proper superset", because in math [3, 16] is a proper
+        superset of [3, 15].
+
+        Note: For practical reasons, this isn't conforming strictly to
+        the mathematical definition, where an empty set is considered to be
+        a subset of any set.
+
+        Params:
+            other = instance to compare with this
+
+        Returns:
+            true if this range is a proper superset of the other range
+
+    ***************************************************************************/
+
+    deprecated ("similar but not equal behaviour you can find in isSupersetOf")
+    public bool supersetOf ( Range other )
+    {
+        return other.subsetOf(*this);
+    }
+
+    deprecated
     unittest
     {
         // empty
@@ -534,6 +892,257 @@ public struct Range ( T )
 
     /***************************************************************************
 
+        Predicate that checks whether the provided array of ranges exactly
+        tessellates this range.  The term "tessellation" means that this
+        range is a union of the given ranges and that the given ranges form
+        a contiguous chain without gap or overlap.
+
+        It is assumed that the array is already sorted.
+
+        This method can be used as a replacement for the now-deprecated
+        opEquals ( Range[] )
+
+        Params:
+            ranges = a sorted array of Range!T
+
+        Returns:
+            true if this instance is tessellated by the given array
+            of ranges, false otherwise
+
+    ***************************************************************************/
+
+    public bool isTessellatedBy ( Range[] ranges )
+    {
+        return (*this == extent(ranges)) && isContiguous(ranges);
+    }
+
+    unittest
+    {
+        // minimal case: one range, test covers and not-covers
+        test(Range(0, 0).isTessellatedBy([Range(0, 0)]));
+        test(!Range(0, 0).isTessellatedBy([Range(1, 1)]));
+
+        // tessellation by itself
+        test(Range(3, 12).isTessellatedBy([Range(3, 12)]), "Any range should tessellate itself");
+
+        // proper subset or proper superset can't be tessellation
+        test(!Range(3, 12).isTessellatedBy([Range(4, 11)]), "Proper superset can't be tessellation");
+        test(!Range(3, 12).isTessellatedBy([Range(3, 11)]), "Proper superset can't be tessellation");
+        test(!Range(3, 12).isTessellatedBy([Range(4, 12)]), "Proper superset can't be tessellation");
+        test(!Range(3, 12).isTessellatedBy([Range(2, 13)]), "Proper subset can't be tessellation");
+        test(!Range(3, 12).isTessellatedBy([Range(3, 13)]), "Proper subset can't be tessellation");
+        test(!Range(3, 12).isTessellatedBy([Range(2, 12)]), "Proper subset can't be tessellation");
+
+        // complete
+        test(Range(0, 10).isTessellatedBy([Range(0, 1),
+                                           Range(2, 5),
+                                           Range(6, 10)]));
+
+        // missing start
+        test(!Range(0, 10).isTessellatedBy([Range(1, 1),
+                                            Range(2, 5),
+                                            Range(6, 10)]));
+
+        // missing middle
+        test(!Range(0, 10).isTessellatedBy([Range(0, 1),
+                                                  Range(3, 5),
+                                                  Range(6, 10)]));
+
+        // missing end
+        test(!Range(0, 10).isTessellatedBy([Range(0, 1),
+                                            Range(2, 5),
+                                            Range(6, 9)]));
+
+        // overlapped ranges in list
+        test(!Range(0, 10).isTessellatedBy([Range(0, 2),
+                                            Range(2, 5),
+                                            Range(6, 10)]));
+
+        // empty ranges skipped
+        Range empty;
+        test(Range(0, 10).isTessellatedBy([empty,
+                                           empty,
+                                           Range(0, 1),
+                                           Range(2, 5),
+                                           Range(6, 10)]));
+
+        // union of empty ranges and empty list
+        test(!Range(0, 10).isTessellatedBy([empty,
+                                            empty,
+                                            empty]));
+        test(!Range(0, 10).isTessellatedBy([empty]));
+        test(!Range(0, 10).isTessellatedBy([]));
+        test(!Range(0, 10).isTessellatedBy(null));
+    }
+
+
+    /***************************************************************************
+
+        Predicate that checks whether this range is covered by the given array
+        of ranges (i.e. whether it is a subset of the union of the array
+        of ranges).
+
+        It is assumed that the array is already sorted.
+
+        Params:
+            ranges = a sorted array of Range!T to be checked
+                     that covers this instance
+
+        Returns:
+            true if this range instance is covered by the given array of ranges,
+            false otherwise
+
+    ***************************************************************************/
+
+    public bool isCoveredBy ( Range[] ranges )
+    {
+        return this.isSubsetOf(extent(ranges)) && !hasGap(ranges);
+    }
+
+    unittest
+    {
+        // minimal case: one hash range, test covers and not-covers
+        test(Range(0, 0).isCoveredBy([Range(0, 0)]));
+        test(!Range(0, 0).isCoveredBy([Range(1, 1)]));
+
+        // coverage by itself
+        test(Range(3, 12).isCoveredBy([Range(3, 12)]), "Any range should cover itself");
+
+        // any superset can be coverage
+        test(Range(3, 12).isCoveredBy([Range(3, 13)]), "Proper superset should be coverage");
+        test(Range(3, 12).isCoveredBy([Range(2, 12)]), "Proper superset should be coverage");
+        test(Range(3, 12).isCoveredBy([Range(2, 13)]), "Proper superset should be coverage");
+
+        // any subset can't be coverage
+        test(!Range(3, 12).isCoveredBy([Range(3, 11)]), "Proper subset can't be coverage");
+        test(!Range(3, 12).isCoveredBy([Range(4, 12)]), "Proper subset can't be coverage");
+        test(!Range(3, 12).isCoveredBy([Range(4, 11)]), "Proper subset can't be coverage");
+
+        // a tessellation is a coverage
+        test(Range(3, 12).isCoveredBy([Range(3, 5), Range(6, 12)]));
+
+        // overlap allowed
+        test(Range(3, 12).isCoveredBy([Range(3, 7), Range(4, 12)]));
+        test(Range(3, 12).isCoveredBy([Range(1, 7), Range(4, 15)]));
+
+        // gap not allowed
+        test(!Range(3, 12).isCoveredBy([Range(3, 5), Range(7, 12)]));
+        test(!Range(3, 12).isCoveredBy([Range(1, 5), Range(7, 15)]));
+
+        // empty ranges skipped
+        Range empty;
+        test(Range(0, 10).isCoveredBy([empty,
+                                       empty,
+                                       Range(0, 3),
+                                       Range(2, 5),
+                                       Range(6, 11)]));
+
+        // union of empty ranges and empty list
+        test(!Range(0, 10).isCoveredBy([empty,
+                                        empty,
+                                        empty]));
+        test(!Range(0, 10).isCoveredBy([empty]));
+        test(!Range(0, 10).isCoveredBy([]));
+        test(!Range(0, 10).isCoveredBy(null));
+    }
+
+
+    /***************************************************************************
+
+        Special unittest which checks that isTessellatedBy implies isCoveredBy
+        (but isCoveredBy does not necessarily imply isTessellatedBy).
+
+    ***************************************************************************/
+
+    unittest
+    {
+        // Note that given two logical conditions A and B,
+        // "A implies B" is equivalent to (A == true) <= (B == true)
+
+        auto target = Range(12, 17);
+        Range[] ranges;
+
+        // neither tessellated nor covered
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+
+        ranges ~= [Range(1, 5)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+
+        ranges ~= [Range(12, 15)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+
+        ranges ~= [Range(14, 17)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+
+        ranges ~= [Range(18, 25)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+
+        ranges ~= [Range(1, 5), Range(19, 20)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+
+        ranges ~= [Range(1, 13), Range(16, 20)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+
+        // covered, but not tessellated
+        ranges ~= [Range(11, 17)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+
+        ranges ~= [Range(12, 18)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+
+        ranges ~= [Range(11, 18)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+
+        ranges ~= [Range(1, 15), Range(14, 20)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+
+        ranges ~= [Range(12, 15), Range(15, 17)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+
+        ranges ~= [Range(12, 16), Range(14, 17)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+
+        // tessellated
+        ranges ~= [Range(12, 17)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+
+        ranges ~= [Range(12, 14), Range(15, 17)];
+        test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
+        ranges.length = 0;
+        enableStomping(ranges);
+    }
+
+
+    /***************************************************************************
+
         Calculates the number of values shared by this range and the other range
         specified.
 
@@ -549,26 +1158,11 @@ public struct Range ( T )
     {
         if ( this.is_empty || other.is_empty ) return 0;
 
-        if ( *this == other || other.supersetOf(*this) ) return this.length;
+        RangeEndpoint[4] a;
+        sortEndpoints(*this, other, a);
 
-        if ( other.subsetOf(*this) ) return other.length;
-
-        if ( other.min < this.min ) // starts before this
-        {
-            assert(other.max <= this.max); // also ends within this, otherwise superset
-
-            if ( other.max < this.min ) return 0;   // ends before this
-            return (other.max - this.min) + 1;      // ends within this
-        }
-        else if ( other.min <= this.max ) // starts within this
-        {
-            if ( other.max <= this.max ) return other.length; // ends within this
-            return (this.max - other.min) + 1;                // ends outside this
-        }
-        else // starts after this
-        {
-            return 0;
-        }
+        return a[0].owner_index != a[1].owner_index
+               ? Range(a[1].value, a[2].value).length : 0;
     }
 
     unittest
@@ -699,45 +1293,30 @@ public struct Range ( T )
             return;
         }
 
-        // equal -- empty result
-        if ( *this == other ) return;
+        RangeEndpoint[4] a;
+        sortEndpoints(*this, other, a);
 
-        // other is proper superset of this -- empty result
-        if ( other.supersetOf(*this) ) return;
-
-        // ranges do not overlap -- no change
-        if ( !this.overlaps(other) )
+        // no overlap 
+        if (a[0].owner_index == a[1].owner_index)
         {
             lower = *this;
             return;
         }
 
-        // other is proper subset of this -- two ranges result
-        if ( other.subsetOf(*this) )
-        {
-            lower = Range(this.min, other.min - 1);
-            upper = Range(other.max + 1, this.max);
-            return;
-        }
+        auto first = a[0].owner_index < a[1].owner_index
+                     ? makeRange!("[)")(a[0].value, a[1].value) : Range.init;
+        auto second = a[2].owner_index > a[3].owner_index
+                      ? makeRange!("(]")(a[2].value, a[3].value) : Range.init;
 
-        // ranges overlap (but not proper superset or subset)
-        assert(this.overlaps(other));
-
-        if ( other.min <= this.min )
+        if (first.is_empty)
         {
-            assert(other.max < this.max);
-            lower = Range(other.max + 1, this.max);
-            return;
+            lower = second;
         }
         else
         {
-            assert(other.min > this.min);
-            assert(other.max >= this.max);
-            lower = Range(this.min, other.min - 1);
-            return;
+            lower = first;
+            upper = second;
         }
-
-        assert(false);
     }
 
     unittest
@@ -757,7 +1336,9 @@ public struct Range ( T )
 
         // equal
         assert(test(Range(0, 0), Range(0, 0), Range.init));
+        assert(test(Range(T.max, T.max), Range(T.max, T.max), Range.init));
         assert(test(Range(0, 10), Range(0, 10), Range.init));
+        assert(test(Range(0, T.max), Range(0, T.max), Range.init));
 
         // superset
         assert(test(Range(1, 9), Range(0, 10), Range.init));
@@ -780,6 +1361,151 @@ public struct Range ( T )
         assert(test(Range(5, 15), Range(10, 20), Range(5, 9)));
         assert(test(Range(5, 15), Range(10, 15), Range(5, 9)));
     }
+
+
+    /***************************************************************************
+
+        Helper function used by overlapAmount and subtract.  Calculates a
+        specially sorted static array of RangeEndpoint values corresponding
+        to the endpoints of the two non-empty ranges 'first' and 'second'
+        provided as input.  The sorting is stable (i.e. initial order of
+        equal values is preserved).
+
+        The owner_index values of the RangeEndpoints correspond to the first
+        and second parameters, so e.g. if a given endpoint comes from the
+        first range, its owner_index will be 0; if from the second, it will
+        be 1.
+
+        Note: the sort will preserve the order {second.min, first.max} if
+        their values are equal.
+
+        Note: In D2 it may be better to rewrite this function to:
+                    RangeEndpoint[4] sortEndpoints ( Range first, Range second )
+
+        Params:
+            first = the first of the two Ranges
+            second = the second of the two Ranges
+            array = (preferably static) array of 4 RangeEndpoints,
+                    which will be filled with the sorted endpoints
+                    of the first and second ranges
+
+    ***************************************************************************/
+
+    private static void sortEndpoints ( Range first, Range second,
+                                        RangeEndpoint[] array )
+    in
+    {
+        assert(!first.is_empty);
+        assert(!second.is_empty);
+        assert(array.length == 4);
+    }
+    body
+    {
+        // N.B!  the initial order is sufficient
+        // being that stable sort preserve order of equal elements
+        array[0] = RangeEndpoint(first.min, 0);
+        array[1] = RangeEndpoint(second.min, 1);
+        array[2] = RangeEndpoint(first.max, 0);
+        array[3] = RangeEndpoint(second.max, 1);
+
+        // stable insert sort
+        for (size_t i = 1; i < array.length; ++i)
+        {
+            auto pivot_index = i;
+            auto pivot = array[pivot_index];
+            while (pivot_index > 0  && array[pivot_index - 1].value > pivot.value)
+            {
+                array[pivot_index] = array[pivot_index - 1];
+                --pivot_index;
+            }
+            array[pivot_index] = pivot;
+        }
+    }
+
+    unittest
+    {
+        RangeEndpoint[4] a;
+
+        // no overlap
+        sortEndpoints(Range(0, 10), Range(15, 20), a);
+        test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(10, 0),
+                        RangeEndpoint(15, 1), RangeEndpoint(20, 1)]);
+        sortEndpoints(Range(15, 20), Range(0, 10), a);
+        test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(10, 1),
+                        RangeEndpoint(15, 0), RangeEndpoint(20, 0)]);
+
+        // overlap
+        sortEndpoints(Range(0, 15), Range(10, 20), a);
+        test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(10, 1),
+                        RangeEndpoint(15, 0), RangeEndpoint(20, 1)]);
+        sortEndpoints(Range(10, 20), Range(0, 15), a);
+        test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(10, 0),
+                        RangeEndpoint(15, 1), RangeEndpoint(20, 0)]);
+
+        // outer touch
+        sortEndpoints(Range(0, 10), Range(10, 20), a);
+        test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(10, 1),
+                        RangeEndpoint(10, 0), RangeEndpoint(20, 1)]);
+        sortEndpoints(Range(10, 20), Range(0, 10), a);
+        test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(10, 0),
+                        RangeEndpoint(10, 1), RangeEndpoint(20, 0)]);
+
+        // inner touch
+        sortEndpoints(Range(0, 10), Range(5, 10), a);
+        test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(5, 1),
+                        RangeEndpoint(10, 0), RangeEndpoint(10, 1)]);
+        sortEndpoints(Range(5, 10), Range(0, 10), a);
+        test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(5, 0),
+                        RangeEndpoint(10, 0), RangeEndpoint(10, 1)]);
+        sortEndpoints(Range(0, 10), Range(0, 5), a);
+        test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(0, 1),
+                        RangeEndpoint(5, 1), RangeEndpoint(10, 0)]);
+        sortEndpoints(Range(0, 5), Range(0, 10), a);
+        test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(0, 1),
+                        RangeEndpoint(5, 0), RangeEndpoint(10, 1)]);
+
+        // ultra proper subrange
+        sortEndpoints(Range(0, 10), Range(3, 7), a);
+        test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(3, 1),
+                        RangeEndpoint(7, 1), RangeEndpoint(10, 0)]);
+        sortEndpoints(Range(3, 7), Range(0, 10), a);
+        test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(3, 0),
+                        RangeEndpoint(7, 0), RangeEndpoint(10, 1)]);
+
+        // equal
+        sortEndpoints(Range(0, 10), Range(0, 10), a);
+        test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(0, 1),
+                        RangeEndpoint(10, 0), RangeEndpoint(10, 1)]);
+        sortEndpoints(Range(5, 5), Range(5, 5), a);
+        test!("==")(a, [RangeEndpoint(5, 0), RangeEndpoint(5, 1),
+                        RangeEndpoint(5, 0), RangeEndpoint(5, 1)]);
+
+        // one point range
+        sortEndpoints(Range(4, 4), Range(5, 5), a);
+        test!("==")(a, [RangeEndpoint(4, 0), RangeEndpoint(4, 0),
+                        RangeEndpoint(5, 1), RangeEndpoint(5, 1)]);
+        sortEndpoints(Range(5, 5), Range(4, 4), a);
+        test!("==")(a, [RangeEndpoint(4, 1), RangeEndpoint(4, 1),
+                        RangeEndpoint(5, 0), RangeEndpoint(5, 0)]);
+        sortEndpoints(Range(5, 5), Range(0, 10), a);
+        test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(5, 0),
+                        RangeEndpoint(5, 0), RangeEndpoint(10, 1)]);
+        sortEndpoints(Range(0, 10), Range(5, 5), a);
+        test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(5, 1),
+                        RangeEndpoint(5, 1), RangeEndpoint(10, 0)]);
+        sortEndpoints(Range(5, 5), Range(5, 10), a);
+        test!("==")(a, [RangeEndpoint(5, 0), RangeEndpoint(5, 1),
+                        RangeEndpoint(5, 0), RangeEndpoint(10, 1)]);
+        sortEndpoints(Range(5, 10), Range(5, 5), a);
+        test!("==")(a, [RangeEndpoint(5, 0), RangeEndpoint(5, 1),
+                        RangeEndpoint(5, 1), RangeEndpoint(10, 0)]);
+        sortEndpoints(Range(5, 5), Range(0, 5), a);
+        test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(5, 0),
+                        RangeEndpoint(5, 0), RangeEndpoint(5, 1)]);
+        sortEndpoints(Range(0, 5), Range(5, 5), a);
+        test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(5, 1),
+                        RangeEndpoint(5, 0), RangeEndpoint(5, 1)]);
+    }
 }
 
 
@@ -798,3 +1524,497 @@ unittest
     Range!(ulong) lr;
 }
 
+
+/*******************************************************************************
+
+    Predicate that checks for the existence of one or more gaps
+    in an array of Range!T.
+
+    It is assumed that the array is already sorted. All empty ranges are ignored.
+
+    Params:
+        ranges = a sorted array of Range!T to be checked
+
+    Returns:
+        true if at least one gap exists in the array
+
+*******************************************************************************/
+
+public bool hasGap ( T ) ( Range!(T)[] ranges )
+{
+    trimEmptyRanges(ranges);
+
+    if (ranges.length > 0)
+    {
+        auto current_threshold = ranges[0].max;
+
+        for (size_t i = 1; i < ranges.length; ++i)
+        {
+            if (ranges[i].min > current_threshold + 1)
+                return true;
+
+            if (ranges[i].max > current_threshold)
+                current_threshold = ranges[i].max;
+        }
+    }
+
+    return false;
+}
+
+unittest
+{
+    // contiguous
+    test(!hasGap([Range!(uint)(1, 5),
+                  Range!(uint)(6, 12),
+                  Range!(uint)(13, 15)]), "Contiguous ranges can't have gap");
+
+    // overlap, but no gaps 
+    test(!hasGap([Range!(uint)(1, 5),
+                  Range!(uint)(3, 14),
+                  Range!(uint)(13, 15)]));
+    test(!hasGap([Range!(uint)(1, 12),
+                  Range!(uint)(4, 7),
+                  Range!(uint)(13, 15)]));
+    test(!hasGap([Range!(uint)(1, 13),
+                  Range!(uint)(4, 7),
+                  Range!(uint)(13, 15)]));
+    test(!hasGap([Range!(uint)(1, 14),
+                  Range!(uint)(4, 7),
+                  Range!(uint)(13, 15)]));
+
+    // gap
+    test(hasGap([Range!(uint)(1, 11),
+                 Range!(uint)(4, 7),
+                 Range!(uint)(13, 15)]));
+
+    // two equal range
+    test(!hasGap([Range!(uint)(3, 17),
+                  Range!(uint)(3, 17)]));
+
+    // any count of empty ranges has no effect
+    test(!hasGap([Range!(uint).init,
+                  Range!(uint)(1, 13),
+                  Range!(uint)(4, 7),
+                  Range!(uint)(13, 15)]));
+    test(!hasGap([Range!(uint).init,
+                  Range!(uint)(1, 14),
+                  Range!(uint)(4, 7),
+                  Range!(uint)(13, 15)]));
+    test(hasGap([Range!(uint).init,
+                 Range!(uint)(1, 11),
+                 Range!(uint)(4, 7),
+                 Range!(uint)(13, 15)]));
+    test(!hasGap([Range!(uint).init,
+                  Range!(uint).init,
+                  Range!(uint)(1, 14),
+                  Range!(uint)(4, 7),
+                  Range!(uint)(13, 15)]));
+    test(hasGap([Range!(uint).init,
+                 Range!(uint).init,
+                 Range!(uint)(1, 11),
+                 Range!(uint)(4, 7),
+                 Range!(uint)(13, 15)]));
+
+    // any combination of empty sets has no gaps
+    test(!hasGap!(uint)(null));
+    test(!hasGap!(uint)([]));
+    test(!hasGap([Range!(uint).init]));
+    test(!hasGap([Range!(uint).init,
+                  Range!(uint).init]));
+    test(!hasGap([Range!(uint).init,
+                  Range!(uint).init,
+                  Range!(uint).init]));
+}
+
+
+/*******************************************************************************
+
+    Predicate that checks for the existence of overlaps in array of Range!T.
+
+    It is assumed that the array is already sorted. All empty ranges are ignored.
+
+    Params:
+        ranges = a sorted array of Range!T to be checked
+
+    Returns:
+        true if at least one overlap exists in the array
+
+*******************************************************************************/
+
+public bool hasOverlap ( T ) ( Range!(T)[] ranges )
+{
+    trimEmptyRanges(ranges);
+
+    if (ranges.length > 0)
+    {
+        auto current_threshold = ranges[0].max;
+
+        for (size_t i = 1; i < ranges.length; ++i)
+        {
+            if (ranges[i].min <= current_threshold)
+                return true;
+
+            if (ranges[i].max > current_threshold)
+                current_threshold = ranges[i].max;
+        }
+    }
+
+    return false;
+}
+
+unittest
+{
+    // contiguous
+    test(!hasOverlap([Range!(uint)(1, 5),
+                      Range!(uint)(6, 12),
+                      Range!(uint)(13, 15)]), "Contiguous ranges can't overlap");
+
+    // one common point
+    test(hasOverlap([Range!(uint)(1, 5),
+                     Range!(uint)(5, 12),
+                     Range!(uint)(13, 15)]));
+    test(hasOverlap([Range!(uint)(1, 5),
+                     Range!(uint)(6, 13),
+                     Range!(uint)(13, 15)]));
+
+    // overlap range
+    test(hasOverlap([Range!(uint)(1, 5),
+                     Range!(uint)(3, 14),
+                     Range!(uint)(13, 15)]));
+
+    // has gap
+    test(!hasOverlap([Range!(uint)(1, 4),
+                      Range!(uint)(6, 12),
+                      Range!(uint)(13, 15)]));
+    test(hasOverlap([Range!(uint)(1, 4),
+                     Range!(uint)(6, 13),
+                     Range!(uint)(13, 15)]));
+    test(hasOverlap([Range!(uint)(1, 4),
+                     Range!(uint)(6, 14),
+                     Range!(uint)(13, 15)]));
+
+    // the first range mask the second
+    test(hasOverlap([Range!(uint)(1, 12),
+                     Range!(uint)(6, 8),
+                     Range!(uint)(13, 15)]));
+    // the second range mask the first
+    test(hasOverlap([Range!(uint)(3, 8),
+                     Range!(uint)(3, 12),
+                     Range!(uint)(13, 15)]));
+
+    // equal
+    test(hasOverlap([Range!(uint)(3, 17),
+                     Range!(uint)(3, 17)]));
+
+    // any count of empty ranges has no effect
+    test(!hasOverlap([Range!(uint).init,
+                      Range!(uint)(1, 5),
+                      Range!(uint)(6, 12),
+                      Range!(uint)(13, 15)]));
+    test(hasOverlap([Range!(uint).init,
+                     Range!(uint)(1, 5),
+                     Range!(uint)(5, 12),
+                     Range!(uint)(13, 15)]));
+    test(!hasOverlap([Range!(uint).init,
+                      Range!(uint).init,
+                      Range!(uint)(1, 5),
+                      Range!(uint)(6, 12),
+                      Range!(uint)(13, 15)]));
+    test(hasOverlap([Range!(uint).init,
+                     Range!(uint).init,
+                     Range!(uint)(1, 5),
+                     Range!(uint)(5, 12),
+                     Range!(uint)(13, 15)]));
+
+    // any combination of empty sets has no overlaps
+    test(!hasOverlap!(uint)(null));
+    test(!hasOverlap!(uint)([]));
+    test(!hasOverlap([Range!(uint).init]));
+    test(!hasOverlap([Range!(uint).init,
+                      Range!(uint).init]));
+    test(!hasOverlap([Range!(uint).init,
+                      Range!(uint).init,
+                      Range!(uint).init]));
+}
+
+/*******************************************************************************
+
+    Predicate that checks contiguity of the array of Range!T.
+
+    This function's result is equivalent to !hasGap && !hasOverlap. There is
+    a special unittest which asserts this (see below). It has been implemented
+    as a separate function because a more efficient implementation is possible.
+
+    It is assumed that the array is already sorted in lexicographical
+    order: first check left boundaries of ranges if equal then right boundaries
+    will be checked (that is current status quo of opCmp). All empty ranges
+    are ignored.
+
+    Params:
+        ranges = a sorted array of Range!T to be checked
+
+    Returns:
+        true if collection is contiguous
+
+*******************************************************************************/
+
+public bool isContiguous ( T ) ( Range!(T)[] ranges )
+{
+    trimEmptyRanges(ranges);
+
+    for (size_t i = 1; i < ranges.length; ++i)
+    {
+        if (ranges[i].min != ranges[i - 1].max + 1)
+            return false;
+    }
+
+    return true;
+}
+
+unittest
+{
+    // contiguous
+    test(isContiguous([Range!(uint)(1, 5),
+                       Range!(uint)(6, 12),
+                       Range!(uint)(13, 15)]));
+
+    // one common point
+    test(!isContiguous([Range!(uint)(1, 5),
+                        Range!(uint)(5, 12),
+                        Range!(uint)(13, 15)]));
+    test(!isContiguous([Range!(uint)(1, 5),
+                        Range!(uint)(6, 13),
+                        Range!(uint)(13, 15)]));
+
+    // gap
+    test(!isContiguous([Range!(uint)(1, 4),
+                        Range!(uint)(6, 12),
+                        Range!(uint)(13, 15)]));
+    test(!isContiguous([Range!(uint)(1, 5),
+                        Range!(uint)(6, 11),
+                        Range!(uint)(13, 15)]));
+
+    // gap and common point
+    test(!isContiguous([Range!(uint)(1, 4),
+                        Range!(uint)(6, 13),
+                        Range!(uint)(13, 15)]));
+
+    // two equal range
+    test(!isContiguous([Range!(uint)(6, 13),
+                        Range!(uint)(6, 13)]));
+
+    // any count of empty ranges has no effect
+    test(isContiguous([Range!(uint).init,
+                       Range!(uint)(1, 5),
+                       Range!(uint)(6, 12),
+                       Range!(uint)(13, 15)]));
+    test(!isContiguous([Range!(uint).init,
+                        Range!(uint)(1, 5),
+                        Range!(uint)(6, 13),
+                        Range!(uint)(13, 15)]));
+    test(!isContiguous([Range!(uint).init,
+                        Range!(uint)(1, 4),
+                        Range!(uint)(6, 12),
+                        Range!(uint)(13, 15)]));
+    test(!isContiguous([Range!(uint).init,
+                        Range!(uint)(1, 4),
+                        Range!(uint)(6, 13),
+                        Range!(uint)(13, 15)]));
+    test(isContiguous([Range!(uint).init,
+                       Range!(uint).init,
+                       Range!(uint)(1, 5),
+                       Range!(uint)(6, 12),
+                       Range!(uint)(13, 15)]));
+
+    // any combination of empty sets is contiguous
+    test(isContiguous!(uint)(null));
+    test(isContiguous!(uint)([]));
+    test(isContiguous([Range!(uint).init]));
+    test(isContiguous([Range!(uint).init,
+                       Range!(uint).init]));
+    test(isContiguous([Range!(uint).init,
+                       Range!(uint).init,
+                       Range!(uint).init]));
+}
+
+
+/*******************************************************************************
+
+    Special unittest which checks that:
+    isContiguous <=> !hasGap && !hasOverlap
+
+*******************************************************************************/
+
+unittest
+{
+    Range!(uint)[] ranges;
+
+    // ranges is null
+    test!("==")(isContiguous(ranges), !hasGap(ranges) && !hasOverlap(ranges));
+
+    // contiguous ranges
+    ranges ~= [Range!(uint)(1, 5), Range!(uint)(6, 12), Range!(uint)(13, 15)];
+    test!("==")(isContiguous(ranges), !hasGap(ranges) && !hasOverlap(ranges));
+    ranges.length = 0;
+    enableStomping(ranges);
+
+    // overlap
+    ranges ~= [Range!(uint)(1, 5), Range!(uint)(6, 13), Range!(uint)(13, 15)];
+    test!("==")(isContiguous(ranges), !hasGap(ranges) && !hasOverlap(ranges));
+    ranges.length = 0;
+    enableStomping(ranges);
+
+    // gap
+    ranges ~= [Range!(uint)(1, 4), Range!(uint)(6, 12), Range!(uint)(13, 15)];
+    test!("==")(isContiguous(ranges), !hasGap(ranges) && !hasOverlap(ranges));
+    ranges.length = 0;
+    enableStomping(ranges);
+
+    // gap and overlap
+    ranges ~= [Range!(uint)(1, 4), Range!(uint)(6, 13), Range!(uint)(13, 15)];
+    test!("==")(isContiguous(ranges), !hasGap(ranges) && !hasOverlap(ranges));
+    ranges.length = 0;
+    enableStomping(ranges);
+
+    // range.length == 0
+    test!("==")(isContiguous(ranges), !hasGap(ranges) && !hasOverlap(ranges));
+
+    // only empty ranges
+    ranges ~= Range!(uint).init;
+    test!("==")(isContiguous(ranges), !hasGap(ranges) && !hasOverlap(ranges));
+    ranges ~= Range!(uint).init;
+    test!("==")(isContiguous(ranges), !hasGap(ranges) && !hasOverlap(ranges));
+    ranges ~= Range!(uint).init;
+    test!("==")(isContiguous(ranges), !hasGap(ranges) && !hasOverlap(ranges));
+}
+
+
+/*******************************************************************************
+
+    Generate a single Range!T that covers the entire set of values found
+    in an array of Range!T, i.e. whose min, max values reflect the smallest
+    and largest min and max found in the array.
+
+    It is assumed that the array is sorted already in lexicographical order:
+    first compare the left boundaries of the range, if they are equal then
+    the right boundaries will be compared (that is current status quo of opCmp).
+    All empty ranges are ignored.
+
+    Note: Although this method assumes sorted input, it would be possible
+    to provide another implementation without this assumption.
+    However, such an implementation would be more expensive, with
+    an asymptotic complexity of O(n), whereas this version is O(1).
+
+    Params:
+        ranges = a sorted array of Range!T
+
+    Returns:
+        resulting minimal covering range, or an empty range
+        if the input array is empty
+
+*******************************************************************************/
+
+public Range!(T) extent (T) ( Range!(T)[] ranges )
+{
+    trimEmptyRanges(ranges);
+
+    return ranges.length == 0 ? Range!(T).init : Range!(T)(ranges[0].min, ranges[$ - 1].max);
+}
+
+unittest
+{
+    // one range
+    test!("==")(extent([Range!(uint)(3, 5)]), Range!(uint)(3, 5));
+
+    // two equal ranges
+    test!("==")(extent([Range!(uint)(3, 5),
+                        Range!(uint)(3, 5)]), Range!(uint)(3, 5));
+
+    // overlap 
+    test!("==")(extent([Range!(uint)(3, 5),
+                        Range!(uint)(4, 8)]), Range!(uint)(3, 8));
+
+    // gap
+    test!("==")(extent([Range!(uint)(3, 5),
+                        Range!(uint)(7, 9)]), Range!(uint)(3, 9));
+
+    // gap and overlap
+    test!("==")(extent([Range!(uint)(3, 5),
+                        Range!(uint)(7, 12),
+                        Range!(uint)(12, 15)]), Range!(uint)(3, 15));
+
+    // the first has the same min as the second
+    test!("==")(extent([Range!(uint)(3, 5),
+                        Range!(uint)(3, 7)]), Range!(uint)(3, 7));
+
+    // any count of empty ranges has no effect
+    test!("==")(extent([Range!(uint).init,
+                        Range!(uint)(3, 5)]), Range!(uint)(3, 5));
+    test!("==")(extent([Range!(uint).init,
+                        Range!(uint)(3, 5),
+                        Range!(uint)(7, 100)]), Range!(uint)(3, 100));
+    test!("==")(extent([Range!(uint).init,
+                        Range!(uint).init,
+                        Range!(uint)(3, 5),
+                        Range!(uint)(7, 100)]), Range!(uint)(3, 100));
+
+    // any combination of empty sets has emty extent
+    test!("==")(extent!(uint)(null), Range!(uint).init);
+    test!("==")(extent!(uint)([]), Range!(uint).init);
+    test!("==")(extent([Range!(uint).init]), Range!(uint).init);
+    test!("==")(extent([Range!(uint).init,
+                        Range!(uint).init]), Range!(uint).init);
+}
+
+
+/*******************************************************************************
+
+    Trims any empty ranges from the start of a sorted array of Range!T.
+
+    It is assumed that the array is already sorted, which means all empty ranges
+    will be at the beginning of the array.
+
+    Params:
+        ranges = sorted array of Range!T from which empties drop out
+
+*******************************************************************************/
+
+private void trimEmptyRanges ( T ) ( ref Range!(T)[] ranges )
+{
+    while (ranges.length > 0 && ranges[0].is_empty)
+    {
+        ranges = ranges[1 .. $];
+    }
+}
+
+unittest
+{
+    // empty and non-empty ranges
+    {
+        Range!(uint)[] a = [Range!(uint).init, Range!(uint).init,
+                            Range!(uint)(2, 9), Range!(uint)(12, 19)];
+        trimEmptyRanges(a);
+        test!("==")(a, [Range!(uint)(2, 9), Range!(uint)(12, 19)]);
+    }
+
+    // only non-empty ranges
+    {
+        Range!(uint)[] a = [Range!(uint)(2, 9), Range!(uint)(12, 19)];
+        trimEmptyRanges(a);
+        test!("==")(a, [Range!(uint)(2, 9), Range!(uint)(12, 19)]);
+    }
+
+    // array of empty ranges
+    {
+        Range!(uint)[] a = [Range!(uint).init, Range!(uint).init];
+        trimEmptyRanges(a);
+        test!("==")(a.length, 0);
+    }
+
+    // empty array
+    {
+        Range!(uint)[] a;
+        trimEmptyRanges(a);
+        test!("==")(a.length, 0);
+    }
+}
