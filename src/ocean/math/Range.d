@@ -20,6 +20,8 @@ module ocean.math.Range;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import tango.core.Traits : isUnsignedIntegerType;
 
 version ( UnitTest )
