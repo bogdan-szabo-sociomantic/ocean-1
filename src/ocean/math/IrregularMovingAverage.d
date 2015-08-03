@@ -19,10 +19,10 @@ module ocean.math.IrregularMovingAverage;
 
 import ocean.core.Exception;
 
-import tango.core.Traits,
-       tango.math.IEEE,
-       tango.math.Math,
-       tango.stdc.time;
+import tango.core.Traits;
+import tango.math.IEEE;
+import tango.math.Math;
+import tango.stdc.time;
 
 
 /*******************************************************************************
