@@ -243,3 +243,9 @@ New Features
     * `isContiguous` function that checks if a sorted array of `Range!(T)`
       elements has neither gap nor overlap.  This is a more efficient version
       of the check `!hasGap(...) && !hasOverlap(...)`.
+
+* `ocean.util.container.HashRangeMap`
+
+  The `HashRangeMap` struct provides a specialized map between `Range!(hash_t)`
+  keys and arbitrary values, in a data structure that is serializable using
+  `ocean.util.serialize.contiguous`.
