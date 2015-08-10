@@ -125,15 +125,6 @@ abstract class ITimerEvent : ISelectClient, ISelectable
 
     /***************************************************************************
 
-        Set to true to use an absolute or false for a relative timer. On default
-        a relative timer is used.
-
-    ***************************************************************************/
-
-    public bool absolute = false;
-
-    /***************************************************************************
-
         Integer file descriptor provided by the operating system and used to
         manage the custom event.
 
@@ -170,6 +161,33 @@ abstract class ITimerEvent : ISelectClient, ISelectable
         return Event.EPOLLIN;
     }
 
+    /***************************************************************************
+
+        Returns:
+            the value of the TimerFD's absolute flag (true = absolute timer,
+            false = relative timer)
+
+    ***************************************************************************/
+
+    public bool absolute ( )
+    {
+        return this.fd.absolute;
+    }
+
+    /***************************************************************************
+
+        Sets the timer to absolute or relative mode.
+
+        Params:
+            abs = the value of the TimerFD's absolute flag (true = absolute
+                timer, false = relative timer)
+
+    ***************************************************************************/
+
+    public void absolute ( bool abs )
+    {
+        this.fd.absolute = abs;
+    }
 
     /***************************************************************************
 
@@ -336,3 +354,51 @@ abstract class ITimerEvent : ISelectClient, ISelectable
         }
     }
 }
+
+
+version ( UnitTest )
+{
+    import tango.core.Test;
+    import tango.stdc.posix.time;
+
+    extern ( C )
+    {
+        typedef int clockid_t;
+        int clock_gettime(clockid_t, timespec*);
+    }
+
+    class TestTimerEvent : ITimerEvent
+    {
+        override protected bool handle_ ( ulong n )
+        {
+            assert(false);
+        }
+    }
+}
+
+
+/*******************************************************************************
+
+    Test for setting absolute timers
+
+*******************************************************************************/
+
+unittest
+{
+    timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+
+    auto timer = new TestTimerEvent;
+    timer.absolute = true;
+
+    auto set_time = now;
+    set_time.tv_sec += 10;
+    timer.set(set_time);
+
+    auto get_time = timer.time();
+    ulong nsec = (get_time.it_value.tv_sec * 1_000_000_000)
+        + get_time.it_value.tv_nsec;
+
+    test!("<=")(nsec, 10_000_000_000);
+}
+
