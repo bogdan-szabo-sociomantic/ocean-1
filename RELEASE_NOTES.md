@@ -194,7 +194,25 @@ New Features
 
 * `ocean.io.model.ISuspendable`
 
-   New common interface for any processes that can be suspended/resumed.
+   Abstract class for any processes that can be suspended/resumed.
+
+  * `ocean.io.model.ISuspendableThrottler`
+
+   Abstract class for creating classes that can suspend and resume
+   groups of processes implementing the `ocean.io.model.ISuspendable` interface.
+   The conditions for suspending/resuming are defined by the abstract methods
+   of `suspend()`/`resume()`.
+
+* `ocean.io.model.SuspendableThrottlerCount`
+
+   A new counter based suspendable throttler has been added to suspend and
+   resume `ISuspendable` processes. `SuspendableThrottlerCount` will suspend
+   and resume registered `ISuspendable` objects based off internal counter
+   (eg. number of pending items to be processed) that can be
+   incremented/decremented via `add()`/`remove()`. When the counter
+   reaches the suspend point `suspend()` is called on all processes. Once
+   the internal counter reaches the resume point then `resume()` will be called
+   on registered processes.
 
 * `ocean.math.Range`
 
