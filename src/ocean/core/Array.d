@@ -996,8 +996,11 @@ unittest
         the index of the first excluded elements in array. This element and all
         following ones matched the exclusion criterum; all elements before it
         did not match.
-        array.length indicates that all elements matched the exclusion criterium
-        and 0 that none matched.
+        0 indicates that all elements matched the exclusion criterium
+        and array.length that none matched.
+
+        This allows the calling code to keep only the non-excluded items
+        by calling: `arr.length = filterInPlace(arr, filterFunc);`
 
     Out:
         The returned index is at most array.length.
