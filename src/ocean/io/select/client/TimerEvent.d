@@ -2,6 +2,8 @@
 
     Timer event which can be registered with the EpollSelectDispatcher.
 
+    Note that the unittest in this module requires linking with librt.
+
     copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
 
     version:        July 2011: Initial release

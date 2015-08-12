@@ -38,6 +38,12 @@ Migration Instructions
   `IconvException.opCall` has been deprecated in favor of `enforce` or explicit
   constructor + throw.
 
+* `ocean.io.select.event.TimerEvent`
+
+  A new unittest in this module requires linking with `librt`. Any projects
+  which import this module should add `-lrt` to the `LDFLAGS` override for
+  unittest builds in their `Build.mak` file.
+
 Removed Deprecated Modules
 --------------------------
 
