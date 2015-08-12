@@ -278,3 +278,12 @@ New Features
 
   `NotifyingByteQueue` (and `NotifyingQueue`) now implement the
   `ISuspendable` interface from `ocean.io.model.ISuspendable`.
+
+* `ocean.util.container.queue.NotifyingQueue`
+
+  Added `isRegistered` to the `NotifyingByteQueue` class.
+  This method checks whether the provided notifier is already registered.
+  Note: This is an O(n) search, however it should not have a performance
+  impact in most cases since the number of registered notifiers is typically
+  very low.
+

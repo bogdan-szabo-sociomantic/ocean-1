@@ -96,7 +96,10 @@ import ocean.core.Array;
 
 import ocean.util.container.AppendBuffer;
 
-
+version ( UnitTest )
+{
+    import ocean.core.Test;
+}
 
 /*******************************************************************************
 
@@ -300,6 +303,35 @@ class NotifyingByteQueue : ISuspendable, IQueueInfo
             this.notifiers ~= notifier;
             return true;
         }
+    }
+
+    /***************************************************************************
+
+        Check whether the provided notifier is already registered.
+        This allows the code to avoid calling ready() with the same notifier,
+        which may throw or add duplicate notifiers.
+
+        Note: This is an O(n) search, however it should not have a
+        performance impact in most cases since the number of registered
+        notifiers is typically very low.
+
+        Params:
+            notifier = the callback to check for
+
+        Returns:
+            true if the notifier is registered
+
+    ***************************************************************************/
+
+    final public bool isRegistered ( NotificationDg notifier )
+    {
+        foreach (wait_notifier; this.notifiers[])
+        {
+            if (notifier is wait_notifier)
+                return true;
+        }
+
+        return false;
     }
 
 
@@ -560,4 +592,15 @@ class NotifyingQueue ( T ) : NotifyingByteQueue
 
         return instance;
     }
+}
+
+unittest
+{
+    void dg ( ) { }
+
+    auto queue = new NotifyingByteQueue(1024);
+    test(!queue.isRegistered(&dg));
+
+    queue.ready(&dg);
+    test(queue.isRegistered(&dg));
 }
