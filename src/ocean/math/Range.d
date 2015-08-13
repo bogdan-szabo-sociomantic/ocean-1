@@ -663,6 +663,12 @@ public struct Range ( T )
 
         // a > b (overlapping)
         assert(Range(1, 2) > Range(0, 1));
+
+        // a < b and a.min == b.min
+        assert(Range(1, 3) < Range(1, 5));
+
+        // a > b and a.min == b.min
+        assert(Range(1, 5) > Range(1, 3));
     }
 
 
