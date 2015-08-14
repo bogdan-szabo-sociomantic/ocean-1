@@ -213,6 +213,29 @@ public struct HashRangeMap ( Value )
 
     /***************************************************************************
 
+        foreach iterator over ranges and corresponding values. This iterator
+        prevents true ref iteration over the keys of the internal map
+        by passing a copy of the range to the iteration delegate.
+
+    ***************************************************************************/
+
+    public int opApply ( int delegate ( ref HashRange r, ref Value v ) dg )
+    {
+        int result = 0;
+        foreach (i, range; this.ranges)
+        {
+            result = dg(range, this.values[i]);
+
+            if(result)
+                break;
+        }
+
+        return result;
+    }
+
+
+    /***************************************************************************
+
         Check if the hash ranges in the map have neither gaps nor overlaps and
         cover the whole space of hash_t values.
 
@@ -417,6 +440,7 @@ unittest
     testPut([1, 2, 3, 4, 5, 6, 7, 8]);
     testRemove([1, 2, 3, 4, 5]);
     testOpInR([1, 2, 3, 4, 5]);
+    testOpApply([1, 2, 3, 4, 5]);
 }
 
 
@@ -433,6 +457,7 @@ unittest
     testPut([1UL, 2UL, 3UL, 4UL, 5UL, 6UL, 7UL, 8UL]);
     testRemove([1UL, 2UL, 3UL, 4UL, 5UL]);
     testOpInR([1UL, 2UL, 3UL, 4UL, 5UL]);
+    testOpApply([1UL, 2UL, 3UL, 4UL, 5UL]);
 }
 
 
@@ -449,6 +474,7 @@ unittest
     testPut([1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f]);
     testRemove([1.0f, 2.0f, 3.0f, 4.0f, 5.0f]);
     testOpInR([1.0f, 2.0f, 3.0f, 4.0f, 5.0f]);
+    testOpApply([1.0f, 2.0f, 3.0f, 4.0f, 5.0f]);
 }
 
 
@@ -466,6 +492,7 @@ unittest
     testPut([&v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8]);
     testRemove([&v1, &v2, &v3, &v4, &v5]);
     testOpInR([&v1, &v2, &v3, &v4, &v5]);
+    testOpApply([&v1, &v2, &v3, &v4, &v5]);
 }
 
 
@@ -506,6 +533,7 @@ unittest
     testPut([S(1), S(2), S(3), S(4), S(5), S(6), S(7), S(8)]);
     testRemove([S(1), S(2), S(3), S(4), S(5)]);
     testOpInR([S(1), S(2), S(3), S(4), S(5)]);
+    testOpApply([S(1), S(2), S(3), S(4), S(5)]);
 }
 
 
@@ -522,6 +550,7 @@ unittest
     testPut([[1], [2, 1], [3, 1, 2], [4], [5], [6], [7], [8]]);
     testRemove([[1], [2, 1], [3, 1, 2], [4], [5]]);
     testOpInR([[1], [2, 1], [3, 1, 2], [4], [5]]);
+    testOpApply([[1], [2, 1], [3, 1, 2], [4], [5]]);
 }
 
 
@@ -638,6 +667,25 @@ version ( UnitTest )
         test!("==")(hrm.values, [v[6], v[0], v[5], v[3], v[2], v[1], v[7]]);
     }
 
+    private void testOpApply ( Value ) ( Value[] values)
+    {
+        alias HashRange R;
+
+        auto ranges = [R(1, 2), R(3, 15), R(10, 12), R(10, 20), R(16, 18)];
+
+        HashRangeMap!(Value) hrm;
+        hrm.ranges = ranges.dup;
+        hrm.values = values.dup;
+
+        uint i = 0;
+
+        foreach (r, v; hrm)
+        {
+            test!("==")(r, ranges[i]);
+            test!("==")(v, values[i]);
+            ++i;
+        }
+    }
 
     // Unittest function for remove().
     private void testRemove ( Value ) ( Value[] v)
