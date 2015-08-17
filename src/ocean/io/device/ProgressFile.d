@@ -42,6 +42,8 @@ module ocean.io.device.ProgressFile;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import tango.io.device.File;
 
 
@@ -146,7 +148,7 @@ class ProgressFile : File
 
     ***************************************************************************/
 
-    override public void open ( char[] path, Style style = ReadExisting )
+    override public void open ( cstring path, Style style = ReadExisting )
     {
         this.total_bytes = 0;
         super.open(path, style);
@@ -181,13 +183,13 @@ class ProgressFile : File
         were written.
 
         Params:
-            dst = buffer to write into
+            src = data to write
 
     ***************************************************************************/
 
-    override public size_t write ( void[] dst )
+    override public size_t write ( Const!(void)[] src )
     {
-        auto bytes = super.write(dst);
+        auto bytes = super.write(src);
 
         this.total_bytes += bytes;
 

@@ -76,9 +76,9 @@ class MemoryDevice : IConduit
         return data;
     }
 
-    deprecated("Use peek") override char[] toString ( )
+    deprecated("Use peek") override istring toString ( )
     {
-        return cast(char[]) data;
+        return idup(cast(mstring) data);
     }
 
     /***************************************************************************

@@ -62,6 +62,8 @@ module ocean.io.device.DirectIO;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import tango.io.model.IConduit;
 
 import tango.io.device.File;
@@ -166,7 +168,7 @@ private template AlignedBufferedStream ( )
 
     ***************************************************************************/
 
-    final public bool isAligned ( void* ptr )
+    final public bool isAligned ( Const!(void)* ptr )
     {
         return (cast(size_t) ptr & (this.BLOCK_SIZE - 1)) == 0;
     }
@@ -234,27 +236,22 @@ public class BufferedDirectWriteFile: OutputStream
 
     static protected class DirectWriteFile : File
     {
-        version (D_Version2)
-        {
-            // add to overload set explicitly
-            alias File.open open;
-        }
-
         /***********************************************************************
 
             Opens a direct-write file at the specified path.
 
             Params:
-                path = path at which to create file
-
+                path = path at which to open file
+                style = file open mode
+ 
             Throws:
                 IOException on error opening the file
 
         ***********************************************************************/
 
-        public void open(char[] path)
+        override public void open (cstring path, Style style = this.WriteCreate)
         {
-            if (!super.open(path, this.WriteCreate, O_DIRECT))
+            if (!super.open(path, style, O_DIRECT))
                 this.error();
         }
 
@@ -265,7 +262,7 @@ public class BufferedDirectWriteFile: OutputStream
 
         ***********************************************************************/
 
-        public char[] path ( )
+        public cstring path ( )
         {
             return this.toString();
         }
@@ -301,7 +298,7 @@ public class BufferedDirectWriteFile: OutputStream
 
     ***************************************************************************/
 
-    public this (char[] path, ubyte[] buffer)
+    public this (cstring path, ubyte[] buffer)
     {
         this.setBuffer(buffer);
         this.file = this.newFile();
@@ -329,7 +326,7 @@ public class BufferedDirectWriteFile: OutputStream
 
         Constructs a new BufferedDirectWriteFile allocating a new buffer.
 
-        See documentation for this(char[], ubyte[]) for details.
+        See documentation for this(cstring, ubyte[]) for details.
 
         Params:
             path = Path of the file to write to.
@@ -337,7 +334,7 @@ public class BufferedDirectWriteFile: OutputStream
 
     ***************************************************************************/
 
-    public this (char[] path = null, size_t buffer_blocks = 32 * 2 * 1024)
+    public this (cstring path = null, size_t buffer_blocks = 32 * 2 * 1024)
     {
         // O_DIRECT needs to work with aligned memory (to the block size,
         // which 99.9% of the time is 512), but the current GC implementation
@@ -366,7 +363,7 @@ public class BufferedDirectWriteFile: OutputStream
 
     ***************************************************************************/
 
-    public void open (char[] path)
+    public void open (cstring path)
     {
         assert (this.file.fileHandle == -1);
         this.file.open(path);
@@ -380,7 +377,7 @@ public class BufferedDirectWriteFile: OutputStream
 
     ***************************************************************************/
 
-    public char[] path ( )
+    public cstring path ( )
     {
         return this.file.path();
     }
@@ -422,7 +419,7 @@ public class BufferedDirectWriteFile: OutputStream
 
     ***************************************************************************/
 
-    public size_t write (void[] src)
+    public size_t write (Const!(void)[] src)
     {
         assert (this.file.fileHandle != -1);
 
@@ -547,15 +544,9 @@ public class BufferedDirectReadFile: InputStream
 
     static private class DirectReadFile : File
     {
-        version (D_Version2)
+        override public void open (cstring path, Style style = this.ReadExisting)
         {
-            // add to overload set explicitly
-            alias File.open open;
-        }
-
-        void open(char[] path)
-        {
-            if (!super.open(path, this.ReadExisting, O_DIRECT))
+            if (!super.open(path, style, O_DIRECT))
                 this.error();
         }
     }
@@ -591,7 +582,7 @@ public class BufferedDirectReadFile: InputStream
 
     ***************************************************************************/
 
-    public this (char[] path, ubyte[] buffer)
+    public this (cstring path, ubyte[] buffer)
     {
         this.setBuffer(buffer);
         this.pending_index = 0;
@@ -620,7 +611,7 @@ public class BufferedDirectReadFile: InputStream
 
         Constructs a new BufferedDirectReadFile allocating a new buffer.
 
-        See documentation for this(char[], ubyte[]) for details.
+        See documentation for this(cstring, ubyte[]) for details.
 
         Params:
             path = Path of the file to read from.
@@ -628,7 +619,7 @@ public class BufferedDirectReadFile: InputStream
 
     ***************************************************************************/
 
-    public this (char[] path = null, size_t buffer_blocks = 32 * 2 * 1024)
+    public this (cstring path = null, size_t buffer_blocks = 32 * 2 * 1024)
     {
         this(path, new ubyte[buffer_blocks * BLOCK_SIZE]);
     }
@@ -650,7 +641,7 @@ public class BufferedDirectReadFile: InputStream
 
     ***************************************************************************/
 
-    public void open (char[] path)
+    public void open (cstring path)
     {
         assert (this.file.fileHandle == -1);
         this.file.open(path);
