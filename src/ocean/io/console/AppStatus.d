@@ -93,6 +93,8 @@ module ocean.io.console.AppStatus;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.io.Terminal;
 
 import ocean.time.model.IMicrosecondsClock;
@@ -631,7 +633,7 @@ public class AppStatus
 
     ***************************************************************************/
 
-    public typeof(this) formatStaticLine ( uint index, char[] format, ... )
+    public typeof(this) formatStaticLine ( uint index, cstring format, ... )
     {
         assert( index < this.static_lines.length, "adding too many static lines" );
 
@@ -660,7 +662,7 @@ public class AppStatus
 
     ***************************************************************************/
 
-    public typeof(this) displayStreamingLine ( char[] format, ... )
+    public typeof(this) displayStreamingLine ( cstring format, ... )
     {
         return this.displayStreamingLine(format, _arguments, _argptr);
     }
@@ -1108,7 +1110,7 @@ public class AppStatus
 
     ***************************************************************************/
 
-    private typeof(this) saveColour ( bool is_foreground, char[] colour ) ( )
+    private typeof(this) saveColour ( bool is_foreground, istring colour ) ( )
     {
         static if ( is_foreground )
         {

@@ -109,6 +109,8 @@ module ocean.io.console.StructTable;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.core.Traits;
 
 import ocean.io.console.Tables;
@@ -172,11 +174,11 @@ public class StructTable ( S )
     {
         static if ( i == S.tupleof.length )
         {
-            const char[] CellMethods = "";
+            const istring CellMethods = "";
         }
         else
         {
-            const char[] CellMethods = "protected char[] " ~ FieldName!(i, S)
+            const istring CellMethods = "protected char[] " ~ FieldName!(i, S)
                 ~ "_string(" ~ FieldType!(S, i).stringof
                 ~ "* field){return this.defaultFieldString(field);}"
                 ~ CellMethods!(i + 1);
@@ -280,7 +282,7 @@ public class StructTable ( S )
 
     ***************************************************************************/
 
-    private void addCell ( char[] str )
+    private void addCell ( cstring str )
     {
         this.cells ~= Table.Row.Cell.String(str);
     }
@@ -298,11 +300,11 @@ public class StructTable ( S )
     {
         static if ( i == S.tupleof.length )
         {
-            const char[] ContentsRow = "";
+            const istring ContentsRow = "";
         }
         else
         {
-            const char[] ContentsRow = "this.addCell(this." ~ FieldName!(i, S)
+            const istring ContentsRow = "this.addCell(this." ~ FieldName!(i, S)
                 ~ "_string(GetField!(" ~ i.stringof ~ ")(&item)));"
                 ~ ContentsRow!(i + 1);
         }
@@ -321,11 +323,11 @@ public class StructTable ( S )
     {
         static if ( i == S.tupleof.length )
         {
-            const char[] HeaderRow = "";
+            const istring HeaderRow = "";
         }
         else
         {
-            const char[] HeaderRow = `this.addCell("` ~ FieldName!(i, S) ~
+            const istring HeaderRow = `this.addCell("` ~ FieldName!(i, S) ~
                 `");` ~ HeaderRow!(i + 1);
         }
     }
