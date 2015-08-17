@@ -31,6 +31,7 @@ import tango.stdc.stdlib: malloc, realloc, free;
 
 import tango.core.Exception: onOutOfMemoryError;
 
+import ocean.core.Traits;
 
 /******************************************************************************
 
@@ -198,6 +199,15 @@ public template AppendBuffer ( T, bool use_malloc = false )
 
 public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferReader!(T)
 {
+    static if ( hasIndirections!(T) )
+    {
+        alias T ParamT;
+    }
+    else
+    {
+        alias Const!(T) ParamT;
+    }
+
     /**********************************************************************
 
         Constructor without buffer preallocation
@@ -315,7 +325,7 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
 
          **************************************************************************/
 
-        T[] opSliceAssign ( Const!(T) element )
+        T[] opSliceAssign ( ParamT element )
         {
             return this.opSlice()[] = element;
         }
@@ -332,7 +342,7 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
 
          **************************************************************************/
 
-        T[] opSliceAssign ( Const!(T) element, size_t start, size_t end )
+        T[] opSliceAssign ( ParamT element, size_t start, size_t end )
         {
             return this.opSlice(start, end)[] = element;
         }
@@ -430,7 +440,7 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
 
      **************************************************************************/
 
-    T[] opSliceAssign ( Const!(T)[] chunk )
+    T[] opSliceAssign ( ParamT[] chunk )
     {
         return cast (T[]) this.copy_(chunk);
     }
@@ -449,7 +459,7 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
 
      **************************************************************************/
 
-    T[] opSliceAssign ( Const!(T)[] chunk, size_t start, size_t end )
+    T[] opSliceAssign ( ParamT[] chunk, size_t start, size_t end )
     {
         return cast (T[]) this.copy_(chunk, start, end);
     }
@@ -466,7 +476,7 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
 
      **************************************************************************/
 
-    T[] opCatAssign ( Const!(T)[] chunk )
+    T[] opCatAssign ( ParamT[] chunk )
     {
         T[] dst = this.extend(chunk.length);
 
@@ -622,7 +632,7 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
 
      **************************************************************************/
 
-    private bool append_ ( Const!(T)[] chunk )
+    private bool append_ ( ParamT[] chunk )
     {
         return chunk.length? this.opCatAssign(chunk).length >= chunk.length : true;
     }
