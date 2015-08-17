@@ -18,12 +18,7 @@ module ocean.sys.socket.model.ISocket;
 
  ******************************************************************************/
 
-import tango.stdc.posix.sys.socket:
-           socket, bind, listen, connect, shutdown,
-           recv, send,
-           socklen_t, sockaddr, SOCK_STREAM, SHUT_RDWR,
-           getsockopt, setsockopt, SOL_SOCKET, SO_ERROR,
-           getsockname, getpeername;
+import tango.stdc.posix.sys.socket;
 
 import tango.stdc.posix.netinet.in_: AF_INET, AF_INET6, IPPROTO_TCP;
 
@@ -36,8 +31,6 @@ import tango.io.device.Conduit: ISelectable;
 import ocean.io.device.IODevice: InputDevice, IOutputDevice;
 
 import ocean.sys.socket.InetAddress;
-
-import tango.stdc.posix.sys.socket;
 
 // FIXME: somehow the import above doesn't result in this symbol being
 // identifiable in this module. Re-defining it locally.
