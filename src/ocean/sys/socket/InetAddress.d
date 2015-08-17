@@ -44,6 +44,8 @@ module ocean.sys.socket.InetAddress;
 
  ******************************************************************************/
 
+import tango.transition;
+
 import tango.stdc.posix.sys.socket: sockaddr;
 
 import tango.stdc.posix.netinet.in_:
@@ -270,7 +272,7 @@ struct InetAddress ( bool IPv6 = false )
 
      **************************************************************************/
 
-    char[] inet_ntop ( char[] dst )
+    mstring inet_ntop ( mstring dst )
     in
     {
         assert (dst.length >= this.addrstrlen,
@@ -278,10 +280,10 @@ struct InetAddress ( bool IPv6 = false )
     }
     body
     {
-        char* address_p = .inet_ntop(this.family, this.address_n.ptr, dst.ptr,
+        auto address_p = .inet_ntop(this.family, this.address_n.ptr, dst.ptr,
             castFrom!(size_t).to!(int)(dst.length));
 
-        return address_p? address_p[0 .. strlen(address_p)] : null;
+        return address_p? dst.ptr[0 .. strlen(dst.ptr)] : null;
     }
 
     /**************************************************************************

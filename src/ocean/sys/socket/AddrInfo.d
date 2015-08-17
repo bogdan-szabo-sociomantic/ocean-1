@@ -18,6 +18,8 @@ module ocean.sys.socket.AddrInfo;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import tango.stdc.posix.netinet.in_: sockaddr, socklen_t,
                                      sockaddr_in,  AF_INET,  INET_ADDRSTRLEN,
                                      sockaddr_in6, AF_INET6, INET6_ADDRSTRLEN,
@@ -138,7 +140,7 @@ struct addrinfo
 
     ***************************************************************************/
 
-    char[] ipAddress ( char[] dst )
+    mstring ipAddress ( mstring dst )
     in
     {
         assert (this.ai_addr !is null);
@@ -180,10 +182,11 @@ struct addrinfo
                 return null;
         }
 
-        char* address_p = .inet_ntop(this.ai_family, addr, dst.ptr,
+        auto address_p = .inet_ntop(this.ai_family, addr, dst.ptr,
             castFrom!(size_t).to!(int)(dst.length));
-
-        return address_p? address_p[0 .. strlen(address_p)] : null;
+        // inet_ntop returns const pointer even if spec says it will always
+        // use `dst` memory. Using `dst` directly to avoid casts.
+        return address_p ? dst.ptr[0 .. strlen(dst.ptr)] : null;
     }
 
     /**************************************************************************
