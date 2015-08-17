@@ -14,6 +14,7 @@
 
 module ocean.io.compress.CompressException;
 
+import ocean.core.Exception;
 
 /******************************************************************************
 
@@ -23,8 +24,7 @@ module ocean.io.compress.CompressException;
 
 class CompressException : Exception
 {
-    this ( char[] msg ) { super(msg); }
-    this ( char[] msg, char[] file, long line ) { super(msg, file, line); }
+    mixin DefaultExceptionCtor!();
 
     static void opCall ( Args ... ) ( Args args )
     {
