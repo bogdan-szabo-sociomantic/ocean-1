@@ -178,7 +178,7 @@ public class TerminalOutput ( T ) : FormatOutput!(T)
 
     ***************************************************************************/
 
-    public typeof(this) format ( T[] fmt, ... )
+    public typeof(this) format ( Const!(T)[] fmt, ... )
     {
         version (DigitalMarsX64)
         {
@@ -204,7 +204,7 @@ public class TerminalOutput ( T ) : FormatOutput!(T)
 
     ***************************************************************************/
 
-    public typeof(this) format (T[] fmt, TypeInfo[] arguments, ArgList args)
+    public typeof(this) format (Const!(T)[] fmt, TypeInfo[] arguments, ArgList args)
     {
         super.format(fmt, arguments, args);
         return this;
@@ -218,7 +218,7 @@ public class TerminalOutput ( T ) : FormatOutput!(T)
 
     ***************************************************************************/
 
-    public typeof(this) formatln ( T[] fmt, ... )
+    public typeof(this) formatln ( Const!(T)[] fmt, ... )
     {
         version (DigitalMarsX64)
         {
@@ -244,7 +244,7 @@ public class TerminalOutput ( T ) : FormatOutput!(T)
 
     ***************************************************************************/
 
-    public typeof(this) formatln (T[] fmt, TypeInfo[] arguments, ArgList args)
+    public typeof(this) formatln (Const!(T)[] fmt, TypeInfo[] arguments, ArgList args)
     {
         super.formatln(fmt, arguments, args);
         return this;
