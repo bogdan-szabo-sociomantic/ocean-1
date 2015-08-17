@@ -658,26 +658,25 @@ class AddrInfo : AddrInfoC
         return super.get(this.node.toCstr(node), this.service.toCstr(service),
                          hints);
     }
-
-    /**************************************************************************
-
-        Appends a nul-terminator to src, storing the result in dst.
-
-        Params:
-            dst = destination string buffer
-            src = string to nul-terminate
-
-        Returns:
-            dst.ptr or null if src is empty.
-
-     **************************************************************************/
-
-    private static char* toCstr ( ref char[] dst, char[] src )
-    {
-        return src.length? dst.concat(src, "\0").ptr : null;
-    }
 }
 
+/**************************************************************************
+
+    Appends a nul-terminator to src, storing the result in dst.
+
+    Params:
+        dst = destination string buffer
+        src = string to nul-terminate
+
+    Returns:
+        dst.ptr or null if src is empty.
+
+ **************************************************************************/
+
+private char* toCstr ( ref char[] dst, char[] src )
+{
+    return src.length? dst.concat(src, "\0").ptr : null;
+}
 
 /******************************************************************************
 
