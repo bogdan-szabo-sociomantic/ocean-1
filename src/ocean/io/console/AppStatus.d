@@ -680,8 +680,8 @@ public class AppStatus
 
     ***************************************************************************/
 
-    public typeof(this) displayStreamingLine ( char[] format,
-        TypeInfo[] arguments, void* argptr )
+    public typeof(this) displayStreamingLine ( cstring format,
+        TypeInfo[] arguments, va_list argptr )
     {
         this.msg.length = 0;
         this.msg.vformat(format, arguments, argptr);
@@ -755,7 +755,7 @@ public class AppStatus
     ***************************************************************************/
 
     public typeof(this) displayStreamingLineArgs ( TypeInfo[] arguments,
-        void* argptr )
+        va_list argptr )
     {
         this.msg.length = 0;
         this.msg.vwrite(arguments, argptr);
