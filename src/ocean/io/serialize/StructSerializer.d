@@ -95,6 +95,8 @@ module ocean.io.serialize.StructSerializer;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.io.serialize.SimpleSerializer;
 
 import ocean.core.Exception;
@@ -528,27 +530,27 @@ struct StructSerializer ( bool AllowUnions = false )
         Dumps/serializes the content of s and its array members, using the given
         serializer object. The serializer object needs the following methods:
 
-            void open ( D, char[] name );
+            void open ( D, cstring name );
 
-            void close ( D, char[] name );
+            void close ( D, cstring name );
 
-            void serialize ( T ) ( D, ref T item, char[] name );
+            void serialize ( T ) ( D, ref T item, cstring name );
 
-            void openStruct ( D, char[] name );
+            void openStruct ( D, cstring name );
 
-            void closeStruct ( D, char[] name );
+            void closeStruct ( D, cstring name );
 
-            void serializeArray ( T ) ( D, char[] name, T[] array );
+            void serializeArray ( T ) ( D, cstring name, T[] array );
 
               Optional:
 
-                void serializeStaticArray ( T ) ( D, char[] name, T[] array );
+                void serializeStaticArray ( T ) ( D, cstring name, T[] array );
 
               If this methond doesn't exist, serializeArray will be used.
 
-            void openStructArray ( T ) ( D, char[] name, T[] array );
+            void openStructArray ( T ) ( D, cstring name, T[] array );
 
-            void closeStructArray ( T ) ( D, char[] name, T[] array );
+            void closeStructArray ( T ) ( D, cstring name, T[] array );
 
         Unfortunately, as some of these methods are templates, it's not
         possible to make an interface for it. But the compiler will let you know
@@ -582,11 +584,11 @@ struct StructSerializer ( bool AllowUnions = false )
         given deserializer object. The deserializer object needs the following
         methods:
 
-                void open ( ref Char[] input, char[] name );
+                void open ( ref Char[] input, cstring name );
 
                 void close ( );
 
-                void deserialize ( T ) ( ref T output, char[] name );
+                void deserialize ( T ) ( ref T output, cstring name );
 
                 void deserializeStruct ( ref T output, Char[] name, void delegate ( ) deserialize_struct );
 
@@ -1098,7 +1100,7 @@ struct StructSerializer ( bool AllowUnions = false )
      **************************************************************************/
 
     private void serializeStructArray ( T, Serializer, D ... ) ( T[] array,
-        char[] field_name, Serializer serializer, ref D data )
+        cstring field_name, Serializer serializer, ref D data )
     {
         serializer.openStructArray(data, field_name, array);
 
@@ -1232,7 +1234,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
      **************************************************************************/
 
-    private void assertStructPtr ( char[] func, S ) ( S* s )
+    private void assertStructPtr ( istring func, S ) ( S* s )
     {
         static if (is (S T == T*))
         {
@@ -1331,7 +1333,7 @@ struct StructSerializer ( bool AllowUnions = false )
      **************************************************************************/
 
     deprecated("For binary serialization, use ocean.util.serialize")
-    template AssertSingleByteType ( T, char[] context )
+    template AssertSingleByteType ( T, istring context )
     {
         static assert (T.sizeof == 1, context ~ ": only single-byte element"
                        "arrays supported for data, not '" ~ T.stringof ~ "[]'");
@@ -1422,32 +1424,32 @@ version ( UnitTest )
     {
         import tango.text.convert.Format;
 
-        void open ( ref char[] dst, char[] name )
+        void open ( ref char[] dst, cstring name )
         {
             dst ~= "{";
         }
 
-        void close ( ref char[] dst, char[] name )
+        void close ( ref char[] dst, cstring name )
         {
             dst ~= "}";
         }
 
-        void serialize ( T ) ( ref char[] dst, ref T item, char[] name )
+        void serialize ( T ) ( ref char[] dst, ref T item, cstring name )
         {
             Format.format(dst, "{} {}={} ", T.stringof, name, item);
         }
 
-        void openStruct ( ref char[] dst, char[] name )
+        void openStruct ( ref char[] dst, cstring name )
         {
             dst ~= name ~ "={";
         }
 
-        void closeStruct ( ref char[] dst, char[] name )
+        void closeStruct ( ref char[] dst, cstring name )
         {
             dst ~= "} ";
         }
 
-        void serializeArray ( T ) ( ref char[] dst, char[] name, T[] array )
+        void serializeArray ( T ) ( ref char[] dst, cstring name, T[] array )
         {
             static if ( is(T == char) )
             {
@@ -1459,17 +1461,17 @@ version ( UnitTest )
             }
         }
 
-        void serializeStaticArray ( T ) ( ref char[] dst, char[] name, T[] array )
+        void serializeStaticArray ( T ) ( ref char[] dst, cstring name, T[] array )
         {
             Format.format(dst, "{}[{}] {}={} ", T.stringof, array.length, name, array);
         }
 
-        void openStructArray ( T ) ( ref char[] dst, char[] name, T[] array )
+        void openStructArray ( T ) ( ref char[] dst, cstring name, T[] array )
         {
             dst ~= name ~ "={";
         }
 
-        void closeStructArray ( T ) ( ref char[] dst, char[] name, T[] array )
+        void closeStructArray ( T ) ( ref char[] dst, cstring name, T[] array )
         {
             dst ~= "} ";
         }
@@ -1480,7 +1482,7 @@ unittest
 {
     struct TestStruct
     {
-        char[] name;
+        mstring name;
         int[] numbers;
         int x;
         float y;
@@ -1495,7 +1497,7 @@ unittest
     }
 
     TestStruct s;
-    s.name = "hello";
+    s.name = "hello".dup;
     s.numbers = [12, 23];
     s.some_structs.length = 2;
 
@@ -1750,12 +1752,26 @@ deprecated unittest
 
         {
             SerializeMe sm;
-            sm.structArray ~= MeToo!(4)(1,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
-            sm.structArray ~= MeToo!(4)(2,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
-            sm.structArray ~= MeToo!(4)(3,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
-            sm.structArray ~= MeToo!(4)(4,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
-
-
+            sm.structArray ~= MeToo!(4)(1,"eins".dup,2,3,
+                MeToo!(3)(2,"zwei".dup,2,3,
+                    MeToo!(2)(3,"drei".dup,2,3,
+                        MeToo!(1)(4,null,2,3,
+                            MeToo!(0)(5,null,2,3)))));
+            sm.structArray ~= MeToo!(4)(2,"eins".dup,2,3,
+                MeToo!(3)(2,"zwei".dup,2,3,
+                    MeToo!(2)(3,"drei".dup,2,3,
+                        MeToo!(1)(4,null,2,3,
+                            MeToo!(0)(5,null,2,3)))));
+            sm.structArray ~= MeToo!(4)(3,"eins".dup,2,3,
+                MeToo!(3)(2,"zwei".dup,2,3,
+                    MeToo!(2)(3,"drei".dup,2,3,
+                        MeToo!(1)(4,null,2,3,
+                            MeToo!(0)(5,null,2,3)))));
+            sm.structArray ~= MeToo!(4)(4,"eins".dup,2,3,
+                MeToo!(3)(2,"zwei".dup,2,3,
+                    MeToo!(2)(3,"drei".dup,2,3,
+                        MeToo!(1)(4,null,2,3,
+                            MeToo!(0)(5,null,2,3)))));
             dump(&sm,buf);
         }
 
@@ -1794,10 +1810,26 @@ deprecated unittest
 
 
         SerializeMe sm;
-        sm.structArray ~= MeToo!(4)(1,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
-        sm.structArray ~= MeToo!(4)(2,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
-        sm.structArray ~= MeToo!(4)(3,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
-        sm.structArray ~= MeToo!(4)(4,"eins",2,3,MeToo!(3)(2,"zwei",2,3,MeToo!(2)(3,"drei",2,3,MeToo!(1)(4,"",2,3,MeToo!(0)(5,"",2,3)))));
+        sm.structArray ~= MeToo!(4)(1,"eins".dup,2,3,
+            MeToo!(3)(2,"zwei".dup,2,3,
+                MeToo!(2)(3,"drei".dup,2,3,
+                    MeToo!(1)(4,null,2,3,
+                        MeToo!(0)(5,null,2,3)))));
+        sm.structArray ~= MeToo!(4)(2,"eins".dup,2,3,
+            MeToo!(3)(2,"zwei".dup,2,3,
+                MeToo!(2)(3,"drei".dup,2,3,
+                    MeToo!(1)(4,null,2,3,
+                        MeToo!(0)(5,null,2,3)))));
+        sm.structArray ~= MeToo!(4)(3,"eins".dup,2,3,
+            MeToo!(3)(2,"zwei".dup,2,3,
+                MeToo!(2)(3,"drei".dup,2,3,
+                    MeToo!(1)(4,null,2,3,
+                        MeToo!(0)(5,null,2,3)))));
+        sm.structArray ~= MeToo!(4)(4,"eins".dup,2,3,
+            MeToo!(3)(2,"zwei".dup,2,3,
+                MeToo!(2)(3,"drei".dup,2,3,
+                    MeToo!(1)(4,null,2,3,
+                        MeToo!(0)(5,null,2,3)))));
 
         buf.length = length(&sm);
 

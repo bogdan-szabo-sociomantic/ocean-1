@@ -504,10 +504,11 @@ unittest
     uint an_int = 23;
     testSerialization(an_int);
 
-    char[] a_string = "hollow world";
+    mstring a_string = "hollow world".dup;
     testSerialization(a_string);
 
-    char[][] a_string_array = ["hollow world", "journey to the centre", "of the earth"];
+    mstring[] a_string_array = ["hollow world".dup, "journey to the centre".dup,
+        "of the earth".dup];
     testSerialization(a_string_array);
 
     // Check structs with arrays

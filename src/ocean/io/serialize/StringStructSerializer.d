@@ -21,12 +21,12 @@
         {
             struct Id
             {
-                char[] name;
+                cstring name;
                 hash_t id;
             }
 
             Id[] ids;
-            char[] name;
+            cstring name;
             uint count;
             float money;
         }
@@ -163,7 +163,7 @@ public class StringStructSerializer ( Char )
 
     ***************************************************************************/
 
-    public void open ( ref Char[] output, char[] name )
+    public void open ( ref Char[] output, cstring name )
     {
         Layout!(Char).format(output, "{}struct {}:\n", this.indent, name);
         this.increaseIndent();
@@ -180,7 +180,7 @@ public class StringStructSerializer ( Char )
 
     ***************************************************************************/
 
-    public void close ( ref Char[] output, char[] name )
+    public void close ( ref Char[] output, cstring name )
     {
         this.decreaseIndent();
     }
@@ -203,7 +203,7 @@ public class StringStructSerializer ( Char )
 
     ***************************************************************************/
 
-    public void serialize ( T ) ( ref Char[] output, ref T item, char[] name )
+    public void serialize ( T ) ( ref Char[] output, ref T item, cstring name )
     {
         // TODO: temporary support for unions by casting them to ubyte[]
         static if ( is(T == union) )
@@ -231,7 +231,7 @@ public class StringStructSerializer ( Char )
 
     ***************************************************************************/
 
-    public void openStruct ( ref Char[] output, char[] name )
+    public void openStruct ( ref Char[] output, cstring name )
     {
         Layout!(Char).format(output, "{}struct {}:\n", this.indent, name);
         this.increaseIndent();
@@ -248,7 +248,7 @@ public class StringStructSerializer ( Char )
 
     ***************************************************************************/
 
-    public void closeStruct ( ref Char[] output, char[] name )
+    public void closeStruct ( ref Char[] output, cstring name )
     {
         this.decreaseIndent();
     }
@@ -268,7 +268,7 @@ public class StringStructSerializer ( Char )
 
     ***************************************************************************/
 
-    public void serializeArray ( T ) ( ref Char[] output, char[] name, T[] array )
+    public void serializeArray ( T ) ( ref Char[] output, cstring name, T[] array )
     {
         Layout!(Char).format(output, "{}{}[] {} (length {}): {}\n", this.indent, T.stringof, name, array.length, array);
     }
@@ -288,7 +288,7 @@ public class StringStructSerializer ( Char )
 
     ***************************************************************************/
 
-    public void openStructArray ( T ) ( ref Char[] output, char[] name, T[] array )
+    public void openStructArray ( T ) ( ref Char[] output, cstring name, T[] array )
     {
         Layout!(Char).format(output, "{}{}[] {} (length {}):\n", this.indent, T.stringof, name, array.length);
         this.increaseIndent();
@@ -309,7 +309,7 @@ public class StringStructSerializer ( Char )
 
     ***************************************************************************/
 
-    public void closeStructArray ( T ) ( ref Char[] output, char[] name, T[] array )
+    public void closeStructArray ( T ) ( ref Char[] output, cstring name, T[] array )
     {
         this.decreaseIndent();
     }
@@ -363,7 +363,7 @@ unittest
     }
 
     TextFragment text_fragment;
-    text_fragment.text = "eins";
+    text_fragment.text = "eins".dup;
     text_fragment.type = 1;
 
     char[] buffer;
@@ -382,8 +382,8 @@ unittest
     }
 
     MultiDimensionalArray multi_dimensional_array;
-    multi_dimensional_array.text_fragments ~= [[TextFragment("eins", 1)],
-        [TextFragment("zwei", 2), TextFragment("drei", 3)]];
+    multi_dimensional_array.text_fragments ~= [[TextFragment("eins".dup, 1)],
+        [TextFragment("zwei".dup, 2), TextFragment("drei".dup, 3)]];
 
     buffer.length = 0;
     srlz.serialize(buffer, multi_dimensional_array);
