@@ -851,7 +851,7 @@ public class AppStatus
         if ( this.ticks >= 0 )
         {
             usage =
-                lroundf((ticks - this.ticks) / (this.ms_between_calls * 10.f));
+                lroundf((ticks - this.ticks) / (this.ms_between_calls * 10.0f));
         }
         this.ticks = ticks;
     }
