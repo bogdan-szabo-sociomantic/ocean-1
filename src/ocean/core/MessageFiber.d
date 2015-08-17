@@ -191,7 +191,7 @@ class MessageFiber
 
         ***********************************************************************/
 
-        private debug (MessageFiberToken) cstring str;
+        private debug (MessageFiberToken) istring str;
 
         /***********************************************************************
 
@@ -213,7 +213,7 @@ class MessageFiber
 
         ***********************************************************************/
 
-        public static Token opCall ( cstring s )
+        public static Token opCall ( istring s )
         {
             Token token;
             token.hash = Fnv1a64(s);
