@@ -77,3 +77,7 @@ New Features
 * `ocean.io.select.client.Scheduler`
 
   A new method, `clear()`, has been added, which unregisters all pending events.
+
+* `ocean.util.app.ext.TimerExt`
+
+  Application extension for handling user-defined timed or repeating events.
