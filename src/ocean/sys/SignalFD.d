@@ -314,8 +314,9 @@ public class SignalFD : ISelectable
         SignalSet sigset;
         sigset.clear;
         sigset.add(this.signals);
+        auto c_sigset = cast(sigset_t) sigset;
 
-        this.fd = .signalfd(this.fd, &cast(sigset_t)sigset, SFD_NONBLOCK);
+        this.fd = .signalfd(this.fd, &c_sigset, SFD_NONBLOCK);
         if ( this.fd == -1 )
         {
             scope ( exit ) .errno = 0;
