@@ -13,6 +13,8 @@
 
 module ocean.util.container.map.model.StandardHash;
 
+import tango.transition;
+
 struct StandardHash
 {
     static:
@@ -180,18 +182,18 @@ struct StandardHash
 
      **************************************************************************/
 
-    template fnv1aCode ( char[] hashvar, char[] var, size_t n )
+    template fnv1aCode ( istring hashvar, istring var, size_t n )
     {
         static if (n)
         {
-            const fnv1aCode = fnv1aCode!(hashvar, var, n - 1) ~ hashvar ~ "=(" ~
+            const istring fnv1aCode = fnv1aCode!(hashvar, var, n - 1) ~ hashvar ~ "=(" ~
                               hashvar ~ "^__" ~ var ~ "[" ~
                               minus1!(n).stringof ~ "])*" ~
                               fnv1a_prime.stringof ~ ";\n";
         }
         else
         {
-            const char[] fnv1aCode = "auto __" ~ var ~
+            const istring fnv1aCode = "auto __" ~ var ~
                                      "=cast(" ~ ubyte.stringof ~ "*)&" ~ var ~
                                      ";\n";
         }

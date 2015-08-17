@@ -84,6 +84,8 @@ module ocean.util.container.map.Map;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.util.container.map.model.BucketSet;
 
 import ocean.util.container.map.model.Bucket;
@@ -1146,7 +1148,7 @@ version (UnitTest)
 
     void test_key (T) ()
     {
-        auto map = new StandardKeyHashingMap!(char[], T)(10);
+        auto map = new StandardKeyHashingMap!(mstring, T)(10);
 
         for (T i = 0; i < 10; i++)
         {
@@ -1165,11 +1167,11 @@ version (UnitTest)
 
     void test_val (T) ()
     {
-        auto map = new StandardKeyHashingMap!(T, char[])(10);
+        auto map = new StandardKeyHashingMap!(T, mstring)(10);
 
         for (T i = 0; i < 10; i++)
         {
-            auto p = map.put("Sociomantic" ~ cast(char) (0x30+i));
+            auto p = map.put("Sociomantic".dup ~ cast(char) (0x30+i));
             *p = i;
         }
 
@@ -1177,7 +1179,7 @@ version (UnitTest)
 
         for (T i = 0; i < 10; i++)
         {
-            auto p = map.get("Sociomantic" ~ cast(char) (0x30+i));
+            auto p = map.get("Sociomantic".dup ~ cast(char) (0x30+i));
             test!("==")(*p, i);
         }
     }

@@ -41,10 +41,13 @@ module ocean.util.container.pool.model.IPool;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.util.container.pool.model.IPoolInfo;
 import ocean.util.container.pool.model.ILimitable;
 
 import ocean.core.Array: copy;
+import ocean.core.Exception;
 
 
 
@@ -373,8 +376,10 @@ public abstract class IPool : IPoolInfo, ILimitable
     **************************************************************************/
 
     protected Item get_ ( lazy Item new_item )
-    out (item_out)
+    out (_item_out)
     {
+        auto item_out = cast(Item) _item_out;
+    
         assert (!this.isNull(item_out));
 
         assert (this.isSame(item_out, this.items[this.num_busy_ - 1]));
@@ -596,6 +601,8 @@ public abstract class IPool : IPoolInfo, ILimitable
 
 public class LimitExceededException : Exception
 {
+    mixin ReusableExceptionImplementation!();
+
     /***************************************************************************
 
         Limit which was exceeded when this instance has been thrown
@@ -603,14 +610,6 @@ public class LimitExceededException : Exception
     ***************************************************************************/
 
     size_t limit;
-
-    /***************************************************************************
-
-        Constructor
-
-    ***************************************************************************/
-
-    this ( ) {super("");}
 
     /***************************************************************************
 
@@ -628,17 +627,9 @@ public class LimitExceededException : Exception
 
     ***************************************************************************/
 
-    void check ( IPool pool, bool ok, lazy char[] msg, char[] file, long line )
+    void check ( IPool pool, bool ok, lazy cstring msg, istring file, long line )
     {
-        if (!ok)
-        {
-            this.limit = pool.items.length;
-
-            super.msg.copy(msg);
-            super.file.copy(file);
-            super.line = line;
-
-            throw this;
-        }
+        this.limit = pool.items.length;
+        this.enforce(ok, msg, file, line);
     }
 }
