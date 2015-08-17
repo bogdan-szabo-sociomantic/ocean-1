@@ -132,7 +132,7 @@ class IOWarning : ErrnoException
     void assertEx ( bool ok, cstring msg, istring file = __FILE__,
         int line = __LINE__ )
     {
-        this.enforce(ok, "<unknown name>", msg, file, line);
+        this.enforce(ok, msg, "<unknown name>", file, line);
     }
 }
 
