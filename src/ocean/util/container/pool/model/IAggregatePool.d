@@ -638,9 +638,14 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
         a pool of structs, we want the references to be to the structs in the
         pool themselves, not the pointer to the structs in the pool.
 
+        The iterator classes are not marked as scope as a workaround for a dmd2
+        bug which caused it to refuse to compile nested scope definitions if
+        those had constructors (and some other obscure conditions). These
+        classes must still be used as scope classes.
+
     ***************************************************************************/
 
-    protected abstract scope class IItemsIterator
+    protected abstract /* scope */ class IItemsIterator
     {
         protected Item[] iteration_items;
 
@@ -735,7 +740,7 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
 
     ***************************************************************************/
 
-    protected abstract scope class SafeItemsIterator : IItemsIterator
+    protected abstract /* scope */ class SafeItemsIterator : IItemsIterator
     {
         /***********************************************************************
 
@@ -785,7 +790,7 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
 
     ***************************************************************************/
 
-    protected abstract scope class UnsafeItemsIterator : IItemsIterator
+    protected abstract /* scope */ class UnsafeItemsIterator : IItemsIterator
     {
         /***********************************************************************
 
@@ -834,7 +839,7 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
 
     ***************************************************************************/
 
-    public scope class AllItemsIterator : SafeItemsIterator
+    public /* scope */ class AllItemsIterator : SafeItemsIterator
     {
         this ( )
         {
@@ -848,7 +853,7 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
 
     ***************************************************************************/
 
-    public scope class ReadOnlyAllItemsIterator : UnsafeItemsIterator
+    public /* scope */ class ReadOnlyAllItemsIterator : UnsafeItemsIterator
     {
         this ( )
         {
@@ -862,7 +867,7 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
 
     ***************************************************************************/
 
-    public scope class BusyItemsIterator : SafeItemsIterator
+    public /* scope */ class BusyItemsIterator : SafeItemsIterator
     {
         this ( )
         {
@@ -876,7 +881,7 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
 
     ***************************************************************************/
 
-    public scope class ReadOnlyBusyItemsIterator : UnsafeItemsIterator
+    public /* scope */ class ReadOnlyBusyItemsIterator : UnsafeItemsIterator
     {
         this ( )
         {
@@ -890,7 +895,7 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
 
     ***************************************************************************/
 
-    public scope class IdleItemsIterator : SafeItemsIterator
+    public /* scope */ class IdleItemsIterator : SafeItemsIterator
     {
         this ( )
         {
@@ -904,7 +909,7 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
 
     ***************************************************************************/
 
-    public scope class ReadOnlyIdleItemsIterator : UnsafeItemsIterator
+    public /* scope */ class ReadOnlyIdleItemsIterator : UnsafeItemsIterator
     {
         this ( )
         {
