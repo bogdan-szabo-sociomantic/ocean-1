@@ -254,7 +254,7 @@ class Lzo
 
  ******************************************************************************/
 
-version (UnitTest) private:
+version (UnitTest):
 
 // Uncomment the next line to see UnitTest output
 // version = UnitTestVerbose;

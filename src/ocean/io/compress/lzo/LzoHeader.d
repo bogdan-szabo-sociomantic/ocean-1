@@ -637,7 +637,7 @@ template SizeofTuple ( T ... )
  ******************************************************************************/
 
 
-version (UnitTest) private:
+version (UnitTest):
 
 import ocean.io.Stdout : Stderr;
 

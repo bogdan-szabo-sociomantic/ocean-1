@@ -268,7 +268,7 @@ class LzoChunk ( bool LengthInline = true )
     }
 }
 
-version (UnitTest) private:
+version (UnitTest):
 
 /*******************************************************************************
 
