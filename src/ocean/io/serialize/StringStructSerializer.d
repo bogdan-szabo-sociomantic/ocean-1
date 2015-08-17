@@ -58,6 +58,8 @@ module ocean.io.serialize.StringStructSerializer;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.core.Array;
 
 import ocean.io.serialize.StructSerializer;
@@ -108,7 +110,7 @@ public class StringStructSerializer ( Char )
 
     ***************************************************************************/
 
-    private char[] fp_format;
+    private cstring fp_format;
 
 
     /***************************************************************************
@@ -124,9 +126,10 @@ public class StringStructSerializer ( Char )
 
     public this ( size_t fp_dec_to_display = 2 )
     {
-        this.fp_format = "{}{} {} : {:.";
-        Format.format(this.fp_format, "{}", fp_dec_to_display);
-        this.fp_format ~= "}\n";
+        mstring tmp = "{}{} {} : {:.".dup;
+        Format.format(tmp, "{}", fp_dec_to_display);
+        tmp ~= "}\n";
+        this.fp_format = tmp;
     }
 
 
