@@ -52,7 +52,7 @@ import tango.util.compress.c.zlib;
 
 import tango.io.stream.Zlib : ZlibException, ZlibInput;
 
-
+import ocean.core.TypeConvert;
 
 
 /*******************************************************************************
@@ -191,7 +191,7 @@ class ZlibStreamDecompressor
         ubyte[1024] buffer; // stack buffer for decoding
 
         // Set stream input chunk.
-        this.stream.avail_in = compressed_chunk.length;
+        this.stream.avail_in = castFrom!(size_t).to!(uint)(compressed_chunk.length);
         this.stream.next_in = compressed_chunk.ptr;
 
         int ret;
