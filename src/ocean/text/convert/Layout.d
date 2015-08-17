@@ -39,6 +39,8 @@ module ocean.text.convert.Layout;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.core.Array : append;
 
 import ocean.util.container.AppendBuffer;
@@ -130,7 +132,7 @@ abstract class Layout ( T = char )
 
      **************************************************************************/
 
-    public typeof (this) format ( T[] fmt, ... )
+    public typeof (this) format ( Const!(T)[] fmt, ... )
     {
         return this.vformat(fmt, _arguments, _argptr);
     }
@@ -170,7 +172,7 @@ abstract class Layout ( T = char )
 
      **************************************************************************/
 
-    public typeof (this) vformat ( T[] fmt, TypeInfo[] arguments, va_list argptr )
+    public typeof (this) vformat ( Const!(T)[] fmt, TypeInfo[] arguments, va_list argptr )
     {
         if (arguments.length)
         {
@@ -232,7 +234,7 @@ abstract class Layout ( T = char )
 
      **************************************************************************/
 
-    abstract protected uint append ( T[] chunk );
+    abstract protected uint append ( Const!(T)[] chunk );
 }
 
 /*******************************************************************************
@@ -251,7 +253,7 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
 
     class AppendLayout : Layout!(T)
     {
-        protected override uint append ( T[] chunk )
+        protected override uint append ( Const!(T)[] chunk )
         {
             return cast (uint) this.outer.append(chunk).length;
         }
@@ -326,7 +328,7 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
 
      **************************************************************************/
 
-    T[] format ( T[] fmt, ... )
+    T[] format ( Const!(T)[] fmt, ... )
     {
         return this.vformat(fmt, _arguments, _argptr);
     }
@@ -348,7 +350,7 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
 
      **************************************************************************/
 
-    T[] vformat ( T[] fmt, TypeInfo[] arguments, va_list argptr )
+    T[] vformat ( Const!(T)[] fmt, TypeInfo[] arguments, va_list argptr )
     {
         this.layout.vformat(fmt, arguments, argptr);
 
