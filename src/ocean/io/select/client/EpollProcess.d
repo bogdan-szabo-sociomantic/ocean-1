@@ -137,6 +137,8 @@ module ocean.io.select.client.EpollProcess;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.util.container.map.Map;
 
 import ocean.io.select.client.model.ISelectClient;
@@ -744,7 +746,7 @@ public abstract class EpollProcess
 
     ***************************************************************************/
 
-    public void start ( char[][] args_with_command,
+    public void start ( cstring[] args_with_command,
                         ProcessMonitor process_monitor = null )
     {
         assert(this.state == State.None); // TODO: error notification?

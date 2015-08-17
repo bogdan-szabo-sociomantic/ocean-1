@@ -23,6 +23,8 @@ module ocean.io.select.protocol.fiber.FiberSocketConnection;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
 
 import ocean.io.select.EpollSelectDispatcher;
@@ -400,7 +402,7 @@ public class IFiberSocketConnection : IFiberSelectProtocol
 
      ***************************************************************************/
 
-    public char[] address ( )
+    public cstring address ( )
     {
         return this.connected_? this.address_ : "";
     }

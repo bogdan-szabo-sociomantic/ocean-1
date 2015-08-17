@@ -187,7 +187,8 @@ class TimeoutSelectedKeysHandler: SelectedKeysHandler
 
     ***************************************************************************/
 
-    extern (C) private static int cmpPtr ( bool searching ) ( void* a_, void* b_ )
+    extern (C) private static int cmpPtr ( bool searching ) ( in void* a_,
+        in void* b_ )
     {
         static if (searching)
         {
