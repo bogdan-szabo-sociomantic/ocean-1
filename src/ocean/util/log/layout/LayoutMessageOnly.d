@@ -21,6 +21,8 @@ module ocean.util.log.layout.LayoutMessageOnly;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import  tango.util.log.Log;
 
 
@@ -50,7 +52,7 @@ public class LayoutMessageOnly : Appender.Layout
 
     ***************************************************************************/
 
-    void format (LogEvent event, size_t delegate(void[]) dg)
+    void format (LogEvent event, size_t delegate(Const!(void)[]) dg)
     {
         dg (event.toString);
     }

@@ -26,6 +26,8 @@ module ocean.util.log.InsertConsole;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.io.Terminal;
 
 import tango.io.Console;
@@ -106,7 +108,7 @@ public class InsertConsole: Appender
 
      ***********************************************************************/
 
-    override char[] name ( )
+    override cstring name ( )
     {
         return this.classinfo.name;
     }
@@ -132,14 +134,13 @@ public class InsertConsole: Appender
 
         ushort pos = 0;
 
-        version (Win32) const char[] Eol = "\r\n";
-        else const char[] Eol = "\n";
+        const istring Eol = "\n";
 
         synchronized (stream_) with ( Terminal )
         {
             layout.format(
               event,
-              ( void[] content )
+              ( Const!(void)[] content )
               {
                   size_t written;
                   while (pos + content.length > buffer.length)
