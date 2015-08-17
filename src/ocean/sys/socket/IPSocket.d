@@ -82,6 +82,12 @@ public enum TcpOptions
 
 abstract class IIPSocket : ISocket
 {
+    version (D_Version2)
+    {
+        // add to overload set explicitly
+        alias ISocket.socket socket;
+    }
+
     /**************************************************************************
 
         Flags supported by accept4().
@@ -343,7 +349,7 @@ class IPSocket ( bool IPv6 = false ) : IIPSocket
 
     public int bind ( char[] local_ip_address, ushort local_port = 0 )
     {
-        InetAddress!(IPv6) in_address;
+        InetAddress in_address;
 
         sockaddr* local_address = in_address(local_ip_address, local_port);
 
@@ -366,7 +372,7 @@ class IPSocket ( bool IPv6 = false ) : IIPSocket
 
     public int bind ( ushort local_port = 0 )
     {
-        InetAddress!(IPv6) in_address;
+        InetAddress in_address;
 
         return super.bind(in_address(local_port));
     }
@@ -645,7 +651,7 @@ class IPSocket ( bool IPv6 = false ) : IIPSocket
 
     public int connect ( char[] remote_ip_address, ushort remote_port )
     {
-        InetAddress!(IPv6) in_address;
+        InetAddress in_address;
 
         sockaddr* remote_address = in_address(remote_ip_address, remote_port);
 

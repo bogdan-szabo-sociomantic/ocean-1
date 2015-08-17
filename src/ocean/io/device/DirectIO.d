@@ -234,6 +234,12 @@ public class BufferedDirectWriteFile: OutputStream
 
     static protected class DirectWriteFile : File
     {
+        version (D_Version2)
+        {
+            // add to overload set explicitly
+            alias File.open open;
+        }
+
         /***********************************************************************
 
             Opens a direct-write file at the specified path.
@@ -541,6 +547,12 @@ public class BufferedDirectReadFile: InputStream
 
     static private class DirectReadFile : File
     {
+        version (D_Version2)
+        {
+            // add to overload set explicitly
+            alias File.open open;
+        }
+
         void open(char[] path)
         {
             if (!super.open(path, this.ReadExisting, O_DIRECT))
