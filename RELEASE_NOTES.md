@@ -273,3 +273,8 @@ New Features
   The `HashRangeMap` struct provides a specialized map between `Range!(hash_t)`
   keys and arbitrary values, in a data structure that is serializable using
   `ocean.util.serialize.contiguous`.
+
+* `ocean.util.container.queue.NotifyingQueue`
+
+  `NotifyingByteQueue` (and `NotifyingQueue`) now implement the
+  `ISuspendable` interface from `ocean.io.model.ISuspendable`.

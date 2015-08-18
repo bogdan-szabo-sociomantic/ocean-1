@@ -88,6 +88,8 @@ import ocean.util.container.queue.model.IByteQueue;
 
 import ocean.util.container.queue.model.IQueueInfo;
 
+import ocean.io.model.ISuspendable;
+
 import ocean.io.serialize.StructSerializer;
 
 import ocean.core.Array;
@@ -104,7 +106,7 @@ import ocean.util.container.AppendBuffer;
 
 *******************************************************************************/
 
-class NotifyingByteQueue : IQueueInfo
+class NotifyingByteQueue : ISuspendable, IQueueInfo
 {
     /***************************************************************************
 
