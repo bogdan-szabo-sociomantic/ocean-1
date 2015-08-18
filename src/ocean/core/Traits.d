@@ -249,6 +249,83 @@ unittest
     static assert (hasIndirections!(int[int]) == true);
 }
 
+
+/*******************************************************************************
+
+    Checks if T or any of its subtypes is a multi-dimensional dynamic array.
+
+    T and all of its subtypes, if any, are expected to be
+      - an atomic type or
+      - a dynamic or static array or
+      - a struct or a union.
+
+    Template Params:
+        T = type to check
+
+    Returns:
+        true if T or any of its subtypes is a multi-dimensional dynamic array or
+        false otherwise.
+
+*******************************************************************************/
+
+public bool hasBranchedArrays ( T ) ()
+{
+    alias StripEnum!(StripTypedef!(T)) Type;
+
+    static if (is(Type Element: Element[])) // dynamic or static array of Element
+    {
+        static if (is(Type == Element[])) // dynamic array of Element
+        {
+            static if (isDynamicArrayType!(Element))
+            {
+                return true;
+            }
+            else
+            {
+                return hasBranchedArrays!(Element);
+            }
+        }
+        else  // static array of Element
+        {
+            return hasBranchedArrays!(Element);
+        }
+    }
+    else static if (is(Type == struct) || is(Type == union))
+    {
+        foreach (Field; typeof(Type.tupleof))
+        {
+            static if (hasBranchedArrays!(Field)())
+            {
+                return true;
+            }
+        }
+    }
+    else
+    {
+        static assert(isAtomicType!(Type), "T expected to be atomic, array, " ~
+                      "struct or union, not \"" ~ T.stringof ~ "\"");
+    }
+
+    return false;
+}
+
+unittest
+{
+    struct S
+    {
+        int x;
+        char[] y;
+        float[][][3][] z;
+    }
+
+    struct T
+    {
+        S[] s;
+    }
+
+    static assert(hasBranchedArrays!(T)());
+}
+
 /*******************************************************************************
 
     Template which evaluates to true if the specified type is a compound type
