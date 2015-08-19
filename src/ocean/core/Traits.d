@@ -322,19 +322,51 @@ private bool hasMultiDimensionalDynamicArraysImpl ( T ) ()
 
 unittest
 {
-    struct S
+    static assert(!hasMultiDimensionalDynamicArrays!(int));
+    static assert(!hasMultiDimensionalDynamicArrays!(int[ ]));
+    static assert(!hasMultiDimensionalDynamicArrays!(int[3]));
+
+    static assert( hasMultiDimensionalDynamicArrays!(int[ ][ ]));
+    static assert(!hasMultiDimensionalDynamicArrays!(int[3][ ]));
+    static assert(!hasMultiDimensionalDynamicArrays!(int[ ][3]));
+    static assert(!hasMultiDimensionalDynamicArrays!(int[3][3]));
+
+    static assert( hasMultiDimensionalDynamicArrays!(int[ ][ ][ ]));
+    static assert( hasMultiDimensionalDynamicArrays!(int[3][ ][ ]));
+    static assert(!hasMultiDimensionalDynamicArrays!(int[ ][3][ ]));
+    static assert(!hasMultiDimensionalDynamicArrays!(int[3][3][ ]));
+    static assert( hasMultiDimensionalDynamicArrays!(int[ ][ ][3]));
+    static assert(!hasMultiDimensionalDynamicArrays!(int[3][ ][3]));
+    static assert(!hasMultiDimensionalDynamicArrays!(int[ ][3][3]));
+    static assert(!hasMultiDimensionalDynamicArrays!(int[3][3][3]));
+
+    static assert(!hasMultiDimensionalDynamicArrays!(void));
+    static assert(!hasMultiDimensionalDynamicArrays!(void[]));
+    static assert( hasMultiDimensionalDynamicArrays!(void[][]));
+    static assert(!hasMultiDimensionalDynamicArrays!(void[][3]));
+
+    struct A
     {
         int x;
         char[] y;
         float[][][3][] z;
     }
 
-    struct T
+    struct B
     {
-        S[] s;
+        A[] a;
     }
 
-    static assert(hasMultiDimensionalDynamicArrays!(T));
+    static assert(hasMultiDimensionalDynamicArrays!(A));
+
+    struct C
+    {
+        int x;
+        float[][3][] y;
+        char[] z;
+    }
+
+    static assert(!hasMultiDimensionalDynamicArrays!(C));
 }
 
 /*******************************************************************************
