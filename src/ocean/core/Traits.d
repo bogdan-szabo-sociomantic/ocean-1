@@ -268,7 +268,7 @@ unittest
 
 *******************************************************************************/
 
-public bool hasBranchedArrays ( T ) ()
+public bool hasMultiDimensionalDynamicArrays ( T ) ()
 {
     alias StripEnum!(StripTypedef!(T)) Type;
 
@@ -282,19 +282,19 @@ public bool hasBranchedArrays ( T ) ()
             }
             else
             {
-                return hasBranchedArrays!(Element);
+                return hasMultiDimensionalDynamicArrays!(Element);
             }
         }
         else  // static array of Element
         {
-            return hasBranchedArrays!(Element);
+            return hasMultiDimensionalDynamicArrays!(Element);
         }
     }
     else static if (is(Type == struct) || is(Type == union))
     {
         foreach (Field; typeof(Type.tupleof))
         {
-            static if (hasBranchedArrays!(Field)())
+            static if (hasMultiDimensionalDynamicArrays!(Field)())
             {
                 return true;
             }
@@ -323,7 +323,7 @@ unittest
         S[] s;
     }
 
-    static assert(hasBranchedArrays!(T)());
+    static assert(hasMultiDimensionalDynamicArrays!(T)());
 }
 
 /*******************************************************************************
