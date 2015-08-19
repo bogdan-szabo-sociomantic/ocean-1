@@ -312,8 +312,9 @@ private bool hasMultiDimensionalDynamicArraysImpl ( T ) ()
     }
     else
     {
-        static assert(isAtomicType!(Type), "T expected to be atomic, array, " ~
-                      "struct or union, not \"" ~ T.stringof ~ "\"");
+        static assert(isAtomicType!(Type) || is(Type == void),
+                      "T expected to be atomic, array, struct or union, not \""
+                      ~ T.stringof ~ "\"");
     }
 
     return false;
