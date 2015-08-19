@@ -268,7 +268,17 @@ unittest
 
 *******************************************************************************/
 
-public bool hasMultiDimensionalDynamicArrays ( T ) ()
+public template hasMultiDimensionalDynamicArrays ( T )
+{
+    const hasMultiDimensionalDynamicArrays = hasMultiDimensionalDynamicArraysImpl!(T)();
+}
+
+/*
+ * This is a CTFE function rather than a template to allow for 'foreach' over
+ * a type tuple and prevent the Type alias from interfering.
+ */
+
+private bool hasMultiDimensionalDynamicArraysImpl ( T ) ()
 {
     alias StripEnum!(StripTypedef!(T)) Type;
 
@@ -282,19 +292,19 @@ public bool hasMultiDimensionalDynamicArrays ( T ) ()
             }
             else
             {
-                return hasMultiDimensionalDynamicArrays!(Element);
+                return hasMultiDimensionalDynamicArraysImpl!(Element);
             }
         }
         else  // static array of Element
         {
-            return hasMultiDimensionalDynamicArrays!(Element);
+            return hasMultiDimensionalDynamicArraysImpl!(Element);
         }
     }
     else static if (is(Type == struct) || is(Type == union))
     {
         foreach (Field; typeof(Type.tupleof))
         {
-            static if (hasMultiDimensionalDynamicArrays!(Field)())
+            static if (hasMultiDimensionalDynamicArraysImpl!(Field)())
             {
                 return true;
             }
@@ -323,7 +333,7 @@ unittest
         S[] s;
     }
 
-    static assert(hasMultiDimensionalDynamicArrays!(T)());
+    static assert(hasMultiDimensionalDynamicArrays!(T));
 }
 
 /*******************************************************************************
