@@ -52,6 +52,8 @@ module ocean.io.serialize.SimpleSerializer;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.core.Exception: enforce;
 
 import tango.core.Traits;
@@ -546,4 +548,3 @@ unittest
 
     version (UnitTestVerbose) Stdout.formatln("done unittest\n");
 }
-
