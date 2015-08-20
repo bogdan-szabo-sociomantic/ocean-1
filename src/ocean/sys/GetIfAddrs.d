@@ -16,17 +16,21 @@ module ocean.sys.GetIfAddrs;
 
 import tango.transition;
 
+import tango.stdc.errno;
+import tango.stdc.string;
+import tango.stdc.posix.arpa.inet;
+import tango.stdc.posix.netinet.in_: sockaddr_in, sockaddr_in6;
 import tango.stdc.posix.sys.socket;
 import tango.sys.linux.ifaddrs;
-import tango.stdc.string;
-import ocean.text.util.StringC;
 import tango.sys.linux.consts.socket: AF_INET, AF_INET6;
-import tango.stdc.posix.netinet.in_: sockaddr_in, sockaddr_in6;
-import tango.stdc.posix.arpa.inet;
+
 import ocean.core.Test;
 import ocean.core.TypeConvert;
-import tango.stdc.errno;
+import ocean.sys.ErrnoException;
+import ocean.text.util.StringC;
+
 debug import tango.io.Stdout;
+
 
 /*******************************************************************************
 
@@ -34,33 +38,9 @@ debug import tango.io.Stdout;
     interface fails.
 
 *******************************************************************************/
-class ResolveIPException: Exception
+
+class ResolveIPException : ErrnoException
 {
-    /**************************************************************************
-
-        Constructor. Construct the `ResolveIPException instance`.
-
-        Params:
-            file = file in which exception has been thrown
-            line = line where exception has been thrown
-            msg = error description message
-            errno = error code value
-
-    **************************************************************************/
-
-    public this(istring file, long line, char[] msg, int errno)
-    {
-        super(msg, file, line);
-        this.errno = errno;
-    }
-
-    /**************************************************************************
-
-        Error code from the failed system call.
-
-    **************************************************************************/
-
-    public int errno;
 }
 
 /*******************************************************************************
@@ -77,25 +57,25 @@ class ResolveIPException: Exception
 
 *******************************************************************************/
 
-char[][] getAddrsForInterface( char[] interface_name, bool ipv6 = false )
+istring[] getAddrsForInterface( cstring interface_name, bool ipv6 = false )
 {
-    char[][] addresses;
+    istring[] addresses;
     bool delegate_called = false;
 
     auto ret = getAddrsForInterface(interface_name, ipv6,
-        (char[] address, int getnameinfo_status)
+        (cstring address, int getnameinfo_status)
         {
             delegate_called = true;
 
             if (getnameinfo_status != 0)
             {
-                throw new ResolveIPException(__FILE__, __LINE__,
-                    "getnameinfo failed", getnameinfo_status);
+                throw (new ResolveIPException).set(getnameinfo_status,
+                                                   "getnameinfo failed");
             }
 
             if (address.length)
             {
-                addresses ~= address.dup;
+                addresses ~= idup(address);
             }
 
             return false;
@@ -103,45 +83,12 @@ char[][] getAddrsForInterface( char[] interface_name, bool ipv6 = false )
 
     if (ret && !delegate_called)
     {
-        throw new ResolveIPException(__FILE__, __LINE__, "getifaddrs failed", errno);
+        throw (new ResolveIPException).useGlobalErrno("getifaddrs");
     }
 
     return addresses;
 }
 
-/*******************************************************************************
-
-    Returns IP address for the network interface.
-
-    Params:
-        interface_name = Name of the interface (e.g. eth0)
-
-    Returns:
-        IP address of the interface as a string, if it could be resolved,
-        otherwise an empty string.
-
-*******************************************************************************/
-
-deprecated char[] getAddressForInterface(char[] interface_name)
-{
-    char[] address_out = null;
-
-    getAddrsForInterface(interface_name, false,
-        (char[] address, int getnameinfo_status)
-        {
-            if (address.length)
-            {
-                address_out = address.dup;
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        });
-
-    return address_out;
-}
 
 /*******************************************************************************
 
@@ -169,8 +116,8 @@ deprecated char[] getAddressForInterface(char[] interface_name)
 
 *******************************************************************************/
 
-bool getAddrsForInterface( char[] interface_name, bool ipv6,
-                           bool delegate ( char[] address,
+bool getAddrsForInterface( cstring interface_name, bool ipv6,
+                           bool delegate ( cstring address,
                                            int    getnameinfo_status ) dg )
 {
     ifaddrs* ifaddr;
