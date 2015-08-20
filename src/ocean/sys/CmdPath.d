@@ -4,34 +4,6 @@
 
     copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
 
-    version:        December 2009: Initial release
-
-    authors:        David Eckardt
-
-    --
-
-    Usage:
-
-        import $(TITLE);
-
-        void main ( char[][] args )
-        {
-            CmdPath cmdpath;
-
-            // set to path of running executable
-
-            cmdpath(args[0]);
-
-            // get absolute directory path of running executable
-
-            char[] exepath = cmdpath.get();
-
-            // get absolute path of file "config.ini" located in subdirectory
-            // "etc" of the running executable's directory
-
-            char[] cfgpath = cmdpath.prepend(["etc", "config.ini"]);
-        }
-
  ******************************************************************************/
 
 module ocean.sys.CmdPath;
@@ -42,11 +14,32 @@ module ocean.sys.CmdPath;
 
  ******************************************************************************/
 
+import tango.transition;
+
 import tango.sys.Environment;
 
 import tango.io.FilePath;
 
 import PathUtil = tango.io.Path: normalize;
+
+///
+unittest
+{
+    void main ( istring[] args )
+    {
+        CmdPath cmdpath;
+
+        // set to path of running executable
+        cmdpath.set(args[0]);
+
+        // get absolute directory path of running executable
+        auto exepath = cmdpath.get();
+
+        // get absolute path of file "config.ini" located in subdirectory
+        // "etc" of the running executable's directory
+        auto cfgpath = cmdpath.prepend(["etc", "config.ini"]);
+    }
+}
 
 /******************************************************************************
 
@@ -62,7 +55,7 @@ struct CmdPath
 
      **************************************************************************/
 
-    private char[] dir;
+    private istring dir;
 
     /**************************************************************************
 
@@ -76,7 +69,7 @@ struct CmdPath
 
      **************************************************************************/
 
-    public char[] set ( char[] exepath )
+    public istring set ( cstring exepath )
     {
         scope path = new FilePath(exepath);
 
@@ -96,9 +89,9 @@ struct CmdPath
 
      **************************************************************************/
 
-    public char[] get ( )
+    public istring get ( )
     {
-        return this.dir.dup;
+        return this.dir;
     }
 
     /**************************************************************************
@@ -113,7 +106,7 @@ struct CmdPath
 
      **************************************************************************/
 
-    public char[] prepend ( char[][] path ... )
+    public istring prepend ( istring[] path ... )
     {
         return FilePath.join(this.dir ~ path);
     }
