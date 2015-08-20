@@ -388,7 +388,7 @@ version ( UnitTest )
 unittest
 {
     timespec now;
-    clock_gettime(CLOCK_MONOTONIC, &now);
+    clock_gettime(ocean.sys.TimerFD.CLOCK_MONOTONIC, &now);
 
     auto timer = new TestTimerEvent;
     timer.absolute = true;
