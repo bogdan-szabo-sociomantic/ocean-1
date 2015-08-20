@@ -365,7 +365,7 @@ version ( UnitTest )
 
     extern ( C )
     {
-        typedef int clockid_t;
+        alias int clockid_t;
         int clock_gettime(clockid_t, timespec*);
     }
 
@@ -403,4 +403,3 @@ unittest
 
     test!("<=")(nsec, 10_000_000_000);
 }
-
