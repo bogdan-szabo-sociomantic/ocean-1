@@ -94,6 +94,74 @@ public struct HashRangeMap ( Value )
 
     /***************************************************************************
 
+        Tells whether the HashRangeMap is empty.
+
+        Returns:
+            true if the HashRangeMap is empty
+
+    ***************************************************************************/
+
+    public bool empty ( )
+    {
+        return this.length == 0;
+    }
+
+    unittest
+    {
+        // In order to make notation shorter
+        alias HashRange R;
+
+        {
+            HashRangeMap hrm;
+
+            test(hrm.empty, "HashRangeMap with no data should be reported as empty");
+        }
+
+        {
+            HashRangeMap hrm;
+            hrm.ranges = [R(1, 2), R(3, 15), R(10, 12)];
+            hrm.values = [Value.init, Value.init, Value.init];
+
+            test(!hrm.empty, "HashRangeMap with data can't be reported reported empty");
+        }
+    }
+
+
+    /***************************************************************************
+
+        Returns:
+            number of range-value pairs stored in the HashRangeMap
+
+    ***************************************************************************/
+
+    public size_t length ( )
+    {
+        return this.ranges.length;
+    }
+
+    unittest
+    {
+        // In order to make notation shorter
+        alias HashRange R;
+
+        {
+            HashRangeMap hrm;
+
+            test!("==")(hrm.length, 0);
+        }
+
+        {
+            HashRangeMap hrm;
+            hrm.ranges = [R(1, 2), R(3, 15), R(10, 12)];
+            hrm.values = [Value.init, Value.init, Value.init];
+
+            test!("==")(hrm.length, 3);
+        }
+    }
+
+
+    /***************************************************************************
+
         Looks up the mapping for range or adds one if not found
 
         Params:
