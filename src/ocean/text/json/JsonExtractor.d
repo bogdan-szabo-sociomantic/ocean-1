@@ -436,6 +436,35 @@ struct JsonExtractor
 
         /***********************************************************************
 
+            Add the field to the list of named objects to get.
+
+            Params:
+                name = the name of the field
+                field = the field instance
+
+         **********************************************************************/
+
+        public void addNamedField ( istring name, GetField field )
+        {
+            this.get_named_fields[name] = field;
+        }
+
+        /***********************************************************************
+
+            Remove a field from the list of named objects to get.
+
+            Params:
+                name = the name of the field
+
+         **********************************************************************/
+
+        public void removeNamedField ( istring name )
+        {
+            this.get_named_fields.remove(name);
+        }
+
+        /***********************************************************************
+
             Called by super.reset() to reset all field getters.
 
          **********************************************************************/
@@ -870,7 +899,7 @@ struct JsonExtractor
               site        = new GetObject(json, ["page": page]),
               user        = new GetObject(json, ["uid": uid]),
               imp_element = new GetObject(json, ["impid"[]: impid,
-                                                 "w": w, "h": h]),
+                                                 "w": w]),
               bcat        = new GetObject(json, true, ["not":not]),
               imp         = new GetArray(json, [imp_element],
                                        (uint i, Type type, cstring value)
@@ -888,6 +917,8 @@ struct JsonExtractor
                                        }),
            main          = new Main(json, ["id"[]: id, "imp": imp,
                                            "site": site, "user": user]);
+
+        imp_element.addNamedField("h", h);
 
         bool ok = main.parse(content);
 
@@ -913,6 +944,17 @@ struct JsonExtractor
 
         t.test!("==")(w.type, Type.Number);
         t.test!("==")(w.value, "640");
+
+        imp_element.removeNamedField("h");
+        h.reset();
+
+        ok = main.parse(content);
+
+        t.test(ok, "parse didn't return true");
+
+        t.test!("==")(h.type, Type.Empty);
+        t.test!("==")(h.value, "");
+
 
         ok = main.parse("{}");
 

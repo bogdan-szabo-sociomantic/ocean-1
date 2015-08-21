@@ -219,6 +219,12 @@ New Features
    The conditions for suspending/resuming are defined by the abstract methods
    of `suspend()`/`resume()`.
 
+* `ocean.text.json.JsonExtractor`
+
+   `GetObject` now contains two methods to enable removing and adding named
+   fields after construction. (Previously, the set of named fields was
+   specified in the constructor and could never be modified.)
+
 * `ocean.io.model.SuspendableThrottlerCount`
 
    A new counter based suspendable throttler has been added to suspend and
