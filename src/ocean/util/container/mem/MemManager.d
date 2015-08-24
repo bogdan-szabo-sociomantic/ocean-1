@@ -18,7 +18,7 @@ module ocean.util.container.mem.MemManager;
 
 import ocean.core.Exception;
 
-import tango.core.Exception : OutOfMemoryException;
+import tango.core.Exception : onOutOfMemoryError;
 
 import tango.stdc.stdlib : malloc, free;
 
@@ -61,6 +61,7 @@ IMemManager noScanGcMemManager;
 *******************************************************************************/
 
 IMemManager gcMemManager;
+
 
 
 static this ( )
@@ -279,7 +280,10 @@ private class MallocMemManager ( bool gc_aware ) : IMemManager
     public override ubyte[] create ( size_t dimension )
     {
         auto ptr = cast(ubyte*)malloc(dimension);
-        enforce!(OutOfMemoryException)(ptr !is null);
+        if (ptr !is null)
+        {
+            onOutOfMemoryError();
+        }
 
         static if ( gc_aware )
         {
