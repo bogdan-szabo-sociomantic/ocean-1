@@ -570,7 +570,8 @@ public class StatsLog : IStatsLog
     /***************************************************************************
 
         Adds the values of the given aggregate to the stats log. Each member of
-        the aggregate will be output as <member name>:<member value>.
+        the aggregate will be output as
+        <category>/<instance>/<member name>:<member value>.
 
         Template params:
             category = The name of the category this object belongs to.
