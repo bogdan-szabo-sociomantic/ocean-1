@@ -33,9 +33,9 @@ struct ByteConverter
          *     A integral of type T created with the supplied bytes placed
          *     in the specified byte order.
          */
-        static T to(T)(void[] x_)
+        static T to (T) (Const!(void)[] x_)
         {
-            ubyte[] x = cast(ubyte[])x_;
+            auto x = cast(Const!(ubyte)[])x_;
 
             T result = ((x[0] & 0xff)       |
                        ((x[1] & 0xff) << 8));
@@ -67,7 +67,7 @@ struct ByteConverter
          *     Integral input of type T split into its respective bytes
          *     with the bytes placed in the specified byte order.
          */
-        static ubyte[] from(T)(T input)
+        static ubyte[] from (T) (Const!(T) input)
         {
             ubyte[] output = new ubyte[T.sizeof];
 
@@ -96,9 +96,9 @@ struct ByteConverter
     struct BigEndian
     {
 
-        static T to(T)(void[] x_)
+        static T to (T) (Const!(void)[] x_)
         {
-            ubyte[] x = cast(ubyte[])x_;
+            auto x = cast(Const!(ubyte)[])x_;
 
             static if (is(T == ushort) || is(T == short))
             {
@@ -168,9 +168,9 @@ struct ByteConverter
      *     input
      */
 
-    static char[] hexEncode(void[] input_)
+    static mstring hexEncode(Const!(void)[] input_)
     {
-        char[] buffer;
+        mstring buffer;
 
         return(hexEncode(input_, buffer));
     }
@@ -187,9 +187,9 @@ struct ByteConverter
      *     input
      */
 
-    static char[] hexEncode(void[] input_, ref char[] output)
+    static mstring hexEncode(Const!(void)[] input_, ref mstring output)
     {
-        ubyte[] input = cast(ubyte[])input_;
+        auto input = cast(Const!(ubyte)[])input_;
         // make sure our buffer is big enough (2 hex digits per byte).
         output.length = input.length * 2;
 
@@ -205,7 +205,7 @@ struct ByteConverter
 
     unittest
     {
-        char[] buffer;
+        mstring buffer;
 
         test!("==")(hexEncode(cast(ubyte[])([
                         0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef
@@ -214,18 +214,9 @@ struct ByteConverter
         test!("==")(buffer.length, 16);
     }
 
-    /** Play nice with D2's idea of const. */
-    version (D_Version2)
+    static ubyte[] hexDecode(cstring input)
     {
-        static char[] hexEncode(char[] input_)
-        {
-            return hexEncode(cast(ubyte[])input_);
-        }
-    }
-
-    static ubyte[] hexDecode(char[] input)
-    {
-        char[] inputAsLower = stringToLower(input);
+        cstring inputAsLower = stringToLower(input);
         ubyte[] output = new ubyte[input.length>>1];
 
         static ubyte[char] hexitIndex;
@@ -241,13 +232,13 @@ struct ByteConverter
         return output;
     }
 
-    private static char[] stringToLower(char[] input)
+    private static mstring stringToLower(cstring input)
     {
-        char[] output = new char[input.length];
+        mstring output = new char[input.length];
 
         foreach (int i, char c; input)
             output[i] = cast(ubyte) ((c >= 'A' && c <= 'Z') ? c+32 : c);
 
-        return cast(char[])output;
+        return output;
     }
 }

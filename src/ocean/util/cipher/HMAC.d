@@ -44,6 +44,8 @@ module ocean.util.cipher.HMAC;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.core.Exception;
 
 import ocean.util.cipher.misc.ByteConverter;
@@ -196,7 +198,7 @@ public class HMAC
 
     ***************************************************************************/
 
-    public char[] name()
+    public istring name()
     {
         return "HMAC-" ~ this.hash.toString;
     }
@@ -279,7 +281,7 @@ public class HMAC
 
     ***************************************************************************/
 
-    public char[] hexDigest ( ref ubyte[] buffer )
+    public mstring hexDigest ( ref ubyte[] buffer )
     {
         return ByteConverter.hexEncode(this.digest(buffer));
     }
@@ -298,7 +300,7 @@ public class HMAC
 
      ***************************************************************************/
 
-    public char[] hexDigest ( ref ubyte[] buffer, ref char[] output)
+    public mstring hexDigest ( ref ubyte[] buffer, ref mstring output)
     {
         return ByteConverter.hexEncode(this.digest(buffer), output);
     }
@@ -319,7 +321,7 @@ version (UnitTest)
 
 unittest
 {
-    static char[][] test_keys = [
+    static istring[] test_keys = [
         "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
         "4a656665", // Jefe?
         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -329,7 +331,7 @@ unittest
         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     ];
 
-    static char[][] test_inputs = [
+    static istring[] test_inputs = [
         "4869205468657265",
         "7768617420646f2079612077616e7420666f72206e6f7468696e673f",
         "dd",
@@ -341,7 +343,7 @@ unittest
         1, 1, 50, 1
     ];
 
-    static char[][] test_results = [
+    static istring[] test_results = [
         "b617318655057264e28bc0b6fb378c8ef146be00",
         "effcdf6ae5eb2fa2d27416d5f184df9c259a7c79",
         "125d7342b9ac11cd91a39af48aa17b4f63f175d3",
@@ -351,12 +353,12 @@ unittest
     ubyte[] buffer;
 
     HMAC h = new HMAC(new Sha1());
-    foreach (uint i, char[] k; test_keys)
+    foreach (i, k; test_keys)
     {
         h.init(ByteConverter.hexDecode(k), buffer);
         for (int j = 0; j < test_repeat[i]; j++)
             h.update(ByteConverter.hexDecode(test_inputs[i]));
-        char[] mac = h.hexDigest(buffer);
+        auto mac = h.hexDigest(buffer);
         assert(mac == test_results[i],
                 h.name~": ("~mac~") != ("~test_results[i]~")");
     }
