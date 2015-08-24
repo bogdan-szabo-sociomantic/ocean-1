@@ -5,14 +5,9 @@
 
     copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
 
-    version:        January 2012: Initial release
-
-    authors:        Gavin Norman, Mathias Baumann
-
 *******************************************************************************/
 
 module ocean.util.container.mem.MemManager;
-
 
 
 /*******************************************************************************
@@ -29,6 +24,7 @@ import tango.stdc.stdlib : malloc, free;
 
 import tango.core.Memory;
 
+
 /*******************************************************************************
 
     C Malloc memory manager instance,
@@ -38,6 +34,7 @@ import tango.core.Memory;
 
 IMemManager noScanMallocMemManager;
 
+
 /*******************************************************************************
 
     C Malloc memory manager instance, scanned by the gc for pointers/references
@@ -45,6 +42,7 @@ IMemManager noScanMallocMemManager;
 *******************************************************************************/
 
 IMemManager mallocMemManager;
+
 
 /*******************************************************************************
 
@@ -55,6 +53,7 @@ IMemManager mallocMemManager;
 
 IMemManager noScanGcMemManager;
 
+
 /*******************************************************************************
 
     GC memory manager instance, scanned by the gc for pointers/references
@@ -63,6 +62,7 @@ IMemManager noScanGcMemManager;
 
 IMemManager gcMemManager;
 
+
 static this ( )
 {
     noScanMallocMemManager = new MallocMemManager!(false);
@@ -70,6 +70,7 @@ static this ( )
     mallocMemManager       = new MallocMemManager!(true);
     gcMemManager           = new GCMemManager!(true);
 }
+
 
 /*******************************************************************************
 
