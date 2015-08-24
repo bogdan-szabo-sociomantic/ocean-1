@@ -62,7 +62,9 @@ module ocean.util.container.FixedKeyMap;
 
 *******************************************************************************/
 
+import tango.transition;
 import ocean.core.Array: copy, bsearch;
+import ocean.core.Exception;
 
 debug import ocean.io.Stdout;
 
@@ -110,16 +112,16 @@ public class FixedKeyMap ( K, V )
 
     static public class FixedKeyMapException : Exception
     {
-        public this ( )
+        public this ()
         {
-            super("");
+            super(null);
             super.file = __FILE__;
         }
 
-        public typeof(this) opCall ( char[] msg, long line )
+        public typeof(this) set ( istring msg, long line = __LINE__ )
         {
             super.msg = msg;
-            super.file = __FILE__;
+            super.line = line;
             return this;
         }
     }
@@ -137,7 +139,7 @@ public class FixedKeyMap ( K, V )
 
     ***************************************************************************/
 
-    public this ( K[] keys )
+    public this ( Const!(K[]) keys )
     {
         this.keys.copy(keys);
         this.keys.sort;
@@ -176,7 +178,7 @@ public class FixedKeyMap ( K, V )
 
     ***************************************************************************/
 
-    public V opIndex ( K key )
+    public V opIndex ( Const!(K) key )
     {
         return this.values[this.keyIndex(key, true)];
     }
@@ -195,7 +197,7 @@ public class FixedKeyMap ( K, V )
 
     ***************************************************************************/
 
-    public void opIndexAssign ( V value, K key )
+    public void opIndexAssign ( V value, Const!(K) key )
     {
         this.values[this.keyIndex(key, true)] = value;
     }
@@ -214,7 +216,7 @@ public class FixedKeyMap ( K, V )
 
     ***************************************************************************/
 
-    public V* opIn_r ( K key )
+    public V* opIn_r ( Const!(K) key )
     {
         auto pos = this.keyIndex(key, false);
         auto found = pos < this.keys.length;
@@ -295,7 +297,7 @@ public class FixedKeyMap ( K, V )
 
     ***************************************************************************/
 
-    private size_t keyIndex ( K key, bool throw_if_not_found )
+    private size_t keyIndex ( Const!(K) key, bool throw_if_not_found )
     {
         size_t pos;
         auto found = this.keys.bsearch(key, pos);
@@ -304,7 +306,7 @@ public class FixedKeyMap ( K, V )
         {
             if ( throw_if_not_found )
             {
-                throw this.exception("Key not in map", __LINE__);
+                throw this.exception.set("Key not in map");
             }
             else
             {
@@ -320,7 +322,7 @@ public class FixedKeyMap ( K, V )
 
 unittest
 {
-    auto map = new FixedKeyMap!(char[], char[])(["first", "second", "third"]);
+    auto map = new FixedKeyMap!(istring, istring)(["first", "second", "third"]);
     assert(("first" in map) !is null);
     assert(("second" in map) !is null);
     assert(("third" in map) !is null);
@@ -351,4 +353,3 @@ unittest
     }
     assert(caught);
 }
-
