@@ -556,7 +556,7 @@ public struct UtfString ( Char = char, bool pull_dchars = false )
                 return InvalidUnicode;
             }
 
-            static if ( is(Char == dchar) )
+            static if ( is(Unqual!(Char) == dchar) )
             {
                 width = 1;
                 return text[0];
@@ -577,7 +577,7 @@ public struct UtfString ( Char = char, bool pull_dchars = false )
                 return "";
             }
 
-            static if ( is(Char == dchar) )
+            static if ( is(Unqual!(Char) == dchar) )
             {
                 width = 1;
             }
@@ -599,4 +599,3 @@ unittest
 
     assert(utf_match(str1, str2));
 }
-
