@@ -642,7 +642,7 @@ public class StatsLog : IStatsLog
 
     ***************************************************************************/
 
-    private void format ( istring category, T ) ( ref T values, istring name )
+    private void format ( istring category, T ) ( ref T values, istring instance )
     {
         foreach ( i, value; values.tupleof )
         {
@@ -658,7 +658,7 @@ public class StatsLog : IStatsLog
             {
                 this.layout(' ');
             }
-            this.formatValue!(category)(FieldName!(i, T), value, name);
+            this.formatValue!(category)(FieldName!(i, T), value, instance);
             this.add_separator = true;
         }
     }
