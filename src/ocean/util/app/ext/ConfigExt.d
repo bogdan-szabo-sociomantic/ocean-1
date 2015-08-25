@@ -203,7 +203,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     public void processOverrides ( Arguments args )
     {
-        cstring category, key, value;
+        istring category, key, value;
 
         foreach (opt; args("override-config").assigned)
         {
@@ -237,12 +237,12 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    public cstring validateArgs ( IApplication app, Arguments args )
+    public istring validateArgs ( IApplication app, Arguments args )
     {
-        cstring[] errors;
+        istring[] errors;
         foreach (opt; args("override-config").assigned)
         {
-            cstring cat, key, val;
+            istring cat, key, val;
 
             auto error = this.parseOverride(opt, cat, key, val);
 
@@ -252,7 +252,8 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
             errors ~= error;
         }
 
-        return join(errors, ", ");
+        auto ret = join(errors, ", ");
+        return assumeUnique(ret);
     }
 
 
@@ -375,8 +376,8 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    private cstring parseOverride ( cstring opt, out cstring category,
-                                    out cstring key, out cstring value )
+    private istring parseOverride ( istring opt, out istring category,
+                                    out istring key, out istring value )
     {
         opt = trim(opt);
 
@@ -427,10 +428,10 @@ unittest
     auto ext = new ConfigExt;
 
     // Errors are compared only with startsWith(), not the whole error
-    void testParser ( cstring opt, cstring exp_cat, cstring exp_key,
-                      cstring exp_val, cstring expected_error = null )
+    void testParser ( istring opt, istring exp_cat, istring exp_key,
+                      istring exp_val, istring expected_error = null )
     {
-        cstring cat, key, val;
+        istring cat, key, val;
 
         auto t = new NamedTest(opt);
 
@@ -457,7 +458,7 @@ unittest
     }
 
     // Shortcut to test expected errors
-    void testParserError ( cstring opt, cstring expected_error )
+    void testParserError ( istring opt, istring expected_error )
     {
         testParser(opt, null, null, null, expected_error);
     }

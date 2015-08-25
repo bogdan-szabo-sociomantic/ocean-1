@@ -28,7 +28,7 @@ import tango.transition;
 
 *******************************************************************************/
 
-private class ExitException : Exception
+public class ExitException : Exception
 {
 
     /***************************************************************************

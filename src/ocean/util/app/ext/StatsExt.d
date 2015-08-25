@@ -87,7 +87,7 @@ class StatsExt : IConfigExtExtension
     {
         auto stats_config = ClassFiller.fill!(IStatsLog.Config)("STATS", config);
 
-        Appender newAppender ( char[] file, Appender.Layout layout )
+        Appender newAppender ( istring file, Appender.Layout layout )
         {
             auto reopenable_files_ext =
                 (cast(Application)app).getExtension!(ReopenableFilesExt);

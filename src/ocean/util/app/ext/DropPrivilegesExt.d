@@ -132,9 +132,9 @@ class DropPrivilegesExt : IConfigExtExtension
             else
             {
                 char* err = strerror(res);
-
-                throw new Exception("Error while getting user " ~ usr ~
-                                    ": " ~ fromStringz(err));
+                auto msg = "Error while getting user " ~ usr ~
+                    ": " ~ fromStringz(err);
+                throw new Exception(assumeUnique(msg));
             }
         }
 
@@ -145,9 +145,9 @@ class DropPrivilegesExt : IConfigExtExtension
         if ( res != 0 )
         {
             char* err = strerror(errno());
-
-            throw new Exception("Failed to set process user id to " ~ usr
-                                ~ ": " ~ fromStringz(err));
+            auto msg = "Failed to set process user id to " ~ usr
+                ~ ": " ~ fromStringz(err);
+            throw new Exception(assumeUnique(msg));
         }
     }
 
@@ -181,9 +181,9 @@ class DropPrivilegesExt : IConfigExtExtension
             else
             {
                 char* err = strerror(res);
-
-                throw new Exception("Error while getting group " ~ grp ~
-                                    ": " ~ fromStringz(err));
+                auto msg = "Error while getting group " ~ grp ~
+                    ": " ~ fromStringz(err);
+                throw new Exception(assumeUnique(msg));
             }
         }
 
@@ -194,9 +194,9 @@ class DropPrivilegesExt : IConfigExtExtension
         if ( res != 0 )
         {
             char* err = strerror(errno());
-
-            throw new Exception("Failed to set process user group to " ~ grp
-                                ~ ": " ~ fromStringz(err));
+            auto msg = "Failed to set process user group to " ~ grp
+                ~ ": " ~ fromStringz(err);
+            throw new Exception(assumeUnique(msg));
         }
     }
 

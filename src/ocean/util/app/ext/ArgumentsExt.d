@@ -290,7 +290,7 @@ unittest
         // No errors should be printed
         test!("==")(stderr_dev.bufferSize, 0);
         // Help should be printed to stdout
-        auto s = cast(Const!(char)[]) stdout_dev.peek();
+        auto s = cast(mstring) stdout_dev.peek();
         test(s.length > 0,
                 "Stdout should have some help message but it's empty");
         test(s.find(arg.args.desc) < s.length,
