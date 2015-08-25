@@ -526,8 +526,11 @@ struct LimitCmp ( T, T init = T.init, alias comp = defComp!(T), Set... )
 
         foreach ( el ; Set )
         {
-            static assert ( is ( typeof(el) : T ),
-                    "Tuple contains incompatible types!" );
+            static assert (
+                is ( typeof(el) : T ),
+                "Tuple contains incompatible types! ("
+                    ~ typeof(el).stringof ~ " to " ~ T.stringof ~ " )"
+            );
 
             if ( comp(Value(this.value), el) )
                 return;
@@ -550,7 +553,7 @@ struct LimitCmp ( T, T init = T.init, alias comp = defComp!(T), Set... )
 
 unittest
 {
-    test(is(typeof({LimitCmp!(short, 1, defComp!(short), 0, 1) val; })));
+    test(is(typeof({ LimitCmp!(int, 1, defComp!(int), 0, 1) val; })));
     test(is(typeof({ LimitCmp!(istring, "", defComp!(istring), "red", "green") val; })));
 }
 
@@ -572,7 +575,7 @@ template LimitInit ( T, T init = T.init, Set... )
 
 unittest
 {
-    test(is(typeof({LimitInit!(short, 1, 0, 1) val;})));
+    test(is(typeof({LimitInit!(int, 1, 0, 1) val;})));
     test(is(typeof({LimitInit!(istring, "green", "red", "green") val;})));
 }
 
