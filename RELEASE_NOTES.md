@@ -73,3 +73,7 @@ New Features
 
   Added an overloaded constructor to the `StandardKeyHashingMap` class which
   allows usage of a custom allocator instead of the default one.
+
+* `ocean.io.select.client.Scheduler`
+
+  A new method, `clear()`, has been added, which unregisters all pending events.

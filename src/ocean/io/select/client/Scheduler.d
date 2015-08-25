@@ -206,6 +206,18 @@ public class Scheduler ( EventData ) : TimerEventTimeoutManager
 
         /***********************************************************************
 
+            Unregisters this event.
+
+        ***********************************************************************/
+
+        public void unregister ( )
+        {
+            this.expiry_registration.unregister();
+        }
+
+
+        /***********************************************************************
+
             ITimeoutClient interface method. Invoked when the client times out.
             Calls the fired delegate and returns this event to the event pool.
 
@@ -338,6 +350,22 @@ public class Scheduler ( EventData ) : TimerEventTimeoutManager
 
     public alias scheduled_events length;
 
+
+    /***************************************************************************
+
+        Unregisters all registered events (thus calls stopTimeout()).
+
+    ***************************************************************************/
+
+    public void clear ( )
+    {
+        scope iterator = this.events.new BusyItemsIterator;
+        foreach ( event; iterator )
+        {
+            event.unregister();
+        }
+        this.events.clear();
+    }
 
     /***************************************************************************
 
