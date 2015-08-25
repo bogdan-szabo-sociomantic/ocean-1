@@ -694,7 +694,7 @@ abstract scope class IVaList
             if (offset_fpregs < (__va_argsave_t.regs.sizeof +  __va_argsave_t.fpregs.sizeof) && !stack)
             {
                 p = reg_args + offset_fpregs;
-                offset_fpregs += __va_argsave_t.fpregs[0].sizeof;
+                offset_fpregs += __va_argsave_t.init.fpregs[0].sizeof;
             }
             else if (set_stack)
             {
@@ -711,7 +711,7 @@ abstract scope class IVaList
             if (offset_regs < __va_argsave_t.regs.sizeof && !stack)
             {
                 p = reg_args + offset_regs;
-                offset_regs += __va_argsave_t.regs[0].sizeof;
+                offset_regs += __va_argsave_t.init.regs[0].sizeof;
             }
             else if (set_stack)
             {
