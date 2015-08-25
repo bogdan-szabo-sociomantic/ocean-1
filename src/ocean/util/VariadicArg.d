@@ -214,7 +214,7 @@ scope class VaList : IVaList
 
     public void skip ( TypeInfo info )
     {
-        return this.va_arg(info, null);
+        this.va_arg(info, null);
     }
 }
 
