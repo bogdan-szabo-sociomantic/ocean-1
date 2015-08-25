@@ -407,21 +407,26 @@ class ConfigParser
 
     public void parseString ( istring str, bool clean_old = true )
     {
-        int get_line ( int delegate ( ref istring x ) dg )
+        static struct Iterator
         {
-            int result = 0;
+            istring data;
 
-            foreach ( ref line; lines(str) )
+            int opApply ( int delegate ( ref istring x ) dg )
             {
-                result = dg(line);
+                int result = 0;
 
-                if ( result ) break;
+                foreach ( ref line; lines(this.data) )
+                {
+                    result = dg(line);
+
+                    if ( result ) break;
+                }
+
+                return result;
             }
-
-            return result;
         }
 
-        this.parseIter(&get_line, clean_old);
+        this.parseIter(Iterator(str), clean_old);
     }
 
 
@@ -965,6 +970,7 @@ class ConfigParser
         }
 
         ctx.value.length = 0;
+        enableStomping(ctx.value);
     }
 
 
@@ -1018,6 +1024,7 @@ class ConfigParser
             }
 
             keys_to_remove.length = 0;
+            enableStomping(keys_to_remove);
         }
 
         // Remove categories that have no keys
@@ -1048,8 +1055,11 @@ class ConfigParser
         auto ctx = &this.context;
 
         ctx.value.length    = 0;
+        enableStomping(ctx.value);
         ctx.category.length = 0;
+        enableStomping(ctx.category);
         ctx.key.length      = 0;
+        enableStomping(ctx.key);
         ctx.multiline_first = true;
     }
 
@@ -1110,6 +1120,7 @@ class ConfigParser
             ctx.category.copy(cat);
 
             ctx.key.length = 0;
+            enableStomping(ctx.key);
         }
         else
         {
