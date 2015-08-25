@@ -24,6 +24,8 @@ module ocean.text.util.StringSearch;
 
  ******************************************************************************/
 
+import tango.transition;
+
 import c_stddef = tango.stdc.stddef: wchar_t;
 import c_wctype = tango.stdc.wctype;
 import c_ctype  = tango.stdc.ctype;
@@ -679,6 +681,36 @@ struct StringSearch ( bool wide_char = false )
 
     /**************************************************************************
 
+        Checks if all symbols of `str` are not modified by predicate
+        `convert`, creates a duplicate otherwise. 
+
+        Params
+            str = string to check/convert
+
+        Returns:
+            `str` untouched if all symbols are already converted, duplicated
+            and converted string otherwise
+
+     **************************************************************************/
+
+    Const!(Char)[] charConvDup ( alias convert ) ( Const!(Char)[] str )
+    {
+        foreach (Char c; str)
+        {
+            if (c != cast(Char) convert(c))
+            {
+                auto newstr = str.dup;
+                foreach (ref Char c2; newstr)
+                    c2 = cast(Char) convert(c2);
+                return assumeUnique(newstr);
+            } 
+        }
+
+        return str;
+    }
+
+    /**************************************************************************
+
          Converts "str" in-place to lower case.
 
          Params:
@@ -690,6 +722,21 @@ struct StringSearch ( bool wide_char = false )
      **************************************************************************/
 
     alias charConv!(toLower) strToLower;
+
+    /**************************************************************************
+
+         Ensures "str" is all lower case, allocates new copy and converts it
+         otherwise.
+
+         Params:
+              str = string to check
+
+         Returns:
+              converted/verified string
+
+     **************************************************************************/
+
+    alias charConvDup!(toLower) strEnsureLower;
 
     /**************************************************************************
 

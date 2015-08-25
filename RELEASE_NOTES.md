@@ -292,3 +292,9 @@ New Features
   impact in most cases since the number of registered notifiers is typically
   very low.
 
+* `ocean.text.util.StringSearch`
+
+  New string helper method, `strEnsureLower` is immutable-friendly version
+  of `strToLower` from same module. Instead of converting string in-place
+  it checks if conversion is needed at all and allocates new copy only
+  if it is actually needed.
