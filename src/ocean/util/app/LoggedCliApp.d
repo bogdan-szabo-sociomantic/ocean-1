@@ -168,13 +168,19 @@ abstract class LoggedCliApp : ConfiguredCliApp, ILogExtExtension
 
     ***************************************************************************/
 
-    public void exit(int status, istring msg = null, Logger logger = null )
+    public void exit(int status, istring msg, Logger logger)
     {
         if (logger !is null)
         {
             logger.fatal(msg);
         }
         throw new ExitException(status, msg);
+    }
+
+    /// ditto
+    override public void exit(int status, istring msg = null)
+    {
+        this.exit(status, msg, null);
     }
 
 
