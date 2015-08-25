@@ -540,3 +540,23 @@ unittest
 
     static assert (!is(typeof(Serializer.serialize(input, buffer))));
 }
+
+/******************************************************************************
+
+    Allocation Control
+
+******************************************************************************/
+
+unittest
+{
+    auto t = new NamedTest("Memory Usage");
+    auto s = defaultS();
+    void[] buffer;
+
+    Serializer.serialize(s, buffer);
+    testNoAlloc(Serializer.serialize(s, buffer));
+    auto cont_s = Deserializer.deserialize!(S)(buffer);
+    testNoAlloc(Deserializer.deserialize!(S)(buffer));
+    buffer = buffer.dup;
+    testNoAlloc(Deserializer.deserialize!(S)(buffer, cont_s));
+}

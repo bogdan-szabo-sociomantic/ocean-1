@@ -15,6 +15,8 @@ module ocean.util.serialize.contiguous.Serializer;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.util.serialize.model.Traits;
 
 import ocean.core.Traits : ContainsDynamicArray;
@@ -188,6 +190,7 @@ struct Serializer
             else
             {
                 buffer.length = len;
+                enableStomping(buffer);
             }
         }
 

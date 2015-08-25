@@ -260,6 +260,7 @@ struct Deserializer
         if (src.length < total_length)
         {
             src.length = total_length;
+            enableStomping(src);
         }
 
         assert(src.length >= data_len);
@@ -334,11 +335,13 @@ struct Deserializer
         if (dst.data.length < total_length)
         {
             dst.data.length = total_length;
+            enableStomping(dst.data);
         }
         if (src.length > total_length)
         {
             // ignore tail bytes not used in deserialization
             src.length = total_length;
+            enableStomping(src);
         }
 
         dst.data[0 .. src.length] = src[0 .. $];

@@ -183,7 +183,7 @@ struct Version
     unittest
     {
         Version.Type V = 42;
-        void[] data = [ V, 1, 1 ];
+        void[] data = [ V, cast(Version.Type) 1, cast(Version.Type) 1 ];
         Version.Type ver;
         auto data_unver = extract(data, ver);
         test!("==")(ver, V);

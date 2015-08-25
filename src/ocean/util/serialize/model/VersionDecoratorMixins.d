@@ -44,6 +44,8 @@ version (UnitTest) import ocean.core.Test;
 
 template StoreMethod(Serializer)
 {
+    import tango.transition;
+
     /***************************************************************************
 
         Serializes `input` with This.Serializer and prepends version number
@@ -70,6 +72,7 @@ template StoreMethod(Serializer)
 
         buffer.length = Serializer.countRequiredSize(input)
             + Version.Type.sizeof;
+        enableStomping(buffer);
         auto unversioned = Version.inject(buffer, VInfo.number);
         Serializer.serialize!(S)(input, unversioned);
 
@@ -211,6 +214,8 @@ template HandleVersionMethod(Deserializer, alias exception_field)
 
 template ConvertMethod(Serializer, Deserializer)
 {
+    import tango.transition;
+
     /***************************************************************************
 
         Persistent buffer reused for temporary allocations needed for struct
@@ -256,6 +261,7 @@ template ConvertMethod(Serializer, Deserializer)
 
         if (this.struct_buffer.length < buffer.length)
             this.struct_buffer.length = buffer.length;
+        enableStomping(this.struct_buffer);
         this.struct_buffer[0 .. buffer.length] = buffer[];
 
         auto tmp_struct = Deserializer.deserialize!(Source)(this.struct_buffer);
