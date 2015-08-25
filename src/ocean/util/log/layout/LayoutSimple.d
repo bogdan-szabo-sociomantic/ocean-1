@@ -12,6 +12,8 @@
 
 module ocean.util.log.layout.LayoutSimple;
 
+import tango.transition;
+
 import  tango.text.Util;
 
 import  tango.time.Clock,
@@ -62,9 +64,9 @@ public class LayoutSimple : Appender.Layout
 
         ***********************************************************************/
 
-        void format (LogEvent event, size_t delegate(void[]) dg)
+        void format (LogEvent event, size_t delegate(Const!(void)[]) dg)
         {
-                char[] level = event.levelName;
+                auto level = event.levelName;
 
                 // format date according to ISO-8601 (lightweight formatter)
                 char[20] tmp = void;
@@ -82,7 +84,7 @@ public class LayoutSimple : Appender.Layout
 
         **********************************************************************/
 
-        private char[] convert (char[] tmp, long i)
+        private mstring convert (mstring tmp, long i)
         {
                 return Integer.formatter (tmp, i, 'u', '?', 8);
         }

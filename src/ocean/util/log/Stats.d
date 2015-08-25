@@ -200,7 +200,7 @@ public class PeriodicStatsLog ( T ) : IPeriodicStatsLog
         PostLogDg post_log_dg, size_t file_count = IStatsLog.default_file_count,
         size_t max_file_size = IStatsLog.default_max_file_size,
         time_t period = IStatsLog.default_period,
-        char[] file_name = IStatsLog.default_file_name )
+        istring file_name = IStatsLog.default_file_name )
     {
         this(epoll, value_dg, post_log_dg,
              new StatsLog(file_count, max_file_size, file_name),
@@ -352,7 +352,7 @@ public abstract class IPeriodicStatsLog
         size_t file_count = IStatsLog.default_file_count,
         size_t max_file_size = IStatsLog.default_max_file_size,
         time_t period = IStatsLog.default_period,
-        char[] file_name = IStatsLog.default_file_name )
+        istring file_name = IStatsLog.default_file_name )
     {
         this(epoll,
              new StatsLog(file_count, max_file_size, file_name),
@@ -464,7 +464,7 @@ public class StatsLog : IStatsLog
 
     ***************************************************************************/
 
-    public this ( Config config, char[] name = "Stats" )
+    public this ( Config config, istring name = "Stats" )
     {
         super(config, name);
     }
@@ -484,8 +484,8 @@ public class StatsLog : IStatsLog
     ***************************************************************************/
 
     public this ( Config config,
-        Appender delegate ( char[] file, Appender.Layout layout ) new_appender,
-        char[] name = "Stats" )
+        Appender delegate ( istring file, Appender.Layout layout ) new_appender,
+        istring name = "Stats" )
     {
         super(config, new_appender, name);
     }
@@ -507,7 +507,7 @@ public class StatsLog : IStatsLog
 
     public this ( size_t file_count = default_file_count,
         size_t max_file_size = default_max_file_size,
-        char[] file_name = default_file_name, char[] name = "Stats" )
+        istring file_name = default_file_name, istring name = "Stats" )
     {
         super(new Config(file_name, max_file_size, file_count), name);
     }
@@ -527,7 +527,7 @@ public class StatsLog : IStatsLog
 
     ***************************************************************************/
 
-    public this ( char[] file_name, char[] name = "Stats" )
+    public this ( istring file_name, istring name = "Stats" )
     {
         this(default_file_count, default_max_file_size, file_name, name);
     }
@@ -547,7 +547,7 @@ public class StatsLog : IStatsLog
     {
         static assert (is(T == struct) || is(T == class),
                        "Parameter to add must be a struct or a class");
-        this.format!(null)(values, cstring.init);
+        this.format!(null)(values, istring.init);
         this.add_separator = true;
 
         return this;
@@ -569,7 +569,7 @@ public class StatsLog : IStatsLog
     ***************************************************************************/
 
     public typeof(this) addObject (istring category, T)
-        (cstring instance, T values)
+        (istring instance, T values)
     in
     {
         static assert (is(T == struct) || is(T == class),
@@ -628,7 +628,7 @@ public class StatsLog : IStatsLog
 
     ***************************************************************************/
 
-    private void format ( istring category, T ) ( ref T values, cstring name )
+    private void format ( istring category, T ) ( ref T values, istring name )
     {
         foreach ( i, value; values.tupleof )
         {
@@ -668,14 +668,14 @@ public abstract class IStatsLog
 
     public static class Config
     {
-        char[] file_name = default_file_name;
+        istring file_name = default_file_name;
         size_t max_file_size = default_max_file_size;
         size_t file_count = default_file_count;
         size_t start_compress = default_start_compress;
 
-        this ( char[] file_name, size_t max_file_size, size_t file_count )
+        this ( istring file_name, size_t max_file_size, size_t file_count )
         {
-            this.file_name = file_name;
+            this.file_name = idup(file_name);
             this.max_file_size = max_file_size;
             this.file_count = file_count;
         }
@@ -725,9 +725,9 @@ public abstract class IStatsLog
 
     ***************************************************************************/
 
-    public this ( Config config, char[] name = "Stats" )
+    public this ( Config config, istring name = "Stats" )
     {
-        Appender newAppender ( char[] file, Appender.Layout layout )
+        Appender newAppender ( istring file, Appender.Layout layout )
         {
             return new AppendSyslog(file,
                 castFrom!(size_t).to!(int)(config.file_count),
@@ -752,8 +752,8 @@ public abstract class IStatsLog
     ***************************************************************************/
 
     public this ( Config config,
-        Appender delegate ( char[] file, Appender.Layout layout ) new_appender,
-        char[] name = "Stats" )
+        Appender delegate ( istring file, Appender.Layout layout ) new_appender,
+        istring name = "Stats" )
     {
         this.logger = Log.lookup(name);
         this.logger.clear();
@@ -793,7 +793,7 @@ public abstract class IStatsLog
     ***************************************************************************/
 
     protected void formatValue (istring category, V)
-        (cstring value_name, V value, cstring instance = null)
+        (istring value_name, V value, istring instance = null)
     in
     {
         assert(value_name !is null);

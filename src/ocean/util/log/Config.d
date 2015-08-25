@@ -78,6 +78,8 @@ module ocean.util.log.Config;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.io.Stdout;
 import ocean.core.Array : removePrefix, removeSuffix;
 import ocean.util.config.ClassFiller;
@@ -111,7 +113,7 @@ class Config
 
     ***************************************************************************/
 
-    public char[] level;
+    public cstring level;
 
     /***************************************************************************
 
@@ -127,7 +129,7 @@ class Config
 
     ***************************************************************************/
 
-    public char[] console_layout;
+    public istring console_layout;
 
     /***************************************************************************
 
@@ -135,7 +137,7 @@ class Config
 
     ***************************************************************************/
 
-    public SetInfo!(char[]) file;
+    public SetInfo!(istring) file;
 
     /***************************************************************************
 
@@ -143,7 +145,7 @@ class Config
 
     ***************************************************************************/
 
-    public char[] file_layout;
+    public istring file_layout;
 
     /***************************************************************************
 
@@ -244,11 +246,11 @@ alias Appender.Layout Layout;
 
 *******************************************************************************/
 
-public Layout newLayout ( char[] layout_str )
+public Layout newLayout ( istring layout_str )
 {
     Layout layout;
 
-    char[] tweaked_str = layout_str.dup;
+    mstring tweaked_str = layout_str.dup;
 
     StringSearch!() s;
 
@@ -329,7 +331,7 @@ public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
                                MetaConfig m_config, bool loose = false,
                                bool use_insert_appender = false )
 {
-    Appender newAppender ( char[] file, Appender.Layout layout )
+    Appender newAppender ( istring file, Appender.Layout layout )
     {
         return new AppendSyslog(file,
             m_config.file_count,
@@ -369,7 +371,7 @@ public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
 public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
     ConsoleLayout = LayoutSimple )
     ( ClassIterator!(Config, Source) config, MetaConfig m_config,
-    Appender delegate ( char[] file, Layout layout ) new_appender,
+    Appender delegate ( istring file, Layout layout ) new_appender,
     bool loose = false, bool use_insert_appender = false )
 {
     enable_loose_parsing(loose);
@@ -398,7 +400,7 @@ public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
 
         if ( buffer_size > 0 )
         {
-            log.buffer(new char[](buffer_size));
+            log.buffer(new mstring(buffer_size));
         }
 
         log.clear();
@@ -449,13 +451,13 @@ public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
 
 *******************************************************************************/
 
-public void setupLoggerLevel ( Logger log, char[] name, Config config )
+public void setupLoggerLevel ( Logger log, istring name, Config config )
 {
     with (config) if ( level.length > 0 )
     {
         StringSearch!() s;
 
-        level = s.strToLower(level);
+        level = s.strEnsureLower(level);
 
         switch ( level )
         {

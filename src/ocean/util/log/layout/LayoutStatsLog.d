@@ -15,6 +15,8 @@
 
 module ocean.util.log.layout.LayoutStatsLog;
 
+import tango.transition;
+
 import  tango.text.Util;
 
 import  tango.time.Clock,
@@ -53,9 +55,9 @@ public class LayoutStatsLog : Appender.Layout
 
         ***********************************************************************/
 
-        void format (LogEvent event, size_t delegate(void[]) dg)
+        void format (LogEvent event, size_t delegate(Const!(void)[]) dg)
         {
-                char[] level = event.levelName;
+                auto level = event.levelName;
 
                 // convert time to field values
                 auto tm = event.time;
