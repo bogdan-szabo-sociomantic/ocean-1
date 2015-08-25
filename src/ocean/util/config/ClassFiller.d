@@ -803,8 +803,8 @@ body
     {
         if ( !hasField(reference, var) )
         {
-            auto msg = "Invalid configuration key " ~ group ~ "." ~ var;
-
+            auto msg = cast(istring) ("Invalid configuration key "
+                ~ group ~ "." ~ var);
             enforce!(ConfigException)(loose_parsing, msg);
             Stderr.formatln("#### WARNING: {}", msg);
         }
@@ -882,7 +882,7 @@ struct ClassIterator ( T, Source = ConfigParser )
 
     ***********************************************************************/
 
-    public int opApply ( int delegate ( ref cstring name, ref T x ) dg )
+    public int opApply ( int delegate ( ref istring name, ref T x ) dg )
     {
         int result = 0;
 
