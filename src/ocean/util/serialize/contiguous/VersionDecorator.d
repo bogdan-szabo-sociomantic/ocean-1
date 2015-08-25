@@ -338,7 +338,8 @@ struct Test3
             t.a = 100;
             t.b = -100;
             t.nested_arr = [ Nested0(42), Nested0(43), Nested0(44) ];
-            t.string_arr = [ "This", "Is", "A", "Freaking", "String!" ];
+            t.string_arr = [ "This".dup, "Is".dup,
+                "A".dup, "Freaking".dup, "String!".dup ];
 
             return t;
         }

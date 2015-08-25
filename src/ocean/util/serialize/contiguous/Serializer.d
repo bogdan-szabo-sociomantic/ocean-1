@@ -816,7 +816,7 @@ unittest
 
     Dummy d; d.a = 42; d.b = 43;
     d.c = [1, 2, 3];
-    d.d = ["aaa", "bbb", "ccc"];
+    d.d = ["aaa".dup, "bbb".dup, "ccc".dup];
 
     void[] target;
     Serializer.serialize(d, target);

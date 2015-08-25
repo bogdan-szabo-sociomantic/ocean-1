@@ -210,12 +210,12 @@ S defaultS()
     s.s3.a[1] = [ 100.1, 200.2 ];
 
     s.s4_dynamic_array = [
-        S.S_4([ "aaa", "bbb", "ccc" ]),
-        S.S_4([ "a", "bb", "ccc", "dddd" ]),
-        S.S_4([ "" ])
+        S.S_4([ "aaa".dup, "bbb".dup, "ccc".dup ]),
+        S.S_4([ "a".dup, "bb".dup, "ccc".dup, "dddd".dup ]),
+        S.S_4([ "".dup ])
     ];
 
-    s.static_of_dynamic[] = [ "a", "b", "c" ];
+    s.static_of_dynamic[] = [ "a".dup, "b".dup, "c".dup ];
 
     s.union_a = 42;
 
@@ -272,7 +272,7 @@ unittest
 {
     auto t = new NamedTest("Sanity");
     auto s = defaultS();
-    testS(t, defaultS());
+    testS(t, s);
 }
 
 /******************************************************************************
@@ -438,8 +438,8 @@ unittest
     }
 
     Outer s;
-    s.a[0][0][0].a = [ "1", "2", "3" ];
-    s.a[0][0][1].a = [ "1", "2" ];
+    s.a[0][0][0].a = [ "1".dup, "2".dup, "3".dup ];
+    s.a[0][0][1].a = [ "1".dup, "2".dup ];
 
     void[] buffer;
     Serializer.serialize(s, buffer);

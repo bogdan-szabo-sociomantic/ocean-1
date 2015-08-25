@@ -153,7 +153,7 @@ class VersionDecorator
 
     ***************************************************************************/
 
-    override protected Contiguous!(S) handleVersion(S)
+    protected Contiguous!(S) handleVersion(S)
         (ref void[] buffer, Version.Type input_version)
     body
     {
@@ -213,7 +213,7 @@ version(UnitTest)
 
             int a, b;
 
-            char[][] strarr;
+            mstring[] strarr;
         }
 
         struct Version1
@@ -224,7 +224,7 @@ version(UnitTest)
 
             int b, a;
 
-            char[][] strarr;
+            mstring[] strarr;
         }
 
         struct Version2
@@ -234,7 +234,7 @@ version(UnitTest)
 
             int a, b, c;
 
-            char[][] strarr;
+            mstring[] strarr;
 
             void convert_c(ref Version1 s)
             {
@@ -248,7 +248,7 @@ unittest
 {
     auto loader = new VersionDecorator();
 
-    auto ver0 = Test1.Version0(42, 43, ["version0"]);
+    auto ver0 = Test1.Version0(42, 43, ["version0".dup]);
     void[] buffer;
 
     loader.store(ver0, buffer);
@@ -288,7 +288,7 @@ unittest
 {
     auto loader = new VersionDecorator();
 
-    auto ver0 = Test1.Version0(42, 43, ["version0"]);
+    auto ver0 = Test1.Version0(42, 43, ["version0".dup]);
     void[] buffer;
 
     // version number difference too big

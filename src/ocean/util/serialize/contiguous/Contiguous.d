@@ -130,6 +130,7 @@ struct Contiguous( S )
     public Contiguous!(S) reset()
     {
         this.data.length = 0;
+        enableStomping(this.data);
         return *this;
     }
 
@@ -158,7 +159,10 @@ unittest
 
     instance.enforceIntegrity();
 
-    test!("==")(instance.data, [ cast(ubyte)42, 0, 0, 0 ]);
+    test!("==")(
+        instance.data,
+        [ cast(ubyte)42, cast(ubyte) 0, cast(ubyte) 0, cast(ubyte) 0 ]
+    );
 
     test!("==")(instance.length, 4);
     instance.reset();
@@ -179,7 +183,7 @@ unittest
 
 *******************************************************************************/
 
-private void enforceContiguous (S) ( ref S input, void[] allowed_range )
+private void enforceContiguous (S) ( ref S input, in void[] allowed_range )
 {
     static assert (
         is(S == struct),

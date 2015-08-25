@@ -627,7 +627,7 @@ struct Deserializer
 
             pos += bytes;
 
-            this.e.enforceInputSize!(T[])(data.length, pos);
+            This.e.enforceInputSize!(T[])(data.length, pos);
         }
 
         static if (!hasIndirections!(T))

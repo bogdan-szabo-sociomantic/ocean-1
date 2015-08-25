@@ -692,7 +692,7 @@ public abstract class IStatsLog
     public const time_t default_period = 30; // 30 seconds
     public const default_file_count = 10;
     public const default_max_file_size = 10 * 1024 * 1024; // 10Mb
-    public const char[] default_file_name = "log/stats.log";
+    public const istring default_file_name = "log/stats.log";
     public const size_t default_start_compress = 4;
 
 
