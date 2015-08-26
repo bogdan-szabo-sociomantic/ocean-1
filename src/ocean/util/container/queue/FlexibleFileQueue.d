@@ -735,7 +735,7 @@ unittest
 
             for ( ubyte i = 0; i < size; i++ )
             {
-                auto item = [i, ubyte.max-i, i, cast(ubyte) (i*i)];
+                auto item = [i, cast(ubyte) (ubyte.max-i), i, cast(ubyte) (i*i)];
                 assert( queue.push( item ), "push failed" );
             }
 
