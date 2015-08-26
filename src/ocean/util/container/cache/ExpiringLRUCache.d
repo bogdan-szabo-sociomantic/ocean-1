@@ -18,6 +18,8 @@ module ocean.util.container.cache.ExpiringLRUCache;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.util.container.cache.model.IExpiringCacheInfo;
 
 import ocean.util.container.cache.LRUCache;
@@ -393,9 +395,9 @@ unittest
     // Test of expiring cache
 
     {
-        char[] data1 = "hello world",
-               data2 = "goodbye world",
-               data3 = "hallo welt";
+        mstring data1 = "hello world".dup,
+                data2 = "goodbye world".dup,
+                data3 = "hallo welt".dup;
 
         time_t t = 0;
 
@@ -445,4 +447,11 @@ unittest
         }
     }
 
+}
+
+unittest
+{
+    // check cache with const elements
+    scope expiring_cache = new ExpiringLRUCache!(cstring)(1, 1);
+    *expiring_cache.getRefreshOrCreate(1) = "abc"[];
 }

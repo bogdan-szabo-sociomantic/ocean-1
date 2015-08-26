@@ -16,6 +16,8 @@
 
 module ocean.util.container.cache.ExpiringCache;
 
+import tango.transition;
+
 import ocean.util.container.cache.model.IExpiringCacheInfo;
 
 import ocean.util.container.cache.Cache;
@@ -405,9 +407,9 @@ unittest
     // Test of expiring cache
 
     {
-        char[] data1 = "hello world",
-               data2 = "goodbye world",
-               data3 = "hallo welt";
+        mstring data1 = "hello world".dup,
+                data2 = "goodbye world".dup,
+                data3 = "hallo welt".dup;
 
         time_t t = 0;
 

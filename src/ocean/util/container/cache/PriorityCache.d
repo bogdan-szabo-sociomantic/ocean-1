@@ -943,7 +943,7 @@ unittest
 
         if (item)
         {
-            *item = "ABC";
+            *item = "ABC".dup;
         }
         assert(item_existed_before is false);
 
@@ -952,7 +952,7 @@ unittest
 
         if (item)
         {
-            *item = "DEF";
+            *item = "DEF".dup;
         }
         assert(item_existed_before is true);
 
