@@ -29,6 +29,8 @@ module ocean.util.container.map.utils.MapSerializer;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.io.digest.Fnv1,
        ocean.io.serialize.SimpleSerializer,
        ocean.io.serialize.TypeId,
@@ -163,7 +165,7 @@ template MapExtension ( K, V )
 
     ***************************************************************************/
 
-    public void load ( char[] file_path )
+    public void load ( cstring file_path )
     {
         this.serializer.load!(K, V)(this, file_path);
     }
@@ -179,7 +181,7 @@ template MapExtension ( K, V )
 
     ***************************************************************************/
 
-    public void load ( char[] file_path, CheckDg check  )
+    public void load ( cstring file_path, CheckDg check  )
     {
         void add ( ref K k, ref V v )
         {
@@ -217,7 +219,7 @@ template MapExtension ( K, V )
 
     ***************************************************************************/
 
-    public void dump ( char[] file_path )
+    public void dump ( cstring file_path )
     {
         this.serializer.dump!(K, V)(this, file_path);
     }
@@ -233,7 +235,7 @@ template MapExtension ( K, V )
 
      ***************************************************************************/
 
-    public void dump ( char[] file_path, CheckDg check )
+    public void dump ( cstring file_path, CheckDg check )
     {
         void adder ( void delegate ( ref K, ref V ) add )
         {
@@ -614,7 +616,7 @@ class MapSerializer
 
     ***************************************************************************/
 
-    public void dump ( K, V ) ( Map!(V, K) map, char[] file_path )
+    public void dump ( K, V ) ( Map!(V, K) map, cstring file_path )
     {
         void adder ( void delegate ( ref K, ref V ) add )
         {
@@ -640,7 +642,7 @@ class MapSerializer
 
     ***************************************************************************/
 
-    public void dumpDg ( K, V ) ( char[] file_path, AdderDg!(K, V) adder )
+    public void dumpDg ( K, V ) ( cstring file_path, AdderDg!(K, V) adder )
     {
         scope file = new File(file_path, File.Style(File.Access.Write,
                                                     File.Open.Create,
@@ -723,7 +725,7 @@ class MapSerializer
 
     ***************************************************************************/
 
-    public void load ( K, V ) ( Map!(V, K) map, char[] file_path )
+    public void load ( K, V ) ( Map!(V, K) map, cstring file_path )
     {
         void putter ( ref K k, ref V v )
         {
@@ -770,7 +772,7 @@ class MapSerializer
 
     ***************************************************************************/
 
-    public void loadDg ( K, V ) ( char[] file_path, PutterDg!(K, V) putter )
+    public void loadDg ( K, V ) ( cstring file_path, PutterDg!(K, V) putter )
     {
         scope file = new File(file_path, File.ReadExisting);
 
@@ -1258,7 +1260,7 @@ version ( UnitTest )
 
     ***************************************************************************/
 
-    void testCombination ( K, V, KNew, VNew, char[] custom_dump = "" )
+    void testCombination ( K, V, KNew, VNew, istring custom_dump = "" )
               ( size_t iterations )
     {
         auto t = new NamedTest("Combination {" ~
