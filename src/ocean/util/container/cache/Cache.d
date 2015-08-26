@@ -324,7 +324,10 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
         }
         else
         {
-            alias value value_ref;
+            ValueRef value_ref ( )
+            {
+                return this.value[];
+            }
         }
     }
 
