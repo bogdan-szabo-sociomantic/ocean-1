@@ -572,7 +572,7 @@ unittest
 
 unittest
 {
-    struct S
+    static struct S
     {
         import tango.util.Convert;
 

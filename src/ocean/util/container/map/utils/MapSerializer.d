@@ -1409,7 +1409,7 @@ unittest
            auto header_size = MapSerializer.FileHeader!(K, V, 4).sizeof;
            `;
 
-    struct TestNoVersion
+    static struct TestNoVersion
     {
         long i;
 
@@ -1426,14 +1426,14 @@ unittest
         }
     }
 
-    struct Test1
+    static struct Test1
     {
         const StructVersion = 0;
 
         long i;
     }
 
-    struct Test2
+    static struct Test2
     {
         const StructVersion = 1;
         alias Test1 StructPrevious;
@@ -1453,7 +1453,7 @@ unittest
         }
     }
 
-    struct OldStruct
+    static struct OldStruct
     {
         const StructVersion = 0;
 
@@ -1465,7 +1465,7 @@ unittest
         }
     }
 
-    struct NewStruct
+    static struct NewStruct
     {
         const StructVersion = 1;
         alias OldStruct StructPrevious;
@@ -1485,7 +1485,7 @@ unittest
         }
     }
 
-    struct OldKey
+    static struct OldKey
     {
         const StructVersion = 0;
 
@@ -1502,7 +1502,7 @@ unittest
         }
     }
 
-    struct NewKey
+    static struct NewKey
     {
         const StructVersion = 1;
         alias OldKey StructPrevious;
@@ -1532,7 +1532,7 @@ unittest
         }
     }
 
-    struct NewerKey
+    static struct NewerKey
     {
         const StructVersion = 2;
         alias NewKey StructPrevious;
@@ -1556,7 +1556,7 @@ unittest
         }
     }
 
-    struct NewerStruct
+    static struct NewerStruct
     {
         const StructVersion = 2;
         alias NewStruct StructPrevious;
