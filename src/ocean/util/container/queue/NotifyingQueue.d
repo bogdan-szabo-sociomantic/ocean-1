@@ -247,7 +247,7 @@ class NotifyingByteQueue : ISuspendable, IQueueInfo
 
     ***************************************************************************/
 
-    public uint length ( )
+    public size_t length ( )
     {
         return this.queue.length();
     }

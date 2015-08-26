@@ -44,6 +44,11 @@ Migration Instructions
   which import this module should add `-lrt` to the `LDFLAGS` override for
   unittest builds in their `Build.mak` file.
 
+* `ocean.util.container.queue.model.IQueueInfo`
+
+  `length` method is now defined to return `size_t` instead of `uint`. Classes
+  that implement this interface need to be adjusted accordingly.
+
 Removed Deprecated Modules
 --------------------------
 

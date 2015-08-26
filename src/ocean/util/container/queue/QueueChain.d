@@ -247,7 +247,7 @@ public class QueueChain : IByteQueue
 
     ***************************************************************************/
 
-    public uint length ( )
+    public size_t length ( )
     {
         return queue.length() + swap.length();
     }

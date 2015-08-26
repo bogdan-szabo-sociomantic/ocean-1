@@ -148,7 +148,7 @@ public abstract class IRingQueue ( IBaseQueue ) : IBaseQueue
 
     ***************************************************************************/
 
-    public uint length ( )
+    public size_t length ( )
     {
         return this.items;
     }
