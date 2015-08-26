@@ -607,20 +607,27 @@ unittest
 
         invariant ( )
         {
-            test!("==")(this.int_queue.length(), this.expected_values.length, name ~ ": length should be the same");
+            auto _this = cast(TestQueue) this;
 
-            if ( this.expected_values.length == 0 )
+            test(
+                _this.int_queue.length() == _this.expected_values.length,
+                name ~ ": length should be the same"
+            );
+
+            if ( _this.expected_values.length == 0 )
             {
-                test(this.int_queue.empty(), name ~ ": queue should be mepty");
-                test!("==")(this.int_queue.top(), null, name ~ ": queue is empty. Top should have returned null");
+                test(_this.int_queue.empty(), name ~ ": queue should be mepty");
+                test(_this.int_queue.top() == null,
+                    name ~ ": queue is empty. Top should have returned null");
             }
 
-            LinkedListQueue!(int).QueueItem* iterator = this.int_queue.head;
+            LinkedListQueue!(int).QueueItem* iterator = _this.int_queue.head;
 
             // compare all values
-            foreach( value; this.expected_values)
+            foreach( value; _this.expected_values)
             {
-                test!("==")(iterator.value, value, name ~ ": value incorrect");
+                test(iterator.value == value,
+                    name ~ ": value incorrect");
                 iterator = iterator.next;
             }
         }
