@@ -155,13 +155,20 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
 
     ***************************************************************************/
 
-    static if (is (typeof (T.object_pool_index) I))
+    static if (is (typeof (T.init.object_pool_index) I))
     {
         static assert (!is (typeof (&(T.object_pool_index))), T.stringof ~ ".object_pool_index must be a dynamic member");
 
         static assert (is (I == uint), T.stringof ~ ".object_pool_index must be uint, not " ~ I.stringof);
 
-        static assert (is (typeof (T.init.object_pool_index = 4711)), T.stringof ~ ".object_pool_index must be assignable");
+        // WORKAROUND: because of DMD1 bug placing this condition in static assert
+        // directly causes it to fail even if condition is in fact true. Using
+        // intermediate constant fixes that
+        const _assignable = is(typeof({ T t; t.object_pool_index = 4711; }));
+        static assert (
+            _assignable,
+            T.stringof ~ ".object_pool_index must be assignable"
+        );
     }
     else static assert (false, "need dynamic \"uint " ~ T.stringof ~ ".object_pool_index\"");
 
