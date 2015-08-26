@@ -6,6 +6,8 @@
 
 module ocean.util.container.queue.LinkedListQueue;
 
+import tango.transition;
+
 import tango.util.log.Log;
 import tango.core.Memory;
 import tango.util.container.Container;
@@ -574,7 +576,7 @@ unittest
 
         ***********************************************************************/
 
-        protected char[] name;
+        protected istring name;
 
 
         /**********************************************************************
@@ -586,7 +588,7 @@ unittest
 
         ***********************************************************************/
 
-        public this (char[] in_name)
+        public this (istring in_name)
         {
             this.int_queue = new LinkedListQueue!(int)();
             this.name = in_name;
@@ -656,10 +658,13 @@ unittest
             bool continue_remove = true;
 
             if ( expected_to_remove )
-                test(this.int_queue.contains(value), name ~ ": value should have been found in LinkedListQueue");
+                test(this.int_queue.contains(value),
+                    name ~ ": value should have been found in LinkedListQueue");
 
-            test!("==")(this.int_queue.remove(value, all), expected_to_remove, name ~ ": Removed wrong number of items from LinkedListQueue");
-            test(!this.int_queue.contains(value), name ~ ": value should NOT have been found in LinkedListQueue");
+            test(this.int_queue.remove(value, all) == expected_to_remove,
+                name ~ ": Removed wrong number of items from LinkedListQueue");
+            test(!this.int_queue.contains(value),
+                name ~ ": value should NOT have been found in LinkedListQueue");
 
             if ( all )
             {

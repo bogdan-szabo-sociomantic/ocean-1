@@ -20,6 +20,8 @@ module ocean.util.container.queue.FlexibleRingQueue;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.util.container.queue.model.IRingQueue;
 
 import ocean.util.container.queue.model.IByteQueue;
@@ -829,14 +831,18 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
     {
         if (meta.items)
         {
-            enforce!(ValidationError)(data.length,
-                "Expected data for a non-empty queue (" ~ itoa(meta.items) ~
-                " records)");
+            enforce!(ValidationError)(
+                data.length,
+                cast(istring) ("Expected data for a non-empty queue ("
+                    ~ itoa(meta.items) ~ " records)")
+            );
 
-            enforce!(ValidationError)(data.length >= cast(size_t)meta.items * Header.sizeof,
-                "Queue data shorter than required minimum for " ~
-                itoa(meta.items) ~ " records (got " ~ itoa(data.length) ~
-                " bytes)");
+            enforce!(ValidationError)(
+                data.length >= cast(size_t)meta.items * Header.sizeof,
+                cast(istring) ("Queue data shorter than required minimum for " ~
+                    itoa(meta.items) ~ " records (got " ~ itoa(data.length) ~
+                    " bytes)")
+            );
 
             size_t pos = 0;
 
@@ -852,38 +858,49 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
                     auto start = pos;
                     pos += Header.sizeof;
 
-                    enforce!(ValidationError)(pos <= data.length,
-                        "End of queue data in the middle of the record header" ~
-                        " which starts at byte " ~ itoa(start));
+                    enforce!(ValidationError)(
+                        pos <= data.length,
+                        cast(istring) ("End of queue data in the middle of" ~
+                            " the record header which starts at byte " ~ 
+                            itoa(start))
+                    );
 
                     auto header = cast(Header*)data[start .. pos].ptr;
 
-                    enforce!(ValidationError)((data.length - pos) >= header.length,
-                        "End of queue data in the middle of the queue record, " ~
-                        "record length = " ~ itoa(header.length)
+                    enforce!(ValidationError)(
+                        (data.length - pos) >= header.length,
+                        cast(istring) ("End of queue data in the middle of the" ~
+                            " queue record, record length = " ~
+                            itoa(header.length))
                     );
 
                     pos += header.length;
                 }
                 catch (ValidationError e)
                 {
-                    e.msg = "Error reading record " ~ itoa(i + i) ~ "/" ~
-                            itoa(meta.items) ~ ": " ~ e.msg;
+                    auto msg = "Error reading record " ~ itoa(i + i) ~ "/" ~
+                        itoa(meta.items) ~ ": " ~ e.msg;
+                    e.msg = assumeUnique(msg);
                     throw e;
                 }
             }
 
             assert(pos <= data.length);
 
-            enforce!(ValidationError)(pos >= data.length,
-                "Queue data  too long (" ~ itoa(meta.items) ~ " records, " ~
-                itoa(pos) ~ "/" ~ itoa(data.length) ~ " bytes used)");
+            enforce!(ValidationError)(
+                pos >= data.length,
+                cast(istring) ("Queue data  too long (" ~ itoa(meta.items) ~
+                    " records, " ~ itoa(pos) ~ "/" ~ itoa(data.length) ~
+                    " bytes used)")
+            );
         }
         else
         {
-            enforce!(ValidationError)(!data.length,
-                "Expected no data for an empty queue, not " ~ itoa(data.length) ~
-                " bytes");
+            enforce!(ValidationError)(
+                !data.length,
+                cast(istring) ("Expected no data for an empty queue, not " ~
+                    itoa(data.length) ~ " bytes")
+            );
         }
     }
 
@@ -891,10 +908,8 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
     static class ValidationError: Exception
     {
-        this ( char[] msg, char[] file = __FILE__, typeof(__LINE__) = __LINE__)
-        {
-            super(msg, file, line);
-        }
+        import ocean.core.Exception : DefaultExceptionCtor;
+        mixin DefaultExceptionCtor!();
     }
 }
 /*******************************************************************************
