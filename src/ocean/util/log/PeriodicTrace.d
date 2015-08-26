@@ -74,6 +74,8 @@ module ocean.util.log.PeriodicTrace;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.core.TypeConvert;
 
 import ocean.util.log.StaticTrace;
@@ -166,7 +168,7 @@ struct PeriodicTracer
 
     ***************************************************************************/
 
-    private char[] formatted;
+    private mstring formatted;
 
 
     /***************************************************************************
@@ -184,13 +186,13 @@ struct PeriodicTracer
 
     ***************************************************************************/
 
-    public typeof(this) format ( char[] fmt, ... )
+    public typeof(this) format ( cstring fmt, ... )
     {
         va_list ap;
 
-            va_start(ap, __va_argsave);
+        va_start(ap, __va_argsave);
 
-            scope(exit) va_end(ap);
+        scope(exit) va_end(ap);
 
         return this.format(fmt, ap, _arguments);
     }
@@ -260,7 +262,7 @@ struct PeriodicTracer
 
     ***************************************************************************/
 
-    private typeof(this) format ( char[] fmt, va_list args, TypeInfo[] types )
+    private typeof(this) format ( cstring fmt, va_list args, TypeInfo[] types )
     {
         if ( this.timeToUpdate() )
         {

@@ -675,7 +675,7 @@ public abstract class IStatsLog
 
         this ( istring file_name, size_t max_file_size, size_t file_count )
         {
-            this.file_name = idup(file_name);
+            this.file_name = file_name;
             this.max_file_size = max_file_size;
             this.file_count = file_count;
         }
@@ -793,7 +793,7 @@ public abstract class IStatsLog
     ***************************************************************************/
 
     protected void formatValue (istring category, V)
-        (istring value_name, V value, istring instance = null)
+        (cstring value_name, V value, istring instance = null)
     in
     {
         assert(value_name !is null);

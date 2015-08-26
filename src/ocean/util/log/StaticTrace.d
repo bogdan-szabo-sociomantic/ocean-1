@@ -23,6 +23,8 @@ module ocean.util.log.StaticTrace;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.core.TypeConvert;
 
 import ocean.io.Terminal;
@@ -100,7 +102,7 @@ public class StaticSyncPrint
 
     ***************************************************************************/
 
-    private char[] formatted;
+    private mstring formatted;
 
     /***************************************************************************
 
@@ -108,7 +110,7 @@ public class StaticSyncPrint
 
     ***************************************************************************/
 
-    private auto finder = find("\n");
+    private typeof(find(cstring.init)) finder; 
 
     /***************************************************************************
 
@@ -129,6 +131,7 @@ public class StaticSyncPrint
 
     public this ( OutputStream output )
     {
+        this.finder = find(cast(cstring) "\n");
         this.output = output;
     }
 
@@ -145,7 +148,7 @@ public class StaticSyncPrint
 
     ***************************************************************************/
 
-    synchronized public typeof(this) format ( char[] fmt, ... )
+    public typeof(this) format ( cstring fmt, ... )
     {
         formatted.length = 0;
         uint sink ( char[] s )
@@ -168,7 +171,7 @@ public class StaticSyncPrint
             Layout!(char).instance()(&sink, _arguments, _argptr, fmt);
 
         size_t lines = 0;
-        char[] nl = "";
+        istring nl = "";
 
         foreach ( token; this.finder.tokens(this.formatted) )
         {

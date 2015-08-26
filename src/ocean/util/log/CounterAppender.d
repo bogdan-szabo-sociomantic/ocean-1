@@ -13,6 +13,8 @@
 
 module ocean.util.log.CounterAppender;
 
+import tango.transition;
+
 import tango.util.log.Log;
 
 /*******************************************************************************
@@ -31,7 +33,7 @@ public class CounterAppender : Appender
 
         ***********************************************************************/
 
-        private static size_t[char[]] counter;
+        private static size_t[istring] counter;
 
         /***********************************************************************
 
@@ -60,7 +62,7 @@ public class CounterAppender : Appender
 
         ***********************************************************************/
 
-        final override char[] name ()
+        final override cstring name ()
         {
                 return this.classinfo.name;
         }
@@ -89,7 +91,7 @@ public class CounterAppender : Appender
 
         ***********************************************************************/
 
-        static public size_t opIndex ( char[] name )
+        static public size_t opIndex ( istring name )
         {
             auto v = name in counter;
 
@@ -115,7 +117,7 @@ public class CounterAppender : Appender
 
         ***********************************************************************/
 
-        static public size_t get ( char[] name, bool reset = true )
+        static public size_t get ( istring name, bool reset = true )
         {
             auto v = name in counter;
 
