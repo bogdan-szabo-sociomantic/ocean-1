@@ -269,10 +269,10 @@ struct PeriodicTracer
             this.last_update_time = this.now;
 
             this.formatted.length = 0;
-            uint sink ( char[] s )
+            size_t sink ( cstring s )
             {
                 this.formatted ~= s;
-                return castFrom!(size_t).to!(uint)(s.length);
+                return s.length;
             }
 
             Layout!(char).instance()(&sink, types, args, fmt);

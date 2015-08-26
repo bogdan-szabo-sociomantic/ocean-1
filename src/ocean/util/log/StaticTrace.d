@@ -151,10 +151,10 @@ public class StaticSyncPrint
     public typeof(this) format ( cstring fmt, ... )
     {
         formatted.length = 0;
-        uint sink ( char[] s )
+        size_t sink ( cstring s )
         {
             formatted ~= s;
-            return castFrom!(size_t).to!(uint)(s.length);
+            return s.length;
         }
 
         version (DigitalMarsX64)
