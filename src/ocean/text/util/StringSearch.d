@@ -702,8 +702,8 @@ struct StringSearch ( bool wide_char = false )
                 auto newstr = str.dup;
                 foreach (ref Char c2; newstr)
                     c2 = cast(Char) convert(c2);
-                return assumeUnique(newstr);
-            } 
+                return newstr;
+            }
         }
 
         return str;
