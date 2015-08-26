@@ -1276,7 +1276,7 @@ version ( UnitTest )
         scope serializer = new MapSerializer;
 
         // helper to get a key from size_t
-        K initKey ( size_t i )
+        K initKey ( int i )
         {
             static if ( is ( K == struct ) )
             {
@@ -1301,7 +1301,7 @@ version ( UnitTest )
             }
         }
 
-        V initVal ( size_t i )
+        V initVal ( int i )
         {
             static if ( isDynamicArrayType!(V) )
             {
@@ -1320,7 +1320,7 @@ version ( UnitTest )
         }
 
         // Fill test map
-        for ( size_t i = 0; i < iterations; ++i )
+        for ( int i = 0; i < iterations; ++i )
         {
             *map.put(initKey(i)) = initVal(i);
         }
