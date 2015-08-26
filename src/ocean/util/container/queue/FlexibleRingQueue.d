@@ -1198,6 +1198,8 @@ version ( UnitTest )
     // Uncomment the next line to see UnitTest output
     // version = UnitTestVerbose;
 
+    import ocean.core.Test;
+
     import tango.math.random.Random;
     import tango.time.StopWatch;
     import tango.core.Memory;
@@ -1293,3 +1295,31 @@ unittest
     }
 }
 
+
+// Test for a specific bug that caused garbled loglines due to an old wrong
+// willFit() function
+unittest
+{
+    auto q = new FlexibleByteRingQueue(45);
+
+    // Setup conditions
+    test(q.push(cast(ubyte[])"123456")); // w = 14
+    test(q.push(cast(ubyte[])"12345678")); // w = 30
+    test(q.push(cast(ubyte[])"123456")); // w = 44
+    test(q.pop() == cast(ubyte[])"123456");
+    test(q.pop() == cast(ubyte[])"12345678"); // r == 30
+    test(q.push(cast(ubyte[])"12345678123456781234")); // r = 30, gap = 44
+
+    auto test_push = cast(ubyte[])"123456789.....16";
+
+    // Make sure the bugs conditions are present
+    test!(">")(q.read_from, q.write_to);
+    test!("<")(q.read_from, q.gap);
+    test!(">")(q.pushSize(test_push.length) + q.write_to, q.data.length);
+
+    // Do the actual test
+    test(!q.push(test_push));
+
+    test!("==")(q.pop(), cast(ubyte[])"123456");
+    test!("==")(q.pop(), cast(ubyte[])"12345678123456781234");
+}
