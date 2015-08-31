@@ -52,10 +52,10 @@ class HttpException : HttpServerException
         return this;
     }
 
-    public typeof (this) set (StatusCode code, istring file = __FILE__,
+    public typeof (this) set (HttpResponseCode code, istring file = __FILE__,
                               typeof(__LINE__) line = __LINE__)
     {
-        this.status = code;
+        this.status = cast(StatusCode) code;
         return this.set(this.status_phrase, file, line);
     }
 

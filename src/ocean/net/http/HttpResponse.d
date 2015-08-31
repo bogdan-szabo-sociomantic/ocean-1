@@ -43,6 +43,10 @@ module ocean.net.http.HttpResponse;
 
  ******************************************************************************/
 
+import tango.transition;
+
+import tango.net.http.HttpConst : HttpResponseCode;
+
 import ocean.net.http.message.HttpHeader;
 
 import ocean.net.http.consts.StatusCodes: StatusCode, StatusPhrases;
@@ -250,12 +254,13 @@ class HttpResponse : HttpHeader
 
      **************************************************************************/
 
-    private bool setContentLength ( StatusCode status, char[] msg_body )
+    private bool setContentLength ( StatusCode status, cstring msg_body )
     {
-        switch (status)
+        HttpResponseCode code = status;
+        switch (code)
         {
             default:
-                if (status >= 200)
+                if (code >= 200)
                 {
                     bool b = super.set("Content-Length", msg_body.length, this.dec_content_length);
                     assert (b);
@@ -264,12 +269,12 @@ class HttpResponse : HttpHeader
                 }
                 return false;
 
-            case status.NoContent:
+            case HttpResponseCode.NoContent:
                 super.set("Content-Length", "0");
                 // TODO: David, do we need to assert that the return value of set() == true?
                 return false;
 
-            case status.NotModified:
+            case HttpResponseCode.NotModified:
                 return false;
         }
     }
