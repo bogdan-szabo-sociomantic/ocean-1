@@ -161,6 +161,17 @@ struct Deserializer
 
     /**************************************************************************
 
+        Convenience shortcut
+
+        If canDeserializeInPlace!(T) is true then T can be deserialised without
+        the need of extending and possibly relocating the data buffer.
+
+    **************************************************************************/
+
+    alias hasMultiDimensionalDynamicArrays canDeserializeInPlace;
+
+    /**************************************************************************
+
         NB! This will suppress any compilation errors, comment out during
         development and enable only when commiting.
 
@@ -238,7 +249,6 @@ struct Deserializer
         {
             Stdout.formatln("> deserialize!({})({})", S.stringof, src.ptr);
         }
-
         size_t slices_len = 0,
                data_len   = This.countRequiredSize!(S)(src, slices_len);
 
