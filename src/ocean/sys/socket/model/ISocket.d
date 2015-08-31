@@ -18,6 +18,8 @@ module ocean.sys.socket.model.ISocket;
 
  ******************************************************************************/
 
+import tango.transition;
+
 import tango.stdc.posix.sys.socket;
 
 import tango.stdc.posix.netinet.in_: AF_INET, AF_INET6, IPPROTO_TCP;
@@ -801,7 +803,7 @@ public abstract class ISocket : InputDevice, IOutputDevice
 
      **************************************************************************/
 
-    public int setsockopt ( int level, int optname, void[] src )
+    public int setsockopt ( int level, int optname, Const!(void)[] src )
     {
         return .setsockopt(this.fd, level, optname, src.ptr, cast(uint)src.length);
     }
@@ -859,7 +861,7 @@ public abstract class ISocket : InputDevice, IOutputDevice
 
      **************************************************************************/
 
-    public ssize_t write ( void[] src )
+    public ssize_t write ( Const!(void)[] src )
     {
         return this.send(src, 0);
     }
@@ -996,7 +998,7 @@ public abstract class ISocket : InputDevice, IOutputDevice
 
      **************************************************************************/
 
-    public ssize_t send ( void[] src, int flags )
+    public ssize_t send ( Const!(void)[] src, int flags )
     {
         return .send(this.fd, src.ptr, src.length,
                      this.suppress_sigpipe? flags | MSG_NOSIGNAL : flags);

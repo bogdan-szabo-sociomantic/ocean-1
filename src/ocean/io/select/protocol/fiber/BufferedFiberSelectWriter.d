@@ -12,6 +12,8 @@
 
 module ocean.io.select.protocol.fiber.BufferedFiberSelectWriter;
 
+import tango.transition;
+
 import ocean.io.select.protocol.fiber.FiberSelectWriter;
 
 import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
@@ -213,15 +215,15 @@ class BufferedFiberSelectWriter : FiberSelectWriter
 
      **************************************************************************/
 
-    public override typeof (this) send ( void[] data )
+    public override typeof (this) send ( Const!(void)[] data )
     {
         if (data.length < this.buffer.capacity)
         {
-            void[] dst = this.buffer.extend(data.length);
+            auto dst = this.buffer.extend(data.length);
 
             dst[] = data[0 .. dst.length];
 
-            void[] left = data[dst.length .. $];
+            auto left = data[dst.length .. $];
 
             if (left.length || this.buffer.length == this.buffer.capacity)
             {

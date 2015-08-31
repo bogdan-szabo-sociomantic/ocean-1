@@ -178,7 +178,7 @@ class GetSocketAddress
                     throw this.e.set(.EAFNOSUPPORT);
             }
 
-            char* str = .inet_ntop(this.addr_.sa_family, addrp,
+            auto str = .inet_ntop(this.addr_.sa_family, addrp,
                                    this.addr_string_buffer.ptr, this.addr_string_buffer.length);
 
             this.e.enforce(!!str, "inet_ntop");

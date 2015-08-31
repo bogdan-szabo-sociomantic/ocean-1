@@ -110,7 +110,7 @@ class HttpRequest : HttpHeader
 
      **************************************************************************/
 
-    private char[] msg_body_;
+    private mstring msg_body_;
 
     /**************************************************************************
 
@@ -223,7 +223,7 @@ class HttpRequest : HttpHeader
 
      **************************************************************************/
 
-    public char[] method_name ( )
+    public cstring method_name ( )
     {
         return this.parser.start_line_tokens[0];
     }
@@ -236,7 +236,7 @@ class HttpRequest : HttpHeader
 
      **************************************************************************/
 
-    public char[] uri_string ( )
+    public cstring uri_string ( )
     {
         return this.parser.start_line_tokens[1];
     }
@@ -254,7 +254,7 @@ class HttpRequest : HttpHeader
 
      **************************************************************************/
 
-    public char[] msg_body ( )
+    public cstring msg_body ( )
     {
         return this.msg_body_;
     }
@@ -281,7 +281,7 @@ class HttpRequest : HttpHeader
 
      **************************************************************************/
 
-    public uint getUint ( T = uint ) ( char[] header_field_name )
+    public uint getUint ( T = uint ) ( cstring header_field_name )
     {
         uint n;
 
@@ -304,7 +304,7 @@ class HttpRequest : HttpHeader
 
      **************************************************************************/
 
-    bool getUint ( T = uint ) ( char[] key, ref T n, out bool is_set )
+    bool getUint ( T = uint ) ( cstring key, ref T n, out bool is_set )
     {
         return super.getUint!(T)(key, n, is_set);
     }
@@ -315,7 +315,7 @@ class HttpRequest : HttpHeader
 
      **************************************************************************/
 
-    bool getUint ( T = uint ) ( char[] key, ref T n )
+    bool getUint ( T = uint ) ( cstring key, ref T n )
     {
         return super.getUint!(T)(key, n);
     }
@@ -359,7 +359,7 @@ class HttpRequest : HttpHeader
 
      **************************************************************************/
 
-    public size_t parse ( char[] content, lazy size_t msg_body_length )
+    public size_t parse ( cstring content, lazy size_t msg_body_length )
     {
         size_t consumed;
 
@@ -374,7 +374,7 @@ class HttpRequest : HttpHeader
         }
         else
         {
-            char[] msg_body_start = this.parser.parse(content);
+            cstring msg_body_start = this.parser.parse(content);
 
             consumed = content.length - msg_body_start.length;
 
@@ -390,6 +390,7 @@ class HttpRequest : HttpHeader
                 }
 
                 this.msg_body_.length = msg_body_length();
+                enableStomping(this.msg_body_);
 
                 consumed += this.appendMsgBody(msg_body_start);
             }
@@ -426,7 +427,7 @@ class HttpRequest : HttpHeader
 
      **************************************************************************/
 
-    private size_t appendMsgBody ( char[] chunk )
+    private size_t appendMsgBody ( cstring chunk )
     {
         size_t len = min(chunk.length, this.msg_body_.length - this.msg_body_pos),
                end = this.msg_body_pos + len;
@@ -531,7 +532,7 @@ version (OceanPerformanceTest)
 
 unittest
 {
-    const char[] lorem_ipsum =
+    const istring lorem_ipsum =
         "Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod "
         "tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim "
         "veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex "
@@ -586,7 +587,7 @@ unittest
         "kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit "
         "amet.";
 
-    const char[] content =
+    const istring content =
         "GET /dir?query=Hello%20World!&abc=def&ghi HTTP/1.1\r\n"
         "Host: www.example.org:12345\r\n"
         "User-Agent: Mozilla/5.0 (X11; U; Linux i686; de; rv:1.9.2.17) Gecko/20110422 Ubuntu/9.10 (karmic) Firefox/3.6.17\r\n"

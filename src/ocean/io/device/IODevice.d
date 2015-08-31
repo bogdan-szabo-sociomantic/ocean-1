@@ -23,6 +23,8 @@ module ocean.io.device.IODevice;
 
  ******************************************************************************/
 
+import tango.transition;
+
 import tango.io.model.IConduit: ISelectable;
 
 import tango.stdc.posix.unistd: read, write;
@@ -235,7 +237,7 @@ interface IOutputDevice : ISelectable
 
      **************************************************************************/
 
-    ssize_t write ( void[] dst );
+    ssize_t write ( Const!(void)[] dst );
 }
 
 /******************************************************************************
@@ -290,7 +292,7 @@ abstract class OutputDevice : IOutputDevice
 
      **************************************************************************/
 
-    public ssize_t write ( void[] src )
+    public ssize_t write ( Const!(void)[] src )
     {
         return .write(this.fileHandle(), src.ptr, src.length);
     }

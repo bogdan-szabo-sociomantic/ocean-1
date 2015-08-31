@@ -25,6 +25,8 @@ module ocean.io.model.SuspendableThrottlerCount;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.io.model.ISuspendable,
        ocean.io.model.ISuspendableThrottler,
        ocean.util.container.AppendBuffer;

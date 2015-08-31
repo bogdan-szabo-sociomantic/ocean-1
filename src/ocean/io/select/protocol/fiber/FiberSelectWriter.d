@@ -22,6 +22,8 @@
 
 module ocean.io.select.protocol.fiber.FiberSelectWriter;
 
+import tango.transition;
+
 import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
 
 import ocean.io.select.client.model.ISelectClient;
@@ -70,7 +72,7 @@ class FiberSelectWriter : IFiberSelectProtocol
 
      **************************************************************************/
 
-    private void[] data_slice = null;
+    private Const!(void)[] data_slice = null;
 
     /**************************************************************************
 
@@ -163,7 +165,7 @@ class FiberSelectWriter : IFiberSelectProtocol
 
      **************************************************************************/
 
-    public typeof (this) send ( void[] data )
+    public typeof (this) send ( Const!(void)[] data )
 /*    in // FIXME: causes an unknown (i.e. uninvestigated) problem, for example in the queue monitor
     {
         assert (this.data_slice is null);

@@ -132,7 +132,7 @@ class HttpResponse : HttpHeader
 
      **************************************************************************/
 
-    public char[] render ( char[] msg_body = null, bool head = false )
+    public cstring render ( cstring msg_body = null, bool head = false )
     {
         return this.render(StatusCode.init, msg_body);
     }
@@ -163,7 +163,8 @@ class HttpResponse : HttpHeader
 
      **************************************************************************/
 
-    public char[] render ( StatusCode status, char[] msg_body = null, bool head = false )
+    public cstring render ( StatusCode status, cstring msg_body = null,
+        bool head = false )
     in
     {
         assert (100 <= status, "invalid HTTP status code (below 100)");
@@ -291,7 +292,7 @@ class HttpResponse : HttpHeader
 
      **************************************************************************/
 
-    private char[] setStatusLine ( StatusCode status )
+    private cstring setStatusLine ( StatusCode status )
     in
     {
         assert (this.http_version_, "HTTP version undefined");
@@ -314,7 +315,7 @@ class HttpResponse : HttpHeader
 
     private void setDate ( )
     {
-        super.access(HeaderFieldNames.General.Names.Date, (char[], ref char[] val)
+        super.access(HeaderFieldNames.General.Names.Date, (cstring, ref cstring val)
         {
             if (!val)
             {
@@ -365,7 +366,7 @@ class HttpResponse : HttpHeader
 
          **********************************************************************/
 
-        typeof (this) opCall ( char[] name, char[] value )
+        typeof (this) opCall ( cstring name, cstring value )
         {
             this.content.append(name, ": ", value, "\r\n");
 
@@ -431,7 +432,7 @@ class HttpResponse : HttpHeader
 
              ******************************************************************/
 
-            this ( char[] name )
+            this ( cstring name )
             in
             {
                 assert (!this.outer.occupied);
@@ -451,7 +452,7 @@ class HttpResponse : HttpHeader
 
              ******************************************************************/
 
-            void appendToValue ( char[] chunk )
+            void appendToValue ( cstring chunk )
             {
                 this.outer.content ~= chunk;
             }
