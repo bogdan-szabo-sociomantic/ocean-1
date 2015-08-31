@@ -108,7 +108,7 @@ void tcmdbputcat2(TCMDB* mdb, char* kstr, char* vstr);
    `ksiz' specifies the size of the region of the key.
    If successful, the return value is true.  False is returned when no record corresponds to
    the specified key. */
-bool tcmdbout(TCMDB* mdb, void* kbuf, int ksiz);
+bool tcmdbout(TCMDB* mdb, in void* kbuf, int ksiz);
 
 
 /* Remove a string record of an on-memory hash database object.
@@ -131,7 +131,7 @@ bool tcmdbout2(TCMDB* mdb, char* kstr);
    the return value can be treated as a character string.  Because the region of the return
    value is allocated with the `malloc' call, it should be released with the `free' call when
    it is no longer in use. */
-void* tcmdbget(TCMDB* mdb, void* kbuf, int ksiz, int* sp);
+void* tcmdbget(TCMDB* mdb, in void* kbuf, int ksiz, int* sp);
 
 
 /* Retrieve a string record in an on-memory hash database object.
@@ -141,7 +141,7 @@ void* tcmdbget(TCMDB* mdb, void* kbuf, int ksiz, int* sp);
    `NULL' is returned when no record corresponds.
    Because the region of the return value is allocated with the `malloc' call, it should be
    released with the `free' call when it is no longer in use. */
-char* tcmdbget2(TCMDB* mdb, char* kstr);
+char* tcmdbget2(TCMDB* mdb, in char* kstr);
 
 
 /* Get the size of the value of a record in an on-memory hash database object.
@@ -150,7 +150,7 @@ char* tcmdbget2(TCMDB* mdb, char* kstr);
    `ksiz' specifies the size of the region of the key.
    If successful, the return value is the size of the value of the corresponding record, else,
    it is -1. */
-int tcmdbvsiz(TCMDB* mdb, void* kbuf, int ksiz);
+int tcmdbvsiz(TCMDB* mdb, in void* kbuf, int ksiz);
 
 
 /* Get the size of the value of a string record in an on-memory hash database object.
@@ -339,7 +339,7 @@ bool tcmdbputproc(TCMDB* mdb, void* kbuf, int ksiz, void* vbuf, int vsiz,
    is allocated with the `malloc' call, it should be released with the `free' call when it is no
    longer in use.  The internal region of the returned record is moved to the tail so that the
    record will survive for a time under LRU cache algorithm removing records from the head. */
-void* tcmdbget3(TCMDB* mdb, void* kbuf, int ksiz, int* sp);
+void* tcmdbget3(TCMDB* mdb, in void* kbuf, int ksiz, int* sp);
 
 
 /* Initialize the iterator of an on-memory map database object in front of a key.

@@ -28,6 +28,8 @@ module ocean.db.tokyocabinet.util.TokyoCabinetCursor;
 
  ******************************************************************************/
 
+import tango.transition;
+
 import ocean.core.Exception: enforce;
 import ocean.core.TypeConvert;
 
@@ -248,12 +250,12 @@ class TokyoCabinetCursor
 
      ***************************************************************************/
 
-    public This get ( ref char[] key, ref char[] val )
+    public This get ( ref mstring key, ref mstring val )
     {
         scope (success)
         {
-            key = this.xkey.toString();
-            val = this.xval.toString();
+            key = this.xkey.toMString();
+            val = this.xval.toMString();
         }
 
         return this.cursorAssert!(tcbdbcurrec, "get")(this.xkey.getNative(), this.xval.getNative());
@@ -314,7 +316,7 @@ class TokyoCabinetCursor
 
     ***************************************************************************/
 
-    private This cursorAssert ( alias func, char[] fname, Args ... ) ( Args args )
+    private This cursorAssert ( alias func, istring fname, Args ... ) ( Args args )
     {
         bool ok = func(this.cursor, args);
 

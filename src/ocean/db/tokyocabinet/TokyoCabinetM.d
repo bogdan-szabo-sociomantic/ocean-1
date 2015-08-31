@@ -25,6 +25,8 @@
 
 module ocean.db.tokyocabinet.TokyoCabinetM;
 
+import tango.transition;
+
 /*******************************************************************************
 
     Imports
@@ -215,7 +217,7 @@ public class TokyoCabinetM
 
     ***************************************************************************/
 
-    public bool get ( char[] key, ref char[] value )
+    public bool get ( cstring key, ref char[] value )
     in
     {
         this.assertDb();
@@ -243,7 +245,7 @@ public class TokyoCabinetM
 
     ***************************************************************************/
 
-    public bool get ( char[] key, void delegate ( char[] value ) value_dg )
+    public bool get ( cstring key, void delegate ( char[] value ) value_dg )
     in
     {
         this.assertDb();
@@ -364,7 +366,7 @@ public class TokyoCabinetM
 
     ***************************************************************************/
 
-    public bool exists ( char[] key )
+    public bool exists ( cstring key )
     in
     {
         this.assertDb();
@@ -390,7 +392,7 @@ public class TokyoCabinetM
 
     ***************************************************************************/
 
-    public bool remove ( char[] key )
+    public bool remove ( cstring key )
     in
     {
         this.assertDb();
@@ -670,8 +672,8 @@ unittest
 
     scope map = new TokyoCabinetM(1_250_000);
 
-    map.put("1", "1111");
-    map.put("2", "2222");
+    map.put("1".dup, "1111".dup);
+    map.put("2".dup, "2222".dup);
 
     map.get("1", value);
     assert(value == "1111");
@@ -684,7 +686,7 @@ unittest
 
     assert(map.numRecords() == 2);
 
-    map.put("3", "3333");
+    map.put("3".dup, "3333".dup);
 
     assert(map.numRecords() == 3);
 

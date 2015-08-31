@@ -199,8 +199,9 @@ public template AppendBuffer ( T, bool use_malloc = false )
 
 public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferReader!(T)
 {
-    static if ( hasIndirections!(T) )
+    static if ( is(T == class) || is(T == interface) )
     {
+        // implicit reference semantics make impossible to use const params
         alias T ParamT;
     }
     else
