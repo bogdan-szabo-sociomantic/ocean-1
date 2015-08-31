@@ -270,7 +270,14 @@ unittest
 
 public template hasMultiDimensionalDynamicArrays ( T )
 {
-    const hasMultiDimensionalDynamicArrays = hasMultiDimensionalDynamicArraysImpl!(T)();
+    /*
+     * typeof(hasMultiDimensionalDynamicArraysImpl!(T)()) is bool. Its purpose
+     * is to instantiate the hasMultiDimensionalDynamicArraysImpl!(T) function
+     * template before calling the function (at compile time) to work around a
+     * DMD1 bug if T contains itself like "struct T {T[] t;}".
+     */
+
+    const typeof(hasMultiDimensionalDynamicArraysImpl!(T)()) hasMultiDimensionalDynamicArrays = hasMultiDimensionalDynamicArraysImpl!(T)();
 }
 
 /*
