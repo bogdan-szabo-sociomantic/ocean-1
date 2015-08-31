@@ -225,7 +225,7 @@ class QueryParamSet: ParamSet
 
      **************************************************************************/
 
-    public this ( char element_delim, char keyval_delim, cstring[] keys ... )
+    public this ( char element_delim, char keyval_delim, istring[] keys ... )
     {
         super.addKeys(keys);
 
@@ -292,7 +292,7 @@ class FullQueryParamSet: QueryParamSet
 
      **************************************************************************/
 
-    public this ( char element_delim, char keyval_delim, cstring[] keys ... )
+    public this ( char element_delim, char keyval_delim, istring[] keys ... )
     {
         super(element_delim, keyval_delim, keys);
 

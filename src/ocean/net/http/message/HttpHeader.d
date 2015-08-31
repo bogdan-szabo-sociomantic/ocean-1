@@ -58,9 +58,9 @@ abstract class HttpHeader : ParamSet
 
      **************************************************************************/
 
-    protected this ( cstring[][] standard_header_lists ... )
+    protected this ( istring[][] standard_header_lists ... )
     {
-        super.addKeys(castFrom!(istring[]).to!(cstring[])(HeaderFieldNames.General.NameList));
+        super.addKeys(HeaderFieldNames.General.NameList);
 
         foreach (standard_headers; standard_header_lists)
         {
@@ -125,7 +125,7 @@ abstract class HttpHeader : ParamSet
 
      **************************************************************************/
 
-    public void addCustomHeaders ( cstring[] header_field_names ... )
+    public void addCustomHeaders ( istring[] header_field_names ... )
     {
         super.addKeys(header_field_names);
 

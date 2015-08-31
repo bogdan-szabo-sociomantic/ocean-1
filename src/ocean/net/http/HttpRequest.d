@@ -44,6 +44,8 @@ module ocean.net.http.HttpRequest;
 
  ******************************************************************************/
 
+import tango.transition;
+
 import ocean.net.http.message.HttpHeader;
 
 import ocean.net.http.message.HttpHeaderParser,

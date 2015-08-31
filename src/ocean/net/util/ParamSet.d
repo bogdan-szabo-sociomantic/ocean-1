@@ -486,7 +486,7 @@ class ParamSet
 
      **************************************************************************/
 
-    protected void addKeys ( cstring[] keys ... )
+    protected void addKeys ( istring[] keys ... )
     {
         foreach (key; keys)
         {
