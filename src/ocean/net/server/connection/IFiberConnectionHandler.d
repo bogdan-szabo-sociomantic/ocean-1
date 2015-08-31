@@ -237,10 +237,6 @@ abstract class IFiberConnectionHandlerBase : IConnectionHandler
         {
             this.error(e);
         }
-        catch ( Object o )
-        {
-            debug ( ConnectionHandler ) Stderr.formatln("[{}]: Caught object while handling connection", this.connection_id);
-        }
         finally
         {
             this.finalize();
