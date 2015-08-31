@@ -611,7 +611,7 @@ unittest
 
     static size_t random_chunk_length ( )
     {
-        const c = content.length * (2.f / (parts * 3));
+        const c = content.length * (2.0f / (parts * 3));
 
         static assert (c >= 3, "too many parts");
 
