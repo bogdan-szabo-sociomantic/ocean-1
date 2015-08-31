@@ -541,26 +541,13 @@ public class StatsLog : IStatsLog
         Params:
             values = aggregate containing values to write to the log.
 
-        Note:
-            values can also be an associative array, in which case every
-            key will be the name associated to the value.
-            This behaviour is however deprecated and will be removed in a
-            later release. Please use a struct instead.
-
     ***************************************************************************/
 
     public typeof(this) add ( T ) ( T values )
     {
-        static if (isAssocArrayType!(T))
-        {
-            this.formatAssocArray(values, this.add_separator);
-        }
-        else
-        {
-            static assert (is(T == struct) || is(T == class),
-                           "Parameter to add must be a struct or a class");
-            this.format!(null)(values, cstring.init);
-        }
+        static assert (is(T == struct) || is(T == class),
+                       "Parameter to add must be a struct or a class");
+        this.format!(null)(values, cstring.init);
         this.add_separator = true;
 
         return this;
@@ -595,91 +582,6 @@ public class StatsLog : IStatsLog
     {
         this.format!(category)(values, instance);
         this.add_separator = true;
-        return this;
-    }
-
-
-    /***************************************************************************
-
-        Add another value to the stats
-
-        Params:
-            name = name of the value
-            value = the value to add
-
-        Returns:
-            this, for easy chaining
-
-    ***************************************************************************/
-
-    deprecated("Adding individual value is deprecated, please use a struct")
-    public typeof(this) add ( T ) ( cstring name, T value )
-    {
-        this.formatValue(name, value, this.add_separator);
-        this.add_separator = true;
-        return this;
-    }
-
-
-    /***************************************************************************
-
-        Adds a set of values (denoted by either an aggregate or an associative
-        array) to be output to the stats log. The specified string is appended
-        to the name of each value written.
-
-        This function is written as a single template to work around the limits
-        of template deduction. This function is equivalent to the following two
-        functions:
-
-        ************************************************************************
-        * Adds the values of the given aggregate to the stats log. Each member
-        * of the aggregate will be output as
-        * <member name><suffix>:<member value>.
-        *
-        * Params:
-        *     values = aggregate containing values to write to the log.
-        *     suffix = suffix to append to the values' names
-        * ---
-        * public typeof(this) add ( T ) ( T values )
-        * ---
-
-        ************************************************************************
-        * Add values from an associative array to the stats
-        *
-        * Params:
-        *     values = The associative array with the values to add
-        *     suffix = suffix to append to the values' names
-        * ---
-        * public typeof(this) add ( T ) ( T[char[]] values )
-        * ----
-
-        Don't forget to call .flush() after all values have been added.
-
-        Returns:
-            A reference to this class for method chaining
-
-    ***************************************************************************/
-
-    deprecated("Please use addObject instead")
-    public typeof(this) addSuffix ( T ) ( T parameter, char[] suffix )
-    {
-        static if (isAssocArrayType!(T))
-        {
-            this.formatAssocArray(parameter, this.add_separator, suffix);
-        }
-        else
-        {
-            static assert (is (T == struct) || is (T == class),
-                           "Parameter to add must be a struct or a class");
-            foreach ( i, value; parameter.tupleof )
-            {
-                this.formatValue(FieldName!(i, T), value,
-                                 this.add_separator, suffix);
-            }
-        }
-
-        this.add_separator = true;
-
         return this;
     }
 
@@ -864,72 +766,6 @@ public abstract class IStatsLog
         this.logger.level = this.logger.Level.Trace;
 
         this.layout = new StringLayout!();
-    }
-
-
-    /***************************************************************************
-
-        Writes the entries of the provided associative array to the
-        format_buffer member. Each entry of the associative array is output as
-        <key>:<value>.
-
-        Template Params:
-            A = type of associative array value. Assumed to be handled by Layout
-
-        Params:
-            values = associative array of values to write to the log
-            add_separator = flag telling whether a separator (space) should be
-                added before a stats value is formatted. After a single value
-                has been formatted the value of add_separator is set to true.
-            suffix = optional suffix to append to the values' names
-
-    ***************************************************************************/
-
-    deprecated("Please use a struct instead of associative arrays")
-    protected void formatAssocArray ( A ) ( A[char[]] values, ref bool add_separator,
-        char[] suffix = null )
-    {
-        foreach ( name, value; values )
-        {
-            this.formatValue(name, value, add_separator, suffix);
-            add_separator = true;
-        }
-    }
-
-
-    /***************************************************************************
-
-        Writes the specified name:value pair to the format_buffer member.
-
-        Template Params:
-            V = type of value. Assumed to be handled by Layout
-
-        Params:
-            name = name of stats log entry
-            value = value of stats log entry
-            add_separator = flag telling whether a separator (space) should be
-                added before the stats value is formatted
-            suffix = optional suffix to append to the name
-
-    ***************************************************************************/
-
-    deprecated("Use the new formatValue(istring, V)(cstring, V, cstring")
-    protected void formatValue ( V ) ( cstring name, V value, bool add_separator,
-        cstring suffix = null )
-    {
-        if (add_separator)
-        {
-            this.layout(' ');
-        }
-
-        if ( suffix )
-        {
-            this.layout(name, suffix, ':', value);
-        }
-        else
-        {
-            this.layout(name, ':', value);
-        }
     }
 
 

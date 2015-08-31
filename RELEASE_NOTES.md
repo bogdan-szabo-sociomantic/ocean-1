@@ -84,6 +84,11 @@ Removed Deprecated Symbols
 
   Removed `*Uint` methods that where deprecated in 1.21.0
 
+* `ocean.util.log.Stats`
+
+  Removed methods that were deprecated on last release (adding a single value,
+  `addPrefix`, and adding an associative array).
+
 Removed Symbols
 ---------------
 
