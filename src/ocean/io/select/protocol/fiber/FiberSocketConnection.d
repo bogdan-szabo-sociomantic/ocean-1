@@ -185,7 +185,7 @@ public class FiberSocketConnection ( bool IPv6 = false ) : IFiberSocketConnectio
 
     public InAddr in_addr ( )
     {
-        return this.connected_? this.socket.in_addr : InetAddress!(IPv6).addr_init;
+        return this.connected_? this.socket.in_addr : InetAddress.addr_init;
     }
 
     /***************************************************************************
