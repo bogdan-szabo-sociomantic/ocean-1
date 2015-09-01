@@ -268,6 +268,14 @@ public class FiberSocketConnection ( bool IPv6 = false ) : IFiberSocketConnectio
     }
 }
 
+///
+unittest
+{
+    alias FiberSocketConnection!(true) IPV6;
+    alias FiberSocketConnection!(false) IPV4;
+}
+
+
 public class IFiberSocketConnection : IFiberSelectProtocol
 {
     /**************************************************************************
