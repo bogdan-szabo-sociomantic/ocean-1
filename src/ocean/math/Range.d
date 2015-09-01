@@ -26,6 +26,7 @@ import tango.core.Traits : isUnsignedIntegerType;
 
 version ( UnitTest )
 {
+    import tango.util.Convert;
     import ocean.core.Test;
 }
 
@@ -93,8 +94,6 @@ public struct Range ( T )
 
         version ( UnitTest )
         {
-            import tango.util.Convert;
-
             // useful for test!("==")
             public istring toString ()
             {
@@ -176,8 +175,6 @@ public struct Range ( T )
 
     version ( UnitTest )
     {
-        import tango.util.Convert;
-
         public istring toString()
         {
             return this.is_empty ? "()"
