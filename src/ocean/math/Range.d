@@ -95,7 +95,7 @@ public struct Range ( T )
         {
             import tango.util.Convert;
 
-            // useful for test!("==") 
+            // useful for test!("==")
             public istring toString ()
             {
                 return "<" ~ to!(istring)(this.value) ~ "|"
@@ -567,51 +567,6 @@ public struct Range ( T )
         }
 
         return true;
-    }
-
-    deprecated
-    unittest
-    {
-        // minimal case: one hash range, test covers and not-covers
-        assert(Range(0, 0) == [Range(0, 0)]);
-        assert(Range(0, 0) != [Range(1, 1)]);
-
-        // complete
-        assert(Range(0, 10) ==
-            [Range(0, 1), Range(2, 5), Range(6, 10)]);
-
-        // missing start
-        assert(Range(0, 10) !=
-            [Range(1, 1), Range(2, 5), Range(6, 10)]);
-
-        // missing middle
-        assert(Range(0, 10) !=
-            [Range(0, 1), Range(3, 5), Range(6, 10)]);
-
-        // missing end
-        assert(Range(0, 10) !=
-            [Range(0, 1), Range(2, 5), Range(6, 9)]);
-
-        // unsorted, complete
-        assert(Range(0, 10) ==
-            [Range(6, 10), Range(2, 5), Range(0, 1)]);
-
-        // complete, empty ranges skipped
-        Range empty;
-        assert(Range(0, 10) ==
-            [Range(6, 10), Range(2, 5), Range(0, 1), empty, empty]);
-
-        // unsorted, missing start
-        assert(Range(0, 10) !=
-            [Range(6, 10), Range(2, 5), Range(1, 1)]);
-
-        // unsorted, missing middle
-        assert(Range(0, 10) !=
-            [Range(6, 10), Range(3, 5), Range(0, 1)]);
-
-        // unsorted, missing end
-        assert(Range(0, 10) !=
-            [Range(6, 9), Range(2, 5), Range(0, 1)]);
     }
 
 
@@ -1304,7 +1259,7 @@ public struct Range ( T )
         RangeEndpoint[4] a;
         sortEndpoints(*this, other, a);
 
-        // no overlap 
+        // no overlap
         if (a[0].owner_index == a[1].owner_index)
         {
             lower = *this;
@@ -1576,7 +1531,7 @@ unittest
                   Range!(uint)(6, 12),
                   Range!(uint)(13, 15)]), "Contiguous ranges can't have gap");
 
-    // overlap, but no gaps 
+    // overlap, but no gaps
     test(!hasGap([Range!(uint)(1, 5),
                   Range!(uint)(3, 14),
                   Range!(uint)(13, 15)]));
@@ -1938,7 +1893,7 @@ unittest
     test!("==")(extent([Range!(uint)(3, 5),
                         Range!(uint)(3, 5)]), Range!(uint)(3, 5));
 
-    // overlap 
+    // overlap
     test!("==")(extent([Range!(uint)(3, 5),
                         Range!(uint)(4, 8)]), Range!(uint)(3, 8));
 
