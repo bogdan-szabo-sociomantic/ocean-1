@@ -5,8 +5,8 @@ Ocean is a base, platform-dependant general purpose D library with all the
 required core functionality that is missing from the language standard library
 (Tango).  Part of Ocean is dedicated to fill some gaps in Tango or add some
 improvements over the existing modules, but a big part of it contains very
-low-level infrastructure need to do real-time applications efficiently, that's
-why memory allocation minimization is a key component in Ocean's design. For
+low-level infrastructure needed to do real-time applications efficiently. That 
+is why memory allocation minimization is a key component in Ocean's design. For
 the same reason a lot of non-portable constructions are used in Ocean.
 
 
