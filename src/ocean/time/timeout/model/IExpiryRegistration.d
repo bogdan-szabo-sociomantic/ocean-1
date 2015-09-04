@@ -21,6 +21,14 @@
 
 module ocean.time.timeout.model.IExpiryRegistration;
 
+
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
+
+import tango.transition;
 import ocean.time.timeout.model.ITimeoutClient;
 
 /*******************************************************************************
@@ -90,6 +98,5 @@ interface IExpiryRegistration
 
     ***************************************************************************/
 
-    debug char[] id ( );
+    debug cstring id ( );
 }
-

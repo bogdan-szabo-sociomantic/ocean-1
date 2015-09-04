@@ -18,6 +18,7 @@ module ocean.sys.Epoll;
 
  *****************************************************************************/
 
+import tango.transition;
 import tango.stdc.posix.unistd: close;
 
 /*****************************************************************************
@@ -135,7 +136,7 @@ align (1) struct epoll_event_t
 
     debug
     {
-        static char[][Event] event_to_name;
+        static istring[Event] event_to_name;
 
         static this ( )
         {
@@ -723,4 +724,3 @@ struct Epoll
         return .close(this.fd);
     }
 }
-

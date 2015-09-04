@@ -385,17 +385,9 @@ public abstract class ISelectClient : ITimeoutClient, ISelectable, ISelectClient
 
      **************************************************************************/
 
-    debug public char[] id ( )
+    debug public cstring id ( )
     {
-        auto full_name = this.classinfo.name;
-        foreach_reverse ( i, c; full_name )
-        {
-            if ( c == '.' )
-            {
-                return full_name[i+1..$];
-            }
-        }
-        return full_name;
+        return classname(this);
     }
 
     /***************************************************************************
@@ -409,7 +401,7 @@ public abstract class ISelectClient : ITimeoutClient, ISelectable, ISelectClient
 
     debug
     {
-        private char[] to_string_buf;
+        private mstring to_string_buf;
 
         public override istring toString ( )
         {
@@ -424,7 +416,7 @@ public abstract class ISelectClient : ITimeoutClient, ISelectable, ISelectClient
                 }
             }
 
-            return this.to_string_buf;
+            return idup(this.to_string_buf);
         }
     }
 }

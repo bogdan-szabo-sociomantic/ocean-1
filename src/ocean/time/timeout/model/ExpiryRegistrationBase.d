@@ -22,6 +22,8 @@ module ocean.time.timeout.model.ExpiryRegistrationBase;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.time.timeout.model.IExpiryRegistration,
        ocean.time.timeout.model.ITimeoutClient;
 
@@ -348,7 +350,7 @@ abstract class ExpiryRegistrationBase : IExpiryRegistration
 
     ***************************************************************************/
 
-    debug protected char[] id ( )
+    debug protected override cstring id ( )
     {
         return (this.client !is null)? this.client.id : typeof (this).stringof;
     }
