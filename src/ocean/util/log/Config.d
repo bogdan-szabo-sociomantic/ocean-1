@@ -487,8 +487,8 @@ public void setupLoggerLevel ( Logger log, char[] name, Config config )
                 break;
 
             default:
-                throw new Exception("Invalid value for log level in section"
-                                    " [" ~ name ~ "]");
+                throw new Exception("Invalid log level '" ~ level ~ "' " ~
+                    "requested for logger '" ~ name ~ "'");
         }
     }
 }
