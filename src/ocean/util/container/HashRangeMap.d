@@ -122,7 +122,7 @@ public struct HashRangeMap ( Value )
             hrm.ranges = [R(1, 2), R(3, 15), R(10, 12)];
             hrm.values = [Value.init, Value.init, Value.init];
 
-            test(!hrm.empty, "HashRangeMap with data can't be reported reported empty");
+            test(!hrm.empty, "HashRangeMap with data can't be reported as empty");
         }
     }
 
