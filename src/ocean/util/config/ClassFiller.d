@@ -1014,8 +1014,6 @@ body
 
 version ( UnitTest )
 {
-    import ocean.core.Test;
-
     class DummyParser : ConfigParser
     {
         istring[] categories = ["ROOT.valid", "ROOT-invalid", "ROOT_invalid",
