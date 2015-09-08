@@ -1018,18 +1018,6 @@ version ( UnitTest )
     {
         istring[] categories = ["ROOT.valid", "ROOT-invalid", "ROOT_invalid",
                                 "ROOTINVALID"];
-
-        override public int opApply ( int delegate ( ref cstring key ) dg )
-        {
-            int result;
-            foreach ( cat ; categories )
-            {
-                result = dg(cat);
-                if (result) break;
-            }
-
-            return result;
-        }
     }
 
     class Dummy {}
