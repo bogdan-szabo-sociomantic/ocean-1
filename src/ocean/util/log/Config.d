@@ -477,7 +477,7 @@ public void setupLoggerLevel ( Logger log, char[] name, Config config )
                 break;
 
             case "fatal":
-                log.level(Level.Info, propagate);
+                log.level(Level.Fatal, propagate);
                 break;
 
             case "none":
