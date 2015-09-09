@@ -501,15 +501,17 @@ class BucketInfo
 
     package void clearResize ( size_t n )
     {
-        if (this.buckets.length != n)
-        {
-            this.buckets.length             = n;
-            this.bucket_list_indices.length = n;
+        this.buckets.length             = n;
+        this.bucket_list_indices.length = n;
 
-            if (this.n_filled > n)
-            {
-                this.n_filled = n;
-            }
+        /*
+         * this.n_filled must be adjusted for clear() to work because clear()
+         * resets all elements in this.filled_buckets, which is
+         * this.buckets[0 .. this.n_filled].
+         */
+        if (this.n_filled > n)
+        {
+            this.n_filled = n;
         }
 
         this.clear();
