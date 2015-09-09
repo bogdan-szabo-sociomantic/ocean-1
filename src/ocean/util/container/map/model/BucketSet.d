@@ -669,9 +669,16 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
                     auto element = cast (Bucket.Element*) element_,
                     bucket_index = this.toHash(element.key) & this.bucket_mask;
 
-                    assert (!this.bucket_info[bucket_index] ^ this.buckets[bucket_index].has_element,
-                            "bucket with zero length has an element or "
-                            "bucket with non-zero length has no element");
+                    if (this.bucket_info[bucket_index])
+                    {
+                        assert (this.buckets[bucket_index].has_element,
+                                "bucket with non-zero length has no element");
+                    }
+                    else
+                    {
+                        assert (!this.bucket_info[bucket_index],
+                                "bucket with zero length has an element");
+                    }
 
                     this.bucket_info.put(bucket_index);
 

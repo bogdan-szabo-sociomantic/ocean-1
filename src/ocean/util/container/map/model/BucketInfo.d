@@ -138,6 +138,10 @@ class BucketInfo
         {
             assert (this.n_filled);
         }
+        else
+        {
+            assert(!this.n_filled);
+        }
     }
 
     /**************************************************************************
@@ -312,10 +316,14 @@ class BucketInfo
     {
         with (this.buckets[this.n_filled])
         {
+            assert(index >= this.buckets.length);
             index  = bucket_index;
+
+            assert(!length);
             length = 1;
         }
 
+        assert(this.bucket_list_indices[bucket_index] >= this.n_filled);
         this.bucket_list_indices[bucket_index] = this.n_filled++;
 
         this.n_elements++;
@@ -340,11 +348,11 @@ class BucketInfo
     {
         assert (this);
 
+        assert (this.n_elements, "update: no element in map");
+
         assert (this.buckets[this.bucket_list_indices[bucket_index]].length,
                 "attempted to update an empty bucket info: use create()/put() "
                 "instead");
-
-        assert (this.n_elements, "update: no element in map");
 
         debug (BucketInfo) this.print("upd ", bucket_index);
     }
@@ -382,10 +390,10 @@ class BucketInfo
     {
         assert (this);
 
+        assert (this.n_elements, "remove: no element in map");
+
         assert (this.buckets[this.bucket_list_indices[bucket_index]].length,
                 "remove: attempted to remove an element from an empty bucket");
-
-        assert (this.n_elements, "remove: no element in map");
 
         debug (BucketInfo) this.print("rem ", bucket_index);
     }
