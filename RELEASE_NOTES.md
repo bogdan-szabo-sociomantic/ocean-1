@@ -48,3 +48,8 @@ Deprecations
 
 New Features
 ============
+
+* `util.container.map.Map`
+
+  Added an overloaded constructor to the `StandardKeyHashingMap` class which
+  allows usage of a custom allocator instead of the default one.
