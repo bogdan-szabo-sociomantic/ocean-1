@@ -85,6 +85,15 @@ class BucketInfo
         List of Bucket info instances, with the non-empty buckets first, so that
         buckets[0 .. n_filled] refers to the non-empty buckets.
 
+        All elements in buckets[n_filled .. $] must always have the initial
+        value Bucket.init so that, given a bucket index b, if
+
+            bucket_list_indices[b] >= n_filled
+
+        then
+
+            buckets[bucket_list_indices[b]].length == 0.
+
      **************************************************************************/
 
     private Bucket[] buckets;
@@ -94,6 +103,12 @@ class BucketInfo
         Index in the list of Bucket info instances by bucket index, so that for
         a bucket index b the bucket info for this bucket can be obtained by
         buckets[bucket_list_indices[b]].
+
+        All elements of this array are initialised to buckets.length - 1
+        because, as described for the buckets array, given a bucket index b that
+        refers to an empty bucket, bucket_list_indices[b] must be at least
+        n_filled, and as long as there are empty buckets, n_filled is less than
+        buckets.length.
 
      **************************************************************************/
 
@@ -138,6 +153,12 @@ class BucketInfo
     {
         this.buckets             = new Bucket[num_buckets];
         this.bucket_list_indices = new size_t[num_buckets];
+
+        /*
+         * Initialise bucket_list_indices, see bucket_list_indices documentation
+         * for details.
+         */
+        this.bucket_list_indices[] = this.buckets.length - 1;
     }
 
 
@@ -485,6 +506,11 @@ class BucketInfo
          * Reset all buckets that have been in use.
          */
         this.filled_buckets[] = Bucket.init;
+        /*
+         * Reinitialise bucket_list_indices, see bucket_list_indices
+         * documentation for details.
+         */
+        this.bucket_list_indices[] = this.buckets.length - 1;
 
         this.n_filled = this.n_elements = 0;
     }
@@ -542,4 +568,64 @@ class BucketInfo
 
         Stderr('\n').flush();
     }
+}
+
+/*******************************************************************************
+
+    Verify bug #823 (empty buckets were reported to be not empty) is fixed
+
+*******************************************************************************/
+
+version (UnitTest):
+
+import ocean.core.Test;
+
+unittest
+{
+    auto info = new BucketInfo(3);
+
+    // Checks if the number of elements reported by info for each bucket is
+    // the expected value.
+
+    void checkNumElements ( int[] expected ... )
+    in
+    {
+        assert(expected.length == info.num_buckets);
+    }
+    body
+    {
+        foreach (i, n; expected)
+        {
+            // BucketInfo.opIndex(x) returns the number of elements in bucket x.
+            test!("==")(info[i], n);
+        }
+    }
+
+    checkNumElements(0, 0, 0);
+
+    // BucketInfo.put(x) increases the number of elements in bucket x by 1.
+
+    info.put(2);
+    checkNumElements(0, 0, 1);
+
+    info.put(0);
+    checkNumElements(1, 0, 1);
+
+    info.put(1);
+    checkNumElements(1, 1, 1);
+
+    info.clearResize(4);
+    checkNumElements(0, 0, 0, 0);
+
+    info.put(3);
+    checkNumElements(0, 0, 0, 1);
+
+    info.put(1);
+    checkNumElements(0, 1, 0, 1);
+
+    info.put(0);
+    checkNumElements(1, 1, 0, 1);
+
+    info.put(2);
+    checkNumElements(1, 1, 1, 1);
 }
