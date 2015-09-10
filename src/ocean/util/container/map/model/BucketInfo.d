@@ -19,8 +19,6 @@ module ocean.util.container.map.model.BucketInfo;
 
 *******************************************************************************/
 
-import ocean.core.Array: clear;
-
 debug (BucketInfo) import tango.io.Stdout;
 
 /*******************************************************************************/
@@ -37,11 +35,13 @@ class BucketInfo
     {
         /**********************************************************************
 
-            Bucket index, the index of the bucket in the array of buckets.
+            Bucket index, the index of the bucket in the array of buckets. It
+            is meaningful only if length > 0 so for easier bug detection the
+            initial value is an out-of-range index.
 
          **********************************************************************/
 
-        size_t index;
+        size_t index = size_t.max;
 
         /**********************************************************************
 
@@ -50,7 +50,7 @@ class BucketInfo
 
          **********************************************************************/
 
-        size_t length;
+        size_t length = 0;
 
         /**********************************************************************
 
@@ -413,11 +413,7 @@ class BucketInfo
                 this.bucket_list_indices[info_to_remove.index] = *bucket_info_index;
             }
 
-            with (*last_info)
-            {
-                index = this.buckets.length;
-                length = 0;
-            }
+            *last_info = (*last_info).init;
 
             *bucket_info_index = this.buckets.length;
         }
@@ -485,7 +481,10 @@ class BucketInfo
     }
     body
     {
-        .clear(this.filled_buckets);
+        /*
+         * Reset all buckets that have been in use.
+         */
+        this.filled_buckets[] = Bucket.init;
 
         this.n_filled = this.n_elements = 0;
     }
