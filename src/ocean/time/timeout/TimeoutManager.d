@@ -53,6 +53,7 @@ import ocean.util.container.AppendBuffer;
 import ocean.util.container.map.Map,
        ocean.util.container.map.model.StandardHash;
 
+import tango.transition;
 
 debug
 {
@@ -98,7 +99,7 @@ class TimeoutManager : TimeoutManagerBase
 
         ***********************************************************************/
 
-        debug public override char[] id ( )
+        debug public override cstring id ( )
         {
             return super.client.id;
         }

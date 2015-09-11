@@ -25,6 +25,7 @@ import ocean.io.select.client.model.ISelectClient: ISelectClient;
 import ocean.sys.TimerFD;
 import ocean.core.Traits;
 
+import tango.transition;
 import tango.io.model.IConduit: ISelectable;
 
 import tango.stdc.posix.time: time_t, timespec, itimerspec;
@@ -343,9 +344,9 @@ abstract class ITimerEvent : ISelectClient, ISelectable
         import ocean.core.Array : copy;
         import tango.text.convert.Format;
 
-        private char[] time_buffer;
+        private mstring time_buffer;
 
-        public override char[] id ( )
+        public override cstring id ( )
         {
             this.time_buffer.copy(super.id());
             auto time = this.time();

@@ -104,7 +104,7 @@ public interface ISelectClientInfo
 
      **************************************************************************/
 
-    debug char[] id ( );
+    debug cstring id ( );
 
 
     /***************************************************************************
@@ -118,4 +118,3 @@ public interface ISelectClientInfo
 
     debug istring toString ( );
 }
-
