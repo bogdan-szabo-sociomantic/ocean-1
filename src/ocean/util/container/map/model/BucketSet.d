@@ -47,7 +47,7 @@ import ocean.core.Array: clear, isClearable;
 
 import tango.core.BitManip: bsr;
 
-import ocean.util.container.map.model.IBucketElementGCAllocator;
+import ocean.util.container.map.model.BucketElementGCAllocator;
 
 /******************************************************************************
 
@@ -300,13 +300,6 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
 
     protected alias .Bucket!(V, K) Bucket;
 
-    static class BucketElementGCAllocator: IBucketElementGCAllocator
-    {
-        public override void* get ( )
-        {
-            return new Bucket.Element;
-        }
-    }
 
     /***************************************************************************
 
@@ -338,7 +331,8 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
 
     protected this ( size_t n, float load_factor = 0.75 )
     {
-        this(new BucketElementGCAllocator, n, load_factor);
+        auto allocator = new BucketElementGCAllocator!(Bucket)();
+        this(allocator, n, load_factor);
     }
 
     /***************************************************************************
