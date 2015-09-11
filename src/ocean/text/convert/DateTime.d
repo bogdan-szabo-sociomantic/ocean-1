@@ -131,7 +131,7 @@ public bool timeToUnixTime ( cstring str, ref time_t time,
             if ( validCharacters(str, "-") ) // 2010-08
             {
                 conversion_type = DateConversion.YearMonthWithHyphen;
-                break Converted;
+                break;
             }
             return false;
 
@@ -139,7 +139,7 @@ public bool timeToUnixTime ( cstring str, ref time_t time,
             if ( validCharacters(str, "-") && separator == 255 )
             {
                 conversion_type = DateConversion.YearMonthDayWithHyphen;
-                break Converted;
+                break;
             }
             return false;
 
