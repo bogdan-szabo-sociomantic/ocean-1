@@ -489,8 +489,10 @@ public void setupLoggerLevel ( Logger log, istring name, Config config )
                 break;
 
             default:
-                throw new Exception("Invalid log level '" ~ level ~ "' " ~
-                    "requested for logger '" ~ name ~ "'");
+                throw new Exception(cast(istring) ("Invalid log level '"
+                                                   ~ level ~ "' " ~
+                                                   "requested for logger '"
+                                                   ~ name ~ "'"));
         }
     }
 }
