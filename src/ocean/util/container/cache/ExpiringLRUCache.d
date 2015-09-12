@@ -108,6 +108,9 @@ class ExpiringLRUCache(T = void[]) : LRUCache!(T, true), IExpiringCacheInfo
         return this.getAndRefresh(key, existed);
     }
 
+    /// ditto
+    public alias LRUCache!(T, true).getAndRefresh getAndRefresh;
+
     /***************************************************************************
 
         Gets an item from the cache. If the item was found in the cache, its
