@@ -324,6 +324,7 @@ public class StringStructSerializer ( Char )
     private void increaseIndent ( )
     {
         this.indent.length = this.indent.length + indent_size;
+        enableStomping(this.indent);
         this.indent[] = ' ';
     }
 
@@ -342,6 +343,7 @@ public class StringStructSerializer ( Char )
     body
     {
         this.indent.length = this.indent.length - indent_size;
+        enableStomping(this.indent);
         this.indent[] = ' ';
     }
 }
@@ -386,6 +388,7 @@ unittest
         [TextFragment("zwei".dup, 2), TextFragment("drei".dup, 3)]];
 
     buffer.length = 0;
+    enableStomping(buffer);
     srlz.serialize(buffer, multi_dimensional_array);
 
     t.test(buffer.length == 461, "Incorrect string serializer result length");

@@ -256,10 +256,9 @@ body
 
 unittest
 {
-    mstring buffer;
-
     void doTest ( cstring input, cstring expected_output, int length, int line = __LINE__ )
     {
+        mstring buffer;
         buffer.copy(input);
         test!("==")(truncateAtWordBreak(buffer, length), expected_output, __FILE__, line);
     }

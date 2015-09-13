@@ -627,6 +627,7 @@ unittest
         regex.compile("a[ ]", false);
 
         matches_buffer.length = 0;
+        enableStomping(matches_buffer);
 
         foreach ( match; regex.findAll(str, matches_buffer) )
         {
@@ -641,7 +642,7 @@ unittest
         const str = "en hast at en annan hast";
         regex.compile("a[s]*t", false);
 
-        matches_buffer.length = 0;
+        matches_buffer = null;
 
 
         foreach (i, match; regex.findAll(str, matches_buffer) )
@@ -657,7 +658,7 @@ unittest
         regex.compile("t[\\w]", true);
         regex.study();
 
-        matches_buffer.length = 0;
+        matches_buffer = null;
 
         foreach (i, match; regex.findAll(str, matches_buffer) )
         {
@@ -670,7 +671,7 @@ unittest
     {
         const str = "en text";
         regex.compile("zzz", false);
-        matches_buffer.length = 0;
+        matches_buffer = null;
         auto matches = regex.findAll(str, matches_buffer);
 
         t.test!("==")(matches_buffer.length, 0);
@@ -679,7 +680,7 @@ unittest
     {
         const str = "en text";
         regex.compile("zzz", false);
-        matches_buffer.length = 0;
+        matches_buffer = null;
         auto matches = regex.findAll(str, matches_buffer);
 
         t.test!("==")(matches_buffer.length, 0);

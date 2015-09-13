@@ -1674,6 +1674,8 @@ body
 
 private D concatT ( istring func, D, T ... ) ( ref D dest, T arrays, size_t start = 0 )
 {
+    enableStomping(dest);
+
     static if (T.length == 1)                                               // single argument
     {
         static if (is (typeof (dest[] = arrays[0][])))                      // one array
@@ -1711,6 +1713,7 @@ private D concatT ( istring func, D, T ... ) ( ref D dest, T arrays, size_t star
         }
 
         dest.length = start + toStaticArray(list, arrays);
+        enableStomping(dest);
 
         return dest.concat_(list, start);
     }
@@ -1730,14 +1733,17 @@ unittest
     assert (str.copy("Die Katze tritt die Treppe krumm.") == "Die Katze tritt die Treppe krumm.");
 
     str.length = 0;
+    enableStomping(str);
     assert (str.concat("Die ", "Katze ", "tritt ", "die ", "Treppe ", "krumm.") == "Die Katze tritt die Treppe krumm.");
 
     mstring nothing = null;
 
     str.length = 0;
+    enableStomping(str);
     assert (str.concat("Die ", "", "Katze ", "tritt ", nothing, "die ", "Treppe ", "krumm.") == "Die Katze tritt die Treppe krumm.");
 
     str.length = 0;
+    enableStomping(str);
     str.append("Die Katze ");
     assert (str == "Die Katze ");
     str.append("tritt ", "die ");

@@ -12,7 +12,7 @@
 
 module ocean.util.container.pool.model.IFreeList;
 
-
+import tango.transition;
 
 /*******************************************************************************
 
@@ -312,6 +312,8 @@ version ( UnitTest )
                 this.fl.recycle(item);
                 this.lengthCheck(busy_items.length, ++idle_count);
             }
+
+            enableStomping(busy_items);
         }
     }
 }

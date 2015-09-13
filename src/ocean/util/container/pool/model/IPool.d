@@ -347,6 +347,7 @@ public abstract class IPool : IPoolInfo, ILimitable
 
             auto old_len = this.items.length;
             this.items.length = num;
+            enableStomping(this.items);
 
             foreach ( ref item; this.items[old_len .. $] )
             {
@@ -587,6 +588,7 @@ public abstract class IPool : IPoolInfo, ILimitable
         }
 
         this.items.length = this.items.length - remove;
+        enableStomping(this.items);
     }
 
     deprecated("Use the class defined at module scope instead")

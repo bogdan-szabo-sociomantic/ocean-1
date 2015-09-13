@@ -202,6 +202,8 @@ struct StructSerializer ( bool AllowUnions = false )
     {
         mixin AssertSingleByteType!(D, typeof (*this).stringof ~ ".dump");
 
+        enableStomping(data);
+
         size_t written = 0;
 
         scope (exit) data.length = written;
