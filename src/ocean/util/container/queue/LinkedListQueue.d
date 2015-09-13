@@ -291,9 +291,9 @@ public class LinkedListQueue ( T ) : ITypedQueue!( T )
 
         QueueItem* head_to_be_removed = this.head;
         this.head = this.head.next;
+        this.count--;
 
         this.deleteItem(head_to_be_removed);
-        this.count--;
     }
 
 
@@ -397,8 +397,8 @@ public class LinkedListQueue ( T ) : ITypedQueue!( T )
                 }
 
                 // remove
-                this.deleteItem(iterator);
                 this.count--;
+                this.deleteItem(iterator);
 
                 // should we look for more matched values? have we reached the end?
                 if ( !all || this.count == 0 )
