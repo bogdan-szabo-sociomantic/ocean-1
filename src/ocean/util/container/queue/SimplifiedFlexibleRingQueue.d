@@ -551,12 +551,13 @@ deprecated unittest
 
     ***********************************************************************/
 
-    {
-       auto caught = false;
-       try scope queue = new FlexibleByteRingQueue(0);
-       catch ( Exception e ) caught = true;
-       assert (caught == true);
-    }
+    // Disabled : assert is an error in D2
+    //{
+    //   auto caught = false;
+    //   try scope queue = new FlexibleByteRingQueue(0);
+    //   catch ( Exception e ) caught = true;
+    //   assert (caught == true);
+    //}
 
     /***********************************************************************
 
