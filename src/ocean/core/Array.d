@@ -204,6 +204,7 @@ public T[] copyExtend ( T, TC ) ( ref T[] dest, TC[] src )
         if (dest.length < conv_src.length)
         {
             dest.length = conv_src.length;
+            enableStomping(dest);
         }
 
         dest[0 .. conv_src.length] = conv_src[];
@@ -253,6 +254,7 @@ public T[][] appendCopy ( T, TC ) ( ref T[][] dest, TC[] src )
     static assert (is(Unqual!(T) == Unqual!(TC)));
 
     dest.length = dest.length + 1;
+    enableStomping(dest);
     dest[$ - 1].copy(src);
 
     return dest;
@@ -294,6 +296,7 @@ public T[][] split ( T, TC ) ( T[] src, TC[] pattern, ref T[][] result )
     static assert (is(Unqual!(T) == Unqual!(TC)));
 
     result.length = 0;
+    enableStomping(result);
 
     foreach ( segment; patterns(src, pattern) )
     {
@@ -340,6 +343,7 @@ public T[] substitute ( T, TC1, TC2, TC3 ) ( TC1[] source, TC2[] match,
     static assert (is(Unqual!(T) == Unqual!(TC3)));
 
     result.length = 0;
+    enableStomping(result);
 
     // `patterns` normally expect same type for both source and
     // replacement because it returns slice that can refer to either
@@ -386,6 +390,7 @@ public bool pop ( T ) ( ref T[] array, out T popped )
     {
         popped = array[$-1];
         array.length = array.length - 1;
+        enableStomping(array);
         return true;
     }
 
@@ -512,6 +517,7 @@ body
 
     // adjust array length
     array.length = array.length - remove_elems;
+    enableStomping(array);
 
     return array;
 }
@@ -588,6 +594,7 @@ body
 
     // adjust array length
     array.length = array.length + insert_elems;
+    enableStomping(array);
 
     // shift required elements one place to the right
     if ( shift_elems )
@@ -1688,6 +1695,7 @@ private D concatT ( istring func, D, T ... ) ( ref D dest, T arrays, size_t star
         static if (is (typeof (dest[] = arrays[0][])))                      // one array
         {
             dest.length = start + arrays[0].length;
+            enableStomping(dest);
 
             return dest[start .. $] = arrays[0][];
         }
@@ -1703,6 +1711,7 @@ private D concatT ( istring func, D, T ... ) ( ref D dest, T arrays, size_t star
             }
 
             dest.length = total_len;
+            enableStomping(dest);
 
             return dest.concat_(arrays[0], start);
         }

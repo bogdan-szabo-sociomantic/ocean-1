@@ -14,6 +14,8 @@
 
 module ocean.util.container.ebtree.nodepool.NodePool;
 
+import tango.transition;
+
 /*******************************************************************************
 
     Node pool interface
@@ -60,7 +62,11 @@ class NodePool ( Node ) : INodePool!(Node)
     {
         if ( this.free_nodes.length )
         {
-            scope (success) this.free_nodes.length = this.free_nodes.length - 1;
+            scope (success)
+            {
+                this.free_nodes.length = this.free_nodes.length - 1;
+                enableStomping(this.free_nodes);
+            }
 
             return this.free_nodes[$ - 1];
         }
@@ -82,6 +88,7 @@ class NodePool ( Node ) : INodePool!(Node)
     public void recycle ( Node* node )
     {
         this.free_nodes.length = this.free_nodes.length + 1;
+        enableStomping(this.free_nodes);
         this.free_nodes[$ - 1] = node;
     }
 

@@ -43,7 +43,7 @@ import ocean.core.Traits : StripTypedef;
 
 import tango.core.Traits;
 
-
+import tango.transition;
 
 /*******************************************************************************
 
@@ -213,6 +213,7 @@ public class FreeList ( T ) : IFreeList!(ItemType_!(T))
         if ( this.free_list.length > num )
         {
             this.free_list.length = num;
+            enableStomping(this.free_list);
         }
 
         return this;

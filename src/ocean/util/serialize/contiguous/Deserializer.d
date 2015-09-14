@@ -313,6 +313,8 @@ struct Deserializer
 
         This.e.enforceInputSize!(S)(src.length, S.sizeof);
 
+        enableStomping(dst.data);
+
         /*
          * Calculate the number of bytes used in src, data_len, and the number
          * of bytes required for branched array instances, slices_len.

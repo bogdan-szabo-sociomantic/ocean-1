@@ -225,6 +225,7 @@ public class TokyoCabinetM
     body
     {
         value.length = 0;
+        enableStomping(value);
 
         return this.get(key, ( char[] v )
         {
@@ -335,6 +336,7 @@ public class TokyoCabinetM
         synchronized ( this )
         {
             key.length = 0;
+            enableStomping(key);
 
             if ( exists(last_key) )
             {
@@ -589,6 +591,7 @@ public class TokyoCabinetM
     body
     {
         key.length = 0;
+        enableStomping(key);
 
         int len;
 
