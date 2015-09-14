@@ -11,6 +11,14 @@ Migration Instructions
 Removed Deprecated Modules
 --------------------------
 
+* `ocean.core.DeepCopy`
+
+  Deprecated in favor of `ocean.util.serialize.contiguos.Util.copy` in v1.22
+
+* `ocean.core.ErrnoIOException`
+
+  Deprecated in favor of `ocean.sys.ErrnoException` in v1.22
+
 Removed Deprecated Symbols
 --------------------------
 
