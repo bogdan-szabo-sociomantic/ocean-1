@@ -79,7 +79,7 @@ public class SuspendableThrottlerCount : ISuspendableThrottlerCount
 
     ***************************************************************************/
 
-    public void add ( )
+    public void inc ( )
     in
     {
         assert(this.count < this.count.max);
@@ -89,8 +89,12 @@ public class SuspendableThrottlerCount : ISuspendableThrottlerCount
         this.count++;
         super.throttle();
     }
-
-    public alias add opPostInc;
+    
+    // WORKAROUND: DMD 2.068 had difficulties  resolving multiple overloads of
+    // `add` when one came from alias and other was "native" method. Creating
+    // distinct name (`inc`) allowed to disambugate it manually
+    public alias inc add;
+    public alias inc opPostInc;
 
 
     /***************************************************************************
@@ -126,7 +130,7 @@ public class SuspendableThrottlerCount : ISuspendableThrottlerCount
 
     ***************************************************************************/
 
-    public void remove ( )
+    public void dec ( )
     in
     {
         assert(this.count > 0);
@@ -137,7 +141,11 @@ public class SuspendableThrottlerCount : ISuspendableThrottlerCount
         super.throttle();
     }
 
-    public alias remove opPostDec;
+    // WORKAROUND: DMD 2.068 had difficulties  resolving multiple overloads of
+    // `remove` when one came from alias and other was "native" method. Creating
+    // distinct name (`dec`) allowed to disambugate it manually
+    public alias dec remove;
+    public alias dec opPostDec;
 
 
     /***************************************************************************
