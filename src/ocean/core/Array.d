@@ -190,7 +190,14 @@ public T[] copyExtend ( T, TC ) ( ref T[] dest, TC[] src )
 {
     // allow implicit conversion, issue #810
     static assert (is(Unqual!(TC)[] : Unqual!(T)[]));
-    Const!(T)[] conv_src = src;
+    static if (is(Const!(TC) == TC) || is(Immut!(TC) == TC))
+    {
+        Const!(T)[] conv_src = src;
+    }
+    else
+    {
+        T[] conv_src = src;
+    }
 
     if (conv_src.length)
     {
