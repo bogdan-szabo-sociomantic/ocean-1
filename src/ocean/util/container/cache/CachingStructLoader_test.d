@@ -91,6 +91,9 @@ class TestCache(S) : CachingStructLoader!(S)
 
     void addToSource(hash_t key, S value)
     {
+        auto elem = key in this.source;
+        if (elem is null)
+            this.source[key] = null;
         Serializer.serialize(value, this.source[key]);
     }
 
