@@ -287,8 +287,9 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
     ***************************************************************************/
 
-    protected override void clear_ ( )
+    public override void clear ( )
     {
+        super.clear();
         super.items = 0;
         this.gap = 0;
     }

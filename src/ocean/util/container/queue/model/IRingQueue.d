@@ -211,21 +211,10 @@ public abstract class IRingQueue ( IBaseQueue ) : IBaseQueue
 
     ***************************************************************************/
 
-    final void clear ( )
+    public void clear ( )
     {
         this.write_to   = 0;
         this.read_from  = 0;
         this.items      = 0;
-        this.clear_();
     }
-
-
-    /***************************************************************************
-
-        Invoked by clear(), may be overridden by a subclass
-
-    ***************************************************************************/
-
-    protected void clear_ ( ) { }
 }
-

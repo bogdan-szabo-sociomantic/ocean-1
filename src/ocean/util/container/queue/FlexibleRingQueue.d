@@ -293,13 +293,9 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
     ***************************************************************************/
 
-    protected override void clear_ ( )
-    out
+    protected override void clear ( )
     {
-        assert(this); // invariant
-    }
-    body
-    {
+        super.clear();
         this.items = 0;
         this.gap = 0;
     }
