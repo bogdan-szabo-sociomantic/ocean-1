@@ -188,19 +188,21 @@ unittest
 
 public T[] copyExtend ( T, TC ) ( ref T[] dest, TC[] src )
 {
-    static assert (is(Unqual!(T) == Unqual!(TC)));
+    // allow implicit conversion, issue #810
+    static assert (is(Unqual!(TC)[] : Unqual!(T)[]));
+    Const!(T)[] conv_src = src;
 
-    if (src.length)
+    if (conv_src.length)
     {
-        if (dest.length < src.length)
+        if (dest.length < conv_src.length)
         {
-            dest.length = src.length;
+            dest.length = conv_src.length;
         }
 
-        dest[0 .. src.length] = src[];
+        dest[0 .. conv_src.length] = conv_src[];
     }
 
-    return dest[0 .. src.length];
+    return dest[0 .. conv_src.length];
 }
 
 ///
@@ -208,6 +210,15 @@ unittest
 {
     auto dst = "aaaaa".dup;
     auto str = copyExtend(dst, "bbb");
+}
+
+unittest
+{
+    // issue #810
+    void[] dst;
+    ulong[] src = [15, 10];
+    copyExtend!(void)(dst, src);   
+    test!("==")(dst, cast(void[]) src);
 }
 
 /*******************************************************************************
