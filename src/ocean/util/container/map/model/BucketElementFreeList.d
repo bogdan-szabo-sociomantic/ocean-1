@@ -235,8 +235,6 @@ abstract class IBucketElementFreeList: IAllocator
     {
         if (this.first)
         {
-            this.n_free--;
-
             return this.get_();
         }
         else
@@ -334,14 +332,14 @@ abstract class IBucketElementFreeList: IAllocator
     private void* get_ ( )
     in
     {
-        assert (this.first);
+        assert (this.first !is null);
     }
     body
     {
         void* element = this.first;
 
         this.first = this.getNext(element);
-
+        this.n_free--;
         this.setNext(element, null);
 
         return element;
