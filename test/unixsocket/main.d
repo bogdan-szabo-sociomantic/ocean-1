@@ -34,15 +34,16 @@ import tango.stdc.posix.stdlib : mkdtemp;
 import tango.stdc.stdio;
 import tango.math.Math;
 import tango.core.Thread;
+import tango.core.Time;
 import tango.net.device.LocalSocket;
 import tango.stdc.string;
 import tango.stdc.errno;
 
 import ocean.text.util.StringC;
 
-const char[] CLIENT_STRING = "Hello from the client";
+const istring CLIENT_STRING = "Hello from the client";
 
-const char[] SERVER_STRING = "Hello from the server";
+const istring SERVER_STRING = "Hello from the server";
 
 int runClient ( LocalAddress socket_address )
 {
@@ -61,7 +62,7 @@ int runClient ( LocalAddress socket_address )
     int i;
     for (i = 1; i <= 5 && connect_result == ECONNREFUSED; i++)
     {
-        Thread.sleep(0.1 * i);
+        Thread.sleep(seconds(0.1 * i));
         connect_result = client.connect(socket_address);
     }
 
@@ -180,7 +181,7 @@ void connection_handler ( UnixSocket peer_socket )
     read_buffer.length = read_bytes;
 
     enforce(read_buffer == CLIENT_STRING,
-        "Expected: " ~ CLIENT_STRING ~ " Got: " ~ read_buffer);
+            cast(istring) ("Expected: " ~ CLIENT_STRING ~ " Got: " ~ read_buffer));
 
     // send the response
     peer_socket.write(SERVER_STRING);
