@@ -49,6 +49,10 @@ Deprecations
 New Features
 ============
 
+* `util.container.map.model.BucketElementMallocAllocator`
+
+  Added a new allocator (previously lived in alligator) which allocates map
+  elements using `malloc()` and recycles them using `free()`.
 
 * `util.container.map.model.*Allocators`
 
