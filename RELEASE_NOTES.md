@@ -19,6 +19,18 @@ Removed Deprecated Modules
 
   Deprecated in favor of `ocean.sys.ErrnoException` in v1.22
 
+* `ocean.text.url.PercentEncoding`
+
+  Deprecated as it was empty in v1.23
+
+* `ocean.util.Config`
+
+  Deprecated in v1.23
+
+* `ocean.util.container.queue.SimplifiedFlexibleRingQueue`
+
+  Deprecated in favor of `ocean.util.container.queue.FlexibleRingQueue` in v1.23
+
 Removed Deprecated Symbols
 --------------------------
 
