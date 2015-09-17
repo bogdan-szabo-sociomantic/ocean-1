@@ -95,8 +95,7 @@ public class SelectFiber : MessageFiber
 
         Returns:
             true if an epoll registration was actually added or modified or
-            false if the client's I/O device was already registered with the
-            same event.
+            false if the client was the currently registered client.
 
      **************************************************************************/
 
@@ -112,64 +111,73 @@ public class SelectFiber : MessageFiber
 
         if ( this.current is null )
         {
+            // No client is currently registered: Add an epoll registration for
+            // the a new client.
+
             debug ( SelectFiber) Stderr.formatln("   Register new {}", client);
 
             this.epoll.register(this.current = client);
 
             return true;
         }
+        else if ( this.current is client )
+        {
+            // The currently registered client is used for another I/O
+            // operation: Only refresh the timeout registration of the client,
+            // no need to change the epoll registration.
+
+            debug ( SelectFiber)
+            {
+                Stderr.formatln("   Leaving registered {}", this.current);
+            }
+
+            // As there is not way to modify a registration with the
+            // timeout manager, it is necessary to call unregistered(), then
+            // registered() even if this.current and client are identical. This
+            // ensures that, even if the epoll registration doesn't need to be
+            // updated, that the timeout timeout registration is updated
+            // correctly.
+
+            this.current.unregistered();
+            client.registered();
+
+            return false;
+        }
+        else if ( this.current.fileHandle == client.fileHandle )
+        {
+            // The currently registered client and the new client share the same
+            // I/O device: Update the epoll registration of the I/O device to
+            // the new client.
+
+            debug ( SelectFiber)
+            {
+                Stderr.formatln("   Changing event registration {}",
+                    this.current);
+                Stderr.formatln("   Register {}", client);
+            }
+
+            this.epoll.changeClient(this.current, client);
+
+            this.current = client;
+
+            return true;
+        }
         else
         {
-            if ( this.current.fileHandle == client.fileHandle )
-            {
-                if ( this.current.events != client.events )
-                {
-                    debug ( SelectFiber)
-                    {
-                        Stderr.formatln("   Changing event registration {}",
-                            this.current);
-                        Stderr.formatln("   Register {}", client);
-                    }
+            // The currently registered client and the new client have different
+            // I/O devices: Unregister the epoll registration of the current
+            // client and register the new client instead.
 
-                    this.epoll.changeClient(this.current, client);
+            debug ( SelectFiber) Stderr.formatln("   Unregister {}",
+                this.current);
 
-                    this.current = client;
+            this.epoll.unregister(this.current);
 
-                    return true;
-                }
-                else
-                {
-                    debug ( SelectFiber)
-                    {
-                        Stderr.formatln("   Leaving registered {}", this.current);
-                    }
+            debug ( SelectFiber) Stderr.formatln("   Register {}", client);
 
-                    // As there is not way to modify a registration with the
-                    // timeout manager, it is necessary to call unregistered(),
-                    // then registered() even if this.current and client are
-                    // identical. This ensures that, even if the epoll
-                    // registration doesn't need to be updated, that the timeout
-                    // timeout registration is updated correctly.
+            this.epoll.register(this.current = client);
 
-                    this.current.unregistered();
-                    client.registered();
-
-                    return false;
-                }
-            }
-            else
-            {
-                debug ( SelectFiber) Stderr.formatln("   Unregister {}",
-                    this.current);
-
-                this.epoll.unregister(this.current);
-
-                debug ( SelectFiber) Stderr.formatln("   Register {}", client);
-
-                this.epoll.register(this.current = client);
-
-                return true;
-            }
+            return true;
         }
     }
 
