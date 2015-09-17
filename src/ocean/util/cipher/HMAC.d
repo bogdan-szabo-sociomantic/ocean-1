@@ -94,7 +94,7 @@ public class HMAC
 
     ***************************************************************************/
 
-    private ubyte[] ipad, opad, key;
+    private ubyte[] ipad, opad;
 
 
     /***************************************************************************
@@ -137,8 +137,9 @@ public class HMAC
 
     ***************************************************************************/
 
-    public void init ( ubyte[] k, ref ubyte[] buffer )
+    public void init ( in ubyte[] k, ref ubyte[] buffer )
     {
+        Const!(ubyte)[] key;
         buffer.length = this.hash.digestSize();
 
         this.hash.reset();
@@ -146,17 +147,17 @@ public class HMAC
         if (k.length > this.blockSize)
         {
             this.hash.update(k);
-            this.key = this.hash.binaryDigest(buffer)[0 .. this.hash.digestSize()];
+            key = this.hash.binaryDigest(buffer)[0 .. this.hash.digestSize()];
         }
         else
         {
-            this.key = k;
+            key = k;
         }
 
         this.ipad[] = 0x36;
         this.opad[] = 0x5c;
 
-        foreach (uint i, ubyte j; this.key)
+        foreach (uint i, ubyte j; key)
         {
             this.ipad[i] ^= j;
             this.opad[i] ^= j;
