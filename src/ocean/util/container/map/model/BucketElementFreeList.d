@@ -98,6 +98,25 @@ class BucketElementFreeList ( BucketElement ) : IBucketElementFreeList
 
 /*******************************************************************************
 
+    Creates an instance of BucketElementFreeList which is suitable for usage
+    with the Map type passed as a template parameter.
+
+    Template Params:
+        Map = the type to create the allocator according to
+
+    Returns:
+        an instance of type BucketElementFreeList class
+
+*******************************************************************************/
+
+public BucketElementFreeList!(Map.Bucket) instantiateAllocator ( Map ) ( )
+{
+    return new BucketElementFreeList!(Map.Bucket.Element);
+}
+
+
+/*******************************************************************************
+
     Type generic BucketElementFreeList base class.
 
 *******************************************************************************/

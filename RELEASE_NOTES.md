@@ -49,6 +49,12 @@ Deprecations
 New Features
 ============
 
+
+* `util.container.map.model.*Allocators`
+
+  Added helper functions to create an allocator instance which suitable to be
+  used with a given map type.
+
 * `util.container.map.Map`
 
   Added an overloaded constructor to the `StandardKeyHashingMap` class which
