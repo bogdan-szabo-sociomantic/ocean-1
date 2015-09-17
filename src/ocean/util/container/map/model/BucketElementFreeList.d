@@ -48,6 +48,16 @@ class BucketElementFreeList ( BucketElement ) : IBucketElementFreeList
                              BucketElement.stringof ~ ".next");
     }
 
+    /***************************************************************************
+
+        Constructor.
+
+    ***************************************************************************/
+
+    public this ( )
+    {
+        super(BucketElement.sizeof);
+    }
 
     /**************************************************************************
 
@@ -187,6 +197,22 @@ abstract class IBucketElementFreeList: IAllocator
         }
     }
 
+
+    /***************************************************************************
+
+        Constructor.
+
+        Params:
+            bucket_element_sizeof = the amount of memory used by each allocated
+                element.
+
+    ***************************************************************************/
+
+    public this( size_t bucket_element_sizeof )
+    {
+        super(bucket_element_sizeof);
+    }
+
     /**************************************************************************
 
         Obtains an object either from the free list, if available, or from
@@ -200,7 +226,7 @@ abstract class IBucketElementFreeList: IAllocator
 
      **************************************************************************/
 
-    public void* get ( )
+    protected override void* allocate ( )
     out (object)
     {
         assert (object !is null);
@@ -242,7 +268,7 @@ abstract class IBucketElementFreeList: IAllocator
 
      **************************************************************************/
 
-    public void recycle ( void* old_object )
+    protected override void deallocate ( void* old_object )
     in
     {
         assert (old_object !is null);
@@ -353,7 +379,8 @@ abstract class IBucketElementFreeList: IAllocator
 
     ***************************************************************************/
 
-    void parkElements ( size_t n, void delegate ( IParkingStack park ) dg )
+    public override void parkElements (size_t n,
+                                       void delegate ( IParkingStack park ) dg)
     {
         scope parking_stack = this.new ParkingStack(n);
 

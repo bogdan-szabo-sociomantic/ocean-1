@@ -14,8 +14,42 @@ module ocean.util.container.map.model.IAllocator;
 
 /******************************************************************************/
 
-interface IAllocator
+
+
+abstract class IAllocator
 {
+    /***************************************************************************
+
+        Tracks amount of memory used by this allocator.
+
+    ***************************************************************************/
+
+    private size_t used_memory;
+
+    /***************************************************************************
+
+        Stores the size of a single allocated element.
+
+    ***************************************************************************/
+
+    protected size_t bucket_element_size;
+
+
+    /***************************************************************************
+
+        Constructor.
+
+        Params:
+            bucket_element_sizeof = the amount of memory used by each allocated
+                element.
+
+    ***************************************************************************/
+
+    public this ( size_t bucket_element_sizeof )
+    {
+        this.bucket_element_size = bucket_element_sizeof;
+    }
+
     /***************************************************************************
 
         Gets or allocates an object
@@ -25,7 +59,22 @@ interface IAllocator
 
     ***************************************************************************/
 
-    void* get ( );
+    public void* get ( )
+    {
+        this.used_memory += this.bucket_element_size;
+        return this.allocate();
+    }
+
+    /***************************************************************************
+
+        Performs the actual allocation of an object
+
+        Returns:
+            an object that is ready to use.
+
+    ***************************************************************************/
+
+    protected abstract void* allocate ();
 
     /***************************************************************************
 
@@ -42,7 +91,36 @@ interface IAllocator
 
     ***************************************************************************/
 
-    void recycle ( void* old );
+    public void recycle ( void* old )
+    {
+        this.used_memory -= this.bucket_element_size;
+        return this.deallocate(old);
+    }
+
+    /***************************************************************************
+
+        Performs the actual recycling of an object. See recycle() documentation.
+
+        Params:
+            old = old object
+
+    ***************************************************************************/
+
+    protected abstract void deallocate ( void* old );
+
+    /***************************************************************************
+
+        Return the amount of memory currently used.
+
+        Returns:
+            the size of the memory allocated by this allocator
+
+    ***************************************************************************/
+
+    public size_t memoryUsed ()
+    {
+        return this.used_memory;
+    }
 
     /***************************************************************************
 

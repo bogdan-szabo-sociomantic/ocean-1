@@ -29,14 +29,18 @@ class IBucketElementGCAllocator: IAllocator
 {
     /***************************************************************************
 
-        Allocates a bucket element.
+        Constructor.
 
-        Returns:
-            a bucket element that is ready to use.
+        Params:
+            bucket_element_sizeof = the amount of memory used by each allocated
+                element.
 
     ***************************************************************************/
 
-    abstract public void* get ( );
+    public this ( size_t bucket_element_sizeof )
+    {
+        super(bucket_element_sizeof);
+    }
 
     /***************************************************************************
 
@@ -47,7 +51,7 @@ class IBucketElementGCAllocator: IAllocator
 
     ***************************************************************************/
 
-    public void  recycle ( void* element )
+    protected override void deallocate ( void* element )
     {
         delete element;
     }
@@ -146,7 +150,8 @@ class IBucketElementGCAllocator: IAllocator
 
     ***************************************************************************/
 
-    public void parkElements ( size_t n, void delegate ( IParkingStack park ) dg )
+    public override void parkElements (size_t n,
+                                       void delegate ( IParkingStack park ) dg)
     {
         scope park = new ParkingStack(n);
         dg(park);

@@ -29,7 +29,27 @@ import ocean.util.container.map.model.IBucketElementGCAllocator;
 
 public class BucketElementGCAllocator(Bucket) : IBucketElementGCAllocator
 {
-    public override void* get ( )
+    /***************************************************************************
+
+        Constructor.
+
+    ***************************************************************************/
+
+    public this ( )
+    {
+        super(Bucket.Element.sizeof);
+    }
+
+    /***************************************************************************
+
+        Gets or allocates an object
+
+        Returns:
+            an object that is ready to use.
+
+    ***************************************************************************/
+
+    protected override void* allocate ( )
     {
         return new Bucket.Element;
     }

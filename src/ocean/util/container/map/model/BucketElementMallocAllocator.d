@@ -167,6 +167,7 @@ public class BucketElementMallocAllocator (Bucket) : IAllocator
 
     public this(bool attempt_gc_track = true)
     {
+        super(Bucket.Element.sizeof);
         if (attempt_gc_track)
         {
             // TypeInfo.flags & 2 is set if the type cannot have references to
@@ -187,7 +188,7 @@ public class BucketElementMallocAllocator (Bucket) : IAllocator
 
     ***************************************************************************/
 
-    public void* get ( )
+    protected override void* allocate ( )
     {
         auto inited = cast(Bucket.Element*) malloc(Bucket.Element.sizeof);
         if (inited is null)
@@ -214,7 +215,7 @@ public class BucketElementMallocAllocator (Bucket) : IAllocator
 
     ***************************************************************************/
 
-    public void recycle ( void* element )
+    protected override void deallocate ( void* element )
     {
         if (this.add_to_gc)
             GC.removeRange(element);
@@ -315,7 +316,8 @@ public class BucketElementMallocAllocator (Bucket) : IAllocator
 
     ***************************************************************************/
 
-    public void parkElements (size_t n, void delegate ( IParkingStack park ) dg)
+    public override void parkElements (size_t n,
+                                       void delegate ( IParkingStack park ) dg)
     {
         scope park = new ParkingStack(n);
         dg(park);

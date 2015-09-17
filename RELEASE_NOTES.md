@@ -54,6 +54,11 @@ New Features
   Added a new allocator (previously lived in alligator) which allocates map
   elements using `malloc()` and recycles them using `free()`.
 
+* `util.container.map.model.IAllocator`
+
+  Added a new `memoryUsed()` method which tracks the amount of memory allocated
+  by the allocator.
+
 * `util.container.map.model.*Allocators`
 
   Added helper functions to create an allocator instance which suitable to be
