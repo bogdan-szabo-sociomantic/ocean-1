@@ -20,6 +20,7 @@ module ocean.sys.socket.model.IAddressIPSocketInfo;
 
 *******************************************************************************/
 
+import tango.transition;
 import tango.io.device.Conduit: ISelectable;
 
 
@@ -56,7 +57,7 @@ public interface IAddressIPSocketInfo
 
     ***************************************************************************/
 
-    char[] address ( );
+    cstring address ( );
 
 
     /***************************************************************************
@@ -71,4 +72,3 @@ public interface IAddressIPSocketInfo
 
     ushort port ( );
 }
-

@@ -20,6 +20,8 @@ import ocean.sys.socket.IPSocket,
        ocean.sys.socket.InetAddress,
        ocean.sys.socket.AddrInfo;
 
+import tango.transition;
+
 import tango.io.device.Conduit: ISelectable;
 
 import tango.stdc.string: strlen;
@@ -71,7 +73,7 @@ class AddressIPSocket ( bool IPv6 = false ) : IPSocket!(IPv6), IAddressIPSocketI
 
      **************************************************************************/
 
-    public char[] address ( )
+    public cstring address ( )
     {
         return this.ip_address_[0 .. this.ip_address_len];
     }
@@ -173,7 +175,7 @@ class AddressIPSocket ( bool IPv6 = false ) : IPSocket!(IPv6), IAddressIPSocketI
 
      **************************************************************************/
 
-    public override int bind ( char[] local_ip_address, ushort local_port = 0 )
+    public override int bind ( cstring local_ip_address, ushort local_port = 0 )
     {
         scope (exit) this.setAddress();
 
@@ -221,7 +223,7 @@ class AddressIPSocket ( bool IPv6 = false ) : IPSocket!(IPv6), IAddressIPSocketI
 
      **************************************************************************/
 
-    public override int connect ( char[] remote_ip_address, ushort remote_port )
+    public override int connect ( cstring remote_ip_address, ushort remote_port )
     {
         scope (exit) this.setAddress();
 

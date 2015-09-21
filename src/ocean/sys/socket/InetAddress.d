@@ -189,7 +189,7 @@ struct InetAddress ( bool IPv6 = false )
 
      **************************************************************************/
 
-    int inet_pton ( char[] ip_address_str )
+    int inet_pton ( cstring ip_address_str )
     {
         if (ip_address_str.length < this.addrstrlen)
         {
@@ -225,7 +225,7 @@ struct InetAddress ( bool IPv6 = false )
 
      **************************************************************************/
 
-    int inet_pton ( char* ip_address_str )
+    int inet_pton ( in char* ip_address_str )
     {
         return .inet_pton(this.family, ip_address_str, this.address_n.ptr);
     }
@@ -302,7 +302,7 @@ struct InetAddress ( bool IPv6 = false )
 
      **************************************************************************/
 
-    public sockaddr* opCall ( char[] ip_address_str, ushort port = 0 )
+    public sockaddr* opCall ( cstring ip_address_str, ushort port = 0 )
     {
         this.port = port;
 
@@ -417,7 +417,7 @@ struct InetAddress ( bool IPv6 = false )
 
     // TODO
 
-    public int getnameinfo(char[] host, char[] serv,
+    public int getnameinfo(mstring host, mstring serv,
                            GetNameInfoFlags flags = GetNameInfoFlags.None)
     {
         return .getnameinfo(cast (sockaddr*) &this.addr, this.addr.sizeof,

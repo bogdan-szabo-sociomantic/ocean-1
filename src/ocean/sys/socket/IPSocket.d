@@ -18,6 +18,8 @@ module ocean.sys.socket.IPSocket;
 
  ******************************************************************************/
 
+import tango.transition;
+
 import tango.stdc.posix.sys.socket;
 
 import tango.stdc.posix.netinet.in_: AF_INET, AF_INET6;
@@ -347,7 +349,7 @@ class IPSocket ( bool IPv6 = false ) : IIPSocket
 
      **************************************************************************/
 
-    public int bind ( char[] local_ip_address, ushort local_port = 0 )
+    public int bind ( cstring local_ip_address, ushort local_port = 0 )
     {
         InetAddress in_address;
 
@@ -649,7 +651,7 @@ class IPSocket ( bool IPv6 = false ) : IIPSocket
 
      **************************************************************************/
 
-    public int connect ( char[] remote_ip_address, ushort remote_port )
+    public int connect ( cstring remote_ip_address, ushort remote_port )
     {
         InetAddress in_address;
 
@@ -777,4 +779,3 @@ unittest
     socket.setsockoptVal(IPPROTO_TCP, socket.TcpOptions.TCP_KEEPCNT, 3);
     socket.setsockoptVal(IPPROTO_TCP, socket.TcpOptions.TCP_KEEPINTVL, 3);
 }
-
