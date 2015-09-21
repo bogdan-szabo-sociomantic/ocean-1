@@ -34,6 +34,11 @@ Removed Deprecated Modules
 Removed Deprecated Symbols
 --------------------------
 
+* `ocean.io.select.protocol.generic.ErrnoIOException`
+
+  Removed deprecated `IOWarning.assertEx` and two `IOWarning.opCall` overloads
+
+
 Removed Symbols
 ---------------
 
