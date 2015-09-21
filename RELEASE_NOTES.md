@@ -166,6 +166,14 @@ Deprecations
   another.
 
 
+* `ocean.net.HttpRequest.getUint(T)(cstring, ref T, out bool)`
+
+  Deprecated in favor of `ocean.net.HttpRequest.getUnsigned(T)(cstring, ref T, out bool)`
+
+* `ocean.net.HttpRequest.getUint(T)(cstring, ref T)`
+
+  Deprecated in favor of `ocean.net.HttpRequest.getUnsigned(T)(cstring, ref T)`
+
 New Features
 ============
 

@@ -302,7 +302,8 @@ class HttpRequest : HttpHeader
 
      **************************************************************************/
 
-    bool getUint ( T = uint ) ( char[] key, ref T n, out bool is_set )
+    deprecated("Use getUnsigned instead")
+    bool getUint ( T = uint ) ( cstring key, ref T n, out bool is_set )
     {
         return super.getUnsigned!(T)(key, n, is_set);
     }
@@ -313,7 +314,8 @@ class HttpRequest : HttpHeader
 
      **************************************************************************/
 
-    bool getUint ( T = uint ) ( char[] key, ref T n )
+    deprecated("Use getUnsigned instead")
+    bool getUint ( T = uint ) ( cstring key, ref T n )
     {
         return super.getUnsigned!(T)(key, n);
     }
@@ -663,16 +665,7 @@ unittest
         test!("==")(request["Accept-Language"]    ,"de-de,de;q=0.8,en-us;q=0.5,en;q=0.3");
         test!("==")(request["Accept-Encoding"]    ,"gzip,deflate");
         test!("==")(request["Accept-Charset"]     ,"UTF-8,*");
-
-        uint n1,n2;
-        bool is_set;
-
         test!("==")(request.getUint("keep-alive"), 115);
-        test!("==")(request.getUint("keep-alive", n1), true);
-        test!("==")(n1, 115);
-        test!("==")(request.getUint("keep-alive", n2, is_set), true);
-        test!("==")(n2, 115);
-        test!("==")(is_set, true);
 
         test!("==")(request["connection"]         ,"keep-alive");
 
