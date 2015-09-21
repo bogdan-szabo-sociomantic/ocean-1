@@ -518,13 +518,17 @@ class HttpRequest : HttpHeader
 
 //version = OceanPerformanceTest;
 
-import tango.stdc.time: time;
-import tango.stdc.posix.stdlib: srand48, drand48;
-
 version (OceanPerformanceTest)
 {
     import tango.io.Stdout;
     import tango.core.internal.gcInterface: gc_disable, gc_enable;
+}
+
+version ( UnitTest )
+{
+    import tango.core.Test;
+    import tango.stdc.time: time;
+    import tango.stdc.posix.stdlib: srand48, drand48;
 }
 
 unittest
@@ -650,29 +654,29 @@ unittest
             }
         }
 
-        assert (request.method_name           == "GET");
-        assert (request.method                == request.method.Get);
-        assert (request.uri_string            == "/dir?query=Hello%20World!&abc=def&ghi");
-        assert (request.http_version          == request.http_version.v1_1);
-        assert (request["user-agent"]         == "Mozilla/5.0 (X11; U; Linux i686; de; rv:1.9.2.17) Gecko/20110422 Ubuntu/9.10 (karmic) Firefox/3.6.17");
-        assert (request["Accept"]             == "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-        assert (request["Accept-Language"]    == "de-de,de;q=0.8,en-us;q=0.5,en;q=0.3");
-        assert (request["Accept-Encoding"]    == "gzip,deflate");
-        assert (request["Accept-Charset"]     == "UTF-8,*");
+        test!("==")(request.method_name           ,"GET");
+        test!("==")(request.method                ,request.method.Get);
+        test!("==")(request.uri_string            ,"/dir?query=Hello%20World!&abc=def&ghi");
+        test!("==")(request.http_version          ,request.http_version.v1_1);
+        test!("==")(request["user-agent"]         ,"Mozilla/5.0 (X11; U; Linux i686; de; rv:1.9.2.17) Gecko/20110422 Ubuntu/9.10 (karmic) Firefox/3.6.17");
+        test!("==")(request["Accept"]             ,"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+        test!("==")(request["Accept-Language"]    ,"de-de,de;q=0.8,en-us;q=0.5,en;q=0.3");
+        test!("==")(request["Accept-Encoding"]    ,"gzip,deflate");
+        test!("==")(request["Accept-Charset"]     ,"UTF-8,*");
 
         uint n1,n2;
         bool is_set;
 
-        assert (request.getUint("keep-alive") == 115);
-        assert (request.getUint("keep-alive", n1));
-        assert (n1 == 115);
-        assert (request.getUint("keep-alive", n2, is_set));
-        assert (n2 == 115);
-        assert (is_set);
+        test!("==")(request.getUint("keep-alive"), 115);
+        test!("==")(request.getUint("keep-alive", n1), true);
+        test!("==")(n1, 115);
+        test!("==")(request.getUint("keep-alive", n2, is_set), true);
+        test!("==")(n2, 115);
+        test!("==")(is_set, true);
 
-        assert (request["connection"]         == "keep-alive");
+        test!("==")(request["connection"]         ,"keep-alive");
 
-        assert (request.msg_body              == lorem_ipsum, ">" ~ request.msg_body ~ "<");
+        test(request.msg_body == lorem_ipsum, ">" ~ request.msg_body ~ "<");
 
         version (OceanPerformanceTest)
         {
