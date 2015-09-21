@@ -304,7 +304,7 @@ class HttpRequest : HttpHeader
 
     bool getUint ( T = uint ) ( char[] key, ref T n, out bool is_set )
     {
-        return super.getUint!(T)(key, n, is_set);
+        return super.getUnsigned!(T)(key, n, is_set);
     }
 
     /**************************************************************************
@@ -315,7 +315,7 @@ class HttpRequest : HttpHeader
 
     bool getUint ( T = uint ) ( char[] key, ref T n )
     {
-        return super.getUint!(T)(key, n);
+        return super.getUnsigned!(T)(key, n);
     }
 
     /**************************************************************************
@@ -659,7 +659,17 @@ unittest
         assert (request["Accept-Language"]    == "de-de,de;q=0.8,en-us;q=0.5,en;q=0.3");
         assert (request["Accept-Encoding"]    == "gzip,deflate");
         assert (request["Accept-Charset"]     == "UTF-8,*");
+
+        uint n1,n2;
+        bool is_set;
+
         assert (request.getUint("keep-alive") == 115);
+        assert (request.getUint("keep-alive", n1));
+        assert (n1 == 115);
+        assert (request.getUint("keep-alive", n2, is_set));
+        assert (n2 == 115);
+        assert (is_set);
+
         assert (request["connection"]         == "keep-alive");
 
         assert (request.msg_body              == lorem_ipsum, ">" ~ request.msg_body ~ "<");
