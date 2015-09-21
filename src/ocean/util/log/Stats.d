@@ -1,13 +1,35 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
+    Classes to write statistics to be used in graphite.
 
-    version:        21/02/2012: Split into StatsLog & PeriodicStats
+    Applications that want to log statistics usually make use of the `StatsExt`
+    extension (most likely by deriving from `VersionedLoggedStatsCliApp`),
+    which provides a `StatsLog` instance which is automatically configured from
+    the application's config.ini.
 
-    authors:        Mathias, Gavin
+    Usually two cases arise: the application wants to log a certain set of data
+    periodically -- on a regular basis -- and/or it wants to log a certain
+    set of data after a certain operation is completed (i.e. not periodically).
 
-    Classes to write statistics log files in the standard format expected by
-    cacti.
+    As a result this module provide 2 sets of utilities:
+    - A simple `StatsLog` class with methods to write structs;
+    - A `PeriodicStatsLog` template which is built on top of the previous class
+        (it uses it), integrates with Epoll and allows to write stats on
+        a regular basis (with a user-specific period);
+
+    Currently, `StatsLog` writes to a file (called `stats.log`), which is then
+    parsed by a script that will feed the data to a Collectd socket.
+    Every server's Collectd daemon will then report to a master Collectd server
+    which aggregates the data.
+    As our number of stats is growing and the write rate is increasing, we're
+    planning to expose a way to directly write to the Collectd socket.
+    As a result, the current API of `StatsLog` is intentionally designed
+    to comply to the limitations of Collectd. See the documentation of
+    `StatsLog` for more details
+
+    Refer to the class' description for information about their actual usage.
+
+    copyright:      Copyright (c) 2012-2015 sociomantic labs. All rights reserved
 
 *******************************************************************************/
 
@@ -39,82 +61,24 @@ import tango.util.log.AppendSyslog;
 
 import tango.stdc.time : time_t;
 
+version (UnitTest)
+{
+    import ocean.util.app.VersionedLoggedStatsCliApp;
+}
+
+
 /*******************************************************************************
 
-    Periodically writes values of an aggregate to a logger using a timer event
-    registered with epoll. Uses the statslog format which is:
-
-        date key:value, key:value
-
-    (The date part of the output is handled by the logger layout in
-    ocean.util.log.layout.LayoutStatsLog.)
+    Wrapper around a StatsLog to periodically writes values of an aggregate
+    to a logger using a timer event registered with epoll.
 
     Template Params:
         T = an aggregate which contains the values that should be written to the
             file, the tuple of the aggregate's members is iterated and each
             printed
 
-    Usage example:
-
-    ---
-
-        import ocean.io.select.EpollSelectDispatcher;
-        import ocean.util.log.Stats;
-
-        class MyLogger
-        {
-            // Epoll instance used for logging timer.
-            private const EpollSelectDispatcher epoll;
-
-            // Struct whose fields define the values to write to each line of
-            // the stats log file.
-            // Only numeric and floating points types are accepted.
-            private struct Stats
-            {
-                int x = 23;
-                float y = 23.23;
-            }
-
-            // Instance of Stats struct
-            private Stats stats;
-
-            // Periodic logger instance
-            private alias PeriodicStatsLog!(Stats) Logger;
-            private const Logger logger;
-
-            public this ( EpollSelectDispatcher epoll )
-            {
-                this.epoll = epoll;
-                this.logger = new Logger(epoll, &this.getStats,
-                    &this.resetStats);
-            }
-
-            // Delegate which is passed to the logger's ctor and is called
-            // periodically, and returns a pointer to the struct with the values
-            // to be written to the next line in the log file.
-            private Stats* getStats ( )
-            {
-                // Set values of this.stats
-
-                return &this.stats;
-            }
-
-            // Delegate which is passed to the logger's ctor and is called after
-            // each log line which is written. Used here to reset the stats
-            // counters.
-            private void resetStats ( StatsLog unused )
-            {
-                this.stats = this.stats.init;
-            }
-        }
-
-        auto epoll = new EpollSelectDispatcher;
-        auto stats = new MyLogger(epoll);
-
-        // Set everything going (including the stats logging timer).
-        epoll.eventLoop();
-
-    ---
+    Examples:
+        See the unittest following this class for an example application
 
 *******************************************************************************/
 
@@ -267,6 +231,47 @@ public class PeriodicStatsLog ( T ) : IPeriodicStatsLog
     }
 }
 
+/// Usage example for PeriodicStatsLog in a simple application
+unittest
+{
+    class MyPeriodicStatsApp : VersionedLoggedStatsCliApp
+    {
+        private static struct Stats
+        {
+            double foo;
+            double bar;
+        }
+
+        private PeriodicStatsLog!(Stats) periodic;
+        private Stats stats;
+
+        public this ()
+        {
+            super("Test", null, null, null, null);
+            auto epoll = new EpollSelectDispatcher;
+
+            // 30 seconds
+            this.periodic = new PeriodicStatsLog!(Stats)
+                (epoll, &this.getStats, &this.resetStats,
+                 this.stats_ext.stats_log, 30);
+
+            // Here you do some processing and update `this.stats`
+            // when necessary.
+        }
+
+        public Const!(Stats)* getStats ()
+        {
+            return &stats;
+        }
+
+        public void resetStats (StatsLog stats_log)
+        {
+            this.stats.foo = 0;
+            this.stats.bar = 0;
+        }
+    }
+}
+
 
 /*******************************************************************************
 
@@ -302,7 +307,7 @@ public abstract class IPeriodicStatsLog
 
     /***************************************************************************
 
-        Write period
+        Write period in seconds
 
     ***************************************************************************/
 
@@ -343,7 +348,7 @@ public abstract class IPeriodicStatsLog
             file_count = maximum number of log files before old logs are
                 over-written
             max_file_size = size in bytes at which the log files will be rotated
-            period = period after which the values should be written
+            period = period after which the values should be written (seconds)
             file_name = name of log file
 
     ***************************************************************************/
@@ -368,7 +373,7 @@ public abstract class IPeriodicStatsLog
         Params:
             epoll = epoll select dispatcher
             stats_log = Stats log instance to use
-            period = period after which the values should be written
+            period = period after which the values should be written (seconds)
 
     ***************************************************************************/
 
@@ -416,30 +421,39 @@ public abstract class IPeriodicStatsLog
 
 /*******************************************************************************
 
-   Writes values of an aggregate to a logger. Uses the statslog format which is:
+    Transmit the values of an aggregate to be used within graphite.
 
-        date key: value, key: value
+    This class has 2 methods which can be used: `add` and `addObject`.
 
-    (The date part is not written by this class. Instead we rely on the logger
-    layout in ocean.util.log.layout.LayoutStatsLog.)
+    `add` is meant for application statistics, i.e. amount of memory used,
+    number of channels alive, number of connections open, largest record
+    processed...
 
-    Usage Example
-    ---
-    struct MyStats
-    {
-        size_t bytes_in, bytes_out, awesomeness;
-    }
+    `addObject` logs an instance of an object which belongs to a category.
+    This method should be used when you have a set of standard metrics which
+    you want to log for multiple instances of a type of object.
+    For example, you may want to log standard stats for each channel in
+    a storage engine, for each campaign of an advertiser,
+    for each source of input records, etc.
 
-    auto stats_log = new StatsLog(new IStatsLog.Config("log/stats.log",
-        10_000, 5));
+    See the methods description for more informations.
 
-    MyStats stats;
+    Note:
+    StatsLog formerly had the ability to write single value instead of an
+    aggregate. It was removed as it goes against Collectd's design, where
+    data sent to the socket are sent aggregated by 'types', where a type is
+    a collection of related metrics (akin to a `struct`), so single values
+    are not permitted.
+    In addition, it's not possible to incrementally build an aggregate either,
+    as we need the aggregate's complete definition : if we send incomplete/too
+    much data to Collectd, it just rejects the whole aggregate, and data is sent
+    without field names, as Collectd relies on its type definition for that
+    piece of information. Having the wrong order would mean some metrics are
+    logged as other metrics, a bug that might not be easily identifiable.
+    This was leaving too much room for error which were not easily identifiable.
 
-    stats_log.add(stats)
-        .add([ "DynVal" : 34, "DynVal2" : 52])
-        .add("dyn3", 62)
-        .flush();
-    ---
+    Examples:
+        See the unittest following this class for an example application
 
 *******************************************************************************/
 
@@ -646,6 +660,56 @@ public class StatsLog : IStatsLog
             }
             this.formatValue!(category)(FieldName!(i, T), value, name);
             this.add_separator = true;
+        }
+    }
+}
+
+/// Usage example for StatsLog in a simple application
+unittest
+{
+    class MyStatsLogApp : VersionedLoggedStatsCliApp
+    {
+        private static struct Stats
+        {
+            double awesomeness;
+            double bytes_written;
+            double bytes_received;
+        }
+
+        private static struct Channel
+        {
+            double profiles_in;
+            double profiles_out;
+        }
+
+        public this ()
+        {
+            super("Test", null, null, null, null);
+        }
+
+        protected override int run (Arguments args, ConfigParser config)
+        {
+            // Do some heavy-duty processing ...
+            Stats app_stats1 = { 42_000_000, 10_000_000,  1_000_000 };
+            Stats app_stats2 = { 42_000_000,  1_000_000, 10_000_000 };
+            this.stats_ext.stats_log.add(app_stats1);
+            // A given struct should be `add`ed once and only once, unless
+            // you flush in between
+            this.stats_ext.stats_log.flush();
+            this.stats_ext.stats_log.add(app_stats2);
+
+            // Though if you use `addObject`, it's okay as long as the instance
+            // name is different
+            Channel disney = { 100_000, 100_000 };
+            Channel discovery = { 10_000, 10_000 };
+
+            // For the same struct type, you probably want the
+            // same category name. It's not a requirement but there are
+            // no known use case where you want it to differ.
+            this.stats_ext.stats_log.addObject!("channel")("disney", disney);
+            this.stats_ext.stats_log.addObject!("channel")("discovery", discovery);
+
+            return 0;
         }
     }
 }
