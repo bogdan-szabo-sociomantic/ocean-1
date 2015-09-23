@@ -116,7 +116,7 @@ interface StringEncoder
 
     ***************************************************************************/
 
-    public void convert ( char[] input, ref char[] output );
+    public void convert ( cstring input, ref mstring output );
 }
 
 
@@ -129,7 +129,7 @@ interface StringEncoder
 
 *******************************************************************************/
 
-public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
+public class StringEncode ( istring fromcode, istring tocode ) : StringEncoder
 {
     /***************************************************************************
 
@@ -209,7 +209,7 @@ public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
 
     ***************************************************************************/
 
-    public void convert ( char[] input, ref char[] output )
+    public override void convert ( cstring input, ref mstring output )
     {
         output.length = input.length;
 
@@ -217,7 +217,7 @@ public class StringEncode ( char[] fromcode, char[] tocode ) : StringEncoder
         // Do the conversion. Keep trying until there is no E2BIG error.
         size_t inbytesleft  = input.length;
         size_t outbytesleft = output.length;
-        char* inptr  = input.ptr;
+        Const!(char)* inptr  = input.ptr;
         char* outptr = output.ptr;
 
         ptrdiff_t result;
@@ -361,7 +361,7 @@ public class StringEncoderSequence ( Encoders... )
 
     ***************************************************************************/
 
-    public char[] convert ( char[] input, ref char[] output )
+    public mstring convert ( cstring input, ref mstring output )
     {
         output.length = 0;
 
@@ -407,7 +407,7 @@ public class StringEncoderSequence ( Encoders... )
 
     ***************************************************************************/
 
-    private bool convert ( StringEncoder encoder, char[] input, ref char[] output )
+    private bool convert ( StringEncoder encoder, cstring input, ref mstring output )
     {
         try
         {
@@ -419,4 +419,17 @@ public class StringEncoderSequence ( Encoders... )
             return false;
         }
     }
+}
+
+///
+unittest
+{
+    alias StringEncode!("UTF-8", "UTF-8//TRANSLIT") Utf8Converter;
+    alias StringEncode!("ISO-8859-1", "UTF-8//TRANSLIT") Iso_8859_1_Converter;
+    alias StringEncoderSequence!(Utf8Converter, Iso_8859_1_Converter) Utf8Encoder;
+
+    Utf8Encoder utf8_encoder = new Utf8Encoder();
+    mstring buff;
+    utf8_encoder.convert("Soon\u2122", buff);
+    assert(buff == "Soon™", buff);
 }
