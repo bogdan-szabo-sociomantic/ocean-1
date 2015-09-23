@@ -27,12 +27,12 @@ extern (C)
 
 	This function is a possible cancellation points and therefore not
 	marked with __THROW.  */
-	ConversionDescriptor iconv_open ( char* tocode, char* fromcode );
+	ConversionDescriptor iconv_open ( in char* tocode, in char* fromcode );
 
 	/* Convert at most *INBYTESLEFT bytes from *INBUF according to the
 	code conversion algorithm specified by CD and place up to
 	*OUTBYTESLEFT bytes in buffer at *OUTBUF.  */
-	ptrdiff_t iconv ( ConversionDescriptor cd, char** inbuf, size_t* inbytesleft, char** outbuf, size_t* outbytesleft );
+	ptrdiff_t iconv ( ConversionDescriptor cd, Const!(char)** inbuf, size_t* inbytesleft, char** outbuf, size_t* outbytesleft );
 
 	/* Free resources allocated for descriptor CD for code conversion.
 
@@ -40,4 +40,3 @@ extern (C)
 	marked with __THROW.  */
 	int iconv_close (ConversionDescriptor cd);
 }
-
