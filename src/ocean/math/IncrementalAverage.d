@@ -117,11 +117,15 @@ public struct IncrementalAverage
 
 version (UnitTest)
 {
+    import ocean.core.Test : NamedTest;
+
     import tango.math.IEEE;
 }
 
 unittest
 {
+    auto t = new NamedTest("Incremental Average - basic unit tests");
+
 	IncrementalAverage inc_avg;
 	bool check ( double expected_avg )
 	{
@@ -129,55 +133,55 @@ unittest
 		return diff < double.epsilon;
 	}
 
-	assert( inc_avg.count == 0 );
-	assert( inc_avg.average == 0 );
+    t.test!("==")(inc_avg.count, 0);
+    t.test!("==")(inc_avg.average, 0);
 
 	inc_avg.addToAverage(1);
-	assert( check(1) );
+	t.test(check(1));
 
 	inc_avg.clear();
-	assert(inc_avg.count == 0);
-	assert(inc_avg.average == 0);
+    t.test!("==")(inc_avg.count, 0);
+    t.test!("==")(inc_avg.average, 0);
 
 	inc_avg.addToAverage(10);
 	inc_avg.addToAverage(20);
-	assert( inc_avg.count == 2 );
-	assert( check(15) );
+    t.test!("==")(inc_avg.count, 2);
+    t.test(check(15));
 
 	inc_avg.clear();
 	inc_avg.addToAverage(-10);
-	assert( check(-10) );
+	t.test(check(-10));
 	inc_avg.addToAverage(-20);
-	assert( check(-15) );
+	t.test(check(-15));
 
 
 	inc_avg.clear();
 	inc_avg.addToAverage(-10, uint.max);
 	inc_avg.addToAverage(10, uint.max);
-	assert( inc_avg.count == 2UL * uint.max);
-	assert( check(0) );
+    t.test!("==")(inc_avg.count, 2UL * uint.max);
+    t.test(check(0));
 
 	inc_avg.clear();
 	inc_avg.addToAverage(long.max);
-	assert( check(long.max) );
+	t.test(check(long.max));
 	inc_avg.addToAverage(cast(ulong)long.max + 10);
-	assert( check((cast(ulong)long.max) + 5) );
+	t.test(check((cast(ulong)long.max) + 5));
 
 	inc_avg.clear();
 	inc_avg.addToAverage(long.max / 2.0);
 	inc_avg.addToAverage(long.max * 1.25);
-	assert( check(long.max * 0.875) ); // (0.5 + 1.25)/2 = 0.875
+    t.test(check(long.max * 0.875)); // (0.5 + 1.25)/2 = 0.875
 
 	inc_avg.clear();
 	inc_avg.addToAverage(long.min);
-	assert( check(long.min) );
+	t.test(check(long.min));
 	inc_avg.addToAverage(cast(double)long.min - 10);
-	assert( check((cast(double)long.min) - 5) );
+	t.test(check((cast(double)long.min) - 5));
 
 	inc_avg.clear();
 	const ADD = ulong.max/1_000_000;
 	for (ulong i = 0; i < ulong.max; i += (ADD < ulong.max - i ? ADD : 1))
 		inc_avg.addToAverage(i%2); // 1 or 0
 	inc_avg.addToAverage(1); // One more add is missing
-	assert( check(0.5) );
+	t.test(check(0.5));
 }
