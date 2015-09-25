@@ -33,7 +33,7 @@ public struct IncrementalAverage
 
     ***************************************************************************/
 
-    private ulong _count = 0;
+    private ulong count_ = 0;
 
 
     /***************************************************************************
@@ -42,7 +42,7 @@ public struct IncrementalAverage
 
     ***************************************************************************/
 
-    private double _average = 0 ;
+    private double average_ = 0 ;
 
 
     /***************************************************************************
@@ -67,11 +67,11 @@ public struct IncrementalAverage
         if (count == 0)
             return;
 
-        this._average =
-             (this._average*cast(double)this._count + value*cast(double)count) /
+        this.average_ =
+             (this.average_*cast(double)this.count_ + value*cast(double)count) /
                           /*______________divided_by______________*/
-                                    (this._count + count);
-        this._count += count;
+                                    (this.count_ + count);
+        this.count_ += count;
     }
 
 
@@ -84,7 +84,7 @@ public struct IncrementalAverage
 
     public double average ()
     {
-        return this._average;
+        return this.average_;
     }
 
 
@@ -97,7 +97,7 @@ public struct IncrementalAverage
 
     public ulong count ()
     {
-        return this._count;
+        return this.count_;
     }
 
 
@@ -109,8 +109,8 @@ public struct IncrementalAverage
 
     public void clear ()
     {
-        this._average = 0;
-        this._count = 0;
+        this.average_ = 0;
+        this.count_ = 0;
     }
 }
 
