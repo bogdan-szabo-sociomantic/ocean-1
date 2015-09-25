@@ -90,3 +90,8 @@ New Features
 * `ocean.util.app.ext.TimerExt`
 
   Application extension for handling user-defined timed or repeating events.
+
+* `ocean.math.IncrementalAverage`
+
+  Added new methods `variance()` and `stdDeviation()` to incrementally compute
+  the variance and standard deviation respectively.
