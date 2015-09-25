@@ -199,7 +199,7 @@ class SelectedKeysHandler: ISelectedKeysHandler
     {
         if (events & events.EPOLLERR)
         {
-            throw this.e.set(client.error_code, "", "error event reported");
+            throw this.e.set(client.error_code).message("error event reported");
         }
     }
 
