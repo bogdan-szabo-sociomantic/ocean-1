@@ -14,6 +14,7 @@ Removed Deprecated Modules
 * `ocean.core.DeepCopy`
 
   Deprecated in favor of `ocean.util.serialize.contiguos.Util.copy` in v1.22
+  `DeepReset` utility from the same module is moved to `ocean.util.DeepReset`
 
 * `ocean.core.ErrnoIOException`
 
