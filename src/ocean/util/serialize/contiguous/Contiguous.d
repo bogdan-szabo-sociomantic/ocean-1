@@ -190,7 +190,7 @@ private void enforceContiguous (S) ( ref S input, in void[] allowed_range )
         "can't verify integrity of non-struct types"
     );
 
-    void enforceRange(void[] slice)
+    void enforceRange(in void[] slice)
     {
         auto upper_limit = allowed_range.ptr + allowed_range.length;
         enforce!(">=")(slice.ptr, allowed_range.ptr);

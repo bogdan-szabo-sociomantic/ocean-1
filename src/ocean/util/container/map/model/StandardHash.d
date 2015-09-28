@@ -114,7 +114,7 @@ struct StandardHash
 
      **************************************************************************/
 
-    hash_t fnv1a ( void[] data, hash_t hash = fnv1a_init )
+    hash_t fnv1a ( in void[] data, hash_t hash = fnv1a_init )
     {
         foreach (d; cast (ubyte[]) data)
         {

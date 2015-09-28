@@ -233,8 +233,10 @@ struct Deserializer
     ***************************************************************************/
 
     public static Contiguous!(S) deserialize ( S ) ( ref void[] src )
-    out (s)
+    out (_s)
     {
+        auto s = cast(Contiguous!(S)) _s;
+
         assert (s.data.ptr is src.ptr);
 
         debug (DeserializationTrace)
@@ -291,10 +293,12 @@ struct Deserializer
 
     ***************************************************************************/
 
-    public static Contiguous!(S) deserialize ( S ) ( void[] src,
+    public static Contiguous!(S) deserialize ( S ) ( in void[] src,
         ref Contiguous!(S) dst )
-    out (s)
+    out (_s)
     {
+        auto s = cast(Contiguous!(S)) _s;
+
         assert (s.data.ptr is dst.ptr);
 
         debug (DeserializationTrace)
@@ -339,15 +343,10 @@ struct Deserializer
             dst.data.length = total_length;
             enableStomping(dst.data);
         }
-        if (src.length > total_length)
-        {
-            // ignore tail bytes not used in deserialization
-            src.length = total_length;
-            enableStomping(src);
-        }
 
-        dst.data[0 .. src.length] = src[0 .. $];
-        (cast(ubyte[]) dst.data)[total_length .. $] = 0;
+        size_t end_copy = (src.length < total_length) ? src.length : total_length;
+        dst.data[0 .. end_copy] = src[0 .. end_copy];
+        (cast(ubyte[]) dst.data)[end_copy .. $] = 0;
 
         assert(dst.data.length >= data_len);
 
@@ -379,7 +378,7 @@ struct Deserializer
 
     ***************************************************************************/
 
-    public static size_t countRequiredSize ( S ) ( void[] instance )
+    public static size_t countRequiredSize ( S ) ( in void[] instance )
     out(size)
     {
         debug (DeserializationTrace)
@@ -424,7 +423,7 @@ struct Deserializer
 
     ***************************************************************************/
 
-    private static size_t countRequiredSize ( S ) ( void[] data,
+    private static size_t countRequiredSize ( S ) ( in void[] data,
         ref size_t extra_bytes )
     out (size)
     {
@@ -458,9 +457,7 @@ struct Deserializer
         // to make recursive calls possible - first call needs to strip
         // away S.sizeof part
 
-        data = data[S.sizeof .. $];
-
-        return countStructArraySizes!(S)( data, extra_bytes ) + S.sizeof;
+        return countStructArraySizes!(S)( data[S.sizeof .. $], extra_bytes ) + S.sizeof;
     }
 
     /***************************************************************************
@@ -485,7 +482,7 @@ struct Deserializer
 
     ***************************************************************************/
 
-    private static size_t countStructArraySizes ( S ) ( void[] data,
+    private static size_t countStructArraySizes ( S ) ( in void[] data,
         ref size_t extra_bytes )
     out (size)
     {
@@ -570,7 +567,7 @@ struct Deserializer
 
     ***************************************************************************/
 
-    private static size_t countDynamicArraySize ( T ) ( void[] data,
+    private static size_t countDynamicArraySize ( T ) ( in void[] data,
         ref size_t extra_bytes )
     out(size)
     {
@@ -668,7 +665,7 @@ struct Deserializer
 
     ***************************************************************************/
 
-    private static size_t countArraySize ( T ) ( size_t len, void[] data,
+    private static size_t countArraySize ( T ) ( size_t len, in void[] data,
         ref size_t extra_bytes )
     out(size)
     {
@@ -720,7 +717,7 @@ struct Deserializer
         }
         else
         {
-            pragma (msg, extra_bytes,
+            pragma (msg,
                 " countArraySize: no subarrays (primitive ", T.stringof, ")");
         }
 

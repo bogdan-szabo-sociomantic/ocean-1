@@ -534,7 +534,7 @@ struct Serializer
                         (T[]).stringof, n);
                 }
 
-                T[] dst = (cast (T[]) (data[0 .. n]));
+                auto dst = (cast (Unqual!(T)[]) (data[0 .. n]));
 
                 data = data[n .. $];
 
