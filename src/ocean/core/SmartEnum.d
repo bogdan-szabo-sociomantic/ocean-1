@@ -191,7 +191,7 @@ unittest
 
 *******************************************************************************/
 
-private template SmartEnumCore ( BaseType )
+public template SmartEnumCore ( BaseType )
 {
     import tango.transition;
 
@@ -833,7 +833,6 @@ unittest
 
 *******************************************************************************/
 
-private:
 
 /*******************************************************************************
 
@@ -856,7 +855,7 @@ import tango.core.Traits : isAssocArrayType;
 
 *******************************************************************************/
 
-template TwoWayMap ( T )
+public template TwoWayMap ( T )
 {
     static if ( isAssocArrayType!(T) )
     {
@@ -886,7 +885,7 @@ template TwoWayMap ( T )
 
 *******************************************************************************/
 
-struct TwoWayMap ( A, B, bool Indexed = false )
+public struct TwoWayMap ( A, B, bool Indexed = false )
 {
     /***************************************************************************
 
