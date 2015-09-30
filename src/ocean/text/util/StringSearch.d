@@ -259,7 +259,7 @@ struct StringSearch ( bool wide_char = false )
      *      the index of the first element with value "value" or the index of
      *      the last examined element + 1
      */
-    size_t locateChar ( Char[] str, Char value, size_t start, size_t length )
+    size_t locateChar ( in Char[] str, Char value, size_t start, size_t length )
     in
     {
         assert (start <= str.length, "locateChar: start index out of range");
@@ -301,7 +301,7 @@ struct StringSearch ( bool wide_char = false )
      *      the index of the first element with value "value" or the index of
      *      the last examined element + 1
      */
-    size_t locateChar ( Char[] str, Char value, size_t start = 0 )
+    size_t locateChar ( in Char[] str, Char value, size_t start = 0 )
     {
         return locateChar(str, value, start, size_t.max);
     }
@@ -319,7 +319,7 @@ struct StringSearch ( bool wide_char = false )
      * Returns:
      *      true if str contains value or false otherwise
      */
-    bool containsChar ( Char[] str, Char value, size_t start, size_t length )
+    bool containsChar ( in Char[] str, Char value, size_t start, size_t length )
     in
     {
         assert (start <= str.length, "containsChar: start index out of range");
@@ -346,7 +346,7 @@ struct StringSearch ( bool wide_char = false )
         test(StringSearch!().containsChar("Hello", 'l', 0, 3));
     }
 
-    bool containsChar ( Char[] str, Char value, size_t start = 0 )
+    bool containsChar ( in Char[] str, Char value, size_t start = 0 )
     {
         return containsChar(str, value, start, size_t.max);
     }
@@ -364,16 +364,16 @@ struct StringSearch ( bool wide_char = false )
      *      If found, the index of the first occurrence, or the length of "str"
      *      otherwise.
      */
-    size_t locatePattern ( Char[] str, Char[] pattern, size_t start = 0 )
+    size_t locatePattern ( in Char[] str, in Char[] pattern, size_t start = 0 )
     {
         if (str.length)
         {
             start = min(start, str.length - 1);
         }
 
-        Char[] str_search = str[start .. $] ~ TERM;
+        auto str_search = str[start .. $] ~ TERM;
 
-        Char* item = pLocatePattern(str_search.ptr, (pattern ~ TERM).ptr);
+        Const!(Char)* item = pLocatePattern(str_search.ptr, (pattern ~ TERM).ptr);
 
         return item? ((item - str_search.ptr) + start) : str.length;
     }
@@ -403,7 +403,7 @@ struct StringSearch ( bool wide_char = false )
      *      If found, the index of the first occurrence, or the length of "str"
      *      otherwise.
      */
-    size_t locatePatternT ( Char[] pattern ) ( Char[] str, size_t start = 0 )
+    size_t locatePatternT ( istring pattern ) ( in Char[] str, size_t start = 0 )
     in
     {
         assert (start <= str.length, "locatePatternT: start index out of range");
@@ -415,9 +415,9 @@ struct StringSearch ( bool wide_char = false )
             start = min(start, str.length - 1);
         }
 
-        Char[] str_search = str[start .. $] ~ TERM;
+        auto str_search = str[start .. $] ~ TERM;
 
-        Char* item = pLocatePattern(str_search.ptr, pattern.ptr);
+        auto item = pLocatePattern(str_search.ptr, pattern.ptr);
 
         return item? ((item - str_search.ptr) + start) : str.length;
     }
@@ -448,7 +448,7 @@ struct StringSearch ( bool wide_char = false )
 
      **************************************************************************/
 
-    bool containsPattern ( Char[] str, Char[] pattern, size_t start = 0 )
+    bool containsPattern ( in Char[] str, in Char[] pattern, size_t start = 0 )
     in
     {
         assert (start <= str.length, "containsPattern: start index out of range");
@@ -485,7 +485,7 @@ struct StringSearch ( bool wide_char = false )
 
     **************************************************************************/
 
-    size_t locateCharSet ( Char[] str, Char[] charset, size_t start = 0 )
+    size_t locateCharSet ( in Char[] str, in Char[] charset, size_t start = 0 )
     in
     {
         assert (start <= str.length, "locateCharSet: start index out of range");
@@ -514,7 +514,7 @@ struct StringSearch ( bool wide_char = false )
 
     **************************************************************************/
 
-    size_t locateCharSetT ( Char[] charset ) ( Char[] str, size_t start = 0 )
+    size_t locateCharSetT ( istring charset ) ( in Char[] str, size_t start = 0 )
     in
     {
         assert (start <= str.length, "locateCharSetT: start index out of range");
@@ -574,7 +574,7 @@ struct StringSearch ( bool wide_char = false )
               the length of the string of this segment
 
      **************************************************************************/
-    size_t lengthOf ( Char[] str )
+    size_t lengthOf ( in Char[] str )
     {
         return str.length? (str[$ - 1]? str.length : lengthOf(str.ptr)) : 0;
     }
@@ -589,7 +589,7 @@ struct StringSearch ( bool wide_char = false )
              str = input string
 
      ***************************************************************************/
-    void assertTerm ( char[] func ) ( Char[] str )
+    void assertTerm ( istring func ) ( in Char[] str )
     {
         assert (hasTerm(str), msgFunc!(func) ~ ": unterminated string");
     }
@@ -659,7 +659,7 @@ struct StringSearch ( bool wide_char = false )
               true if "str" is null-terminated or false otherwise
 
      **************************************************************************/
-    bool hasTerm ( Char[] str )
+    bool hasTerm ( in Char[] str )
     {
         return str.length? !str[$ - 1] : false;
     }
@@ -699,8 +699,10 @@ struct StringSearch ( bool wide_char = false )
              the resulting string
 
     ***************************************************************************/
-    Char[] trim ( Char[] str, bool terminate = false )
+    TChar[] trim (TChar) ( TChar[] str, bool terminate = false )
     {
+        static assert (is(Unqual!(TChar) == Char));
+
         terminate &= hasTerm(str);
 
         foreach_reverse (i, c; str[0 .. lengthOf(str)])
@@ -856,7 +858,7 @@ struct StringSearch ( bool wide_char = false )
               "check" or false otherwise
 
      **************************************************************************/
-    bool caseCheck ( alias check ) ( Char[] str )
+    bool caseCheck ( alias check ) ( in Char[] str )
     {
         bool result = true;
 
@@ -918,15 +920,16 @@ struct StringSearch ( bool wide_char = false )
 
      **************************************************************************/
 
-    Char[][] split ( ref Char[][] slices, Char[] str, Char delim, uint n = 0, bool collapse = false )
+    TElem[] split (TElem) ( ref TElem[] slices, TElem str, Char delim, uint n = 0,
+                     bool collapse = false )
     {
-        return split_!(Char)(slices, str, delim, &locateChar, n, collapse);
+        return split_!(Char, TElem)(slices, str, delim, &locateChar, n, collapse);
     }
 
     ///
     unittest
     {
-        char[][] slices;
+        cstring[] slices;
 
         test!("==")(StringSearch!().split(slices, "a;b;c", ';'),
                     ["a", "b", "c"]);
@@ -972,7 +975,8 @@ struct StringSearch ( bool wide_char = false )
 
      **************************************************************************/
 
-    Char[][] splitCollapse ( ref Char[][] slices, Char[] str, Char delim, uint n = 0 )
+    TElem[] splitCollapse (TElem) ( ref TElem[] slices, TElem str, Char delim,
+                                    uint n = 0 )
     {
         return split(slices,  str, delim, n, true);
     }
@@ -994,9 +998,11 @@ struct StringSearch ( bool wide_char = false )
 
      **************************************************************************/
 
-    Char[][] split ( ref Char[][] slices, Char[] str, Char[] delims, uint n = 0, bool collapse = false )
+    TElem[] split (TElem) ( ref TElem[] slices, TElem str, in Char[] delims,
+                            uint n = 0, bool collapse = false )
     {
-        return split_!(Char[])(slices, str, delims, &locateCharSet, n, collapse);
+        return split_!(Char[], TElem)(slices, str, delims, &locateCharSet, n,
+                                      collapse);
     }
 
 
@@ -1017,7 +1023,8 @@ struct StringSearch ( bool wide_char = false )
 
      **************************************************************************/
 
-    Char[][] splitCollapse ( ref Char[][] slices, Char[] str, Char[] delim, uint n = 0 )
+    TElem[] splitCollapse (TElem) ( ref TElem[] slices, in TElem str,
+                                     in Char[] delim, uint n = 0 )
     {
         return split(slices, str, delim, n, true);
     }
@@ -1041,7 +1048,7 @@ struct StringSearch ( bool wide_char = false )
 
     template LocateDelimDg ( T )
     {
-        alias size_t function ( Char[] str, T delim, size_t start ) LocateDelimDg;
+        alias size_t function ( in Char[] str, T delim, size_t start ) LocateDelimDg;
     }
 
     /**************************************************************************
@@ -1062,8 +1069,21 @@ struct StringSearch ( bool wide_char = false )
 
      **************************************************************************/
 
-    private Char[][] split_  ( T ) ( ref Char[][] slices, Char[] str, T delim, LocateDelimDg!(T) locateDelim, uint n, bool collapse )
+    private TElem[] split_  ( T , TElem ) ( ref TElem[] slices, TElem str,
+                                            T delim, LocateDelimDg!(T) locateDelim,
+                                            uint n, bool collapse )
     {
+        static if (is(Unqual!(TElem) E : E[]))
+        {
+            static assert (is (Unqual!(E) == Char),
+                           "TElem should be [const] Char[], not : "
+                           ~ TElem.stringof);
+        }
+        else
+        {
+            static assert (false, "TElem should be [const] Char[], not : "
+                           ~ TElem.stringof);
+        }
         uint   i     = 0;
 
         size_t start = collapse? skipLeadingDelims(str, delim) : 0;
@@ -1108,7 +1128,7 @@ struct StringSearch ( bool wide_char = false )
 
      **************************************************************************/
 
-    private size_t skipLeadingDelims ( T ) ( Char[] str, T delim )
+    private size_t skipLeadingDelims ( T ) ( in Char[] str, T delim )
     {
         foreach (i, c; str)
         {
