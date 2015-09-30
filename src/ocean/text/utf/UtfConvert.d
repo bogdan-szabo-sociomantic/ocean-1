@@ -90,8 +90,6 @@ import Utf = tango.text.convert.Utf: toString, toString16, toString32;
 
 import ocean.text.util.StringReplace;
 
-import ocean.text.util.StringSearch;
-
 
 /*******************************************************************************
 
