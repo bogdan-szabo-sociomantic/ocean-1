@@ -262,15 +262,19 @@ public class BucketElementMallocAllocator (Bucket) : IAllocator
             this.elements = (cast(void**)allocated_mem)[0 .. n];
         }
 
-        /***********************************************************************
-
-            Dispose class.
-
-        ***********************************************************************/
-
-        protected override void dispose ( )
+        version (D_Version2) {}
+        else
         {
-            free(this.elements.ptr);
+            /*******************************************************************
+
+                Dispose class.
+
+            *******************************************************************/
+
+            protected override void dispose ( )
+            {
+                free(this.elements.ptr);
+            }
         }
 
         /***********************************************************************
