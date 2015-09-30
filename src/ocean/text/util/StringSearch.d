@@ -33,6 +33,11 @@ import c_string = tango.stdc.string;
 
 import tango.math.Math:   min;
 
+version (UnitTest)
+{
+    import ocean.core.Test;
+}
+
 
 /++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -248,7 +253,7 @@ struct StringSearch ( bool wide_char = false )
      *      str    = string to search for value
      *      value  = element value to find
      *      start  = start index
-     *      length = number of elements to examine (at most length of str)
+     *      length = number of elements to examine
      *
      * Returns:
      *      the index of the first element with value "value" or the index of
@@ -267,6 +272,22 @@ struct StringSearch ( bool wide_char = false )
 
         return item? (item - str.ptr) : length;
     }
+
+    ///
+    unittest
+    {
+        test!("==")(StringSearch!().locateChar("Hello", 'l', 5, size_t.max), 5);
+        test!("==")(StringSearch!().locateChar("Hello", 'l', 2, size_t.max), 2);
+        test!("==")(StringSearch!().locateChar("Hello", 'l', 3, size_t.max), 3);
+        test!("==")(StringSearch!().locateChar("Hello", 'o', 5, size_t.max), 5);
+        test!("==")(StringSearch!().locateChar("Hello", 'o', 4, size_t.max), 4);
+        test!("==")(StringSearch!().locateChar("Hello", 'o', 0, size_t.max), 4);
+        // Test searches in a limited region of the input string
+        test!("==")(StringSearch!().locateChar("Hello", 'l', 0, 0), 0);
+        test!("==")(StringSearch!().locateChar("Hello", 'l', 0, 2), 2);
+        test!("==")(StringSearch!().locateChar("Hello", 'l', 0, 3), 2);
+    }
+
 
     /**
      * Locates the first occurence of value within str.
@@ -293,7 +314,7 @@ struct StringSearch ( bool wide_char = false )
      *     str    = string to search for value
      *     value  = value to search for
      *     start  = start index
-     *     length = number of elements to examine (at most length of str)
+     *     length = number of elements to examine
      *
      * Returns:
      *      true if str contains value or false otherwise
@@ -310,10 +331,26 @@ struct StringSearch ( bool wide_char = false )
         return !!pLocateBinChar(str.ptr + start, value, length - start);
     }
 
+    ///
+    unittest
+    {
+        test(!StringSearch!().containsChar("Hello", 'l', 5, size_t.max));
+        test(StringSearch!().containsChar("Hello", 'l', 2, size_t.max));
+        test(StringSearch!().containsChar("Hello", 'l', 3, size_t.max));
+        test(!StringSearch!().containsChar("Hello", 'o', 5, size_t.max));
+        test(StringSearch!().containsChar("Hello", 'o', 4, size_t.max));
+        test(StringSearch!().containsChar("Hello", 'o', 0, size_t.max));
+
+        test(!StringSearch!().containsChar("Hello", 'l', 0, 0));
+        test(!StringSearch!().containsChar("Hello", 'l', 0, 2));
+        test(StringSearch!().containsChar("Hello", 'l', 0, 3));
+    }
+
     bool containsChar ( Char[] str, Char value, size_t start = 0 )
     {
         return containsChar(str, value, start, size_t.max);
     }
+
 
     /**
      * Scans "str" for "pattern" and returns the index of the first occurrence
@@ -341,6 +378,16 @@ struct StringSearch ( bool wide_char = false )
         return item? ((item - str_search.ptr) + start) : str.length;
     }
 
+    ///
+    unittest
+    {
+        test!("==")(StringSearch!().locatePattern("Hello World!", "World", 0), 6);
+        test!("==")(StringSearch!().locatePattern("[Hello]", "[", 1), "[Hello]".length);
+        test!("==")(StringSearch!().locatePattern("[Hello]", "[", 256), "[Hello]".length);
+        // Crazy/inconsistent behavior: It should return 1
+        test!("==")(StringSearch!().locatePattern("[", "[", 1), 0);
+        test!("==")(StringSearch!().locatePattern("[", "[", 256), 0);
+    }
 
 
     /**
@@ -375,6 +422,16 @@ struct StringSearch ( bool wide_char = false )
         return item? ((item - str_search.ptr) + start) : str.length;
     }
 
+    ///
+    unittest
+    {
+        test!("==")(StringSearch!().locatePatternT!("World")("Hello World!", 0), 6);
+        test!("==")(StringSearch!().locatePatternT!("[")("[Hello]", 1), "[Hello]".length);
+        // Crazy/inconsistent behavior: It should return 1
+        test!("==")(StringSearch!().locatePatternT!("[")("[", 1), 0);
+        // Fail unittests, because reasons
+        //test!("==")(StringSearch!().locatePattern("[", "[", 256), 0);
+    }
 
 
     /**************************************************************************
@@ -399,6 +456,17 @@ struct StringSearch ( bool wide_char = false )
     body
     {
         return !!pLocatePattern((str ~ TERM).ptr + start, (pattern ~ TERM).ptr);
+    }
+
+    ///
+    unittest
+    {
+        test(!StringSearch!().containsPattern("Hello", "ll", 5));
+        test(StringSearch!().containsPattern("Hello", "ll", 2));
+        test(StringSearch!().containsPattern("Hello", "lo", 3));
+        test(!StringSearch!().containsPattern("Hello", "lo", 4));
+        test(StringSearch!().containsPattern("Hello", "lo", 3));
+        test(StringSearch!().containsPattern("Hello", "lo", 0));
     }
 
 
@@ -655,6 +723,25 @@ struct StringSearch ( bool wide_char = false )
         return null;
     }
 
+    ///
+    unittest
+    {
+        test!("==")(StringSearch!().trim("trim"), "trim");
+
+        test!("==")(StringSearch!().trim("  trim"), "trim");
+        test!("==")(StringSearch!().trim("\ttrim"), "trim");
+        test!("==")(StringSearch!().trim(" \t trim"), "trim");
+
+        test!("==")(StringSearch!().trim("trim  "), "trim");
+        test!("==")(StringSearch!().trim("trim\t"), "trim");
+        test!("==")(StringSearch!().trim("trim \t "), "trim");
+
+        test!("==")(StringSearch!().trim("  trim  "), "trim");
+        test!("==")(StringSearch!().trim("\ttrim\t"), "trim");
+        test!("==")(StringSearch!().trim("\t \ttrim \t "), "trim");
+    }
+
+
     /**************************************************************************
 
          Converts each character of str in-place using convert. convert must be
@@ -682,7 +769,7 @@ struct StringSearch ( bool wide_char = false )
     /**************************************************************************
 
         Checks if all symbols of `str` are not modified by predicate
-        `convert`, creates a duplicate otherwise. 
+        `convert`, creates a duplicate otherwise.
 
         Params
             str = string to check/convert
@@ -834,6 +921,38 @@ struct StringSearch ( bool wide_char = false )
     Char[][] split ( ref Char[][] slices, Char[] str, Char delim, uint n = 0, bool collapse = false )
     {
         return split_!(Char)(slices, str, delim, &locateChar, n, collapse);
+    }
+
+    ///
+    unittest
+    {
+        char[][] slices;
+
+        test!("==")(StringSearch!().split(slices, "a;b;c", ';'),
+                    ["a", "b", "c"]);
+        test!("==")(StringSearch!().split(slices, "a;b;c", '.'),
+                    ["a;b;c"]);
+        test!("==")(StringSearch!().split(slices, "abc;", ';'),
+                    ["abc", ""]);
+        test!("==")(StringSearch!().split(slices, ";abc;", ';'),
+                    ["", "abc", ""]);
+        test!("==")(StringSearch!().split(slices, "a;;bc", ';'),
+                    ["a", "", "bc"]);
+
+
+        test!("==")(StringSearch!().split(slices, "a;b;c", ';', 2),
+                    ["a", "b"]);
+
+        test!("==")(StringSearch!().split(slices, "abc;", ';', 0, true),
+                    ["abc"]);
+        test!("==")(StringSearch!().split(slices, ";abc;", ';', 0, true),
+                    ["abc"]);
+        test!("==")(StringSearch!().split(slices, "a;;bc", ';', 0, true),
+                    ["a", "bc"]);
+
+        mstring[] mslices;
+        test!("==")(StringSearch!().split(slices, "a;b;c".dup, ';'),
+                    ["a", "b", "c"]);
     }
 
 
