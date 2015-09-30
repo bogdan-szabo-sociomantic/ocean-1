@@ -350,12 +350,12 @@ abstract class IConnectionHandler : IConnectionHandlerInfo,
         debug ( ConnectionHandler ) try if ( this.io_error )
         {
             Stderr.formatln("[{}]: Caught io exception while handling connection: '{}' @ {}:{}",
-                    this.connection_id, exception.msg, exception.file, exception.line);
+                    this.connection_id, exception.toString(), exception.file, exception.line);
         }
         else
         {
             debug ( ConnectionHandler ) Stderr.formatln("[{}]: Caught non-io exception while handling connection: '{}' @ {}:{}",
-                    this.connection_id, exception.msg, exception.file, exception.line);
+                    this.connection_id, exception.toString(), exception.file, exception.line);
         }
         catch { /* Theoretically io_error() could throw. */ }
 
