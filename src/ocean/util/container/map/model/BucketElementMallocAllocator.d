@@ -228,7 +228,7 @@ public class BucketElementMallocAllocator (Bucket) : IAllocator
 
     ***************************************************************************/
 
-    static scope class ParkingStack : IParkingStack
+    static /* scope */ class ParkingStack : IParkingStack
     {
         /***********************************************************************
 

@@ -128,7 +128,7 @@ abstract class IAllocator
 
     ***************************************************************************/
 
-    static abstract scope class IParkingStack
+    static abstract /* scope */ class IParkingStack
     {
         /**********************************************************************
 
