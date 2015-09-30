@@ -44,11 +44,17 @@ import tango.transition;
 
 import tango.text.json.JsonParser;
 
+import tango.core.Enforce;
 import tango.core.Traits;
 
 import Integer = tango.text.convert.Integer;
 
 import Float = tango.text.convert.Float;
+
+version (UnitTest)
+{
+    import ocean.core.Test;
+}
 
 
 /******************************************************************************/
@@ -484,7 +490,11 @@ class JsonParserIter(bool AllowNaN = false) : JsonParser!(char, AllowNaN)
             }
             else static if ( isUnsignedIntegerType!(T) )
             {
-                ret = Integer.toUlong(str);
+                auto tmp = Integer.toUlong(str);
+                enforce(tmp <= T.max && tmp >= T.min,
+                        "Value returned from toULong is out of bound for type "
+                        ~ T.stringof);
+                ret = cast(T) tmp;
             }
             else
             {
@@ -546,3 +556,24 @@ class JsonParserIter(bool AllowNaN = false) : JsonParser!(char, AllowNaN)
     }
 }
 
+///
+unittest
+{
+    alias JsonParserIter!(true) JsonParserIterWithNan;
+    alias JsonParserIter!(false) JsonParserIterNoNan;
+
+    bool found;
+    istring json = `{ "object": { "cost": 12.34, "sub": { "cost": 42 } } }`;
+
+    scope parser = new JsonParserIterNoNan();
+    parser.reset(json);
+
+    auto val = parser.nextNamed("cost", found);
+    assert(found, "Boolean flag should be set to true");
+    test!("==")(val, "12.34");
+
+    found = false;
+    auto uval = parser.nextNamedNumber!(uint)("cost", found);
+    assert(found, "Boolean flag should be set to true");
+    test!("==")(uval, 42);
+}
