@@ -569,32 +569,32 @@ public struct Range ( T )
 
     /***************************************************************************
 
-        Compares this instance with other. An empty range is considered to be <
+        Compares this instance with rhs. An empty range is considered to be <
         all non-empty ranges. Otherwise, the comparison always considers the
         range's minimum value before comparing the maximum value.
 
         Params:
-            other = instance to compare with this
+            rhs = instance to compare with this
 
         Returns:
-            a value less than 0 if this < other,
-            a value greater than 0 if this > other
-            or 0 if this == other.
+            a value less than 0 if this < rhs,
+            a value greater than 0 if this > rhs
+            or 0 if this == rhs.
 
     ***************************************************************************/
 
-    public int opCmp ( Range other )
-    {
-        if ( this.is_empty )  return other.is_empty ? 0 : -1;
-        if ( other.is_empty ) return 1;
+    mixin (genOpCmp(
+    `{
+        if ( this.is_empty )  return rhs.is_empty ? 0 : -1;
+        if ( rhs.is_empty ) return 1;
 
-        if ( this.min < other.min ) return -1;
-        if ( other.min < this.min ) return 1;
-        assert(this.min == other.min);
-        if ( this.max < other.max ) return -1;
-        if ( other.max < this.max ) return 1;
+        if ( this.min < rhs.min ) return -1;
+        if ( rhs.min < this.min ) return 1;
+        assert(this.min == rhs.min);
+        if ( this.max < rhs.max ) return -1;
+        if ( rhs.max < this.max ) return 1;
         return 0;
-    }
+    }`));
 
     unittest
     {

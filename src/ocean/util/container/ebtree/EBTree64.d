@@ -56,6 +56,8 @@ module ocean.util.container.ebtree.EBTree64;
 
 *******************************************************************************/
 
+import tango.transition;
+
 import ocean.util.container.ebtree.model.IEBTree,
        ocean.util.container.ebtree.model.Node,
        ocean.util.container.ebtree.model.KeylessMethods,
@@ -141,24 +143,24 @@ class EBTree64 ( bool signed = false ) : IEBTree
 
         /**********************************************************************
 
-            Compares this instance with other.
+            Compares this instance with rhs.
 
             Params:
-                other = instance to compare with this
+                rhs = instance to compare with this
 
             Returns:
-                a value less than 0 if this < other,
-                a value greater than 0 if this > other
-                or 0 if this == other.
+                a value less than 0 if this < rhs,
+                a value greater than 0 if this > rhs
+                or 0 if this == rhs.
 
          **********************************************************************/
 
-        public int opCmp ( typeof (this) other )
-        {
-            return (this.hi > other.hi)? +1 :
-                   (this.hi < other.hi)? -1 :
-                   (this.lo >= other.lo)? (this.lo > other.lo) : -1;
-        }
+        public mixin(genOpCmp(
+        `{
+            return (this.hi > rhs.hi)? +1 :
+                   (this.hi < rhs.hi)? -1 :
+                   (this.lo >= rhs.lo)? (this.lo > rhs.lo) : -1;
+        }`));
 
         /**********************************************************************
 

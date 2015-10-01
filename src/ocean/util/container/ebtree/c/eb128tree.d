@@ -50,7 +50,16 @@
 
 module ocean.util.container.ebtree.c.eb128tree;
 
+
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
+
+import tango.transition;
 import ocean.util.container.ebtree.c.ebtree: eb_root, eb_node;
+
 
 /******************************************************************************
 
@@ -73,17 +82,19 @@ struct UCent
         Compares this instance to other in the same way as the libebtree does.
 
         Params:
-            other = instance to compare against this
+            rhs = instance to compare against this
 
         Returns:
-
+            a value less than 0 if this < rhs,
+            a value greater than 0 if this > rhs
+            or 0 if this == rhs.
 
      **************************************************************************/
 
-    int opCmp ( typeof (this) other )
-    {
-        return eb128_cmp_264((*this).tupleof, (*other).tupleof);
-    }
+    public mixin (genOpCmp(
+    `{
+        return eb128_cmp_264(this.tupleof, rhs.tupleof);
+    }`));
 }
 
 /******************************************************************************
@@ -108,17 +119,19 @@ struct Cent
         Compares this instance to other in the same way as the libebtree does.
 
         Params:
-            other = instance to compare against this
+            rhs = instance to compare against this
 
         Returns:
-
+            a value less than 0 if this < rhs,
+            a value greater than 0 if this > rhs
+            or 0 if this == rhs.
 
      **************************************************************************/
 
-    int opCmp ( typeof (this) other )
-    {
-        return eb128i_cmp_264((*this).tupleof, (*other).tupleof);
-    }
+    public mixin(genOpCmp(
+    `{
+        return eb128i_cmp_264(this.tupleof, rhs.tupleof);
+    }`));
 }
 
 /**

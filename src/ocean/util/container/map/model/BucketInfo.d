@@ -19,6 +19,7 @@ module ocean.util.container.map.model.BucketInfo;
 
 *******************************************************************************/
 
+import tango.transition;
 debug (BucketInfo) import tango.io.Stdout;
 
 /*******************************************************************************/
@@ -59,10 +60,10 @@ class BucketInfo
 
          **********************************************************************/
 
-        int opCmp ( typeof (this) other )
-        {
-            return (this.length >= other.length)? this.length > other.length : -1;
-        }
+        public mixin (genOpCmp(
+        `{
+            return (this.length >= rhs.length)? this.length > rhs.length : -1;
+        }`));
 
         /**********************************************************************/
 
