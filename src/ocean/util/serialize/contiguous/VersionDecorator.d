@@ -557,7 +557,7 @@ Dst testConv(Src, Dst)(Src src)
             e.classinfo.name,
             e.file,
             e.line,
-            e.msg
+            e.toString()
         );
         test.file = __FILE__;
         test.line = __LINE__;
@@ -621,7 +621,7 @@ Dst testConvMemory(Src, Dst)(Src src)
                 e.classinfo.name,
                 e.file,
                 e.line,
-                e.msg
+                e.toString()
             );
             test.file = __FILE__;
             test.line = __LINE__;

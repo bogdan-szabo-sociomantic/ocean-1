@@ -103,7 +103,7 @@
         }
         catch ( Exception e )
         {
-            Stdout.formatln("Required parameter wasn't set: {}", e.msg);
+            Stdout.formatln("Required parameter wasn't set: {}", e.toString());
         }
     }
     -------

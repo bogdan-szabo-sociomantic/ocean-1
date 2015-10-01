@@ -382,7 +382,7 @@ public abstract class EpollProcess
 
         protected override void error_ ( Exception exception, Event event )
         {
-            log.error("EPOLL error {} at {} {} event = {}", exception.msg,
+            log.error("EPOLL error {} at {} {} event = {}", exception.toString(),
                            exception.file, exception.line, event);
         }
 

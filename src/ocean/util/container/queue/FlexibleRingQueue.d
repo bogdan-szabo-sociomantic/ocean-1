@@ -875,7 +875,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
                 catch (ValidationError e)
                 {
                     auto msg = "Error reading record " ~ itoa(i + i) ~ "/" ~
-                        itoa(meta.items) ~ ": " ~ e.msg;
+                        itoa(meta.items) ~ ": " ~ e.toString();
                     e.msg = assumeUnique(msg);
                     throw e;
                 }
