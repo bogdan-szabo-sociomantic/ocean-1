@@ -90,6 +90,7 @@ unittest
 
 *******************************************************************************/
 
+import tango.transition;
 import ocean.util.app.model.IApplicationExtension;
 
 
@@ -492,4 +493,3 @@ unittest
 
     new App;
 }
-

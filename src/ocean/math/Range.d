@@ -585,14 +585,17 @@ public struct Range ( T )
 
     mixin (genOpCmp(
     `{
-        if ( this.is_empty )  return rhs.is_empty ? 0 : -1;
-        if ( rhs.is_empty ) return 1;
+        auto _this = cast(Unqual!(typeof(this))) this;
+        auto _rhs = cast(Unqual!(typeof(rhs))) rhs;
 
-        if ( this.min < rhs.min ) return -1;
-        if ( rhs.min < this.min ) return 1;
-        assert(this.min == rhs.min);
-        if ( this.max < rhs.max ) return -1;
-        if ( rhs.max < this.max ) return 1;
+        if ( _this.is_empty )  return _rhs.is_empty ? 0 : -1;
+        if ( _rhs.is_empty ) return 1;
+
+        if ( _this.min < _rhs.min ) return -1;
+        if ( _rhs.min < _this.min ) return 1;
+        assert(_this.min == _rhs.min);
+        if ( _this.max < _rhs.max ) return -1;
+        if ( _rhs.max < _this.max ) return 1;
         return 0;
     }`));
 
