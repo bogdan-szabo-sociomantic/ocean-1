@@ -91,7 +91,7 @@ public class PeriodicStatsLog ( T ) : IPeriodicStatsLog
 
     ***************************************************************************/
 
-    private alias T* delegate ( ) ValueDg;
+    private alias Const!(T)* delegate ( ) ValueDg;
 
     private ValueDg value_dg;
 
@@ -645,8 +645,8 @@ public class StatsLog : IStatsLog
     {
         foreach ( i, value; values.tupleof )
         {
-            static if (!isIntegerType!(typeof(value))
-                       && !isRealType!(typeof(value)))
+            static if (!isIntegerType!(Unqual!(typeof(value)))
+                       && !isRealType!(Unqual!(typeof(value))))
             {
                 pragma(msg, "[", __FILE__, ":", __LINE__, "]", T.stringof,
                        " should only contain integer or floating point members");
