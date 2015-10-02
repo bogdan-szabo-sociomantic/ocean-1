@@ -737,8 +737,7 @@ unittest
 
 
     // In signed arithmetics, a should be less than b
-    auto signed_result = signed_a.opCmp(&signed_b);
-    test!("<")(signed_result, 0);
+    test!("<")(signed_a, signed_b);
 
 
     EBTree128!().Key unsigned_a;
@@ -750,11 +749,5 @@ unittest
     unsigned_b.lo = 0x0;
 
     // In unsigned arithmetics, a should be greatereater than b
-    auto unsigned_result = unsigned_a.opCmp(&unsigned_b);
-    test!(">")(unsigned_result, 0);
-
-
-    // And these two should definitivly be different values
-    test!("!=")(signed_result, unsigned_result);
-
+    test!(">")(unsigned_a, unsigned_b);
 }
