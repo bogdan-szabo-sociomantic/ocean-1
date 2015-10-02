@@ -562,7 +562,6 @@ public class StatsLog : IStatsLog
         static assert (is(T == struct) || is(T == class),
                        "Parameter to add must be a struct or a class");
         this.format!(null)(values, istring.init);
-        this.add_separator = true;
 
         return this;
     }
@@ -595,7 +594,6 @@ public class StatsLog : IStatsLog
     body
     {
         this.format!(category)(values, instance);
-        this.add_separator = true;
         return this;
     }
 
