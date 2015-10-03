@@ -64,6 +64,8 @@ module ocean.net.server.SelectListener;
 
  ******************************************************************************/
 
+import tango.transition;
+
 import ocean.io.select.client.model.ISelectClient;
 import ocean.net.server.connection.IConnectionHandler;
 import ocean.net.server.connpool.SelectListenerPool;
@@ -155,7 +157,7 @@ abstract class ISelectListener : ISelectClient
 
      **************************************************************************/
 
-    protected this ( char[] address, ushort port, int backlog = 32 )
+    protected this ( cstring address, ushort port, int backlog = 32 )
     {
         this();
 
@@ -479,7 +481,7 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
 
      **************************************************************************/
 
-    private char[] connection_log_buf;
+    private mstring connection_log_buf;
 
     /**************************************************************************
 
@@ -496,7 +498,7 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
 
      **************************************************************************/
 
-    public this ( char[] address, ushort port, Args args, int backlog = 32 )
+    public this ( cstring address, ushort port, Args args, int backlog = 32 )
     {
         super(address, port, backlog);
 
