@@ -1,13 +1,6 @@
-/******************************************************************************
+/*******************************************************************************
 
     Iterating JSON parser
-
-    copyright:      Copyright (c) 2010 sociomantic labs.
-                    All rights reserved.
-
-    version:        September 2010: initial release
-
-    authors:        David Eckardt, Gavin Norman
 
     Extends Tango's JsonParser by iteration and token classification facilities.
 
@@ -15,30 +8,21 @@
 
     Named entity extraction usage example:
 
-    ---
+    Usage example:
+        See unittests following this class.
 
-        istring json = "{"object":{"cost":12.34,"sub":{"cost":56.78}}}";
+    copyright:      Copyright (c) 2010-2015 sociomantic labs.
+                    All rights reserved.
 
-        scope parser = new JsonParserIter();
-        parser.reset(json);
-
-        auto val = parser.nextNamed("cost");
-        assert(val == "12.34");
-
-        val = parser.nextNamed("cost");
-        assert(val == "56.78");
-
-    ---
-
- ******************************************************************************/
+*******************************************************************************/
 
 module ocean.text.json.JsonParserIter;
 
-/******************************************************************************
+/*******************************************************************************
 
     Imports
 
- ******************************************************************************/
+*******************************************************************************/
 
 import tango.transition;
 
