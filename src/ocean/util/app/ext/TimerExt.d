@@ -180,7 +180,7 @@ public class TimerExt : IApplicationExtension
     {
         assert(dg);
         assert(period_s >= 0.0);
-        this.register_(dg, secToMicrosec(period_s), secToMicrosec(period_s));
+        this.registerMicrosec(dg, secToMicrosec(period_s), secToMicrosec(period_s));
     }
 
     /***************************************************************************
@@ -202,19 +202,7 @@ public class TimerExt : IApplicationExtension
         assert(init_s >= 0.0);
         assert(period_s >= 0.0);
 
-        this.register_(dg, secToMicrosec(init_s), secToMicrosec(period_s));
-    }
-
-    /***************************************************************************
-
-        Unregisters all timed events (thus unregisters the internal TimerEvent
-        from epoll).
-
-    ***************************************************************************/
-
-    public void clear ( )
-    {
-        this.scheduler.clear();
+        this.registerMicrosec(dg, secToMicrosec(init_s), secToMicrosec(period_s));
     }
 
     /***************************************************************************
@@ -234,8 +222,7 @@ public class TimerExt : IApplicationExtension
 
     ***************************************************************************/
 
-    private void register_ ( EventDg dg, ulong init_microsec,
-        ulong period_microsec )
+    public void registerMicrosec ( EventDg dg, ulong init_microsec, ulong period_microsec )
     {
         assert(dg);
 
@@ -246,6 +233,18 @@ public class TimerExt : IApplicationExtension
                 event.repeat_microsec = period_microsec;
             },
             &this.eventFired, init_microsec);
+    }
+
+    /***************************************************************************
+
+        Unregisters all timed events (thus unregisters the internal TimerEvent
+        from epoll).
+
+    ***************************************************************************/
+
+    public void clear ( )
+    {
+        this.scheduler.clear();
     }
 
     /***************************************************************************
@@ -263,7 +262,7 @@ public class TimerExt : IApplicationExtension
         auto reregister = event.dg();
         if ( reregister )
         {
-            this.register_(event.dg, event.repeat_microsec, event.repeat_microsec);
+            this.registerMicrosec(event.dg, event.repeat_microsec, event.repeat_microsec);
         }
     }
 

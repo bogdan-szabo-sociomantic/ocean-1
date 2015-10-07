@@ -72,3 +72,8 @@ New Features
 
   A new module which contains collection of functions that aids in creating
   and manipulating malloc based arrays.
+
+* `ocean.util.app.ext.TimerExt`
+
+  Added `registerMicrosec()`, which accepts integer µs time values to allow
+  using the precise time unit that is used by the underlying library calls.
