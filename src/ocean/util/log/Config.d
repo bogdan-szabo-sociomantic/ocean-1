@@ -334,7 +334,7 @@ public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
     Appender newAppender ( istring file, Appender.Layout layout )
     {
         return new AppendSyslog(file,
-            m_config.file_count,
+            cast(uint)(m_config.file_count),
             m_config.max_file_size,
             "gzip {}", "gz", m_config.start_compress,
             layout);
