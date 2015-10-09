@@ -116,3 +116,7 @@ New Features
   The old application base classes will be deprecated in the next release, along
   with helpers which are no longer required (e.g. `PeriodicStatsLog` and
   `AppendSyslog`).
+
+* `ocean.util.cipher.gcrypt.Twofish`
+
+  Added Libgcrypt bindings with support for Twofish.

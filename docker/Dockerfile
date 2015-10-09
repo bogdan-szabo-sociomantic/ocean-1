@@ -10,4 +10,5 @@ RUN apt-get update && apt-get install -y \
 	libreadline-dev \
 	libbz2-dev \
 	zlib1g-dev \
-	libssl-dev
+	libssl-dev \
+	libgcrypt11-dev
