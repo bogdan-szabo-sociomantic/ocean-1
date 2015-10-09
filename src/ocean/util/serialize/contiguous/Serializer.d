@@ -62,9 +62,9 @@ struct Serializer
         Serializes the data in s
 
         Params:
-            s = struct to serialize
-            buffer = buffer to write to. It is only extended if needed and
-                never shrinked
+            src = struct to serialize
+            dst = buffer to write to. It is only extended if needed and
+                never shrunk
 
         Template Params:
             S = type of the struct to dump
