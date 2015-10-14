@@ -1091,6 +1091,7 @@ struct StringSearch ( bool wide_char = false )
         size_t pos   = locateDelim(str, delim, start);
 
         slices.length = 0;
+        enableStomping(slices);
 
         while ((pos < str.length) && (!n || (i < n)))
         {
