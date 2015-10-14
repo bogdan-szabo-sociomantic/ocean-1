@@ -4,6 +4,8 @@ ifeq ($(DVER),1)
 override DFLAGS += -v2 -v2=-static-arr-params -v2=-volatile
 endif
 
+RDMDFLAGS := --extra-file=$C/src/tango/core/Version.d
+
 # Modules to exclude from testing because they are broken
 TEST_FILTER_OUT += \
 	$C/src/ocean/io/compress/ZlibStream.d \
@@ -11,7 +13,7 @@ TEST_FILTER_OUT += \
 
 # Link unittests to all used libraries
 $O/%unittests: override LDFLAGS += -lglib-2.0 -lpcre -lxml2 -lxslt -lebtree \
-		-ltokyocabinet -llzo2 -lreadline -lhistory
+		-ltokyocabinet -lreadline -lhistory -llzo2 -lbz2 -lz -ldl
 
 .PHONY: d2conv
 d2conv: $O/d2conv.stamp
