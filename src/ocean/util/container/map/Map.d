@@ -702,7 +702,7 @@ public abstract class Map ( V, K ) : BucketSet!(V.sizeof, K)
 
     ***************************************************************************/
 
-    public typeof(this) clearErase ( V val_init = v_init )
+    public typeof(this) clearErase ( in V val_init = v_init )
     {
         this.clear_((cast (void*) &val_init)[0 .. val_init.sizeof]);
 

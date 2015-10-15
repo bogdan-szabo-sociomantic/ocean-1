@@ -30,7 +30,7 @@ import ocean.net.util.QueryParams: QueryParamSet;
 
 class HttpCookieParser : QueryParamSet
 {
-    this ( istring[] cookie_names ... )
+    this ( in istring[] cookie_names ... )
     {
         super(';', '=', cookie_names);
     }

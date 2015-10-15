@@ -799,7 +799,7 @@ unittest
     {
         scope parser = new HttpHeaderParser;
 
-        const content = "POST / HTTP/1.1\r\n"      // 17
+        const content1 = "POST / HTTP/1.1\r\n"      // 17
                         "Content-Length: 12\r\n"   // 37
                         "\r\n"                     // 39
                         "Hello World!";
@@ -809,7 +809,7 @@ unittest
 
         try
         {
-            parser.parse(content);
+            parser.parse(content1);
         }
         catch (HttpParseException e)
         {
@@ -822,7 +822,7 @@ unittest
 
         try
         {
-            parser.parse(content);
+            parser.parse(content1);
         }
         catch (HttpParseException e) { }
     }
@@ -882,7 +882,7 @@ unittest
         "kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit "
         "amet.";
 
-    const istring content =
+    const istring content2 =
         "POST /dir?query=Hello%20World!&abc=def&ghi HTTP/1.1\r\n"
         "Host: www.example.org:12345\r\n"
         "User-Agent: Mozilla/5.0 (X11; U; Linux i686; de; rv:1.9.2.17) Gecko/20110422 Ubuntu/9.10 (karmic) Firefox/3.6.17\r\n"
@@ -906,7 +906,7 @@ unittest
 
     static size_t random_chunk_length ( )
     {
-        const c = content.length * (2.0f / (parts * 3));
+        const c = content2.length * (2.0f / (parts * 3));
 
         static assert (c >= 3, "too many parts");
 
@@ -940,7 +940,7 @@ unittest
         {
             size_t next = random_chunk_length();
 
-            cstring msg_body_start = parser.parse(content[0 .. next]);
+            cstring msg_body_start = parser.parse(content2[0 .. next]);
 
             while (msg_body_start is null)
             {
@@ -948,17 +948,17 @@ unittest
 
                 next = pos + random_chunk_length();
 
-                if (next < content.length)
+                if (next < content2.length)
                 {
-                    msg_body_start = parser.parse(content[pos .. next]);
+                    msg_body_start = parser.parse(content2[pos .. next]);
                 }
                 else
                 {
-                    msg_body_start = parser.parse(content[pos .. content.length]);
+                    msg_body_start = parser.parse(content2[pos .. content2.length]);
 
                     assert (msg_body_start !is null);
-                    assert (msg_body_start.length <= content.length);
-                    assert (msg_body_start == content[content.length - msg_body_start.length .. content.length]);
+                    assert (msg_body_start.length <= content2.length);
+                    assert (msg_body_start == content2[content2.length - msg_body_start.length .. content2.length]);
                 }
             }
         }

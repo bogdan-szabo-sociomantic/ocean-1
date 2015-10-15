@@ -928,200 +928,201 @@ class PriorityCache(T) : ICacheInfo
     }
 }
 
-
+// Test documentation example
 unittest
 {
-    // Test documentation example
+    const NUM_ITEM = 10;
+    auto cache = new PriorityCache!(char[])(NUM_ITEM);
+
+    auto key = 1;
+    ulong priority = 20;
+    bool item_existed_before;
+    char[]* item = cache.getOrCreate(key, priority, item_existed_before);
+
+    if (item)
     {
-        const NUM_ITEM = 10;
-        auto cache = new PriorityCache!(char[])(NUM_ITEM);
-
-        auto key = 1;
-        ulong priority = 20;
-        bool item_existed_before;
-        char[]* item = cache.getOrCreate(key, priority, item_existed_before);
-
-        if (item)
-        {
-            *item = "ABC".dup;
-        }
-        assert(item_existed_before is false);
-
-        ulong no_effect_priority = 70;
-        item = cache.getOrCreate(key, no_effect_priority, item_existed_before);
-
-        if (item)
-        {
-            *item = "DEF".dup;
-        }
-        assert(item_existed_before is true);
-
-        ulong retrieved_priority;
-        item = cache.getPriority(key, retrieved_priority);
-        assert(item !is null);
-        assert(*item == "DEF");
-        assert(retrieved_priority == priority); // Not no_effect_priority
-
-
-        auto new_priority = 10;
-        item = cache.getUpdateOrCreate(key, new_priority, item_existed_before);
-
-        cache.getPriority(key, retrieved_priority);
-        assert(item_existed_before is true);
-        assert(item !is null);
-        assert(retrieved_priority == new_priority);
-
+        *item = "ABC".dup;
     }
+    assert(item_existed_before is false);
 
-    // Test adding and removing
+    ulong no_effect_priority = 70;
+    item = cache.getOrCreate(key, no_effect_priority, item_existed_before);
+
+    if (item)
     {
-        const NUM_OF_ITEMS = 150;
-
-        auto test_cache = new PriorityCache!(int)(NUM_OF_ITEMS);
-
-        const PRIORITY = 10;
-        const VALUE = 50;
-
-        for (int i = 0; i < NUM_OF_ITEMS; i++)
-        {
-            bool existed;
-            auto int_ptr = test_cache.getOrCreate(i, i + PRIORITY, existed);
-            assert(int_ptr !is null, "unexpectedly item was not created");
-            assert(existed is false, "item previously existed");
-            *int_ptr = i + VALUE;
-        }
-
-
-        foreach(j, value; test_cache.items)
-        {
-            assert(test_cache.remove(j), "Removing non-existing item");
-        }
+        *item = "DEF".dup;
     }
+    assert(item_existed_before is true);
 
-    // Test clearing
+    ulong retrieved_priority;
+    item = cache.getPriority(key, retrieved_priority);
+    assert(item !is null);
+    assert(*item == "DEF");
+    assert(retrieved_priority == priority); // Not no_effect_priority
+
+
+    auto new_priority = 10;
+    item = cache.getUpdateOrCreate(key, new_priority, item_existed_before);
+
+    cache.getPriority(key, retrieved_priority);
+    assert(item_existed_before is true);
+    assert(item !is null);
+    assert(retrieved_priority == new_priority);
+}
+
+// Test adding and removing
+unittest
+{
+    const NUM_OF_ITEMS = 150;
+
+    auto test_cache = new PriorityCache!(int)(NUM_OF_ITEMS);
+
+    const PRIORITY = 10;
+    const VALUE = 50;
+
+    for (int i = 0; i < NUM_OF_ITEMS; i++)
     {
-        const NUM_OF_ITEMS = 150;
-
-        auto test_cache = new PriorityCache!(int)(NUM_OF_ITEMS);
-
-        const VALUE = 50;
-        const PRIORITY = 8;
-        const INDEX = 20;
-
-        // Create some items
-        for (int i = 0; i < NUM_OF_ITEMS; i++)
-        {
-            bool existed;
-            auto int_ptr = test_cache.getOrCreate(i + INDEX, i + PRIORITY, existed);
-            *int_ptr = i + VALUE;
-        }
-
-        // After clearing we shouldn't find anything
-        test_cache.clear();
-
-        for (int i = 0; i < NUM_OF_ITEMS; i++)
-        {
-            auto is_removed = test_cache.remove(i + INDEX);
-            assert(!is_removed, "Should fail removing non-existing item");
-        }
-    }
-
-    // Test opApply
-    {
-        const NUM_OF_ITEMS = 150;
-
-        auto test_cache = new PriorityCache!(int)(NUM_OF_ITEMS);
-
-        const PRIORITY = 10;
-        const ORIGINAL_VALUE = 50;
-        const NEW_VALUE = 80;
-
-        for (int i = 0; i < NUM_OF_ITEMS; i++)
-        {
-            bool existed;
-            auto int_ptr = test_cache.getOrCreate(i, i + PRIORITY, existed);
-            *int_ptr = i + ORIGINAL_VALUE;
-        }
-
-        int counter = NUM_OF_ITEMS;
-        foreach (key, ref item, ulong priority; test_cache)
-        {
-            counter--;
-            assert(key == counter, "Unexpected key");
-            assert(priority == counter + PRIORITY, "Unexpected item priority");
-            item = counter + NEW_VALUE;
-        }
-
-        // Confirm that the new assigned values weren't lost
-        for (int i = 0; i < NUM_OF_ITEMS; i++)
-        {
-            auto int_ptr = test_cache.get(i);
-            assert(int_ptr, "item unexpectedly null");
-            assert(*int_ptr == i + NEW_VALUE, "Unexpected item value");
-        }
-    }
-
-
-    // Test dropped items are correctly reported
-    {
-        const CACHE_SIZE = 10;
-        const ITEMS_INSERTED = 150;
-
-        uint items_removed_count;
-
-        class PriorityNotify : PriorityCache!(uint)
-        {
-            public this (size_t max_items)
-            {
-                super(max_items);
-            }
-
-            protected override void itemDropped (hash_t key, ref uint value)
-            {
-                assert(key == value, "Wrong key/value are reported");
-                items_removed_count++;
-            }
-        }
-
-        auto test_cache = new PriorityNotify(CACHE_SIZE);
-        for (uint i = 0; i < ITEMS_INSERTED; i++)
-        {
-            bool existed;
-            auto int_ptr = test_cache.getOrCreate(i, i, existed);
-            *int_ptr = i;
-        }
-
-        assert(items_removed_count == ITEMS_INSERTED - CACHE_SIZE,
-               "Not all dropped items were reported");
-    }
-
-
-    // Test dropped items are passed by ref
-    {
-        const CACHE_SIZE = 10;
-        bool item_dropped = false;
-
-        class PriorityNotify2 : PriorityCache!(uint)
-        {
-            public this (size_t max_items)
-            {
-                super(max_items);
-            }
-
-            protected override void itemDropped (hash_t key, ref uint value)
-            {
-                item_dropped = true;
-                value = 10;
-            }
-        }
-
-        auto test_cache = new PriorityNotify2(CACHE_SIZE);
         bool existed;
-        auto new_value = test_cache.getOrCreate(20, 20, existed);
-        *new_value = 50;
-        test_cache.remove(20);
-
-        assert(item_dropped, "Item was not dropped");
-        assert(*new_value == 10, "Item was not dropped by ref");
+        auto int_ptr = test_cache.getOrCreate(i, i + PRIORITY, existed);
+        assert(int_ptr !is null, "unexpectedly item was not created");
+        assert(existed is false, "item previously existed");
+        *int_ptr = i + VALUE;
     }
+
+
+    foreach(j, value; test_cache.items)
+    {
+        assert(test_cache.remove(j), "Removing non-existing item");
+    }
+}
+
+// Test clearing
+unittest
+{
+    const NUM_OF_ITEMS = 150;
+
+    auto test_cache = new PriorityCache!(int)(NUM_OF_ITEMS);
+
+    const VALUE = 50;
+    const PRIORITY = 8;
+    const INDEX = 20;
+
+    // Create some items
+    for (int i = 0; i < NUM_OF_ITEMS; i++)
+    {
+        bool existed;
+        auto int_ptr = test_cache.getOrCreate(i + INDEX, i + PRIORITY, existed);
+        *int_ptr = i + VALUE;
+    }
+
+    // After clearing we shouldn't find anything
+    test_cache.clear();
+
+    for (int i = 0; i < NUM_OF_ITEMS; i++)
+    {
+        auto is_removed = test_cache.remove(i + INDEX);
+        assert(!is_removed, "Should fail removing non-existing item");
+    }
+}
+
+// Test opApply
+unittest
+{
+    const NUM_OF_ITEMS = 150;
+
+    auto test_cache = new PriorityCache!(int)(NUM_OF_ITEMS);
+
+    const PRIORITY = 10;
+    const ORIGINAL_VALUE = 50;
+    const NEW_VALUE = 80;
+
+    for (int i = 0; i < NUM_OF_ITEMS; i++)
+    {
+        bool existed;
+        auto int_ptr = test_cache.getOrCreate(i, i + PRIORITY, existed);
+        *int_ptr = i + ORIGINAL_VALUE;
+    }
+
+    int counter = NUM_OF_ITEMS;
+    foreach (key, ref item, ulong priority; test_cache)
+    {
+        counter--;
+        assert(key == counter, "Unexpected key");
+        assert(priority == counter + PRIORITY, "Unexpected item priority");
+        item = counter + NEW_VALUE;
+    }
+
+    // Confirm that the new assigned values weren't lost
+    for (int i = 0; i < NUM_OF_ITEMS; i++)
+    {
+        auto int_ptr = test_cache.get(i);
+        assert(int_ptr, "item unexpectedly null");
+        assert(*int_ptr == i + NEW_VALUE, "Unexpected item value");
+    }
+}
+
+
+// Test dropped items are correctly reported
+unittest
+{
+    const CACHE_SIZE = 10;
+    const ITEMS_INSERTED = 150;
+
+    uint items_removed_count;
+
+    class PriorityNotify : PriorityCache!(uint)
+    {
+        public this (size_t max_items)
+        {
+            super(max_items);
+        }
+
+        protected override void itemDropped (hash_t key, ref uint value)
+        {
+            assert(key == value, "Wrong key/value are reported");
+            items_removed_count++;
+        }
+    }
+
+    auto test_cache = new PriorityNotify(CACHE_SIZE);
+    for (uint i = 0; i < ITEMS_INSERTED; i++)
+    {
+        bool existed;
+        auto int_ptr = test_cache.getOrCreate(i, i, existed);
+        *int_ptr = i;
+    }
+
+    assert(items_removed_count == ITEMS_INSERTED - CACHE_SIZE,
+           "Not all dropped items were reported");
+}
+
+
+// Test dropped items are passed by ref
+unittest
+{
+    const CACHE_SIZE = 10;
+    bool item_dropped = false;
+
+    class PriorityNotify2 : PriorityCache!(uint)
+    {
+        public this (size_t max_items)
+        {
+            super(max_items);
+        }
+
+        protected override void itemDropped (hash_t key, ref uint value)
+        {
+            item_dropped = true;
+            value = 10;
+        }
+    }
+
+    auto test_cache = new PriorityNotify2(CACHE_SIZE);
+    bool existed;
+    auto new_value = test_cache.getOrCreate(20, 20, existed);
+    *new_value = 50;
+    test_cache.remove(20);
+
+    assert(item_dropped, "Item was not dropped");
+    assert(*new_value == 10, "Item was not dropped by ref");
 }

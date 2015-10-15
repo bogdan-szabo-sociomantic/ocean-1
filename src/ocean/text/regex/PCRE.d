@@ -623,7 +623,7 @@ unittest
     auto t = new NamedTest("PCRE findAll");
 
     {
-        const str = "apa bepa cepa depa epa fepa gepa hepa";
+        istring str = "apa bepa cepa depa epa fepa gepa hepa";
         regex.compile("a[ ]", false);
 
         matches_buffer.length = 0;
@@ -639,7 +639,7 @@ unittest
 
     {
         istring[3] exp = ["ast", "at", "ast"];
-        const str = "en hast at en annan hast";
+        istring str = "en hast at en annan hast";
         regex.compile("a[s]*t", false);
 
         matches_buffer = null;
@@ -654,7 +654,7 @@ unittest
 
     {
         istring[3] exp = ["ta", "tb", "td"];
-        const str = "tatb t c Tf td";
+        istring str = "tatb t c Tf td";
         regex.compile("t[\\w]", true);
         regex.study();
 
@@ -669,7 +669,7 @@ unittest
     }
 
     {
-        const str = "en text";
+        istring str = "en text";
         regex.compile("zzz", false);
         matches_buffer = null;
         auto matches = regex.findAll(str, matches_buffer);
@@ -678,7 +678,7 @@ unittest
     }
 
     {
-        const str = "en text";
+        istring str = "en text";
         regex.compile("zzz", false);
         matches_buffer = null;
         auto matches = regex.findAll(str, matches_buffer);
@@ -687,7 +687,7 @@ unittest
     }
 
     {
-        const str ="aaaaaaaaaaaaaaaaaaaaaaAaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        istring str ="aaaaaaaaaaaaaaaaaaaaaaAaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
                    "aaaaaaaaaaaaaaaaaaaaaaaaAaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
                    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaAaaaaaaaaaaaaaaaaaaaaaaaaa"
                    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaAaaaaaaaaaaaaaaaaaaaaaaaa"
