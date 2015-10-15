@@ -857,7 +857,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
                     enforce!(ValidationError)(
                         pos <= data.length,
                         cast(istring) ("End of queue data in the middle of" ~
-                            " the record header which starts at byte " ~ 
+                            " the record header which starts at byte " ~
                             itoa(start))
                     );
 
@@ -921,7 +921,7 @@ version ( UnitTest )
 
 unittest
 {
-    static const queue_size_1 = (9+FlexibleByteRingQueue.Header.sizeof)*10;
+    const queue_size_1 = (9+FlexibleByteRingQueue.Header.sizeof)*10;
 
     scope queue = new FlexibleByteRingQueue(queue_size_1);
     assert(queue.free_space >= queue_size_1);
@@ -1006,7 +1006,7 @@ unittest
 
     scope backup = new MemoryDevice;
 
-    static const queue_size_1 = (9+FlexibleByteRingQueue.Header.sizeof)*10;
+    const queue_size_1 = (9+FlexibleByteRingQueue.Header.sizeof)*10;
 
     scope queue = new FlexibleByteRingQueue(queue_size_1);
     assert(queue.free_space >= queue_size_1);

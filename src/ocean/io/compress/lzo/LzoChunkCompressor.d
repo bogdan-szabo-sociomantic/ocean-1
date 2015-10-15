@@ -45,8 +45,8 @@ class LzoChunkCompressor
 
     ***************************************************************************/
 
-    static private const bool DecompressLenghtInline = false;
-    static private const bool CompressLenghtInline = true;
+    private const bool DecompressLenghtInline = false;
+    private const bool CompressLenghtInline = true;
 
 
     /***************************************************************************
@@ -275,4 +275,3 @@ class LzoChunkCompressor
         this.result.length = 0;
     }
 }
-
