@@ -95,3 +95,8 @@ New Features
 
   Added new methods `variance()` and `stdDeviation()` to incrementally compute
   the variance and standard deviation respectively.
+
+* `ocean.io.digest.Fnv1`
+
+  A new method Fnv1Generic.combined was added that allows the easy creation of a hash
+  from several input variables.

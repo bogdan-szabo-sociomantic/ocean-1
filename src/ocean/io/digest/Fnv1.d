@@ -662,6 +662,34 @@ public class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
             return (digest * PRIME) ^ d;
         }
     }
+
+    /***************************************************************************
+
+        Creates a combined hash of all the provided parameters.
+        The previous hashed value is used as the initial state for the next.
+
+        Template Params:
+            Vals = Tuple of value types, inferred.
+
+        Params:
+            vals = the values to be used for hashing
+
+        Returns:
+            returns the combined hash
+
+    ***************************************************************************/
+
+    public static hash_t combined ( Vals... ) ( Vals vals )
+    {
+        auto hash = Fnv1a.INIT;
+
+        foreach (val; vals)
+        {
+            hash = fnv1(val, hash);
+        }
+
+        return hash;
+    }
 }
 
 
@@ -798,5 +826,16 @@ unittest
 
     assert ( StaticFnv1a32!("myString") == Fnv1a32("myString"), "CompileTime Fnv1a32 failed");
     assert ( StaticFnv1a32!("TEST") == Fnv1a32("TEST"), "CompileTime Fnv1a32 failed");
+
+
+    istring d1 = "ABC";
+    int d2 = 123;
+    ulong d3 = 12354;
+
+    auto chash = Fnv1a.combined(d1, d2, d3);
+
+    auto mhash = Fnv1a(d3, Fnv1a(d2, Fnv1a(d1)));
+
+    assert (chash == mhash, "Combined hash failed");
 }
 
