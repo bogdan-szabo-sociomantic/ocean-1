@@ -221,13 +221,22 @@ class GetSocketAddress
 
     /**************************************************************************
 
-        Reused SocketAddressException instance. Since it is pretty unlikely to
-        be thrown, it is used as a singleton and created when thrown the first
-        time.
+        Reused SocketAddressException instance.
 
      **************************************************************************/
 
-    private SocketAddressException e = null;
+    private SocketAddressException e;
+
+    /**************************************************************************
+
+        Constructor.
+
+     **************************************************************************/
+
+    public this ( )
+    {
+        this.e = new SocketAddressException;
+    }
 
     /**************************************************************************
 
