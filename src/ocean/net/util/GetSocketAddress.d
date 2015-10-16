@@ -319,3 +319,41 @@ class GetSocketAddress
     {
     }
 }
+
+/*******************************************************************************
+
+    Verify the bug of a null exception in GetSocketAddress is fixed.
+
+*******************************************************************************/
+
+version (UnitTest)
+{
+    import ocean.core.Test;
+    import tango.stdc.errno: EBADF;
+}
+
+unittest
+{
+    GetSocketAddress.SocketAddressException e = null;
+
+    try
+    {
+        /*
+         * Call getsockname() with a mock conduit that returns a -1 file
+         * descriptor. It is guaranteed to fail with EBADF in this case, which
+         * the trown expection should reflect.
+         */
+        (new GetSocketAddress).local(new class ISelectable
+        {
+            static assert(Handle.init == -1);
+            override Handle fileHandle ( ) {return Handle.init;}
+        });
+    }
+    catch (GetSocketAddress.SocketAddressException e_caught)
+    {
+        e = e_caught;
+    }
+
+    test(e !is null);
+    test!("==")(e.errorNumber, EBADF);
+}
