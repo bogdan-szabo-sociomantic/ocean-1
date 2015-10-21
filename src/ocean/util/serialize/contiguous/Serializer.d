@@ -69,8 +69,6 @@ struct Serializer
         Template Params:
             S = type of the struct to dump
 
-        See_Also: this.extend_only
-
     ***************************************************************************/
 
     public static void[] serialize ( S ) ( ref S src, ref void[] dst )
