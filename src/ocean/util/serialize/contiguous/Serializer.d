@@ -21,6 +21,8 @@ import ocean.util.serialize.model.Traits;
 
 import ocean.core.Traits : ContainsDynamicArray;
 
+import ocean.core.Test;
+
 debug(SerializationTrace) import tango.io.Stdout;
 
 /******************************************************************************
@@ -823,7 +825,7 @@ unittest
     Serializer.serialize(d, target);
     auto ptr = cast(Dummy*) target.ptr;
 
-    assert(ptr.a == 42);
-    assert(ptr.b == 43);
-    assert(ptr.c is null);
+    test!("==")(ptr.a, 42);
+    test!("==")(ptr.b, 43);
+    test!("is")(ptr.c, null);
 }
