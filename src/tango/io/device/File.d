@@ -314,18 +314,29 @@ class File : Device, Device.Seek, Device.Truncate
         /***********************************************************************
 
                 Convenience function to return the content of a file.
-                Returns a slice of the provided output buffer, where
-                that has sufficient capacity, and allocates from the
-                heap where the file content is larger.
 
+        ***********************************************************************/
+
+        static void[] get (cstring path)
+        {
+            void[] dst;
+            return get(path, dst);
+        }
+
+        /***********************************************************************
+
+                Convenience function to return the content of a file.
+
+                This overload takes a slice to a reusable buffer which is
+                expanded as needed.
                 Content size is determined via the file-system, per
                 File.length, although that may be misleading for some
                 *nix systems. An alternative is to use File.load which
                 loads content until an Eof is encountered.
 
-        ***********************************************************************/
 
-        static void[] get (cstring path, void[] dst = null)
+        ***********************************************************************/
+        static void[] get (cstring path, ref void[] dst)
         {
                 scope file = new File (path);
 
