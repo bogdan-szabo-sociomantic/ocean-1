@@ -717,8 +717,10 @@ struct Deserializer
         }
         else
         {
-            pragma (msg,
-                " countArraySize: no subarrays (primitive ", T.stringof, ")");
+            pragma (msg, "Warning: type \"", T, "\" contains no array, " ~
+                         "ignoring it. This indicates a bug, please report " ~
+                         "that this warning was triggered @",
+                         __FILE__ , ":", __LINE__);
         }
 
         return pos;
