@@ -73,7 +73,7 @@ struct Serializer
 
     ***************************************************************************/
 
-    public static void[] serialize ( S ) ( ref S src, ref void[] dst )
+    public static void[] serialize ( S, D ) ( ref S src, ref D[] dst )
     out (data)
     {
         debug (SerializationTrace)
@@ -89,7 +89,9 @@ struct Serializer
             Stdout.formatln("> serialize!({})(<src>, {})", S.stringof, dst.ptr);
         }
 
-        auto data = This.resize(dst, This.countRequiredSize(src));
+        static assert (D.sizeof == 1, "dst buffer can't be interpreted as void[]");
+        void[]* dst_untyped = cast (void[]*) &dst;
+        auto data = This.resize(*dst_untyped, This.countRequiredSize(src));
 
         S* s_dumped = cast (S*) data[0 .. S.sizeof];
 
@@ -828,4 +830,22 @@ unittest
     test!("==")(ptr.a, 42);
     test!("==")(ptr.b, 43);
     test!("is")(ptr.c, null);
+}
+
+// non-void[] dst
+unittest
+{
+    struct Dummy
+    {
+        int a, b;
+    }
+
+    Dummy d; d.a = 1; d.b = 3;
+
+    ubyte[] target;
+    Serializer.serialize(d, target);
+    auto ptr = cast(Dummy*) target.ptr;
+
+    test!("==")(ptr.a, 1);
+    test!("==")(ptr.b, 3);
 }
