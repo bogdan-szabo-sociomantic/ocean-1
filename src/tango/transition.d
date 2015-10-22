@@ -623,6 +623,100 @@ unittest
 
 /*******************************************************************************
 
+    Mixin helper to generate proper opEquals declaration. It differs between D1
+    and D2 runtime and not matching exact signature will result in the default
+    version, defined by the compiler, to be silently called instead.
+
+    Params:
+        func_body = code of opEquals as string. Must refer to argument as `rhs`
+
+    Returns:
+        full declaration/definition of opEquals that matches current compiler
+
+*******************************************************************************/
+
+public istring genOpEquals(istring func_body)
+{
+    istring result;
+
+    // We need to know if it's a class or not. If it is, one might want to
+    // compare against literals, so we cannot take it by `const ref`.
+
+    result ~= "static if (is(typeof(this) == class))\n{\n";
+    result ~= "override equals_t opEquals(Object rhs)\n";
+    result ~= func_body;
+    result ~= "\n}\nelse\n{\n";
+    version (D_Version2)
+    {
+        result ~= "bool opEquals(const typeof(this) rhs) const\n";
+    }
+    else
+    {
+        result ~= "int opEquals(S rhs)\n";
+    }
+    result ~= func_body;
+    result ~= "\n}\n";
+
+    return result;
+}
+
+unittest
+{
+    struct S
+    {
+        int x;
+        int y;
+
+        // Use a crazy definition, as the default one would pass those tests :)
+        mixin (genOpEquals("
+        {
+            return this.x == rhs.y && this.y == rhs.x;
+        }
+        "));
+    }
+
+    class C
+    {
+        private int x;
+
+        this (int a)
+        {
+            this.x = a;
+        }
+
+        mixin (genOpEquals(
+        `{
+            auto o = cast(typeof(this)) rhs;
+            if (o is null) return false;
+            return (this.x == o.x);
+        }`));
+    }
+
+    assert (S(2, 1) == S(1, 2));
+    assert (new C(2) == new C(2));
+
+    assert (S(1, 2) != S(1, 2));
+    assert (S(2, 1) != S(2, 1));
+    assert (!(S(1, 2) == S(1, 2)));
+    assert (!(S(2, 1) == S(2, 1)));
+
+    C nil;
+
+    assert (new C(1) != new C(2));
+    assert (new C(2) != new C(1));
+    assert (!(new C(1) == new C(2)));
+    assert (!(new C(2) == new C(1)));
+    assert (new C(1) != nil);
+    assert (!(new C(1) == nil));
+
+    // D1 runtime dereference null if it's LHS...
+    //assert (nil != new C(2));
+    //assert (!(nil == new C(2)));
+}
+
+
+/*******************************************************************************
+
     D2 differentiates between Exceptions ("normal" recoverable cases) and
     Errors (fatal failures). Throwable is an exception hierarchy root that is
     used a base for both.
