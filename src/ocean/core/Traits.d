@@ -24,8 +24,7 @@ import tango.transition;
 
 import tango.core.Tuple: Tuple;
 
-import tango.core.Traits : isAtomicType,
-                           isReferenceType, isDynamicArrayType,
+import tango.core.Traits : isReferenceType, isDynamicArrayType,
                            isStaticArrayType, isIntegerType, isCharType,
                            isFloatingPointType, ElementTypeOfArray;
 
@@ -364,7 +363,7 @@ private bool hasMultiDimensionalDynamicArraysImpl ( T ) ()
     }
     else
     {
-        static assert(isAtomicType!(Type) || is(Type == void),
+        static assert(isPrimitiveType!(Type),
                       "T expected to be atomic, array, struct or union, not \""
                       ~ T.stringof ~ "\"");
 
