@@ -105,3 +105,8 @@ New Features
 
   The static `opCall` method to create initialised `Range` instances now
   correctly handles constructing empty ranges.
+
+* `ocean.core.Traits`
+
+  Added the new template `isPrimitiveType()` as a clearly defined replacement
+  for `isAtomicType()` in `tango.core.Traits`.

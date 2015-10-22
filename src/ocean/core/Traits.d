@@ -24,9 +24,10 @@ import tango.transition;
 
 import tango.core.Tuple: Tuple;
 
-import tango.core.Traits : isReferenceType, isDynamicArrayType,
-                           isStaticArrayType, isAtomicType,
-                           ElementTypeOfArray;
+import tango.core.Traits : isAtomicType,
+                           isReferenceType, isDynamicArrayType,
+                           isStaticArrayType, isIntegerType, isCharType,
+                           isFloatingPointType, ElementTypeOfArray;
 
 import tango.core.Traits : ReturnTypeOf, ParameterTupleOf;
 
@@ -180,6 +181,31 @@ unittest
     }
 
     static assert (is(StripEnum!(typeof(Test.field)) == int));
+}
+
+/*******************************************************************************
+
+    Evaluates to true if T is a primitive type or false if T is a compound type.
+    Compound types are the types from which one or multiple other types can be
+    derived from using the ``is()`` expression. The following types are compound
+    types:
+     - arrays (static, dynamic and associative) and pointers,
+     - classes structs and unions,
+     - delegates, function pointers and functions (function pointer base types),
+     - enums and typedefs.
+
+    ``void`` is a primitive type. Imaginary and complex numbers are considered
+    primitive types, too, which may be subject to discussion.
+
+    Template Params:
+        T = type to check
+
+*******************************************************************************/
+
+public template isPrimitiveType ( T )
+{
+    const isPrimitiveType = is(T == void) || is(T == bool) ||
+                 isIntegerType!(T) || isCharType!(T) || isFloatingPointType!(T);
 }
 
 /*******************************************************************************
