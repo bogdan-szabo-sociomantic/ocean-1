@@ -210,11 +210,19 @@ public template isPrimitiveType ( T )
 
 /*******************************************************************************
 
-    Evaluates to true if T or any of its sub types is a reference, dynamic array
-    or pointer type.
+    Evaluates to true if a variable of any type in T is a reference type or has
+    members or elements of reference types. References are
+     - dynamic and associative arrays,
+     - pointers (including function pointers) and delegates,
+     - classes.
+
+    Types that are not suitable to declare a variable, i.e. ``void`` and
+    function types (the base types of function pointers) are not references.
+
+    If T is empty then the result is false.
 
     Template Params:
-        T = one or more types to check
+        T = types to check (with no type the result is false)
 
 *******************************************************************************/
 
@@ -233,7 +241,7 @@ private bool hasIndirectionsImpl ( T... )()
     {
         alias StripEnum!(StripTypedef!(T[0])) Type;
 
-        static if ( isAtomicType!(Type) )
+        static if ( isPrimitiveType!(Type) || is(Type == function) )
         {
             return hasIndirections!(T[1..$]);
         }
@@ -273,6 +281,15 @@ unittest
 {
     static assert (hasIndirections!(int) == false);
     static assert (hasIndirections!(int[int]) == true);
+    static assert (!hasIndirections!(void));
+    static if (is(int function() F == F*))
+    {
+        static assert (!hasIndirections!(F));
+    }
+    else
+    {
+        static assert(false, "function pointer base type derivation failed");
+    }
 }
 
 
