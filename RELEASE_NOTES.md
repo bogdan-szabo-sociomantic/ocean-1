@@ -317,3 +317,8 @@ New Features
   of `strToLower` from same module. Instead of converting string in-place
   it checks if conversion is needed at all and allocates new copy only
   if it is actually needed.
+
+* `ocean.math.Range`
+
+  The static `opCall` method to create initialised `Range` instances now
+  correctly handles constructing empty ranges.
