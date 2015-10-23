@@ -184,15 +184,17 @@ unittest
 
 /*******************************************************************************
 
-    Evaluates to true if T is a primitive type or false if T is a compound type.
-    Compound types are the types from which one or multiple other types can be
-    derived from using the ``is()`` expression. The following types are compound
-    types:
+    Evaluates to true if T is a primitive type or false otherwise. Primitive
+    types are the types from which one or multiple other types cannot be
+    derived from using the ``is()`` expression or corresponding template
+    type parameter specialisation. The following types are not primitive:
      - arrays (static, dynamic and associative) and pointers,
      - classes structs and unions,
      - delegates, function pointers and functions (function pointer base types),
      - enums and typedefs.
 
+    All other, including arithmetic and character types are primitive. Each
+    primitive type is represented by a D keyword.
     ``void`` is a primitive type. Imaginary and complex numbers are considered
     primitive types, too, which may be subject to discussion.
 
