@@ -174,6 +174,32 @@ unittest
 
 /*******************************************************************************
 
+    No conversion. Check non void[] API.
+
+*******************************************************************************/
+
+unittest
+{
+    struct S
+    {
+        const StructVersion = 1;
+        int a = 42;
+    }
+
+    auto loader = new VersionDecorator;
+
+    ubyte[] buffer;
+    S t;
+    loader.store!(S)(t, buffer);
+
+    Contiguous!(S) dst;
+    loader.loadCopy!(S)(buffer, dst);
+
+    test!("==")(dst.ptr.a, t.a);
+}
+
+/*******************************************************************************
+
     Error handling
 
 *******************************************************************************/

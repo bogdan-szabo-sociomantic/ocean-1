@@ -60,7 +60,7 @@ template StoreMethod(Serializer)
 
     ***************************************************************************/
 
-    public static void[] store(S)(S input, ref void[] buffer)
+    public static void[] store(S, D)(S input, ref D[] buffer)
     {
         alias Version.Info!(S) VInfo;
 
@@ -70,10 +70,13 @@ template StoreMethod(Serializer)
                 ~ S.stringof
         );
 
+        static assert (D.sizeof == 1, "buffer can't be interpreted as void[]");
+        void[]* buffer_untyped = cast (void[]*) &buffer;
+
         buffer.length = Serializer.countRequiredSize(input)
             + Version.Type.sizeof;
         enableStomping(buffer);
-        auto unversioned = Version.inject(buffer, VInfo.number);
+        auto unversioned = Version.inject(*buffer_untyped, VInfo.number);
         Serializer.serialize!(S)(input, unversioned);
 
         assert(unversioned.ptr is (buffer.ptr + Version.Type.sizeof));
