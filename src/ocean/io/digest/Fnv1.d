@@ -677,7 +677,7 @@ public class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
 
     public static hash_t combined ( Vals... ) ( Vals vals )
     {
-        auto hash = Fnv1a.INIT;
+        auto hash = INIT;
 
         foreach (val; vals)
         {
