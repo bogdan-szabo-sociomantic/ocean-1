@@ -303,7 +303,6 @@ public class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
 
     mixin Fnv1Const!(T);
 
-
     /**************************************************************************
 
         Binary digest length and hexadecimal digest string length constants
@@ -314,8 +313,6 @@ public class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
     public const HEXDGT_LENGTH = DIGEST_LENGTH * 2;
 
     public alias char[HEXDGT_LENGTH] HexDigest;
-
-
 
     /**************************************************************************
 
@@ -373,7 +370,6 @@ public class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
 
      **************************************************************************/
 
-
     private DigestType digest = this.INIT;
 
 
@@ -392,7 +388,6 @@ public class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
               Updates the hash algorithm state with new data
 
      **************************************************************************/
-
 
     public override This update ( Const!(void)[] data )
     {
@@ -421,7 +416,6 @@ public class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
             large the buffer has to be.
 
     ***************************************************************************/
-
 
     public override ubyte[] binaryDigest( ubyte[] buffer = null )
     {
@@ -457,7 +451,6 @@ public class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
 
     ***************************************************************************/
 
-
     public override uint digestSize ( )
     {
         return this.DIGEST_LENGTH;
@@ -479,13 +472,13 @@ public class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
              this instance
 
      ***************************************************************************/
+
     public This reset ( )
     {
         this.digest = this.INIT;
 
         return this;
     }
-
 
 
     /**************************************************************************
@@ -496,11 +489,11 @@ public class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
              digest
 
      **************************************************************************/
+
     public DigestType getDigest ( )
     {
         return this.digest;
     }
-
 
 
     /**************************************************************************
@@ -512,6 +505,7 @@ public class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
              digest
 
      **************************************************************************/
+
     public override ulong ulongDigest ( )
     {
         ulong d = this.digest;
@@ -638,6 +632,7 @@ public class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
         return hexdgst;
     }
 
+
     /**************************************************************************
 
         FNV1/FNV1a core; calculates a digest of one octet d
@@ -662,6 +657,7 @@ public class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
             return (digest * PRIME) ^ d;
         }
     }
+
 
     /***************************************************************************
 
