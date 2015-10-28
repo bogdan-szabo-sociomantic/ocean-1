@@ -1,4 +1,4 @@
-FROM sociomantic/d1lang
+FROM sociomantic/dlang
 RUN apt-get update && apt-get install -y \
 	libglib2.0-dev \
 	libpcre3-dev \
