@@ -1,5 +1,5 @@
-Description
-===========
+Description |BuildStatus|_
+==========================
 
 Ocean is a base, platform-dependant general purpose D library with all the
 required core functionality that is missing from the language standard library
@@ -43,3 +43,5 @@ There are also sometimes *patch-level* releases, in that case there are no
 breaking changes or new features, just bug fixes, and thus, only bug fixes are
 listed in the release notes.
 
+.. |BuildStatus| image:: https://ci.sociomantic.com/buildStatus/icon?job=core-team/ocean
+.. _BuildStatus: https://ci.sociomantic.com/job/core-team/job/ocean/
