@@ -100,3 +100,8 @@ New Features
 
   A new method Fnv1Generic.combined was added that allows the easy creation of a hash
   from several input variables.
+
+* `ocean.math.Range`
+
+  The static `opCall` method to create initialised `Range` instances now
+  correctly handles constructing empty ranges.

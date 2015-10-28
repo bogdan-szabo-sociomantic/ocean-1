@@ -43,6 +43,8 @@ public struct Range ( T )
     static assert(isUnsignedIntegerType!(T),
         "Range only works with unsigned integer types");
 
+    import ocean.core.Exception : enforce;
+
 
     /***************************************************************************
 
@@ -196,19 +198,20 @@ public struct Range ( T )
         Returns:
             new Range instance
 
+        Throws:
+            if min and max do not describe a valid range (see isValid)
+
     ***************************************************************************/
 
     public static Range opCall ( T min, T max )
-    in
-    {
-        assert(min <= max);
-    }
     out(result)
     {
         assert(&result);
     }
     body
     {
+        enforce(isValid(min, max));
+
         Range r;
         r.min_ = min;
         r.max_ = max;
