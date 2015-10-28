@@ -14,4 +14,7 @@ RUN apt-get update && apt-get install -y \
 	libebtree6-dev \
 	libtokyocabinet-dev \
 	liblzo2-dev \
-	libreadline-dev
+	libreadline-dev \
+	libbz2-dev \
+	zlib1g-dev \
+	libssl-dev
