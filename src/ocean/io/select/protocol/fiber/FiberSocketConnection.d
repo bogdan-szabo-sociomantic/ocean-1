@@ -597,9 +597,8 @@ public class IFiberSocketConnection : IFiberSelectProtocol
 
                 debug ( ISelectClient )
                 {
-                    char[256] buffer;
                     Stderr.formatln("[{}:{}]: {}",
-                        this.address_, this.port_, this.socket_error.strerror(buffer, errnum));
+                        this.address_, this.port_, this.socket_error.strerror(errnum));
                 }
 
                 switch (errnum)
