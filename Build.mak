@@ -2,9 +2,11 @@ override DFLAGS += -w
 
 ifeq ($(DVER),1)
 override DFLAGS += -v2 -v2=-static-arr-params -v2=-volatile
+else
+override DC := dmd-transitional
 endif
 
-RDMDFLAGS := --extra-file=$C/src/tango/core/Version.d
+override RDMDFLAGS += --extra-file=$C/src/tango/core/Version.d
 
 # Modules to exclude from testing because they are broken
 TEST_FILTER_OUT += \
