@@ -1636,7 +1636,7 @@ public class XmlPath(T)
 
                 ***************************************************************/
 
-                NodeSet opIndex (T[] name)
+                NodeSet opIndex (in T[] name)
                 {
                         return child (name);
                 }
@@ -1648,7 +1648,7 @@ public class XmlPath(T)
 
                 ***************************************************************/
 
-                NodeSet parent (T[] name = null)
+                NodeSet parent (in T[] name = null)
                 {
                         if (name.ptr)
                             return parent ((Node node){return node.name == name;});
@@ -1663,7 +1663,7 @@ public class XmlPath(T)
 
                 ***************************************************************/
 
-                NodeSet data (T[] value = null)
+                NodeSet data (in T[] value = null)
                 {
                         if (value.ptr)
                             return child ((Node node){return node.value == value;},
@@ -1679,7 +1679,7 @@ public class XmlPath(T)
 
                 ***************************************************************/
 
-                NodeSet cdata (T[] value = null)
+                NodeSet cdata (in T[] value = null)
                 {
                         if (value.ptr)
                             return child ((Node node){return node.value == value;},
@@ -1695,7 +1695,7 @@ public class XmlPath(T)
 
                 ***************************************************************/
 
-                NodeSet attribute (T[] name = null)
+                NodeSet attribute (in T[] name = null)
                 {
                         if (name.ptr)
                             return attribute ((Node node){return node.name == name;});
@@ -1709,7 +1709,7 @@ public class XmlPath(T)
 
                 ***************************************************************/
 
-                NodeSet descendant (T[] name = null)
+                NodeSet descendant (in T[] name = null)
                 {
                         if (name.ptr)
                             return descendant ((Node node){return node.name == name;});
@@ -1723,7 +1723,7 @@ public class XmlPath(T)
 
                 ***************************************************************/
 
-                NodeSet child (T[] name = null)
+                NodeSet child (in T[] name = null)
                 {
                         if (name.ptr)
                             return child ((Node node){return node.name == name;});
@@ -1738,7 +1738,7 @@ public class XmlPath(T)
 
                 ***************************************************************/
 
-                NodeSet ancestor (T[] name = null)
+                NodeSet ancestor (in T[] name = null)
                 {
                         if (name.ptr)
                             return ancestor ((Node node){return node.name == name;});
@@ -1753,7 +1753,7 @@ public class XmlPath(T)
 
                 ***************************************************************/
 
-                NodeSet prev (T[] name = null)
+                NodeSet prev (in T[] name = null)
                 {
                         if (name.ptr)
                             return prev ((Node node){return node.name == name;});
@@ -1768,7 +1768,7 @@ public class XmlPath(T)
 
                 ***************************************************************/
 
-                NodeSet next (T[] name = null)
+                NodeSet next (in T[] name = null)
                 {
                         if (name.ptr)
                             return next ((Node node){return node.name == name;});
