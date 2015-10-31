@@ -30,7 +30,7 @@ public interface ILimitableInfo
 
     ***************************************************************************/
 
-    uint limit ( );
+    size_t limit ( );
 
 
     /***************************************************************************
@@ -58,7 +58,7 @@ public interface ILimitable : ILimitableInfo
 
      **************************************************************************/
 
-    const uint unlimited = uint.max;
+    const size_t unlimited = size_t.max;
 
 
     /***************************************************************************
@@ -76,6 +76,6 @@ public interface ILimitable : ILimitableInfo
 
     ***************************************************************************/
 
-    uint setLimit ( uint limit );
+    size_t setLimit ( size_t limit );
 }
 

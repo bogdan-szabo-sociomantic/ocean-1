@@ -128,7 +128,7 @@ public abstract class IPool : IPoolInfo, ILimitable
 
      **************************************************************************/
 
-    private uint limit_max;
+    private size_t limit_max;
 
     /**************************************************************************
 
@@ -153,7 +153,7 @@ public abstract class IPool : IPoolInfo, ILimitable
 
      **************************************************************************/
 
-    protected uint num_busy_ = 0;
+    protected size_t num_busy_ = 0;
 
     /**************************************************************************
 
@@ -204,7 +204,7 @@ public abstract class IPool : IPoolInfo, ILimitable
 
      **************************************************************************/
 
-    override public uint num_busy ( )
+    override public size_t num_busy ( )
     {
         return this.num_busy_;
     }
@@ -233,7 +233,7 @@ public abstract class IPool : IPoolInfo, ILimitable
 
      **************************************************************************/
 
-    override public uint limit ( )
+    override public size_t limit ( )
     {
         return this.limited? this.limit_max : this.unlimited;
     }
@@ -290,7 +290,7 @@ public abstract class IPool : IPoolInfo, ILimitable
 
      **************************************************************************/
 
-    override public uint setLimit ( uint limit )
+    override public size_t setLimit ( size_t limit )
     out
     {
         debug (ObjectPoolConsistencyCheck) foreach (item; this.items)
@@ -444,7 +444,7 @@ public abstract class IPool : IPoolInfo, ILimitable
 
     **************************************************************************/
 
-    protected Item opIndex_ ( uint n )
+    protected Item opIndex_ ( size_t n )
     {
        return this.items[n];
     }
@@ -463,7 +463,7 @@ public abstract class IPool : IPoolInfo, ILimitable
     {
         assert (this.num_busy_, "nothing is busy so there is nothing to recycle");
 
-        uint index = this.getItemIndex(item_in);
+        size_t index = this.getItemIndex(item_in);
 
         assert (index < this.items.length,
                 "index of recycled item out of range");
@@ -474,7 +474,7 @@ public abstract class IPool : IPoolInfo, ILimitable
     }
     body
     {
-        uint index = this.getItemIndex(item_in);
+        size_t index = this.getItemIndex(item_in);
 
         Item* item            = this.items.ptr + index,
               first_idle_item = this.items.ptr + --this.num_busy_;
@@ -500,7 +500,7 @@ public abstract class IPool : IPoolInfo, ILimitable
 
      **************************************************************************/
 
-    abstract protected void setItemIndex ( Item item, uint n );
+    abstract protected void setItemIndex ( Item item, size_t n );
 
     /**************************************************************************
 
@@ -514,7 +514,7 @@ public abstract class IPool : IPoolInfo, ILimitable
 
      **************************************************************************/
 
-    abstract protected uint getItemIndex ( Item item );
+    abstract protected size_t getItemIndex ( Item item );
 
     /**************************************************************************
 

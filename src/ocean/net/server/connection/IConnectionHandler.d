@@ -54,7 +54,7 @@ abstract class IConnectionHandler : IConnectionHandlerInfo,
 
     ***************************************************************************/
 
-    public uint object_pool_index;
+    public size_t object_pool_index;
 
     /***************************************************************************
 

@@ -14,7 +14,7 @@
         * For structs, and classes with a default (paramaterless) constructor,
           get() and fill() methods which automatically create new pool items,
           without requiring them to be passed via a lazy argument.
-        * Implementation of the item index (required by IPool) as a uint member
+        * Implementation of the item index (required by IPool) as a size_t member
           of the item type, called 'object_pool_index'. It is required that the
           item type has this member.
 
@@ -44,7 +44,7 @@
 
         void main ( )
         {
-            class MyClass { uint object_pool_index; }
+            class MyClass { size_t object_pool_index; }
 
             auto pool = new ObjectPool!(MyClass);
 
@@ -123,7 +123,7 @@ private template ItemType_ ( T )
 /*******************************************************************************
 
     Base class for pools of aggregate types (classes or structs). The items'
-    index (required by the IPool base class) is implemented as a uint member
+    index (required by the IPool base class) is implemented as a size_t member
     named 'object_pool_index', which is expected to exist in the type stored in
     the pool.
 
@@ -151,7 +151,7 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
 
     /***************************************************************************
 
-        Asserts that T has dynamic "object_pool_index" member of type uint.
+        Asserts that T has dynamic "object_pool_index" member of type size_t.
 
     ***************************************************************************/
 
@@ -159,7 +159,17 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
     {
         static assert (!is (typeof (&(T.object_pool_index))), T.stringof ~ ".object_pool_index must be a dynamic member");
 
-        static assert (is (I == uint), T.stringof ~ ".object_pool_index must be uint, not " ~ I.stringof);
+        static assert (
+            is(I == size_t) || is(I == uint),
+            T.stringof ~ ".object_pool_index must be size_t, not " ~ I.stringof
+        );
+
+        static if (is(I == uint))
+        {
+            pragma (msg, "Consider changing the type of " ~ T.stringof
+                ~ ".object_pool_index from uint to size_t for improved 64-bit "
+                ~ "correctness and easier D2 migration");
+        }
 
         // WORKAROUND: because of DMD1 bug placing this condition in static assert
         // directly causes it to fail even if condition is in fact true. Using
@@ -170,7 +180,7 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
             T.stringof ~ ".object_pool_index must be assignable"
         );
     }
-    else static assert (false, "need dynamic \"uint " ~ T.stringof ~ ".object_pool_index\"");
+    else static assert (false, "need dynamic \"size_t " ~ T.stringof ~ ".object_pool_index\"");
 
     /***************************************************************************
 
@@ -207,7 +217,7 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
 
      **************************************************************************/
 
-    protected uint unsafe_iterators_open = 0;
+    protected size_t unsafe_iterators_open = 0;
 
     /***************************************************************************
 
@@ -397,7 +407,7 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
 
      **************************************************************************/
 
-    override public uint setLimit ( uint limit )
+    override public size_t setLimit ( size_t limit )
     {
         assert (!this.safe_iterator_open, "cannot set the limit while iterating over items");
         assert (!this.unsafe_iterators_open, "cannot set the limit while iterating over items");
@@ -422,7 +432,7 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
 
     **************************************************************************/
 
-    public ItemType opIndex ( uint n )
+    public ItemType opIndex ( size_t n )
     /+out (obj)
     {
         assert (obj !is null);
@@ -539,9 +549,13 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
 
      **************************************************************************/
 
-    protected override void setItemIndex ( Item item, uint n )
+    protected override void setItemIndex ( Item item, size_t n )
     {
-        this.fromItem(item).object_pool_index = n;
+        // For slower and smoother transition initially assumes index still
+        // contains at most uint.max value while using size_t in API. Later
+        // `uint object_pool_index` will become deprecated and this cast removed
+        assert (n < uint.max);
+        this.fromItem(item).object_pool_index = cast(uint) n;
     }
 
     /**************************************************************************
@@ -556,7 +570,7 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
 
      **************************************************************************/
 
-    protected override uint getItemIndex ( Item item )
+    protected override size_t getItemIndex ( Item item )
     {
         return this.fromItem(item).object_pool_index;
     }
@@ -1213,7 +1227,7 @@ version ( UnitTest )
 
         ***********************************************************************/
 
-        private void limitCheck ( bool limited, uint limit = 0 )
+        private void limitCheck ( bool limited, size_t limit = 0 )
         {
             assert(this.pool.is_limited == limited, "AggregatePool limit flag wrong");
             assert(this.pool.limit == (limited ? limit : this.pool.unlimited),

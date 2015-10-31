@@ -48,5 +48,5 @@ public interface IPoolInfo : IFreeListInfo, ILimitableInfo
 
      **************************************************************************/
 
-    uint num_busy ( );
+    size_t num_busy ( );
 }

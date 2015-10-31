@@ -361,7 +361,7 @@ abstract class ISelectListener : ISelectClient
 
      **************************************************************************/
 
-    abstract uint connection_limit ( uint limit ) ;
+    abstract size_t connection_limit ( size_t limit ) ;
 
     /**************************************************************************
 
@@ -371,7 +371,7 @@ abstract class ISelectListener : ISelectClient
 
      **************************************************************************/
 
-    public uint connection_limit ( )
+    public size_t connection_limit ( )
     {
         auto n = this.poolInfo.limit;
 
@@ -555,7 +555,7 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
 
      **************************************************************************/
 
-    public override uint connection_limit ( uint limit )
+    public override size_t connection_limit ( size_t limit )
     in
     {
         assert (!(limit && limit < this.poolInfo.num_busy),
@@ -584,7 +584,7 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
 
      **************************************************************************/
 
-    public override uint connection_limit ( )
+    public override size_t connection_limit ( )
     {
         return super.connection_limit;
     }
@@ -604,15 +604,15 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
 
      **************************************************************************/
 
-    public uint minimize ( uint n = 0 )
+    public size_t minimize ( uint n = 0 )
     out (still_existent)
     {
         assert (still_existent >= n);
     }
     body
     {
-        uint limit = this.receiver_pool.limit,
-        busy = this.receiver_pool.num_busy;
+        size_t limit = this.receiver_pool.limit,
+               busy = this.receiver_pool.num_busy;
 
         scope (exit) this.receiver_pool.setLimit(limit);
 

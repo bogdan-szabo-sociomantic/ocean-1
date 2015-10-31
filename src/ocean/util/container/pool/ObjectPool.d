@@ -196,7 +196,7 @@ version ( UnitTest )
 {
     class Class
     {
-        uint object_pool_index;
+        size_t object_pool_index;
 
         size_t i;
         char[] s;

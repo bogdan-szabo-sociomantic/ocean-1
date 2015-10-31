@@ -16,6 +16,19 @@ Migration Instructions
   is not expected to have any effect downstream are all users seemed to be using the default
   argument.
 
+* `ocean.util.container.pool.model.IPool`
+
+  All index / length methods now operate in terms of `size_t` instead of `uint`.
+  Any overriden method needs to be changed accordinly. This is done for cleaner D2
+  migration because otherwise it requires casts each time when assigned from
+  array length and/or similar entities.
+
+* `ocean.util.container.pool.model.IAggregatePool`
+
+  Expected `object_pool_index` field can now be of both `size_t` and `uint`
+  types. Encountering `uint object_pool_index` will result in pragma printed
+  suggesting to change it to `size_t` (but not deprecation).
+
 Removed Symbols
 ---------------
 

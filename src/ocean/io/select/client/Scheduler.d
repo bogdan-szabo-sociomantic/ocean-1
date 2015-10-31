@@ -144,7 +144,7 @@ public class Scheduler ( EventData ) : TimerEventTimeoutManager
 
         ***********************************************************************/
 
-        public uint object_pool_index;
+        public size_t object_pool_index;
 
 
         /***********************************************************************
