@@ -368,9 +368,12 @@ public struct Range ( T )
         Params:
             min = new minimum value
 
+        Returns:
+            The newly set value which was given as parameter
+
     ***************************************************************************/
 
-    public void min ( T min )
+    public T min ( T min )
     {
         return this.min_ = min;
     }
@@ -383,9 +386,12 @@ public struct Range ( T )
         Params:
             max = new maximum value
 
+        Returns:
+            The newly set value which was given as parameter
+
     ***************************************************************************/
 
-    public void max ( T max )
+    public T max ( T max )
     {
         return this.max_ = max;
     }
