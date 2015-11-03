@@ -22,4 +22,5 @@ d2conv: $O/d2conv.stamp
 
 $O/d2conv.stamp:
 	$(call exec,find $C/src -type f -name '*.d' | xargs d1to2fix,src/**.d,d1to2fix)
+	$(call exec,find $C/test -type f -name '*.d' | xargs d1to2fix,tests/**.d,d1to2fix)
 	$Vtouch $@
