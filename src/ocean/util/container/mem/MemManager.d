@@ -280,7 +280,7 @@ private class MallocMemManager ( bool gc_aware ) : IMemManager
     public override ubyte[] create ( size_t dimension )
     {
         auto ptr = cast(ubyte*)malloc(dimension);
-        if (ptr !is null)
+        if (ptr is null)
         {
             onOutOfMemoryError();
         }
