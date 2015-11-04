@@ -661,7 +661,7 @@ class MessageFiber
     public void kill ( istring file = null, long line = 0 )
     in
     {
-        assert (this.fiber.state == this.fiber.State.HOLD, "attempt to kill a non-helpd fiber");
+        assert (this.fiber.state == this.fiber.State.HOLD, "attempt to kill a non-held fiber");
         assert (!this.killed);
     }
     body
