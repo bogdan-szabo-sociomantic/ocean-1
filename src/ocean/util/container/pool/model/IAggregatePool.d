@@ -190,6 +190,15 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
 
     public alias ItemType_!(T) ItemType;
 
+    /***************************************************************************
+
+        D2 compiler refuses to resolve `Item` type from IPool implicitly which
+        may be a bug but is easily fixed by introducing explicit alias.
+
+    ***************************************************************************/
+
+    public alias IPool.Item Item;
+
     /**************************************************************************
 
         List of items (objects) in pool for safe iteration. items is copied into
