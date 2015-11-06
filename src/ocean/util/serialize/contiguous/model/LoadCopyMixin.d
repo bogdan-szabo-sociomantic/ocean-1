@@ -38,7 +38,7 @@ template LoadCopyMethod(alias exception_field)
 
     ***************************************************************************/
 
-    public Contiguous!(S) loadCopy(S)(void[] buffer, ref Contiguous!(S) copy_buffer)
+    public Contiguous!(S) loadCopy(S)(in void[] buffer, ref Contiguous!(S) copy_buffer)
     {
         static assert (
             Version.Info!(S).exists,

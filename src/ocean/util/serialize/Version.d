@@ -27,6 +27,7 @@ module ocean.util.serialize.Version;
 
 *******************************************************************************/
 
+import tango.transition;
 version(UnitTest) import ocean.core.Test;
 
 /*******************************************************************************
@@ -189,6 +190,26 @@ struct Version
         test!("==")(ver, V);
         test!("==")(data_unver.length, 2);
     }
+
+    version (D_Version2)
+    {
+        static Const!(void)[] extract ( in void[] data, ref Version.Type ver )
+        {
+            return extract(cast(void[]) data, ver);
+        }
+    }
+
+    unittest
+    {
+        Version.Type V = 42;
+        void[] data = [ V, cast(Version.Type) 1, cast(Version.Type) 1 ];
+        Const!(void[]) cdata = data;
+        Version.Type ver;
+        Const!(void)[] data_unver = extract(cdata, ver);
+        test!("==")(ver, V);
+        test!("==")(data_unver.length, 2);
+    }
+
 
     /***************************************************************************
 
