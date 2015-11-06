@@ -426,15 +426,15 @@ public template EnumBase ( T ... )
 
     static if ( is_derived_enum )
     {
-        private const _internal_names =
+        public const _internal_names =
             S[super_class_index]._internal_names[0..$] ~ T[0].keys[0..$];
-        private const _internal_values =
+        public const _internal_values =
             S[super_class_index]._internal_values[0..$] ~ T[0].values[0..$];
     }
     else
     {
-        private const _internal_names = T[0].keys;
-        private const _internal_values = T[0].values;
+        public const _internal_names = T[0].keys;
+        public const _internal_values = T[0].values;
     }
 
     static assert(_internal_names.length == _internal_values.length);
