@@ -29,6 +29,8 @@ import ocean.io.compress.CompressException;
 
 import ocean.core.Exception: enforce;
 
+import tango.transition;
+
 /******************************************************************************
 
     Lzo class
@@ -89,7 +91,7 @@ class Lzo
 
      **************************************************************************/
 
-    size_t compress ( void[] src, void[] dst )
+    size_t compress ( in void[] src, void[] dst )
     in
     {
         assert (dst.length >= this.maxCompressedLength(src.length), typeof (this).stringof ~ ".compress: dst buffer too short");
@@ -98,7 +100,7 @@ class Lzo
     {
         size_t len;
 
-        this.checkStatus(lzo1x_1_compress(cast (ubyte*) src.ptr, src.length, cast (ubyte*) dst.ptr, &len, this.workmem.ptr));
+        this.checkStatus(lzo1x_1_compress(cast (Const!(ubyte)*) src.ptr, src.length, cast (ubyte*) dst.ptr, &len, this.workmem.ptr));
 
         return len;
     }
@@ -122,11 +124,11 @@ class Lzo
 
      **************************************************************************/
 
-    size_t uncompress ( void[] src, void[] dst )
+    size_t uncompress ( in void[] src, void[] dst )
     {
         size_t len;
 
-        this.checkStatus(lzo1x_decompress(cast (ubyte*) src.ptr, src.length, cast (ubyte*) dst.ptr, &len));
+        this.checkStatus(lzo1x_decompress(cast (Const!(ubyte)*) src.ptr, src.length, cast (ubyte*) dst.ptr, &len));
 
         return len;
     }
@@ -147,11 +149,11 @@ class Lzo
 
      **************************************************************************/
 
-    size_t decompressSafe ( void[] src, void[] dst )
+    size_t decompressSafe ( in void[] src, void[] dst )
     {
         size_t len;
 
-        this.checkStatus(lzo1x_decompress_safe(cast (ubyte*) src.ptr, src.length, cast (ubyte*) dst.ptr, &len));
+        this.checkStatus(lzo1x_decompress_safe(cast (Const!(ubyte)*) src.ptr, src.length, cast (ubyte*) dst.ptr, &len));
 
         return len;
     }
@@ -305,7 +307,7 @@ struct Terminator
         Signal handler; raises the termination flag
 
      **************************************************************************/
-    
+
     version (D_Version2)
     {
         mixin(`

@@ -59,7 +59,7 @@ extern (C)
 
      **************************************************************************/
 
-    LzoStatus lzo1x_1_compress ( ubyte* src, size_t src_len,
+    LzoStatus lzo1x_1_compress ( in ubyte* src, size_t src_len,
                                  ubyte* dst, size_t * dst_len,
                                  void* wrkmem );
 
@@ -111,13 +111,12 @@ extern (C)
 
      **************************************************************************/
 
-    LzoStatus lzo1x_decompress ( ubyte* src, size_t src_len,
+    LzoStatus lzo1x_decompress ( in ubyte* src, size_t src_len,
                            ubyte* dst, size_t* dst_len,
                            void* wrkmem = null /* NOT USED */ );
 
-    LzoStatus lzo1x_decompress_safe ( ubyte* src, size_t src_len,
+    LzoStatus lzo1x_decompress_safe ( in ubyte* src, size_t src_len,
                                 ubyte* dst, size_t* dst_len,
                                 void* wrkmem = null /* NOT USED */ );
 
 }
-
