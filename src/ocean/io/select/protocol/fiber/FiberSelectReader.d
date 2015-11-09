@@ -37,6 +37,8 @@ debug (Raw) import tango.io.Stdout: Stderr;
 
 class FiberSelectReader : IFiberSelectProtocol
 {
+    import tango.core.Enforce: enforce;
+
     /**************************************************************************
 
         Default input buffer size (16 kB).
@@ -494,8 +496,8 @@ class FiberSelectReader : IFiberSelectProtocol
 
             this.error_e.checkDeviceError(n? "read error" : "end of flow whilst reading", __FILE__, __LINE__);
 
-            this.warning_e.enforce(!(events & events.EPOLLRDHUP), "connection hung up on read");
-            this.warning_e.enforce(!(events & events.EPOLLHUP), "connection hung up");
+            enforce(this.warning_e, !(events & events.EPOLLRDHUP), "connection hung up on read");
+            enforce(this.warning_e, !(events & events.EPOLLHUP), "connection hung up");
 
             if (n)
             {
@@ -525,7 +527,7 @@ class FiberSelectReader : IFiberSelectProtocol
             else
             {
                 // EOF and no socket error or hung-up event: Throw EOF warning.
-                this.warning_e.enforce(false, "end of flow whilst reading");
+                enforce(this.warning_e, false, "end of flow whilst reading");
             }
         }
         else
