@@ -19,6 +19,7 @@ module ocean.util.container.HashRangeMap;
 
 *******************************************************************************/
 
+import ocean.core.Exception;
 import ocean.math.Range;
 
 import tango.transition;
@@ -162,10 +163,10 @@ public struct HashRangeMap ( Value )
 
     /***************************************************************************
 
-        Looks up the mapping for range or adds one if not found
+        Looks up the mapping for non-empty range or adds one if not found
 
         Params:
-            range = HashRange to look up or add mapping for
+            range = HashRange to look up or add mapping for; should be non-empty
             added = set to true if the mapping did not exist but was added
 
         Returns:
@@ -185,6 +186,8 @@ public struct HashRangeMap ( Value )
     }
     body
     {
+        enforce(!range.is_empty, "An empty range can't be put in HashRangeMap");
+
         size_t insert_place;
         added = !bsearch(this.ranges, range, insert_place);
 
@@ -668,6 +671,9 @@ version ( UnitTest )
         HashRangeMap!(Value) hrm;
         bool added;
         Value* ret;
+
+        // impossible to add an empty range
+        testThrown!(Exception)(hrm.put(R.init, added));
 
         // first addition
         *(ret = hrm.put(R(3, 15), added)) = v[0];
