@@ -861,6 +861,31 @@ class Layout(T)
 
     protected Const!(T)[] unknown (T[] result, Const!(T)[] format, TypeInfo tinfo, Arg p)
     {
+        version (WithExtensions)
+        {
+            result = Extensions!(T).run (type, result, p, format);
+            if (result.length)
+                return result;
+        }
+        else
+        {
+            version (WithDateTime)
+            {
+                if (tinfo is typeid(Time))
+                {
+                    static if (is (T == char))
+                        return dateTime.format(result, *cast(Time*) p, format);
+                    else
+                    {
+                        // TODO: this needs to be cleaned up
+                        char[128] tmp0 = void;
+                        char[128] tmp1 = void;
+                        return Utf.fromString8(dateTime.format(tmp0, *cast(Time*) p, Utf.toString(format, tmp1)), result);
+                    }
+                }
+            }
+        }
+
         return "{unhandled argument type}";
     }
 
