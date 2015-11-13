@@ -583,7 +583,7 @@ public class StatsLog : IStatsLog
     ***************************************************************************/
 
     public typeof(this) addObject (istring category, T)
-        (istring instance, T values)
+        (cstring instance, T values)
     in
     {
         static assert (is(T == struct) || is(T == class),
@@ -641,7 +641,7 @@ public class StatsLog : IStatsLog
 
     ***************************************************************************/
 
-    private void format ( istring category, T ) ( ref T values, istring instance )
+    private void format ( istring category, T ) ( ref T values, cstring instance )
     {
         foreach ( i, value; values.tupleof )
         {
@@ -856,7 +856,7 @@ public abstract class IStatsLog
     ***************************************************************************/
 
     protected void formatValue (istring category, V)
-        (cstring value_name, V value, istring instance = null)
+        (cstring value_name, V value, cstring instance = null)
     in
     {
         assert(value_name !is null);
