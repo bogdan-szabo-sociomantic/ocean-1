@@ -134,13 +134,13 @@ public struct Range ( T )
 
     unittest
     {
-        assert(This.isEmpty(null_min, null_max));
-        assert(!This.isEmpty(null_max, null_min));
-        assert(!This.isEmpty(1, null_max));
-        assert(!This.isEmpty(null_min, 1));
-        assert(!This.isEmpty(1, 1));
-        assert(!This.isEmpty(1, 2));
-        assert(!This.isEmpty(2, 1));
+        test(This.isEmpty(null_min, null_max));
+        test(!This.isEmpty(null_max, null_min));
+        test(!This.isEmpty(1, null_max));
+        test(!This.isEmpty(null_min, 1));
+        test(!This.isEmpty(1, 1));
+        test(!This.isEmpty(1, 2));
+        test(!This.isEmpty(2, 1));
     }
 
 
@@ -164,13 +164,13 @@ public struct Range ( T )
 
     unittest
     {
-        assert(This.isFullRange(T.min, T.max));
-        assert(!This.isFullRange(T.max, T.min));
-        assert(!This.isFullRange(1, T.max));
-        assert(!This.isFullRange(T.min, 1));
-        assert(!This.isFullRange(1, 1));
-        assert(!This.isFullRange(1, 2));
-        assert(!This.isFullRange(2, 1));
+        test(This.isFullRange(T.min, T.max));
+        test(!This.isFullRange(T.max, T.min));
+        test(!This.isFullRange(1, T.max));
+        test(!This.isFullRange(T.min, 1));
+        test(!This.isFullRange(1, 1));
+        test(!This.isFullRange(1, 2));
+        test(!This.isFullRange(2, 1));
     }
 
 
@@ -194,11 +194,11 @@ public struct Range ( T )
 
     unittest
     {
-        assert(This.isValid(null_min, null_max));
-        assert(This.isValid(0, 0));
-        assert(This.isValid(0, 1));
-        assert(This.isValid(T.max, T.max));
-        assert(!This.isValid(1, 0));
+        test(This.isValid(null_min, null_max));
+        test(This.isValid(0, 0));
+        test(This.isValid(0, 1));
+        test(This.isValid(T.max, T.max));
+        test(!This.isValid(1, 0));
     }
 
 
@@ -501,12 +501,11 @@ public struct Range ( T )
 
     unittest
     {
-        assert(Range.init.length == 0);
-        assert(Range(0, 0).length == 1);
-        assert(Range(5, 5).length == 1);
-        assert(Range(0, 1).length == 2);
-        assert(Range(5, 10).length == 6);
-        testThrown!()(Range(T.min, T.max).length);
+        test!("==")(This.init.length, 0);
+        test!("==")(This(0, 0).length, 1);
+        test!("==")(This(5, 5).length, 1);
+        test!("==")(This(0, 1).length, 2);
+        test!("==")(This(5, 10).length, 6);
     }
 
 
@@ -575,19 +574,19 @@ public struct Range ( T )
     unittest
     {
         // empty == empty
-        assert(This.init == This.init);
+        test!("==")(This.init, This.init);
 
         // empty != a
-        assert(This.init != This(0, 1));
+        test!("!=")(This.init, This(0, 1));
 
         // a != empty
-        assert(This(0, 1) != This.init);
+        test!("!=")(This(0, 1), This.init);
 
         // a == b
-        assert(This(0, 1) == This(0, 1));
+        test!("==")(This(0, 1), This(0, 1));
 
         // a != b
-        assert(This(0, 1) != This(1, 2));
+        test!("!=")(This(0, 1), This(1, 2));
     }
 
 
@@ -669,28 +668,28 @@ public struct Range ( T )
     unittest
     {
         // empty < smallest range
-        assert(This.init < This(0, 0));
+        test!("<")(This.init, This(0, 0));
 
-        // smallest range > empty
-        assert(This(0, 0) > This.init);
+        // smallest range, empty
+        test!(">")(This(0, 0), This.init);
 
-        // a < b
-        assert(This(0, 1) < This(2, 3));
+        // a, b
+        test!("<")(This(0, 1), This(2, 3));
 
-        // a > b
-        assert(This(2, 3) > This(0, 1));
+        // a, b
+        test!(">")(This(2, 3), This(0, 1));
 
-        // a < b (overlapping)
-        assert(This(0, 1) < This(1, 2));
+        // a, b (overlapping)
+        test!("<")(This(0, 1), This(1, 2));
 
-        // a > b (overlapping)
-        assert(This(1, 2) > This(0, 1));
+        // a, b (overlapping)
+        test!(">")(This(1, 2), This(0, 1));
 
-        // a < b and a.min == b.min
-        assert(This(1, 3) < This(1, 5));
+        // a, b and a.min == b.min
+        test!("<")(This(1, 3), This(1, 5));
 
-        // a > b and a.min == b.min
-        assert(This(1, 5) > This(1, 3));
+        // a, b and a.min == b.min
+        test!(">")(This(1, 5), This(1, 3));
     }
 
 
@@ -784,28 +783,28 @@ public struct Range ( T )
     unittest
     {
         // empty
-        assert(!This.init.subsetOf(This(0, 10)));
-        assert(!This(0, 10).subsetOf(This.init));
+        test(!This.init.subsetOf(This(0, 10)));
+        test(!This(0, 10).subsetOf(This.init));
 
         // subset
-        assert(This(1, 9).subsetOf(This(0, 10)));
+        test(This(1, 9).subsetOf(This(0, 10)));
 
         // equal
-        assert(!This(0, 10).subsetOf(This(0, 10)));
+        test(!This(0, 10).subsetOf(This(0, 10)));
 
         // ends touch, inside
-        assert(!This(0, 9).subsetOf(This(0, 10)));
-        assert(!This(1, 10).subsetOf(This(0, 10)));
+        test(!This(0, 9).subsetOf(This(0, 10)));
+        test(!This(1, 10).subsetOf(This(0, 10)));
 
         // ends touch, outside
-        assert(!This(0, 5).subsetOf(This(5, 10)));
-        assert(!This(10, 15).subsetOf(This(5, 10)));
+        test(!This(0, 5).subsetOf(This(5, 10)));
+        test(!This(10, 15).subsetOf(This(5, 10)));
 
         // superset
-        assert(!This(0, 10).subsetOf(This(1, 9)));
+        test(!This(0, 10).subsetOf(This(1, 9)));
 
         // no overlap
-        assert(!This(5, 10).subsetOf(This(15, 20)));
+        test(!This(5, 10).subsetOf(This(15, 20)));
     }
 
 
@@ -895,28 +894,28 @@ public struct Range ( T )
     unittest
     {
         // empty
-        assert(!This.init.supersetOf(This(0, 10)));
-        assert(!This(0, 10).supersetOf(This.init));
+        test(!This.init.supersetOf(This(0, 10)));
+        test(!This(0, 10).supersetOf(This.init));
 
         // superset
-        assert(This(0, 10).supersetOf(This(1, 9)));
+        test(This(0, 10).supersetOf(This(1, 9)));
 
         // equal
-        assert(!This(0, 10).supersetOf(This(0, 10)));
+        test(!This(0, 10).supersetOf(This(0, 10)));
 
         // ends touch, inside
-        assert(!This(0, 10).supersetOf(This(0, 9)));
-        assert(!This(0, 10).supersetOf(This(1, 10)));
+        test(!This(0, 10).supersetOf(This(0, 9)));
+        test(!This(0, 10).supersetOf(This(1, 10)));
 
         // ends touch, outside
-        assert(!This(5, 10).supersetOf(This(0, 5)));
-        assert(!This(5, 10).supersetOf(This(10, 15)));
+        test(!This(5, 10).supersetOf(This(0, 5)));
+        test(!This(5, 10).supersetOf(This(10, 15)));
 
         // subset
-        assert(!This(1, 9).supersetOf(This(0, 10)));
+        test(!This(1, 9).supersetOf(This(0, 10)));
 
         // no overlap
-        assert(!This(5, 10).supersetOf(This(15, 20)));
+        test(!This(5, 10).supersetOf(This(15, 20)));
     }
 
 
@@ -1206,50 +1205,49 @@ public struct Range ( T )
     unittest
     {
         // empty
-        assert(This.init.overlapAmount(This.init) == 0);
-        assert(This.init.overlapAmount(This(0, 10)) == 0);
-        assert(This(0, 10).overlapAmount(This.init) == 0);
+        test!("==")(This.init.overlapAmount(This.init), 0);
+        test!("==")(This.init.overlapAmount(This(0, 10)), 0);
+        test!("==")(This(0, 10).overlapAmount(This.init), 0);
 
         // empty vs. full
-        assert(This(T.min, T.max).overlapAmount(This.init) == 0);
-        assert(This.init.overlapAmount(This(T.min, T.max)) == 0);
+        test!("==")(This(T.min, T.max).overlapAmount(This.init), 0);
+        test!("==")(This.init.overlapAmount(This(T.min, T.max)), 0);
 
         // full
         testThrown!()(Range(T.min, T.max).overlapAmount(Range(T.min, T.max)));
 
         // equal
-        assert(This(0, 10).overlapAmount(This(0, 10)) == 11);
+        test!("==")(This(0, 10).overlapAmount(This(0, 10)), 11);
 
         // proper subset
-        assert(This(0, 10).overlapAmount(This(1, 9)) == 9);
+        test!("==")(This(0, 10).overlapAmount(This(1, 9)), 9);
 
         // proper superset
-        assert(This(1, 9).overlapAmount(This(0, 10)) == 9);
+        test!("==")(This(1, 9).overlapAmount(This(0, 10)), 9);
 
         // proper superset of the full range
-        assert(This(1, 10).overlapAmount(This(T.min, T.max)) == 10);
-        assert(This(T.min, T.max).overlapAmount(This(1, 10)) == 10);
+        test!("==")(This(1, 10).overlapAmount(This(T.min, T.max)), 10);
+        test!("==")(This(T.min, T.max).overlapAmount(This(1, 10)), 10);
 
         // ends touch
-        assert(This(0, 10).overlapAmount(This(10, 20)) == 1);
-        assert(This(10, 20).overlapAmount(This(0, 10)) == 1);
+        test!("==")(This(0, 10).overlapAmount(This(10, 20)), 1);
+        test!("==")(This(10, 20).overlapAmount(This(0, 10)), 1);
 
         // subset + ends touch
-        assert(This(0, 10).overlapAmount(This(0, 9)) == 10);
-        assert(This(0, 10).overlapAmount(This(1, 10)) == 10);
+        test!("==")(This(0, 10).overlapAmount(This(0, 9)), 10);
+        test!("==")(This(0, 10).overlapAmount(This(1, 10)), 10);
 
         // superset + ends touch
-        assert(This(0, 9).overlapAmount(This(0, 10)) == 10);
-        assert(This(1, 10).overlapAmount(This(0, 10)) == 10);
+        test!("==")(This(0, 9).overlapAmount(This(0, 10)), 10);
+        test!("==")(This(1, 10).overlapAmount(This(0, 10)), 10);
 
         // overlaps
-        assert(This(0, 10).overlapAmount(This(9, 20)) == 2);
-        assert(This(10, 20).overlapAmount(This(0, 11)) == 2);
+        test!("==")(This(0, 10).overlapAmount(This(9, 20)), 2);
+        test!("==")(This(10, 20).overlapAmount(This(0, 11)), 2);
 
         // no overlap
-        assert(This(0, 10).overlapAmount(This(11, 20)) == 0);
-        assert(This(10, 20).overlapAmount(This(0, 9)) == 0);
-
+        test!("==")(This(0, 10).overlapAmount(This(11, 20)), 0);
+        test!("==")(This(10, 20).overlapAmount(This(0, 9)), 0);
     }
 
 
@@ -1276,38 +1274,38 @@ public struct Range ( T )
     unittest
     {
         // empty
-        assert(!This.init.overlaps(This.init));
-        assert(!This.init.overlaps(This(0, 10)));
-        assert(!This(0, 10).overlaps(This.init));
+        test(!This.init.overlaps(This.init));
+        test(!This.init.overlaps(This(0, 10)));
+        test(!This(0, 10).overlaps(This.init));
 
         // equal
-        assert(This(0, 10).overlaps(This(0, 10)));
+        test(This(0, 10).overlaps(This(0, 10)));
 
         // proper subset
-        assert(This(0, 10).overlaps(This(1, 9)));
+        test(This(0, 10).overlaps(This(1, 9)));
 
         // proper superset
-        assert(This(1, 9).overlaps(This(0, 10)));
+        test(This(1, 9).overlaps(This(0, 10)));
 
         // ends touch
-        assert(This(0, 10).overlaps(This(10, 20)));
-        assert(This(10, 20).overlaps(This(0, 10)));
+        test(This(0, 10).overlaps(This(10, 20)));
+        test(This(10, 20).overlaps(This(0, 10)));
 
         // subset + ends touch
-        assert(This(0, 10).overlaps(This(0, 9)));
-        assert(This(0, 10).overlaps(This(1, 10)));
+        test(This(0, 10).overlaps(This(0, 9)));
+        test(This(0, 10).overlaps(This(1, 10)));
 
         // superset + ends touch
-        assert(This(0, 9).overlaps(This(0, 10)));
-        assert(This(1, 10).overlaps(This(0, 10)));
+        test(This(0, 9).overlaps(This(0, 10)));
+        test(This(1, 10).overlaps(This(0, 10)));
 
         // overlaps
-        assert(This(0, 10).overlaps(This(9, 20)));
-        assert(This(10, 20).overlaps(This(0, 11)));
+        test(This(0, 10).overlaps(This(9, 20)));
+        test(This(10, 20).overlaps(This(0, 11)));
 
         // no overlap
-        assert(!This(0, 10).overlaps(This(11, 20)));
-        assert(!This(10, 20).overlaps(This(0, 9)));
+        test(!This(0, 10).overlaps(This(11, 20)));
+        test(!This(10, 20).overlaps(This(0, 9)));
     }
 
 
@@ -1371,45 +1369,47 @@ public struct Range ( T )
 
     unittest
     {
-        bool test ( This r1, This r2,
-            This l_expected, This u_expected = This.init )
+        static void testSubtract ( This r1, This r2,
+                                   This l_expected, This u_expected = This.init,
+                                   istring file = __FILE__, int line = __LINE__ )
         {
             This l, u;
             r1.subtract(r2, l, u);
-            return l == l_expected && u == u_expected;
+            test!("==")(l, l_expected, file, line);
+            test!("==")(u, u_expected, file, line);
         }
 
         // empty
-        assert(test(This.init, This.init, This.init));
-        assert(test(This.init, This(0, 0), This.init));
-        assert(test(This(0, 0), This.init, This(0, 0)));
+        testSubtract(This.init, This.init, This.init);
+        testSubtract(This.init, This(0, 0), This.init);
+        testSubtract(This(0, 0), This.init, This(0, 0));
 
         // equal
-        assert(test(This(0, 0), This(0, 0), This.init));
-        assert(test(This(T.max, T.max), This(T.max, T.max), This.init));
-        assert(test(This(0, 10), This(0, 10), This.init));
-        assert(test(This(0, T.max), This(0, T.max), This.init));
+        testSubtract(This(0, 0), This(0, 0), This.init);
+        testSubtract(This(T.max, T.max), This(T.max, T.max), This.init);
+        testSubtract(This(0, 10), This(0, 10), This.init);
+        testSubtract(This(0, T.max), This(0, T.max), This.init);
 
         // superset
-        assert(test(This(1, 9), This(0, 10), This.init));
+        testSubtract(This(1, 9), This(0, 10), This.init);
 
         // subset
-        assert(test(This(0, 10), This(1, 9), This(0, 0), This(10, 10)));
-        assert(test(This(0, 10), This(5, 5), This(0, 4), This(6, 10)));
+        testSubtract(This(0, 10), This(1, 9), This(0, 0), This(10, 10));
+        testSubtract(This(0, 10), This(5, 5), This(0, 4), This(6, 10));
 
         // no overlap
-        assert(test(This(0, 10), This (11, 20), This(0, 10)));
-        assert(test(This(11, 20), This (0, 10), This(11, 20)));
+        testSubtract(This(0, 10), This (11, 20), This(0, 10));
+        testSubtract(This(11, 20), This (0, 10), This(11, 20));
 
         // ends touch
-        assert(test(This(10, 20), This(0, 10), This(11, 20)));
-        assert(test(This(10, 20), This(20, 30), This(10, 19)));
+        testSubtract(This(10, 20), This(0, 10), This(11, 20));
+        testSubtract(This(10, 20), This(20, 30), This(10, 19));
 
         // overlap
-        assert(test(This(5, 15), This(0, 10), This(11, 15)));
-        assert(test(This(5, 15), This(5, 10), This(11, 15)));
-        assert(test(This(5, 15), This(10, 20), This(5, 9)));
-        assert(test(This(5, 15), This(10, 15), This(5, 9)));
+        testSubtract(This(5, 15), This(0, 10), This(11, 15));
+        testSubtract(This(5, 15), This(5, 10), This(11, 15));
+        testSubtract(This(5, 15), This(10, 20), This(5, 9));
+        testSubtract(This(5, 15), This(10, 15), This(5, 9));
     }
 
 
