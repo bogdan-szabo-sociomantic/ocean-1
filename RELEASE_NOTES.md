@@ -43,6 +43,11 @@ Migration Instructions
   `ulong`, too. So on x86-64, if `hash_t`, `size_t` or `ulong` are used as `T`
   then the number of values does not fit in the return type for the full range
   -- the full range contains `size_t.max + 1` values.
+  
+  * `ocean.io.model.ISuspendableThrottler`
+
+  `ISuspendableThrottler` now contains the method `removeSuspendable` to remove an
+  `ISuspendable` from registered suspendables.
 
 Removed Symbols
 ---------------

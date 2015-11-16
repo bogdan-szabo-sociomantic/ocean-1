@@ -31,7 +31,7 @@ abstract public class ISuspendableThrottler
 {
     import ocean.io.model.ISuspendable;
 
-    import tango.core.Array : contains;
+    import tango.core.Array : contains, remove;
 
 
     /***************************************************************************
@@ -73,6 +73,21 @@ abstract public class ISuspendableThrottler
                 s.suspend();
             }
         }
+    }
+
+
+    /***************************************************************************
+
+        Removes a suspendable from the list of suspendables if it exists.
+
+        Params:
+            s = suspendable
+
+    ***************************************************************************/
+
+    public void removeSuspendable ( ISuspendable s )
+    {
+        this.suspendables = this.suspendables[0 .. this.suspendables.remove(s)];
     }
 
 
