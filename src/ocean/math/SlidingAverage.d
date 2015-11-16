@@ -423,7 +423,7 @@ public class SlidingAverageTime ( T ) : SlidingAverage!(T)
 
     ***************************************************************************/
 
-    public T last ( )
+    public override T last ( )
     {
         return super.last() * cast(T) this.resolution;
     }
@@ -478,4 +478,9 @@ public class SlidingAverageTime ( T ) : SlidingAverage!(T)
     {
         return this.current += val;
     }
+}
+
+unittest
+{
+    auto avg_stats = new SlidingAverageTime!(size_t)(100, 50, 1000);
 }
