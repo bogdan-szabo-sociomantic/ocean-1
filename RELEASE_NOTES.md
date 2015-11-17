@@ -29,6 +29,21 @@ Migration Instructions
   types. Encountering `uint object_pool_index` will result in pragma printed
   suggesting to change it to `size_t` (but not deprecation).
 
+* `ocean.math.Range`
+
+  - `Range.length()` throws `Exception` for the full range.
+  - `Range.overlapAmount()` throws `Exception` called if both ranges are full.
+
+  The preferred way is to use `Range.is_full_range` to check if the range(s)
+  is/are full and not call `Range.length()` or `Range.overlapAmount()` then,
+  resp.
+
+  This is because these methods return `size_t`, which on x86-64 is an alias of
+  `ulong`, the largest integer type. The widely used `hash_t` is an alias of
+  `ulong`, too. So on x86-64, if `hash_t`, `size_t` or `ulong` are used as `T`
+  then the number of values does not fit in the return type for the full range
+  -- the full range contains `size_t.max + 1` values.
+
 Removed Symbols
 ---------------
 
@@ -43,3 +58,7 @@ New Features
   Tango sources are now hosted and maintained as part of ocean repository.
   It requires tango 1.3 runtime installed in the system to compile without
   any issues.
+
+* `ocean.math.Range`
+
+  - Added `isFullRange()` and `Range.is_full_range`.

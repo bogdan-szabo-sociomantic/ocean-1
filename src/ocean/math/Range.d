@@ -138,6 +138,36 @@ public struct Range ( T )
 
     /***************************************************************************
 
+        Checks whether the specified range is the full range of T.
+
+        Params:
+            min = minimum value
+            max = maximum value
+
+        Returns:
+            true if the range is full, i.e. min == T.min and max == T.max.
+
+    ***************************************************************************/
+
+    static public bool isFullRange ( T min, T max )
+    {
+        return min == T.min && max == T.max;
+    }
+
+    unittest
+    {
+        assert(isFullRange(T.min, T.max));
+        assert(!isFullRange(T.max, T.min));
+        assert(!isFullRange(1, T.max));
+        assert(!isFullRange(T.min, 1));
+        assert(!isFullRange(1, 1));
+        assert(!isFullRange(1, 2));
+        assert(!isFullRange(2, 1));
+    }
+
+
+    /***************************************************************************
+
         Checks whether the specified range is valid.
 
         Params:
@@ -412,6 +442,19 @@ public struct Range ( T )
 
     /***************************************************************************
 
+        Returns:
+            true if this instance covers the full range of hash values
+
+    ***************************************************************************/
+
+    public bool is_full_range ( )
+    {
+        return isFullRange(this.min, this.max);
+    }
+
+
+    /***************************************************************************
+
         Note that in non-release builds, the struct invariant ensures that
         instances are always valid. This method can be called by user code to
         explicitly check the validity of a range, for example when creating a
@@ -433,10 +476,16 @@ public struct Range ( T )
         Returns:
             the number of values in the range
 
+        Throws:
+            Exception if the full range is covered, i.e. `this.is_full_range` is
+            true. (This is to prevent an integer overflow.)
+
     ***************************************************************************/
 
     public size_t length ( )
     {
+        enforce(!this.is_full_range, typeof(*this).stringof ~ ".length(): full range");
+
         if ( this.is_empty ) return 0;
 
         return (this.max - this.min) + 1;
@@ -449,6 +498,7 @@ public struct Range ( T )
         assert(Range(5, 5).length == 1);
         assert(Range(0, 1).length == 2);
         assert(Range(5, 10).length == 6);
+        testThrown!()(Range(T.min, T.max).length);
     }
 
 
@@ -1118,16 +1168,28 @@ public struct Range ( T )
         Calculates the number of values shared by this range and the other range
         specified.
 
+        This method should not be called if both this instance and other cover
+        the full range, i.e. `this.is_full_range && other.full_range` is true.
+        (This is to prevent an integer overflow.)
+
         Params:
             other = instance to compare with this
 
         Returns:
             the number of values shared by the two ranges
 
+        Throws:
+            Exception if both this instance and other cover the full range, i.e.
+            `this.is_full_range && other.full_range` is true. (This is to
+            prevent an integer overflow.)
+
     ***************************************************************************/
 
     public size_t overlapAmount ( Range other )
     {
+        enforce(!(this.is_full_range && other.is_full_range),
+                 typeof(*this).stringof ~ ".overlapAmount(): both ranges are full");
+
         if ( this.is_empty || other.is_empty ) return 0;
 
         RangeEndpoint[4] a;
@@ -1144,6 +1206,13 @@ public struct Range ( T )
         assert(Range.init.overlapAmount(Range(0, 10)) == 0);
         assert(Range(0, 10).overlapAmount(Range.init) == 0);
 
+        // empty vs. full
+        assert(Range(T.min, T.max).overlapAmount(Range.init) == 0);
+        assert(Range.init.overlapAmount(Range(T.min, T.max)) == 0);
+
+        // full
+        testThrown!()(Range(T.min, T.max).overlapAmount(Range(T.min, T.max)));
+
         // equal
         assert(Range(0, 10).overlapAmount(Range(0, 10)) == 11);
 
@@ -1152,6 +1221,10 @@ public struct Range ( T )
 
         // proper superset
         assert(Range(1, 9).overlapAmount(Range(0, 10)) == 9);
+
+        // proper superset of the full range
+        assert(Range(1, 10).overlapAmount(Range(T.min, T.max)) == 10);
+        assert(Range(T.min, T.max).overlapAmount(Range(1, 10)) == 10);
 
         // ends touch
         assert(Range(0, 10).overlapAmount(Range(10, 20)) == 1);
