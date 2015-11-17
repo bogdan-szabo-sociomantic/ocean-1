@@ -455,7 +455,7 @@ public struct Range ( T )
 
     public bool is_empty ( )
     {
-        return This.isEmpty(this.min, this.max);
+        return This.isEmpty(this.min_, this.max_);
     }
 
 
@@ -468,7 +468,7 @@ public struct Range ( T )
 
     public bool is_full_range ( )
     {
-        return This.isFullRange(this.min, this.max);
+        return This.isFullRange(this.min_, this.max_);
     }
 
 
@@ -486,7 +486,7 @@ public struct Range ( T )
 
     public bool is_valid ( )
     {
-        return This.isValid(this.min, this.max);
+        return This.isValid(this.min_, this.max_);
     }
 
 
@@ -507,7 +507,7 @@ public struct Range ( T )
 
         if ( this.is_empty ) return 0;
 
-        return (this.max - this.min) + 1;
+        return (this.max_ - this.min_) + 1;
     }
 
     unittest
@@ -537,7 +537,7 @@ public struct Range ( T )
         if (this.is_empty)
             return false;
 
-        return this.min <= x && x <= this.max;
+        return this.min_ <= x && x <= this.max_;
     }
 
     unittest
@@ -579,7 +579,7 @@ public struct Range ( T )
 
     public equals_t opEquals ( This other )
     {
-        return this.min == other.min && this.max == other.max;
+        return this.min_ == other.min && this.max_ == other.max_;
     }
 
     unittest
@@ -632,12 +632,12 @@ public struct Range ( T )
             sub_ranges = sub_ranges[1..$];
         }
 
-        if ( sub_ranges[0].min != this.min ) return false;
-        if ( sub_ranges[$-1].max != this.max ) return false;
+        if ( sub_ranges[0].min_ != this.min_ ) return false;
+        if ( sub_ranges[$-1].max_ != this.max_ ) return false;
 
         for ( size_t i = 1; i < sub_ranges.length; i++ )
         {
-            if ( sub_ranges[i].min != sub_ranges[i - 1].max + 1 ) return false;
+            if ( sub_ranges[i].min_ != sub_ranges[i - 1].max_ + 1 ) return false;
         }
 
         return true;
@@ -668,11 +668,11 @@ public struct Range ( T )
         if ( _this.is_empty )  return _rhs.is_empty ? 0 : -1;
         if ( _rhs.is_empty ) return 1;
 
-        if ( _this.min < _rhs.min ) return -1;
-        if ( _rhs.min < _this.min ) return 1;
-        assert(_this.min == _rhs.min);
-        if ( _this.max < _rhs.max ) return -1;
-        if ( _rhs.max < _this.max ) return 1;
+        if ( _this.min_ < _rhs.min_ ) return -1;
+        if ( _rhs.min_ < _this.min_ ) return 1;
+        assert(_this.min_ == _rhs.min_);
+        if ( _this.max_ < _rhs.max_ ) return -1;
+        if ( _rhs.max_ < _this.max_ ) return 1;
         return 0;
     }`));
 
@@ -727,7 +727,7 @@ public struct Range ( T )
         if ( this.is_empty || other.is_empty )
             return false;
 
-        return this.min >= other.min && this.max <= other.max;
+        return this.min_ >= other.min_ && this.max_ <= other.max_;
     }
 
     unittest
@@ -787,7 +787,7 @@ public struct Range ( T )
     {
         if ( this.is_empty || other.is_empty ) return false;
 
-        return this.min > other.min && this.max < other.max;
+        return this.min_ > other.min_ && this.max_ < other.max_;
     }
 
     deprecated
@@ -1279,7 +1279,7 @@ public struct Range ( T )
     {
         if ( this.is_empty || other.is_empty ) return false;
 
-        return !(other.max < this.min || other.min > this.max);
+        return !(other.max_ < this.min_ || other.min > this.max_);
     }
 
     unittest
@@ -1464,10 +1464,10 @@ public struct Range ( T )
     {
         // N.B!  the initial order is sufficient
         // being that stable sort preserve order of equal elements
-        array[0] = RangeEndpoint(first.min, 0);
-        array[1] = RangeEndpoint(second.min, 1);
-        array[2] = RangeEndpoint(first.max, 0);
-        array[3] = RangeEndpoint(second.max, 1);
+        array[0] = RangeEndpoint(first.min_, 0);
+        array[1] = RangeEndpoint(second.min_, 1);
+        array[2] = RangeEndpoint(first.max_, 0);
+        array[3] = RangeEndpoint(second.max_, 1);
 
         // stable insert sort
         for (size_t i = 1; i < array.length; ++i)
@@ -1607,15 +1607,15 @@ public bool hasGap ( T ) ( Range!(T)[] ranges )
 
     if (ranges.length > 0)
     {
-        auto current_threshold = ranges[0].max;
+        auto current_threshold = ranges[0].max_;
 
         for (size_t i = 1; i < ranges.length; ++i)
         {
-            if (ranges[i].min > current_threshold + 1)
+            if (ranges[i].min_ > current_threshold + 1)
                 return true;
 
-            if (ranges[i].max > current_threshold)
-                current_threshold = ranges[i].max;
+            if (ranges[i].max_ > current_threshold)
+                current_threshold = ranges[i].max_;
         }
     }
 
@@ -1708,15 +1708,15 @@ public bool hasOverlap ( T ) ( Range!(T)[] ranges )
 
     if (ranges.length > 0)
     {
-        auto current_threshold = ranges[0].max;
+        auto current_threshold = ranges[0].max_;
 
         for (size_t i = 1; i < ranges.length; ++i)
         {
-            if (ranges[i].min <= current_threshold)
+            if (ranges[i].min_ <= current_threshold)
                 return true;
 
-            if (ranges[i].max > current_threshold)
-                current_threshold = ranges[i].max;
+            if (ranges[i].max_ > current_threshold)
+                current_threshold = ranges[i].max_;
         }
     }
 
@@ -1825,7 +1825,7 @@ public bool isContiguous ( T ) ( Range!(T)[] ranges )
 
     for (size_t i = 1; i < ranges.length; ++i)
     {
-        if (ranges[i].min != ranges[i - 1].max + 1)
+        if (ranges[i].min_ != ranges[i - 1].max_ + 1)
             return false;
     }
 
@@ -1979,7 +1979,7 @@ public Range!(T) extent (T) ( Range!(T)[] ranges )
 {
     trimEmptyRanges(ranges);
 
-    return ranges.length == 0 ? Range!(T).init : Range!(T)(ranges[0].min, ranges[$ - 1].max);
+    return ranges.length == 0 ? Range!(T).init : Range!(T)(ranges[0].min_, ranges[$ - 1].max_);
 }
 
 unittest
