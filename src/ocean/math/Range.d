@@ -24,7 +24,7 @@ import tango.transition;
 
 version ( UnitTest )
 {
-    import tango.util.Convert;
+    import tango.text.convert.Format;
     import ocean.core.Test;
 }
 
@@ -51,7 +51,7 @@ public struct Range ( T )
 
     ***************************************************************************/
 
-    import tango.transition: TypeofThis;
+    import tango.transition: TypeofThis, assumeUnique;
     mixin TypeofThis!();
 
     /***************************************************************************
@@ -107,8 +107,7 @@ public struct Range ( T )
             // useful for test!("==")
             public istring toString ()
             {
-                return "<" ~ to!(istring)(this.value) ~ "|"
-                        ~ cast(char)('A' + this.owner_index) ~ ">";
+                return Format.convert("<{}|{}>", this.value, cast(char)('A' + this.owner_index));
             }
         }
     }
@@ -217,8 +216,20 @@ public struct Range ( T )
     {
         public istring toString()
         {
-            return this.is_empty ? "()"
-                   : "(" ~ to!(istring)(this.min_) ~ ", " ~ to!(istring)(this.max_) ~ ")";
+            auto msg = Format.convert("{}({}, {}", This.stringof, this.min_, this.max_);
+
+            if (this.is_empty)
+            {
+                msg ~= " empty";
+            }
+            else if (this.is_full_range)
+            {
+                msg ~= " full";
+            }
+
+            msg ~= ')';
+
+            return assumeUnique(msg);
         }
     }
 
