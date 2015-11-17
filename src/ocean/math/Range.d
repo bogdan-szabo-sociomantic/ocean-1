@@ -22,8 +22,6 @@ module ocean.math.Range;
 
 import tango.transition;
 
-import tango.core.Traits : isUnsignedIntegerType;
-
 version ( UnitTest )
 {
     import tango.util.Convert;
@@ -40,11 +38,21 @@ version ( UnitTest )
 
 public struct Range ( T )
 {
+    import tango.core.Traits : isUnsignedIntegerType;
+
     static assert(isUnsignedIntegerType!(T),
         "Range only works with unsigned integer types");
 
     import ocean.core.Exception : enforce;
 
+    /***************************************************************************
+
+        The `This` alias for the type of this struct
+
+    ***************************************************************************/
+
+    import tango.transition: TypeofThis;
+    mixin TypeofThis!();
 
     /***************************************************************************
 
@@ -126,13 +134,13 @@ public struct Range ( T )
 
     unittest
     {
-        assert(isEmpty(null_min, null_max));
-        assert(!isEmpty(null_max, null_min));
-        assert(!isEmpty(1, null_max));
-        assert(!isEmpty(null_min, 1));
-        assert(!isEmpty(1, 1));
-        assert(!isEmpty(1, 2));
-        assert(!isEmpty(2, 1));
+        assert(This.isEmpty(null_min, null_max));
+        assert(!This.isEmpty(null_max, null_min));
+        assert(!This.isEmpty(1, null_max));
+        assert(!This.isEmpty(null_min, 1));
+        assert(!This.isEmpty(1, 1));
+        assert(!This.isEmpty(1, 2));
+        assert(!This.isEmpty(2, 1));
     }
 
 
@@ -156,13 +164,13 @@ public struct Range ( T )
 
     unittest
     {
-        assert(isFullRange(T.min, T.max));
-        assert(!isFullRange(T.max, T.min));
-        assert(!isFullRange(1, T.max));
-        assert(!isFullRange(T.min, 1));
-        assert(!isFullRange(1, 1));
-        assert(!isFullRange(1, 2));
-        assert(!isFullRange(2, 1));
+        assert(This.isFullRange(T.min, T.max));
+        assert(!This.isFullRange(T.max, T.min));
+        assert(!This.isFullRange(1, T.max));
+        assert(!This.isFullRange(T.min, 1));
+        assert(!This.isFullRange(1, 1));
+        assert(!This.isFullRange(1, 2));
+        assert(!This.isFullRange(2, 1));
     }
 
 
@@ -181,16 +189,16 @@ public struct Range ( T )
 
     static public bool isValid ( T min, T max )
     {
-        return min <= max || isEmpty(min, max);
+        return min <= max || This.isEmpty(min, max);
     }
 
     unittest
     {
-        assert(isValid(null_min, null_max));
-        assert(isValid(0, 0));
-        assert(isValid(0, 1));
-        assert(isValid(T.max, T.max));
-        assert(!isValid(1, 0));
+        assert(This.isValid(null_min, null_max));
+        assert(This.isValid(0, 0));
+        assert(This.isValid(0, 1));
+        assert(This.isValid(T.max, T.max));
+        assert(!This.isValid(1, 0));
     }
 
 
@@ -202,7 +210,7 @@ public struct Range ( T )
 
     invariant()
     {
-        assert(isValid(this.min_, this.max_));
+        assert(This.isValid(this.min_, this.max_));
     }
 
     version ( UnitTest )
@@ -240,7 +248,7 @@ public struct Range ( T )
     }
     body
     {
-        enforce(isValid(min, max));
+        enforce(This.isValid(min, max));
 
         Range r;
         r.min_ = min;
@@ -318,50 +326,50 @@ public struct Range ( T )
 
     unittest
     {
-        test!("==")(Range(3, 7), makeRange!("[]")(3, 7));
-        test!("==")(Range(3, 7), makeRange(3, 7));
-        test!("==")(Range(5, 5), makeRange(5, 5));
-        test!("==")(Range.init, makeRange(7, 3));
-        test!("==")(Range(0, 0), makeRange(0, 0));
-        test!("==")(Range(T.max, T.max), makeRange(T.max, T.max));
-        test!("==")(Range(0, T.max), makeRange(0, T.max));
-        test!("==")(Range.init, makeRange(T.max, 0));
+        test!("==")(Range(3, 7), This.makeRange!("[]")(3, 7));
+        test!("==")(Range(3, 7), This.makeRange(3, 7));
+        test!("==")(Range(5, 5), This.makeRange(5, 5));
+        test!("==")(Range.init, This.makeRange(7, 3));
+        test!("==")(Range(0, 0), This.makeRange(0, 0));
+        test!("==")(Range(T.max, T.max), This.makeRange(T.max, T.max));
+        test!("==")(Range(0, T.max), This.makeRange(0, T.max));
+        test!("==")(Range.init, This.makeRange(T.max, 0));
 
-        test!("==")(Range(3, 6), makeRange!("[)")(3, 7));
-        test!("==")(Range.init, makeRange!("[)")(5, 5));
-        test!("==")(Range(4, 4), makeRange!("[)")(4, 5));
-        test!("==")(Range.init, makeRange!("[)")(7, 3));
-        test!("==")(Range.init, makeRange!("[)")(0, 0));
-        test!("==")(Range.init, makeRange!("[)")(T.max, T.max));
-        test!("==")(Range(0, T.max - 1), makeRange!("[)")(0, T.max));
-        test!("==")(Range.init, makeRange!("[)")(T.max, 0));
-        test!("==")(Range(0, 0), makeRange!("[)")(0, 1));
-        test!("==")(Range(T.max - 1, T.max - 1), makeRange!("[)")(T.max - 1, T.max));
+        test!("==")(Range(3, 6), This.makeRange!("[)")(3, 7));
+        test!("==")(Range.init, This.makeRange!("[)")(5, 5));
+        test!("==")(Range(4, 4), This.makeRange!("[)")(4, 5));
+        test!("==")(Range.init, This.makeRange!("[)")(7, 3));
+        test!("==")(Range.init, This.makeRange!("[)")(0, 0));
+        test!("==")(Range.init, This.makeRange!("[)")(T.max, T.max));
+        test!("==")(Range(0, T.max - 1), This.makeRange!("[)")(0, T.max));
+        test!("==")(Range.init, This.makeRange!("[)")(T.max, 0));
+        test!("==")(Range(0, 0), This.makeRange!("[)")(0, 1));
+        test!("==")(Range(T.max - 1, T.max - 1), This.makeRange!("[)")(T.max - 1, T.max));
 
-        test!("==")(Range(4, 7), makeRange!("(]")(3, 7));
-        test!("==")(Range.init, makeRange!("(]")(5, 5));
-        test!("==")(Range(5, 5), makeRange!("(]")(4, 5));
-        test!("==")(Range.init, makeRange!("(]")(7, 3));
-        test!("==")(Range.init, makeRange!("(]")(0, 0));
-        test!("==")(Range.init, makeRange!("(]")(T.max, T.max));
-        test!("==")(Range(1, T.max), makeRange!("(]")(0, T.max));
-        test!("==")(Range.init, makeRange!("(]")(T.max, 0));
-        test!("==")(Range(1, 1), makeRange!("(]")(0, 1));
-        test!("==")(Range(T.max, T.max), makeRange!("(]")(T.max - 1, T.max));
+        test!("==")(Range(4, 7), This.makeRange!("(]")(3, 7));
+        test!("==")(Range.init, This.makeRange!("(]")(5, 5));
+        test!("==")(Range(5, 5), This.makeRange!("(]")(4, 5));
+        test!("==")(Range.init, This.makeRange!("(]")(7, 3));
+        test!("==")(Range.init, This.makeRange!("(]")(0, 0));
+        test!("==")(Range.init, This.makeRange!("(]")(T.max, T.max));
+        test!("==")(Range(1, T.max), This.makeRange!("(]")(0, T.max));
+        test!("==")(Range.init, This.makeRange!("(]")(T.max, 0));
+        test!("==")(Range(1, 1), This.makeRange!("(]")(0, 1));
+        test!("==")(Range(T.max, T.max), This.makeRange!("(]")(T.max - 1, T.max));
 
-        test!("==")(Range(4, 6), makeRange!("()")(3, 7));
-        test!("==")(Range.init, makeRange!("()")(5, 5));
-        test!("==")(Range.init, makeRange!("()")(4, 5));
-        test!("==")(Range(5, 5), makeRange!("()")(4, 6));
-        test!("==")(Range.init, makeRange!("()")(7, 3));
-        test!("==")(Range.init, makeRange!("()")(0, 0));
-        test!("==")(Range.init, makeRange!("()")(T.max, T.max));
-        test!("==")(Range(1, T.max - 1), makeRange!("()")(0, T.max));
-        test!("==")(Range.init, makeRange!("()")(T.max, 0));
-        test!("==")(Range.init, makeRange!("()")(0, 1));
-        test!("==")(Range.init, makeRange!("()")(T.max - 1, T.max));
-        test!("==")(Range(1, 1), makeRange!("()")(0, 2));
-        test!("==")(Range(T.max - 1, T.max - 1), makeRange!("()")(T.max - 2, T.max));
+        test!("==")(Range(4, 6), This.makeRange!("()")(3, 7));
+        test!("==")(Range.init, This.makeRange!("()")(5, 5));
+        test!("==")(Range.init, This.makeRange!("()")(4, 5));
+        test!("==")(Range(5, 5), This.makeRange!("()")(4, 6));
+        test!("==")(Range.init, This.makeRange!("()")(7, 3));
+        test!("==")(Range.init, This.makeRange!("()")(0, 0));
+        test!("==")(Range.init, This.makeRange!("()")(T.max, T.max));
+        test!("==")(Range(1, T.max - 1), This.makeRange!("()")(0, T.max));
+        test!("==")(Range.init, This.makeRange!("()")(T.max, 0));
+        test!("==")(Range.init, This.makeRange!("()")(0, 1));
+        test!("==")(Range.init, This.makeRange!("()")(T.max - 1, T.max));
+        test!("==")(Range(1, 1), This.makeRange!("()")(0, 2));
+        test!("==")(Range(T.max - 1, T.max - 1), This.makeRange!("()")(T.max - 2, T.max));
     }
 
 
@@ -436,7 +444,7 @@ public struct Range ( T )
 
     public bool is_empty ( )
     {
-        return isEmpty(this.min, this.max);
+        return This.isEmpty(this.min, this.max);
     }
 
 
@@ -449,7 +457,7 @@ public struct Range ( T )
 
     public bool is_full_range ( )
     {
-        return isFullRange(this.min, this.max);
+        return This.isFullRange(this.min, this.max);
     }
 
 
@@ -467,7 +475,7 @@ public struct Range ( T )
 
     public bool is_valid ( )
     {
-        return isValid(this.min, this.max);
+        return This.isValid(this.min, this.max);
     }
 
 
@@ -484,7 +492,7 @@ public struct Range ( T )
 
     public size_t length ( )
     {
-        enforce(!this.is_full_range, typeof(*this).stringof ~ ".length(): full range");
+        enforce(!this.is_full_range, This.stringof ~ ".length(): full range");
 
         if ( this.is_empty ) return 0;
 
@@ -1184,12 +1192,12 @@ public struct Range ( T )
     public size_t overlapAmount ( Range other )
     {
         enforce(!(this.is_full_range && other.is_full_range),
-                 typeof(*this).stringof ~ ".overlapAmount(): both ranges are full");
+                 This.stringof ~ ".overlapAmount(): both ranges are full");
 
         if ( this.is_empty || other.is_empty ) return 0;
 
         RangeEndpoint[4] a;
-        sortEndpoints(*this, other, a);
+        This.sortEndpoints(*this, other, a);
 
         return a[0].owner_index != a[1].owner_index
                ? Range(a[1].value, a[2].value).length : 0;
@@ -1335,7 +1343,7 @@ public struct Range ( T )
         }
 
         RangeEndpoint[4] a;
-        sortEndpoints(*this, other, a);
+        This.sortEndpoints(*this, other, a);
 
         // no overlap
         if (a[0].owner_index == a[1].owner_index)
@@ -1345,9 +1353,9 @@ public struct Range ( T )
         }
 
         auto first = a[0].owner_index < a[1].owner_index
-                     ? makeRange!("[)")(a[0].value, a[1].value) : Range.init;
+                     ? This.makeRange!("[)")(a[0].value, a[1].value) : Range.init;
         auto second = a[2].owner_index > a[3].owner_index
-                      ? makeRange!("(]")(a[2].value, a[3].value) : Range.init;
+                      ? This.makeRange!("(]")(a[2].value, a[3].value) : Range.init;
 
         if (first.is_empty)
         {
@@ -1468,82 +1476,82 @@ public struct Range ( T )
         RangeEndpoint[4] a;
 
         // no overlap
-        sortEndpoints(Range(0, 10), Range(15, 20), a);
+        This.sortEndpoints(Range(0, 10), Range(15, 20), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(10, 0),
                         RangeEndpoint(15, 1), RangeEndpoint(20, 1)]);
-        sortEndpoints(Range(15, 20), Range(0, 10), a);
+        This.sortEndpoints(Range(15, 20), Range(0, 10), a);
         test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(10, 1),
                         RangeEndpoint(15, 0), RangeEndpoint(20, 0)]);
 
         // overlap
-        sortEndpoints(Range(0, 15), Range(10, 20), a);
+        This.sortEndpoints(Range(0, 15), Range(10, 20), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(10, 1),
                         RangeEndpoint(15, 0), RangeEndpoint(20, 1)]);
-        sortEndpoints(Range(10, 20), Range(0, 15), a);
+        This.sortEndpoints(Range(10, 20), Range(0, 15), a);
         test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(10, 0),
                         RangeEndpoint(15, 1), RangeEndpoint(20, 0)]);
 
         // outer touch
-        sortEndpoints(Range(0, 10), Range(10, 20), a);
+        This.sortEndpoints(Range(0, 10), Range(10, 20), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(10, 1),
                         RangeEndpoint(10, 0), RangeEndpoint(20, 1)]);
-        sortEndpoints(Range(10, 20), Range(0, 10), a);
+        This.sortEndpoints(Range(10, 20), Range(0, 10), a);
         test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(10, 0),
                         RangeEndpoint(10, 1), RangeEndpoint(20, 0)]);
 
         // inner touch
-        sortEndpoints(Range(0, 10), Range(5, 10), a);
+        This.sortEndpoints(Range(0, 10), Range(5, 10), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(5, 1),
                         RangeEndpoint(10, 0), RangeEndpoint(10, 1)]);
-        sortEndpoints(Range(5, 10), Range(0, 10), a);
+        This.sortEndpoints(Range(5, 10), Range(0, 10), a);
         test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(5, 0),
                         RangeEndpoint(10, 0), RangeEndpoint(10, 1)]);
-        sortEndpoints(Range(0, 10), Range(0, 5), a);
+        This.sortEndpoints(Range(0, 10), Range(0, 5), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(0, 1),
                         RangeEndpoint(5, 1), RangeEndpoint(10, 0)]);
-        sortEndpoints(Range(0, 5), Range(0, 10), a);
+        This.sortEndpoints(Range(0, 5), Range(0, 10), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(0, 1),
                         RangeEndpoint(5, 0), RangeEndpoint(10, 1)]);
 
         // ultra proper subrange
-        sortEndpoints(Range(0, 10), Range(3, 7), a);
+        This.sortEndpoints(Range(0, 10), Range(3, 7), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(3, 1),
                         RangeEndpoint(7, 1), RangeEndpoint(10, 0)]);
-        sortEndpoints(Range(3, 7), Range(0, 10), a);
+        This.sortEndpoints(Range(3, 7), Range(0, 10), a);
         test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(3, 0),
                         RangeEndpoint(7, 0), RangeEndpoint(10, 1)]);
 
         // equal
-        sortEndpoints(Range(0, 10), Range(0, 10), a);
+        This.sortEndpoints(Range(0, 10), Range(0, 10), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(0, 1),
                         RangeEndpoint(10, 0), RangeEndpoint(10, 1)]);
-        sortEndpoints(Range(5, 5), Range(5, 5), a);
+        This.sortEndpoints(Range(5, 5), Range(5, 5), a);
         test!("==")(a, [RangeEndpoint(5, 0), RangeEndpoint(5, 1),
                         RangeEndpoint(5, 0), RangeEndpoint(5, 1)]);
 
         // one point range
-        sortEndpoints(Range(4, 4), Range(5, 5), a);
+        This.sortEndpoints(Range(4, 4), Range(5, 5), a);
         test!("==")(a, [RangeEndpoint(4, 0), RangeEndpoint(4, 0),
                         RangeEndpoint(5, 1), RangeEndpoint(5, 1)]);
-        sortEndpoints(Range(5, 5), Range(4, 4), a);
+        This.sortEndpoints(Range(5, 5), Range(4, 4), a);
         test!("==")(a, [RangeEndpoint(4, 1), RangeEndpoint(4, 1),
                         RangeEndpoint(5, 0), RangeEndpoint(5, 0)]);
-        sortEndpoints(Range(5, 5), Range(0, 10), a);
+        This.sortEndpoints(Range(5, 5), Range(0, 10), a);
         test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(5, 0),
                         RangeEndpoint(5, 0), RangeEndpoint(10, 1)]);
-        sortEndpoints(Range(0, 10), Range(5, 5), a);
+        This.sortEndpoints(Range(0, 10), Range(5, 5), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(5, 1),
                         RangeEndpoint(5, 1), RangeEndpoint(10, 0)]);
-        sortEndpoints(Range(5, 5), Range(5, 10), a);
+        This.sortEndpoints(Range(5, 5), Range(5, 10), a);
         test!("==")(a, [RangeEndpoint(5, 0), RangeEndpoint(5, 1),
                         RangeEndpoint(5, 0), RangeEndpoint(10, 1)]);
-        sortEndpoints(Range(5, 10), Range(5, 5), a);
+        This.sortEndpoints(Range(5, 10), Range(5, 5), a);
         test!("==")(a, [RangeEndpoint(5, 0), RangeEndpoint(5, 1),
                         RangeEndpoint(5, 1), RangeEndpoint(10, 0)]);
-        sortEndpoints(Range(5, 5), Range(0, 5), a);
+        This.sortEndpoints(Range(5, 5), Range(0, 5), a);
         test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(5, 0),
                         RangeEndpoint(5, 0), RangeEndpoint(5, 1)]);
-        sortEndpoints(Range(0, 5), Range(5, 5), a);
+        This.sortEndpoints(Range(0, 5), Range(5, 5), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(5, 1),
                         RangeEndpoint(5, 0), RangeEndpoint(5, 1)]);
     }
