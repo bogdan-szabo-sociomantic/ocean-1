@@ -299,13 +299,13 @@ class Application : IApplication
 
     protected void printExitException ( ExitException e )
     {
-        if (e.toString() == "")
+        if (getMsg(e) == "")
         {
             return;
         }
         if (e.status == 0)
         {
-            Stdout.formatln("{}", e.toString());
+            Stdout.formatln("{}", getMsg(e));
         }
         else
         {
