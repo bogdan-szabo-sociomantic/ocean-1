@@ -280,7 +280,7 @@ struct Uuid
         }
 
         /** Determines if this UUID has the same value as another. */
-        public bool opEquals(Uuid other)
+        public equals_t opEquals(Uuid other)
         {
                 return
                         _data.ui[0] == other._data.ui[0] &&

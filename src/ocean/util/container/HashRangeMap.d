@@ -588,7 +588,7 @@ unittest
             return s;
         }
 
-        bool opEquals(S other)
+        equals_t opEquals(S other)
         {
             return this.x == other.x;
         }

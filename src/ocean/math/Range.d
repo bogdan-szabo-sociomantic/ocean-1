@@ -559,7 +559,7 @@ public struct Range ( T )
 
     ***************************************************************************/
 
-    public bool opEquals ( Range other )
+    public equals_t opEquals ( Range other )
     {
         return this.min == other.min && this.max == other.max;
     }
@@ -602,7 +602,7 @@ public struct Range ( T )
     ***************************************************************************/
 
     deprecated ("use isTessellatedBy instead")
-    public bool opEquals ( Range[] sub_ranges )
+    public equals_t opEquals ( Range[] sub_ranges )
     {
         if ( sub_ranges.length == 0 ) return false;
 

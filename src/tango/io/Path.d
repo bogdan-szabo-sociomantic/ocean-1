@@ -849,9 +849,21 @@ struct PathParser
 
         ***********************************************************************/
 
-        int opEquals (cstring s)
+        equals_t opEquals (cstring s)
         {
                 return FS.stripped(s) == FS.stripped(toString);
+        }
+
+        /***********************************************************************
+
+            Comparison to another PathParser, to avoid falling back to
+            auto-generated one 
+
+        ***********************************************************************/
+
+        equals_t opEquals (PathParser rhs)
+        {
+            return FS.stripped(rhs.toString()) == FS.stripped(toString());
         }
 
         /***********************************************************************

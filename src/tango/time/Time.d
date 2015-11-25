@@ -14,6 +14,8 @@
 
 module tango.time.Time;
 
+import tango.transition;
+
 /******************************************************************************
 
     This struct represents a length of time.  The underlying representation is
@@ -112,7 +114,7 @@ struct TimeSpan
         /**
          * Determines whether two TimeSpan values are equal
          */
-        bool opEquals(TimeSpan t)
+        equals_t opEquals(TimeSpan t)
         {
                 return ticks_ is t.ticks_;
         }
@@ -120,16 +122,17 @@ struct TimeSpan
         /**
          * Compares this object against another TimeSpan value.
          */
-        int opCmp(TimeSpan t)
-        {
-                if (ticks_ < t.ticks_)
-                    return -1;
+        mixin(genOpCmp(`
+            {
+                    if (ticks_ < rhs.ticks_)
+                        return -1;
 
-                if (ticks_ > t.ticks_)
-                    return 1;
+                    if (ticks_ > rhs.ticks_)
+                        return 1;
 
-                return 0;
-        }
+                    return 0;
+            }
+        `));
 
         /**
          * Add the TimeSpan given to this TimeSpan returning a new TimeSpan.

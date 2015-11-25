@@ -604,9 +604,22 @@ class Json(T) : JsonParser!(T)
 
          ***************************************************************/
 
-        bool opEquals (Type t)
+        equals_t opEquals (Type t)
         {
             return type is t;
+        }
+
+        /***************************************************************
+
+          explicitly provide same opEquals as auto-generated one to
+          avoid deprecation warning being printed (compiler can't know
+          if previous one was intentional or a typo)
+
+        ***************************************************************/
+
+        equals_t opEquals (JsonValue rhs)
+        {
+            return *this is rhs;
         }
 
         /***************************************************************
