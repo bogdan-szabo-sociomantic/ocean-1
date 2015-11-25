@@ -65,6 +65,11 @@ class BucketInfo
             return (this.length >= rhs.length)? this.length > rhs.length : -1;
         }`));
 
+        public equals_t opEquals (Bucket rhs)
+        {
+            return this.opCmp(rhs) == 0;
+        }
+
         /**********************************************************************/
 
         debug (BucketInfo) private void print ( )

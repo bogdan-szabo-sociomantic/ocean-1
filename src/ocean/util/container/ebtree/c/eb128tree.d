@@ -95,6 +95,11 @@ struct UCent
     `{
         return eb128_cmp_264(this.tupleof, rhs.tupleof);
     }`));
+
+    public equals_t opEquals(UCent rhs)
+    {
+        return this.opCmp(rhs) == 0;
+    }
 }
 
 /******************************************************************************
@@ -132,6 +137,11 @@ struct Cent
     `{
         return eb128i_cmp_264(this.tupleof, rhs.tupleof);
     }`));
+
+    public equals_t opEquals(Cent rhs)
+    {
+        return this.opCmp(rhs) == 0;
+    }
 }
 
 /**

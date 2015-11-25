@@ -578,6 +578,11 @@ unittest
             return -1;
         }
         "));
+
+        equals_t opEquals (S rhs)
+        {
+            return this.opCmp(rhs) == 0;
+        }
     }
 
     class C

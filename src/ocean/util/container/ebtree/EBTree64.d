@@ -162,6 +162,11 @@ class EBTree64 ( bool signed = false ) : IEBTree
                    (this.lo >= rhs.lo)? (this.lo > rhs.lo) : -1;
         }`));
 
+        public equals_t opEquals(Dual32Key rhs)
+        {
+            return this.opCmp(rhs) == 0;
+        }
+
         /**********************************************************************
 
             Obtains the key to store in the ebtree from this instance.

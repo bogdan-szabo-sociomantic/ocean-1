@@ -763,6 +763,11 @@ struct CharClass(char_t)
     }
     "));
 
+    equals_t opEquals(CharClass rhs)
+    {
+        return this.opCmp(rhs) == 0;
+    }
+
     bool empty()
     {
         return parts.length <= 0;
@@ -2918,6 +2923,11 @@ private:
             return 0;
         }
         "));
+
+        equals_t opEquals(Mark rhs)
+        {
+            return this.opCmp(rhs) == 0;
+        }
     }
 
     /* ********************************************************************************************
