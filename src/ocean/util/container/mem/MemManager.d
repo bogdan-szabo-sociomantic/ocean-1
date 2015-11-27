@@ -24,6 +24,7 @@ import tango.stdc.stdlib : malloc, free;
 
 import tango.core.Memory;
 
+import tango.transition;
 
 /*******************************************************************************
 
@@ -32,7 +33,7 @@ import tango.core.Memory;
 
 *******************************************************************************/
 
-IMemManager noScanMallocMemManager;
+mixin(global("IMemManager noScanMallocMemManager"));
 
 
 /*******************************************************************************
@@ -41,7 +42,7 @@ IMemManager noScanMallocMemManager;
 
 *******************************************************************************/
 
-IMemManager mallocMemManager;
+mixin(global("IMemManager mallocMemManager"));
 
 
 /*******************************************************************************
@@ -51,7 +52,7 @@ IMemManager mallocMemManager;
 
 *******************************************************************************/
 
-IMemManager noScanGcMemManager;
+mixin(global("IMemManager noScanGcMemManager"));
 
 
 /*******************************************************************************
@@ -60,16 +61,29 @@ IMemManager noScanGcMemManager;
 
 *******************************************************************************/
 
-IMemManager gcMemManager;
+mixin(global("IMemManager gcMemManager"));
 
-
-
-static this ( )
+version (D_Version2)
 {
-    noScanMallocMemManager = new MallocMemManager!(false);
-    noScanGcMemManager     = new GCMemManager!(false);
-    mallocMemManager       = new MallocMemManager!(true);
-    gcMemManager           = new GCMemManager!(true);
+    mixin(`
+        shared static this ( )
+        {
+            noScanMallocMemManager = new MallocMemManager!(false);
+            noScanGcMemManager     = new GCMemManager!(false);
+            mallocMemManager       = new MallocMemManager!(true);
+            gcMemManager           = new GCMemManager!(true);
+        }
+    `);
+}
+else
+{
+    static this ( )
+    {
+        noScanMallocMemManager = new MallocMemManager!(false);
+        noScanGcMemManager     = new GCMemManager!(false);
+        mallocMemManager       = new MallocMemManager!(true);
+        gcMemManager           = new GCMemManager!(true);
+    }
 }
 
 
