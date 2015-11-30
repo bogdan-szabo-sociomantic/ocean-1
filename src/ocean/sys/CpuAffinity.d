@@ -8,6 +8,10 @@
 
     Functions to set a process' CPU affinity.
 
+    This module uses the GNU API and contains declarations and functionality
+    found in <sched.h> on GNU/Linux. See
+    http://www.gnu.org/software/libc/manual/html_node/CPU-Affinity.html
+
 *******************************************************************************/
 
 module ocean.sys.CpuAffinity;
