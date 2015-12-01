@@ -67,3 +67,8 @@ New Features
 * `ocean.math.Range`
 
   - Added `isFullRange()` and `Range.is_full_range`.
+
+* `ocean.util.container.MallocArray`
+
+  A new module which contains collection of functions that aids in creating
+  and manipulating malloc based arrays.
