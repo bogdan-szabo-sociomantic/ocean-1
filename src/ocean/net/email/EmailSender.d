@@ -22,6 +22,7 @@ module ocean.net.email.EmailSender;
 
 import ocean.core.Array : append;
 
+import tango.transition;
 import tango.io.Stdout;
 import tango.sys.Process;
 import tango.core.Exception : ProcessException;
@@ -40,6 +41,18 @@ class EmailSender
 
     /***************************************************************************
 
+        Temporary buffers used for formatting multiple email addresses into a
+        single buffer containing comma-separated entries
+
+    ***************************************************************************/
+
+    private char[] recipients_buf;
+    private char[] cc_buf;
+    private char[] bcc_buf;
+
+
+    /***************************************************************************
+
         Constructor that creates the reusable process
 
     ***************************************************************************/
@@ -47,6 +60,68 @@ class EmailSender
     public this ( )
     {
         this.process = new Process("sendmail -t", null);
+    }
+
+
+    /***************************************************************************
+
+        Spawns a child process that sends an email using sendmail.
+
+        Accepts 2D arrays for the recipient list, cc list, and bcc list,
+        automatically comma-separates them, and passes them to the other
+        overload of this method. Use this method if it is more convenient for
+        you to pass the required lists in 2D buffers, rather than in
+        comma-separated 1D buffers as required by sendmail.
+
+        Params:
+            sender = the sender of the email
+            recipients = the recipient(s) of the email
+            subject = the email subject
+            msg_body = the email body
+            reply_to = an optional Reply To. default empty
+            mail_id = an optional mail id/In-Reply-To. default empty
+            cc = an optional cc. default empty
+            bcc = an optional bcc. default empty
+
+        Returns:
+            true if the mail was sent without any errors, otherwise false
+
+    ***************************************************************************/
+
+    public bool sendEmail ( char[] sender, char[][] recipients, char[] subject,
+        char[] msg_body, char[] reply_to = null, char[] mail_id = null,
+        char[][] cc = null, char[][] bcc = null )
+    {
+        void format_entries_buf ( char[][] param_to_format, ref char[] buf )
+        {
+            auto first_entry = true;
+
+            buf.length = 0;
+            enableStomping(buf);
+
+            foreach ( entry; param_to_format )
+            {
+                if ( !first_entry )
+                {
+                    buf ~= ", ";
+                }
+                else
+                {
+                    first_entry = false;
+                }
+
+                buf ~= entry;
+            }
+        }
+
+        format_entries_buf(recipients, this.recipients_buf);
+
+        format_entries_buf(cc, this.cc_buf);
+
+        format_entries_buf(bcc, this.bcc_buf);
+
+        return this.sendEmail(sender, this.recipients_buf, subject, msg_body,
+            reply_to, mail_id, this.cc_buf, this.bcc_buf);
     }
 
 

@@ -125,3 +125,10 @@ New Features
 * `ocean.util.cipher.gcrypt.Twofish`
 
   Added Libgcrypt bindings with support for Twofish.
+
+* `ocean.net.email.EmailSender`
+
+  A new overload of the `sendEmail()` function has been added. This new function
+  takes email recipients (as well as `cc` * `bcc` lists) in the form of a 2D
+  buffer (where each email address is in a separate index).
+
