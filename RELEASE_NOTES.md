@@ -44,6 +44,11 @@ Migration Instructions
   then the number of values does not fit in the return type for the full range
   -- the full range contains `size_t.max + 1` values.
 
+* `ocean.sys.CpuAffinity`
+
+  - `CpuAffinity.set()` now throws `ErrnoException` on failure. It used to
+    return `false` before; the return type is now `void`.
+
 Removed Symbols
 ---------------
 
