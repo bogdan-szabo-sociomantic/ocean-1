@@ -241,7 +241,7 @@ public struct Range ( T )
 
     ***************************************************************************/
 
-    public static Range opCall ( T min, T max )
+    public static This opCall ( T min, T max )
     out(result)
     {
         assert(&result);
@@ -250,7 +250,7 @@ public struct Range ( T )
     {
         enforce(This.isValid(min, max));
 
-        Range r;
+        This r;
         r.min_ = min;
         r.max_ = max;
         return r;
@@ -277,7 +277,7 @@ public struct Range ( T )
 
     ***************************************************************************/
 
-    public static Range makeRange ( istring boundaries = "[]" ) ( T min, T max )
+    public static This makeRange ( istring boundaries = "[]" ) ( T min, T max )
     out(result)
     {
         assert(&result);
@@ -289,13 +289,13 @@ public struct Range ( T )
                       "only four kinds of range are supported: [], [), (], ()");
 
         if ( min > max )
-            return Range.init;
+            return This.init;
 
         static if (boundaries != "[]")
         {
             if (min == max)
             {
-                return Range.init;
+                return This.init;
             }
         }
 
@@ -303,7 +303,7 @@ public struct Range ( T )
         {
             if (min + 1 == max)
             {
-                return Range.init;
+                return This.init;
             }
         }
 
@@ -321,55 +321,55 @@ public struct Range ( T )
 
         assert(min <= max);
 
-        return Range(min, max);
+        return This(min, max);
     }
 
     unittest
     {
-        test!("==")(Range(3, 7), This.makeRange!("[]")(3, 7));
-        test!("==")(Range(3, 7), This.makeRange(3, 7));
-        test!("==")(Range(5, 5), This.makeRange(5, 5));
-        test!("==")(Range.init, This.makeRange(7, 3));
-        test!("==")(Range(0, 0), This.makeRange(0, 0));
-        test!("==")(Range(T.max, T.max), This.makeRange(T.max, T.max));
-        test!("==")(Range(0, T.max), This.makeRange(0, T.max));
-        test!("==")(Range.init, This.makeRange(T.max, 0));
+        test!("==")(This(3, 7), This.makeRange!("[]")(3, 7));
+        test!("==")(This(3, 7), This.makeRange(3, 7));
+        test!("==")(This(5, 5), This.makeRange(5, 5));
+        test!("==")(This.init, This.makeRange(7, 3));
+        test!("==")(This(0, 0), This.makeRange(0, 0));
+        test!("==")(This(T.max, T.max), This.makeRange(T.max, T.max));
+        test!("==")(This(0, T.max), This.makeRange(0, T.max));
+        test!("==")(This.init, This.makeRange(T.max, 0));
 
-        test!("==")(Range(3, 6), This.makeRange!("[)")(3, 7));
-        test!("==")(Range.init, This.makeRange!("[)")(5, 5));
-        test!("==")(Range(4, 4), This.makeRange!("[)")(4, 5));
-        test!("==")(Range.init, This.makeRange!("[)")(7, 3));
-        test!("==")(Range.init, This.makeRange!("[)")(0, 0));
-        test!("==")(Range.init, This.makeRange!("[)")(T.max, T.max));
-        test!("==")(Range(0, T.max - 1), This.makeRange!("[)")(0, T.max));
-        test!("==")(Range.init, This.makeRange!("[)")(T.max, 0));
-        test!("==")(Range(0, 0), This.makeRange!("[)")(0, 1));
-        test!("==")(Range(T.max - 1, T.max - 1), This.makeRange!("[)")(T.max - 1, T.max));
+        test!("==")(This(3, 6), This.makeRange!("[)")(3, 7));
+        test!("==")(This.init, This.makeRange!("[)")(5, 5));
+        test!("==")(This(4, 4), This.makeRange!("[)")(4, 5));
+        test!("==")(This.init, This.makeRange!("[)")(7, 3));
+        test!("==")(This.init, This.makeRange!("[)")(0, 0));
+        test!("==")(This.init, This.makeRange!("[)")(T.max, T.max));
+        test!("==")(This(0, T.max - 1), This.makeRange!("[)")(0, T.max));
+        test!("==")(This.init, This.makeRange!("[)")(T.max, 0));
+        test!("==")(This(0, 0), This.makeRange!("[)")(0, 1));
+        test!("==")(This(T.max - 1, T.max - 1), This.makeRange!("[)")(T.max - 1, T.max));
 
-        test!("==")(Range(4, 7), This.makeRange!("(]")(3, 7));
-        test!("==")(Range.init, This.makeRange!("(]")(5, 5));
-        test!("==")(Range(5, 5), This.makeRange!("(]")(4, 5));
-        test!("==")(Range.init, This.makeRange!("(]")(7, 3));
-        test!("==")(Range.init, This.makeRange!("(]")(0, 0));
-        test!("==")(Range.init, This.makeRange!("(]")(T.max, T.max));
-        test!("==")(Range(1, T.max), This.makeRange!("(]")(0, T.max));
-        test!("==")(Range.init, This.makeRange!("(]")(T.max, 0));
-        test!("==")(Range(1, 1), This.makeRange!("(]")(0, 1));
-        test!("==")(Range(T.max, T.max), This.makeRange!("(]")(T.max - 1, T.max));
+        test!("==")(This(4, 7), This.makeRange!("(]")(3, 7));
+        test!("==")(This.init, This.makeRange!("(]")(5, 5));
+        test!("==")(This(5, 5), This.makeRange!("(]")(4, 5));
+        test!("==")(This.init, This.makeRange!("(]")(7, 3));
+        test!("==")(This.init, This.makeRange!("(]")(0, 0));
+        test!("==")(This.init, This.makeRange!("(]")(T.max, T.max));
+        test!("==")(This(1, T.max), This.makeRange!("(]")(0, T.max));
+        test!("==")(This.init, This.makeRange!("(]")(T.max, 0));
+        test!("==")(This(1, 1), This.makeRange!("(]")(0, 1));
+        test!("==")(This(T.max, T.max), This.makeRange!("(]")(T.max - 1, T.max));
 
-        test!("==")(Range(4, 6), This.makeRange!("()")(3, 7));
-        test!("==")(Range.init, This.makeRange!("()")(5, 5));
-        test!("==")(Range.init, This.makeRange!("()")(4, 5));
-        test!("==")(Range(5, 5), This.makeRange!("()")(4, 6));
-        test!("==")(Range.init, This.makeRange!("()")(7, 3));
-        test!("==")(Range.init, This.makeRange!("()")(0, 0));
-        test!("==")(Range.init, This.makeRange!("()")(T.max, T.max));
-        test!("==")(Range(1, T.max - 1), This.makeRange!("()")(0, T.max));
-        test!("==")(Range.init, This.makeRange!("()")(T.max, 0));
-        test!("==")(Range.init, This.makeRange!("()")(0, 1));
-        test!("==")(Range.init, This.makeRange!("()")(T.max - 1, T.max));
-        test!("==")(Range(1, 1), This.makeRange!("()")(0, 2));
-        test!("==")(Range(T.max - 1, T.max - 1), This.makeRange!("()")(T.max - 2, T.max));
+        test!("==")(This(4, 6), This.makeRange!("()")(3, 7));
+        test!("==")(This.init, This.makeRange!("()")(5, 5));
+        test!("==")(This.init, This.makeRange!("()")(4, 5));
+        test!("==")(This(5, 5), This.makeRange!("()")(4, 6));
+        test!("==")(This.init, This.makeRange!("()")(7, 3));
+        test!("==")(This.init, This.makeRange!("()")(0, 0));
+        test!("==")(This.init, This.makeRange!("()")(T.max, T.max));
+        test!("==")(This(1, T.max - 1), This.makeRange!("()")(0, T.max));
+        test!("==")(This.init, This.makeRange!("()")(T.max, 0));
+        test!("==")(This.init, This.makeRange!("()")(0, 1));
+        test!("==")(This.init, This.makeRange!("()")(T.max - 1, T.max));
+        test!("==")(This(1, 1), This.makeRange!("()")(0, 2));
+        test!("==")(This(T.max - 1, T.max - 1), This.makeRange!("()")(T.max - 2, T.max));
     }
 
 
@@ -533,25 +533,25 @@ public struct Range ( T )
     unittest
     {
         // empty
-        test(!Range.init.contains(0), "Empty range can't contain any value");
-        test(!Range.init.contains(17), "Empty range can't contain any value");
-        test(!Range.init.contains(T.max), "Empty range can't contain any value");
+        test(!This.init.contains(0), "Empty range can't contain any value");
+        test(!This.init.contains(17), "Empty range can't contain any value");
+        test(!This.init.contains(T.max), "Empty range can't contain any value");
 
         // one point
-        test(Range(0, 0).contains(0), "One point range should contain this point");
-        test(Range(17, 17).contains(17), "One point range should contain this point");
-        test(Range(T.max, T.max).contains(T.max), "One point range should contain this point");
+        test(This(0, 0).contains(0), "One point range should contain this point");
+        test(This(17, 17).contains(17), "One point range should contain this point");
+        test(This(T.max, T.max).contains(T.max), "One point range should contain this point");
 
-        test(!Range(0, 0).contains(1), "One point range can't contain other point");
-        test(!Range(17, 17).contains(16), "One point range can't contain other point");
-        test(!Range(T.max, T.max).contains(T.max - 1), "One point range can't contain other point");
+        test(!This(0, 0).contains(1), "One point range can't contain other point");
+        test(!This(17, 17).contains(16), "One point range can't contain other point");
+        test(!This(T.max, T.max).contains(T.max - 1), "One point range can't contain other point");
 
         // more-point
-        test(!Range(3, 24).contains(2), "Range can't contain outside point");
-        test(Range(3, 24).contains(3), "Range should contain boundary point");
-        test(Range(3, 24).contains(11), "Range should contain inner point");
-        test(Range(3, 24).contains(24), "Range should contain boundary point");
-        test(!Range(3, 24).contains(25), "Range can't contain outside point");
+        test(!This(3, 24).contains(2), "This can't contain outside point");
+        test(This(3, 24).contains(3), "This should contain boundary point");
+        test(This(3, 24).contains(11), "This should contain inner point");
+        test(This(3, 24).contains(24), "This should contain boundary point");
+        test(!This(3, 24).contains(25), "This can't contain outside point");
     }
 
 
@@ -567,7 +567,7 @@ public struct Range ( T )
 
     ***************************************************************************/
 
-    public equals_t opEquals ( Range other )
+    public equals_t opEquals ( This other )
     {
         return this.min == other.min && this.max == other.max;
     }
@@ -575,19 +575,19 @@ public struct Range ( T )
     unittest
     {
         // empty == empty
-        assert(Range.init == Range.init);
+        assert(This.init == This.init);
 
         // empty != a
-        assert(Range.init != Range(0, 1));
+        assert(This.init != This(0, 1));
 
         // a != empty
-        assert(Range(0, 1) != Range.init);
+        assert(This(0, 1) != This.init);
 
         // a == b
-        assert(Range(0, 1) == Range(0, 1));
+        assert(This(0, 1) == This(0, 1));
 
         // a != b
-        assert(Range(0, 1) != Range(1, 2));
+        assert(This(0, 1) != This(1, 2));
     }
 
 
@@ -610,7 +610,7 @@ public struct Range ( T )
     ***************************************************************************/
 
     deprecated ("use isTessellatedBy instead")
-    public equals_t opEquals ( Range[] sub_ranges )
+    public equals_t opEquals ( This[] sub_ranges )
     {
         if ( sub_ranges.length == 0 ) return false;
 
@@ -669,28 +669,28 @@ public struct Range ( T )
     unittest
     {
         // empty < smallest range
-        assert(Range.init < Range(0, 0));
+        assert(This.init < This(0, 0));
 
         // smallest range > empty
-        assert(Range(0, 0) > Range.init);
+        assert(This(0, 0) > This.init);
 
         // a < b
-        assert(Range(0, 1) < Range(2, 3));
+        assert(This(0, 1) < This(2, 3));
 
         // a > b
-        assert(Range(2, 3) > Range(0, 1));
+        assert(This(2, 3) > This(0, 1));
 
         // a < b (overlapping)
-        assert(Range(0, 1) < Range(1, 2));
+        assert(This(0, 1) < This(1, 2));
 
         // a > b (overlapping)
-        assert(Range(1, 2) > Range(0, 1));
+        assert(This(1, 2) > This(0, 1));
 
         // a < b and a.min == b.min
-        assert(Range(1, 3) < Range(1, 5));
+        assert(This(1, 3) < This(1, 5));
 
         // a > b and a.min == b.min
-        assert(Range(1, 5) > Range(1, 3));
+        assert(This(1, 5) > This(1, 3));
     }
 
 
@@ -712,7 +712,7 @@ public struct Range ( T )
 
     ***************************************************************************/
 
-    public bool isSubsetOf ( Range other )
+    public bool isSubsetOf ( This other )
     {
         if ( this.is_empty || other.is_empty )
             return false;
@@ -723,31 +723,31 @@ public struct Range ( T )
     unittest
     {
         // empty
-        test(!Range.init.isSubsetOf(Range(0, 10)), "Empty range doesn't count as subset");
-        test(!Range(0, 10).isSubsetOf(Range.init), "Empty range can't be superset");
+        test(!This.init.isSubsetOf(This(0, 10)), "Empty range doesn't count as subset");
+        test(!This(0, 10).isSubsetOf(This.init), "Empty range can't be superset");
 
         // very proper subset
-        test(Range(1, 9).isSubsetOf(Range(0, 10)));
+        test(This(1, 9).isSubsetOf(This(0, 10)));
 
         // equal
-        test(Range(0, 10).isSubsetOf(Range(0, 10)), "Equal range is a subset too");
+        test(This(0, 10).isSubsetOf(This(0, 10)), "Equal range is a subset too");
 
         // ends touch, inside
-        test(Range(0, 9).isSubsetOf(Range(0, 10)));
-        test(Range(1, 10).isSubsetOf(Range(0, 10)));
+        test(This(0, 9).isSubsetOf(This(0, 10)));
+        test(This(1, 10).isSubsetOf(This(0, 10)));
 
         // ends touch, outside
-        test(!Range(0, 5).isSubsetOf(Range(5, 10)));
-        test(!Range(10, 15).isSubsetOf(Range(5, 10)));
+        test(!This(0, 5).isSubsetOf(This(5, 10)));
+        test(!This(10, 15).isSubsetOf(This(5, 10)));
 
         // very proper superset
-        test(!Range(0, 10).isSubsetOf(Range(1, 9)), "Proper superset can't be subset");
+        test(!This(0, 10).isSubsetOf(This(1, 9)), "Proper superset can't be subset");
 
         // overlap
-        test(!Range(0, 10).isSubsetOf(Range(5, 15)));
+        test(!This(0, 10).isSubsetOf(This(5, 15)));
 
         // no overlap
-        test(!Range(5, 10).isSubsetOf(Range(15, 20)));
+        test(!This(5, 10).isSubsetOf(This(15, 20)));
     }
 
 
@@ -773,7 +773,7 @@ public struct Range ( T )
     ***************************************************************************/
 
     deprecated ("similar but not equal behaviour you can find in isSubsetOf")
-    public bool subsetOf ( Range other )
+    public bool subsetOf ( This other )
     {
         if ( this.is_empty || other.is_empty ) return false;
 
@@ -784,28 +784,28 @@ public struct Range ( T )
     unittest
     {
         // empty
-        assert(!Range.init.subsetOf(Range(0, 10)));
-        assert(!Range(0, 10).subsetOf(Range.init));
+        assert(!This.init.subsetOf(This(0, 10)));
+        assert(!This(0, 10).subsetOf(This.init));
 
         // subset
-        assert(Range(1, 9).subsetOf(Range(0, 10)));
+        assert(This(1, 9).subsetOf(This(0, 10)));
 
         // equal
-        assert(!Range(0, 10).subsetOf(Range(0, 10)));
+        assert(!This(0, 10).subsetOf(This(0, 10)));
 
         // ends touch, inside
-        assert(!Range(0, 9).subsetOf(Range(0, 10)));
-        assert(!Range(1, 10).subsetOf(Range(0, 10)));
+        assert(!This(0, 9).subsetOf(This(0, 10)));
+        assert(!This(1, 10).subsetOf(This(0, 10)));
 
         // ends touch, outside
-        assert(!Range(0, 5).subsetOf(Range(5, 10)));
-        assert(!Range(10, 15).subsetOf(Range(5, 10)));
+        assert(!This(0, 5).subsetOf(This(5, 10)));
+        assert(!This(10, 15).subsetOf(This(5, 10)));
 
         // superset
-        assert(!Range(0, 10).subsetOf(Range(1, 9)));
+        assert(!This(0, 10).subsetOf(This(1, 9)));
 
         // no overlap
-        assert(!Range(5, 10).subsetOf(Range(15, 20)));
+        assert(!This(5, 10).subsetOf(This(15, 20)));
     }
 
 
@@ -827,7 +827,7 @@ public struct Range ( T )
 
     ***************************************************************************/
 
-    public bool isSupersetOf ( Range other )
+    public bool isSupersetOf ( This other )
     {
         return other.isSubsetOf(*this);
     }
@@ -835,31 +835,31 @@ public struct Range ( T )
     unittest
     {
         // empty
-        test(!Range.init.isSupersetOf(Range(0, 10)), "Empty range can't be superset");
-        test(!Range(0, 10).isSupersetOf(Range.init),  "Empty range doesn't count as subset");
+        test(!This.init.isSupersetOf(This(0, 10)), "Empty range can't be superset");
+        test(!This(0, 10).isSupersetOf(This.init),  "Empty range doesn't count as subset");
 
         // very proper superset
-        test(Range(0, 10).isSupersetOf(Range(1, 9)));
+        test(This(0, 10).isSupersetOf(This(1, 9)));
 
         // equal
-        test(Range(0, 10).isSupersetOf(Range(0, 10)), "Equal range is a superset too");
+        test(This(0, 10).isSupersetOf(This(0, 10)), "Equal range is a superset too");
 
         // ends touch, inside
-        test(Range(0, 10).isSupersetOf(Range(0, 9)));
-        test(Range(0, 10).isSupersetOf(Range(1, 10)));
+        test(This(0, 10).isSupersetOf(This(0, 9)));
+        test(This(0, 10).isSupersetOf(This(1, 10)));
 
         // ends touch, outside
-        test(!Range(5, 10).isSupersetOf(Range(0, 5)));
-        test(!Range(5, 10).isSupersetOf(Range(10, 15)));
+        test(!This(5, 10).isSupersetOf(This(0, 5)));
+        test(!This(5, 10).isSupersetOf(This(10, 15)));
 
         // very proper subset
-        test(!Range(1, 9).isSupersetOf(Range(0, 10)), "Proper subset can't be superset");
+        test(!This(1, 9).isSupersetOf(This(0, 10)), "Proper subset can't be superset");
 
         // overlap
-        test(!Range(0, 10).isSupersetOf(Range(5, 15)));
+        test(!This(0, 10).isSupersetOf(This(5, 15)));
 
         // no overlap
-        test(!Range(5, 10).isSupersetOf(Range(15, 20)));
+        test(!This(5, 10).isSupersetOf(This(15, 20)));
     }
 
 
@@ -886,7 +886,7 @@ public struct Range ( T )
     ***************************************************************************/
 
     deprecated ("similar but not equal behaviour you can find in isSupersetOf")
-    public bool supersetOf ( Range other )
+    public bool supersetOf ( This other )
     {
         return other.subsetOf(*this);
     }
@@ -895,28 +895,28 @@ public struct Range ( T )
     unittest
     {
         // empty
-        assert(!Range.init.supersetOf(Range(0, 10)));
-        assert(!Range(0, 10).supersetOf(Range.init));
+        assert(!This.init.supersetOf(This(0, 10)));
+        assert(!This(0, 10).supersetOf(This.init));
 
         // superset
-        assert(Range(0, 10).supersetOf(Range(1, 9)));
+        assert(This(0, 10).supersetOf(This(1, 9)));
 
         // equal
-        assert(!Range(0, 10).supersetOf(Range(0, 10)));
+        assert(!This(0, 10).supersetOf(This(0, 10)));
 
         // ends touch, inside
-        assert(!Range(0, 10).supersetOf(Range(0, 9)));
-        assert(!Range(0, 10).supersetOf(Range(1, 10)));
+        assert(!This(0, 10).supersetOf(This(0, 9)));
+        assert(!This(0, 10).supersetOf(This(1, 10)));
 
         // ends touch, outside
-        assert(!Range(5, 10).supersetOf(Range(0, 5)));
-        assert(!Range(5, 10).supersetOf(Range(10, 15)));
+        assert(!This(5, 10).supersetOf(This(0, 5)));
+        assert(!This(5, 10).supersetOf(This(10, 15)));
 
         // subset
-        assert(!Range(1, 9).supersetOf(Range(0, 10)));
+        assert(!This(1, 9).supersetOf(This(0, 10)));
 
         // no overlap
-        assert(!Range(5, 10).supersetOf(Range(15, 20)));
+        assert(!This(5, 10).supersetOf(This(15, 20)));
     }
 
 
@@ -930,10 +930,10 @@ public struct Range ( T )
         It is assumed that the array is already sorted.
 
         This method can be used as a replacement for the now-deprecated
-        opEquals ( Range[] )
+        opEquals ( This[] )
 
         Params:
-            ranges = a sorted array of Range!T
+            ranges = a sorted array of This!T
 
         Returns:
             true if this instance is tessellated by the given array
@@ -941,7 +941,7 @@ public struct Range ( T )
 
     ***************************************************************************/
 
-    public bool isTessellatedBy ( Range[] ranges )
+    public bool isTessellatedBy ( This[] ranges )
     {
         return (*this == extent(ranges)) && isContiguous(ranges);
     }
@@ -949,60 +949,60 @@ public struct Range ( T )
     unittest
     {
         // minimal case: one range, test covers and not-covers
-        test(Range(0, 0).isTessellatedBy([Range(0, 0)]));
-        test(!Range(0, 0).isTessellatedBy([Range(1, 1)]));
+        test(This(0, 0).isTessellatedBy([This(0, 0)]));
+        test(!This(0, 0).isTessellatedBy([This(1, 1)]));
 
         // tessellation by itself
-        test(Range(3, 12).isTessellatedBy([Range(3, 12)]), "Any range should tessellate itself");
+        test(This(3, 12).isTessellatedBy([This(3, 12)]), "Any range should tessellate itself");
 
         // proper subset or proper superset can't be tessellation
-        test(!Range(3, 12).isTessellatedBy([Range(4, 11)]), "Proper superset can't be tessellation");
-        test(!Range(3, 12).isTessellatedBy([Range(3, 11)]), "Proper superset can't be tessellation");
-        test(!Range(3, 12).isTessellatedBy([Range(4, 12)]), "Proper superset can't be tessellation");
-        test(!Range(3, 12).isTessellatedBy([Range(2, 13)]), "Proper subset can't be tessellation");
-        test(!Range(3, 12).isTessellatedBy([Range(3, 13)]), "Proper subset can't be tessellation");
-        test(!Range(3, 12).isTessellatedBy([Range(2, 12)]), "Proper subset can't be tessellation");
+        test(!This(3, 12).isTessellatedBy([This(4, 11)]), "Proper superset can't be tessellation");
+        test(!This(3, 12).isTessellatedBy([This(3, 11)]), "Proper superset can't be tessellation");
+        test(!This(3, 12).isTessellatedBy([This(4, 12)]), "Proper superset can't be tessellation");
+        test(!This(3, 12).isTessellatedBy([This(2, 13)]), "Proper subset can't be tessellation");
+        test(!This(3, 12).isTessellatedBy([This(3, 13)]), "Proper subset can't be tessellation");
+        test(!This(3, 12).isTessellatedBy([This(2, 12)]), "Proper subset can't be tessellation");
 
         // complete
-        test(Range(0, 10).isTessellatedBy([Range(0, 1),
-                                           Range(2, 5),
-                                           Range(6, 10)]));
+        test(This(0, 10).isTessellatedBy([This(0, 1),
+                                           This(2, 5),
+                                           This(6, 10)]));
 
         // missing start
-        test(!Range(0, 10).isTessellatedBy([Range(1, 1),
-                                            Range(2, 5),
-                                            Range(6, 10)]));
+        test(!This(0, 10).isTessellatedBy([This(1, 1),
+                                            This(2, 5),
+                                            This(6, 10)]));
 
         // missing middle
-        test(!Range(0, 10).isTessellatedBy([Range(0, 1),
-                                                  Range(3, 5),
-                                                  Range(6, 10)]));
+        test(!This(0, 10).isTessellatedBy([This(0, 1),
+                                                  This(3, 5),
+                                                  This(6, 10)]));
 
         // missing end
-        test(!Range(0, 10).isTessellatedBy([Range(0, 1),
-                                            Range(2, 5),
-                                            Range(6, 9)]));
+        test(!This(0, 10).isTessellatedBy([This(0, 1),
+                                            This(2, 5),
+                                            This(6, 9)]));
 
         // overlapped ranges in list
-        test(!Range(0, 10).isTessellatedBy([Range(0, 2),
-                                            Range(2, 5),
-                                            Range(6, 10)]));
+        test(!This(0, 10).isTessellatedBy([This(0, 2),
+                                            This(2, 5),
+                                            This(6, 10)]));
 
         // empty ranges skipped
-        Range empty;
-        test(Range(0, 10).isTessellatedBy([empty,
+        This empty;
+        test(This(0, 10).isTessellatedBy([empty,
                                            empty,
-                                           Range(0, 1),
-                                           Range(2, 5),
-                                           Range(6, 10)]));
+                                           This(0, 1),
+                                           This(2, 5),
+                                           This(6, 10)]));
 
         // union of empty ranges and empty list
-        test(!Range(0, 10).isTessellatedBy([empty,
+        test(!This(0, 10).isTessellatedBy([empty,
                                             empty,
                                             empty]));
-        test(!Range(0, 10).isTessellatedBy([empty]));
-        test(!Range(0, 10).isTessellatedBy([]));
-        test(!Range(0, 10).isTessellatedBy(null));
+        test(!This(0, 10).isTessellatedBy([empty]));
+        test(!This(0, 10).isTessellatedBy([]));
+        test(!This(0, 10).isTessellatedBy(null));
     }
 
 
@@ -1015,7 +1015,7 @@ public struct Range ( T )
         It is assumed that the array is already sorted.
 
         Params:
-            ranges = a sorted array of Range!T to be checked
+            ranges = a sorted array of This!T to be checked
                      that covers this instance
 
         Returns:
@@ -1024,7 +1024,7 @@ public struct Range ( T )
 
     ***************************************************************************/
 
-    public bool isCoveredBy ( Range[] ranges )
+    public bool isCoveredBy ( This[] ranges )
     {
         return this.isSubsetOf(extent(ranges)) && !hasGap(ranges);
     }
@@ -1032,48 +1032,48 @@ public struct Range ( T )
     unittest
     {
         // minimal case: one hash range, test covers and not-covers
-        test(Range(0, 0).isCoveredBy([Range(0, 0)]));
-        test(!Range(0, 0).isCoveredBy([Range(1, 1)]));
+        test(This(0, 0).isCoveredBy([This(0, 0)]));
+        test(!This(0, 0).isCoveredBy([This(1, 1)]));
 
         // coverage by itself
-        test(Range(3, 12).isCoveredBy([Range(3, 12)]), "Any range should cover itself");
+        test(This(3, 12).isCoveredBy([This(3, 12)]), "Any range should cover itself");
 
         // any superset can be coverage
-        test(Range(3, 12).isCoveredBy([Range(3, 13)]), "Proper superset should be coverage");
-        test(Range(3, 12).isCoveredBy([Range(2, 12)]), "Proper superset should be coverage");
-        test(Range(3, 12).isCoveredBy([Range(2, 13)]), "Proper superset should be coverage");
+        test(This(3, 12).isCoveredBy([This(3, 13)]), "Proper superset should be coverage");
+        test(This(3, 12).isCoveredBy([This(2, 12)]), "Proper superset should be coverage");
+        test(This(3, 12).isCoveredBy([This(2, 13)]), "Proper superset should be coverage");
 
         // any subset can't be coverage
-        test(!Range(3, 12).isCoveredBy([Range(3, 11)]), "Proper subset can't be coverage");
-        test(!Range(3, 12).isCoveredBy([Range(4, 12)]), "Proper subset can't be coverage");
-        test(!Range(3, 12).isCoveredBy([Range(4, 11)]), "Proper subset can't be coverage");
+        test(!This(3, 12).isCoveredBy([This(3, 11)]), "Proper subset can't be coverage");
+        test(!This(3, 12).isCoveredBy([This(4, 12)]), "Proper subset can't be coverage");
+        test(!This(3, 12).isCoveredBy([This(4, 11)]), "Proper subset can't be coverage");
 
         // a tessellation is a coverage
-        test(Range(3, 12).isCoveredBy([Range(3, 5), Range(6, 12)]));
+        test(This(3, 12).isCoveredBy([This(3, 5), This(6, 12)]));
 
         // overlap allowed
-        test(Range(3, 12).isCoveredBy([Range(3, 7), Range(4, 12)]));
-        test(Range(3, 12).isCoveredBy([Range(1, 7), Range(4, 15)]));
+        test(This(3, 12).isCoveredBy([This(3, 7), This(4, 12)]));
+        test(This(3, 12).isCoveredBy([This(1, 7), This(4, 15)]));
 
         // gap not allowed
-        test(!Range(3, 12).isCoveredBy([Range(3, 5), Range(7, 12)]));
-        test(!Range(3, 12).isCoveredBy([Range(1, 5), Range(7, 15)]));
+        test(!This(3, 12).isCoveredBy([This(3, 5), This(7, 12)]));
+        test(!This(3, 12).isCoveredBy([This(1, 5), This(7, 15)]));
 
         // empty ranges skipped
-        Range empty;
-        test(Range(0, 10).isCoveredBy([empty,
+        This empty;
+        test(This(0, 10).isCoveredBy([empty,
                                        empty,
-                                       Range(0, 3),
-                                       Range(2, 5),
-                                       Range(6, 11)]));
+                                       This(0, 3),
+                                       This(2, 5),
+                                       This(6, 11)]));
 
         // union of empty ranges and empty list
-        test(!Range(0, 10).isCoveredBy([empty,
+        test(!This(0, 10).isCoveredBy([empty,
                                         empty,
                                         empty]));
-        test(!Range(0, 10).isCoveredBy([empty]));
-        test(!Range(0, 10).isCoveredBy([]));
-        test(!Range(0, 10).isCoveredBy(null));
+        test(!This(0, 10).isCoveredBy([empty]));
+        test(!This(0, 10).isCoveredBy([]));
+        test(!This(0, 10).isCoveredBy(null));
     }
 
 
@@ -1089,38 +1089,38 @@ public struct Range ( T )
         // Note that given two logical conditions A and B,
         // "A implies B" is equivalent to (A == true) <= (B == true)
 
-        auto target = Range(12, 17);
-        Range[] ranges;
+        auto target = This(12, 17);
+        This[] ranges;
 
         // neither tessellated nor covered
         test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
 
-        ranges ~= [Range(1, 5)];
+        ranges ~= [This(1, 5)];
         test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
         ranges.length = 0;
         enableStomping(ranges);
 
-        ranges ~= [Range(12, 15)];
+        ranges ~= [This(12, 15)];
         test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
         ranges.length = 0;
         enableStomping(ranges);
 
-        ranges ~= [Range(14, 17)];
+        ranges ~= [This(14, 17)];
         test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
         ranges.length = 0;
         enableStomping(ranges);
 
-        ranges ~= [Range(18, 25)];
+        ranges ~= [This(18, 25)];
         test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
         ranges.length = 0;
         enableStomping(ranges);
 
-        ranges ~= [Range(1, 5), Range(19, 20)];
+        ranges ~= [This(1, 5), This(19, 20)];
         test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
         ranges.length = 0;
         enableStomping(ranges);
 
-        ranges ~= [Range(1, 13), Range(16, 20)];
+        ranges ~= [This(1, 13), This(16, 20)];
         test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
         ranges.length = 0;
         enableStomping(ranges);
@@ -1128,43 +1128,43 @@ public struct Range ( T )
         test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
 
         // covered, but not tessellated
-        ranges ~= [Range(11, 17)];
+        ranges ~= [This(11, 17)];
         test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
         ranges.length = 0;
         enableStomping(ranges);
 
-        ranges ~= [Range(12, 18)];
+        ranges ~= [This(12, 18)];
         test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
         ranges.length = 0;
         enableStomping(ranges);
 
-        ranges ~= [Range(11, 18)];
+        ranges ~= [This(11, 18)];
         test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
         ranges.length = 0;
         enableStomping(ranges);
 
-        ranges ~= [Range(1, 15), Range(14, 20)];
+        ranges ~= [This(1, 15), This(14, 20)];
         test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
         ranges.length = 0;
         enableStomping(ranges);
 
-        ranges ~= [Range(12, 15), Range(15, 17)];
+        ranges ~= [This(12, 15), This(15, 17)];
         test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
         ranges.length = 0;
         enableStomping(ranges);
 
-        ranges ~= [Range(12, 16), Range(14, 17)];
+        ranges ~= [This(12, 16), This(14, 17)];
         test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
         ranges.length = 0;
         enableStomping(ranges);
 
         // tessellated
-        ranges ~= [Range(12, 17)];
+        ranges ~= [This(12, 17)];
         test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
         ranges.length = 0;
         enableStomping(ranges);
 
-        ranges ~= [Range(12, 14), Range(15, 17)];
+        ranges ~= [This(12, 14), This(15, 17)];
         test!("<=")(target.isTessellatedBy(ranges), target.isCoveredBy(ranges));
         ranges.length = 0;
         enableStomping(ranges);
@@ -1200,55 +1200,56 @@ public struct Range ( T )
         This.sortEndpoints(*this, other, a);
 
         return a[0].owner_index != a[1].owner_index
-               ? Range(a[1].value, a[2].value).length : 0;
+               ? This(a[1].value, a[2].value).length : 0;
     }
 
     unittest
     {
         // empty
-        assert(Range.init.overlapAmount(Range.init) == 0);
-        assert(Range.init.overlapAmount(Range(0, 10)) == 0);
-        assert(Range(0, 10).overlapAmount(Range.init) == 0);
+        assert(This.init.overlapAmount(This.init) == 0);
+        assert(This.init.overlapAmount(This(0, 10)) == 0);
+        assert(This(0, 10).overlapAmount(This.init) == 0);
 
         // empty vs. full
-        assert(Range(T.min, T.max).overlapAmount(Range.init) == 0);
-        assert(Range.init.overlapAmount(Range(T.min, T.max)) == 0);
+        assert(This(T.min, T.max).overlapAmount(This.init) == 0);
+        assert(This.init.overlapAmount(This(T.min, T.max)) == 0);
 
         // full
         testThrown!()(Range(T.min, T.max).overlapAmount(Range(T.min, T.max)));
 
         // equal
-        assert(Range(0, 10).overlapAmount(Range(0, 10)) == 11);
+        assert(This(0, 10).overlapAmount(This(0, 10)) == 11);
 
         // proper subset
-        assert(Range(0, 10).overlapAmount(Range(1, 9)) == 9);
+        assert(This(0, 10).overlapAmount(This(1, 9)) == 9);
 
         // proper superset
-        assert(Range(1, 9).overlapAmount(Range(0, 10)) == 9);
+        assert(This(1, 9).overlapAmount(This(0, 10)) == 9);
 
         // proper superset of the full range
-        assert(Range(1, 10).overlapAmount(Range(T.min, T.max)) == 10);
-        assert(Range(T.min, T.max).overlapAmount(Range(1, 10)) == 10);
+        assert(This(1, 10).overlapAmount(This(T.min, T.max)) == 10);
+        assert(This(T.min, T.max).overlapAmount(This(1, 10)) == 10);
 
         // ends touch
-        assert(Range(0, 10).overlapAmount(Range(10, 20)) == 1);
-        assert(Range(10, 20).overlapAmount(Range(0, 10)) == 1);
+        assert(This(0, 10).overlapAmount(This(10, 20)) == 1);
+        assert(This(10, 20).overlapAmount(This(0, 10)) == 1);
 
         // subset + ends touch
-        assert(Range(0, 10).overlapAmount(Range(0, 9)) == 10);
-        assert(Range(0, 10).overlapAmount(Range(1, 10)) == 10);
+        assert(This(0, 10).overlapAmount(This(0, 9)) == 10);
+        assert(This(0, 10).overlapAmount(This(1, 10)) == 10);
 
         // superset + ends touch
-        assert(Range(0, 9).overlapAmount(Range(0, 10)) == 10);
-        assert(Range(1, 10).overlapAmount(Range(0, 10)) == 10);
+        assert(This(0, 9).overlapAmount(This(0, 10)) == 10);
+        assert(This(1, 10).overlapAmount(This(0, 10)) == 10);
 
         // overlaps
-        assert(Range(0, 10).overlapAmount(Range(9, 20)) == 2);
-        assert(Range(10, 20).overlapAmount(Range(0, 11)) == 2);
+        assert(This(0, 10).overlapAmount(This(9, 20)) == 2);
+        assert(This(10, 20).overlapAmount(This(0, 11)) == 2);
 
         // no overlap
-        assert(Range(0, 10).overlapAmount(Range(11, 20)) == 0);
-        assert(Range(10, 20).overlapAmount(Range(0, 9)) == 0);
+        assert(This(0, 10).overlapAmount(This(11, 20)) == 0);
+        assert(This(10, 20).overlapAmount(This(0, 9)) == 0);
+
     }
 
 
@@ -1265,7 +1266,7 @@ public struct Range ( T )
 
     ***************************************************************************/
 
-    public bool overlaps ( Range other )
+    public bool overlaps ( This other )
     {
         if ( this.is_empty || other.is_empty ) return false;
 
@@ -1275,38 +1276,38 @@ public struct Range ( T )
     unittest
     {
         // empty
-        assert(!Range.init.overlaps(Range.init));
-        assert(!Range.init.overlaps(Range(0, 10)));
-        assert(!Range(0, 10).overlaps(Range.init));
+        assert(!This.init.overlaps(This.init));
+        assert(!This.init.overlaps(This(0, 10)));
+        assert(!This(0, 10).overlaps(This.init));
 
         // equal
-        assert(Range(0, 10).overlaps(Range(0, 10)));
+        assert(This(0, 10).overlaps(This(0, 10)));
 
         // proper subset
-        assert(Range(0, 10).overlaps(Range(1, 9)));
+        assert(This(0, 10).overlaps(This(1, 9)));
 
         // proper superset
-        assert(Range(1, 9).overlaps(Range(0, 10)));
+        assert(This(1, 9).overlaps(This(0, 10)));
 
         // ends touch
-        assert(Range(0, 10).overlaps(Range(10, 20)));
-        assert(Range(10, 20).overlaps(Range(0, 10)));
+        assert(This(0, 10).overlaps(This(10, 20)));
+        assert(This(10, 20).overlaps(This(0, 10)));
 
         // subset + ends touch
-        assert(Range(0, 10).overlaps(Range(0, 9)));
-        assert(Range(0, 10).overlaps(Range(1, 10)));
+        assert(This(0, 10).overlaps(This(0, 9)));
+        assert(This(0, 10).overlaps(This(1, 10)));
 
         // superset + ends touch
-        assert(Range(0, 9).overlaps(Range(0, 10)));
-        assert(Range(1, 10).overlaps(Range(0, 10)));
+        assert(This(0, 9).overlaps(This(0, 10)));
+        assert(This(1, 10).overlaps(This(0, 10)));
 
         // overlaps
-        assert(Range(0, 10).overlaps(Range(9, 20)));
-        assert(Range(10, 20).overlaps(Range(0, 11)));
+        assert(This(0, 10).overlaps(This(9, 20)));
+        assert(This(10, 20).overlaps(This(0, 11)));
 
         // no overlap
-        assert(!Range(0, 10).overlaps(Range(11, 20)));
-        assert(!Range(10, 20).overlaps(Range(0, 9)));
+        assert(!This(0, 10).overlaps(This(11, 20)));
+        assert(!This(10, 20).overlaps(This(0, 9)));
     }
 
 
@@ -1330,7 +1331,7 @@ public struct Range ( T )
 
     ***************************************************************************/
 
-    public void subtract ( Range other, out Range lower, out Range upper )
+    public void subtract ( This other, out This lower, out This upper )
     {
         // this empty -- empty result
         if ( this.is_empty ) return;
@@ -1353,9 +1354,9 @@ public struct Range ( T )
         }
 
         auto first = a[0].owner_index < a[1].owner_index
-                     ? This.makeRange!("[)")(a[0].value, a[1].value) : Range.init;
+                     ? This.makeRange!("[)")(a[0].value, a[1].value) : This.init;
         auto second = a[2].owner_index > a[3].owner_index
-                      ? This.makeRange!("(]")(a[2].value, a[3].value) : Range.init;
+                      ? This.makeRange!("(]")(a[2].value, a[3].value) : This.init;
 
         if (first.is_empty)
         {
@@ -1370,45 +1371,45 @@ public struct Range ( T )
 
     unittest
     {
-        bool test ( Range r1, Range r2,
-            Range l_expected, Range u_expected = Range.init )
+        bool test ( This r1, This r2,
+            This l_expected, This u_expected = This.init )
         {
-            Range l, u;
+            This l, u;
             r1.subtract(r2, l, u);
             return l == l_expected && u == u_expected;
         }
 
         // empty
-        assert(test(Range.init, Range.init, Range.init));
-        assert(test(Range.init, Range(0, 0), Range.init));
-        assert(test(Range(0, 0), Range.init, Range(0, 0)));
+        assert(test(This.init, This.init, This.init));
+        assert(test(This.init, This(0, 0), This.init));
+        assert(test(This(0, 0), This.init, This(0, 0)));
 
         // equal
-        assert(test(Range(0, 0), Range(0, 0), Range.init));
-        assert(test(Range(T.max, T.max), Range(T.max, T.max), Range.init));
-        assert(test(Range(0, 10), Range(0, 10), Range.init));
-        assert(test(Range(0, T.max), Range(0, T.max), Range.init));
+        assert(test(This(0, 0), This(0, 0), This.init));
+        assert(test(This(T.max, T.max), This(T.max, T.max), This.init));
+        assert(test(This(0, 10), This(0, 10), This.init));
+        assert(test(This(0, T.max), This(0, T.max), This.init));
 
         // superset
-        assert(test(Range(1, 9), Range(0, 10), Range.init));
+        assert(test(This(1, 9), This(0, 10), This.init));
 
         // subset
-        assert(test(Range(0, 10), Range(1, 9), Range(0, 0), Range(10, 10)));
-        assert(test(Range(0, 10), Range(5, 5), Range(0, 4), Range(6, 10)));
+        assert(test(This(0, 10), This(1, 9), This(0, 0), This(10, 10)));
+        assert(test(This(0, 10), This(5, 5), This(0, 4), This(6, 10)));
 
         // no overlap
-        assert(test(Range(0, 10), Range (11, 20), Range(0, 10)));
-        assert(test(Range(11, 20), Range (0, 10), Range(11, 20)));
+        assert(test(This(0, 10), This (11, 20), This(0, 10)));
+        assert(test(This(11, 20), This (0, 10), This(11, 20)));
 
         // ends touch
-        assert(test(Range(10, 20), Range(0, 10), Range(11, 20)));
-        assert(test(Range(10, 20), Range(20, 30), Range(10, 19)));
+        assert(test(This(10, 20), This(0, 10), This(11, 20)));
+        assert(test(This(10, 20), This(20, 30), This(10, 19)));
 
         // overlap
-        assert(test(Range(5, 15), Range(0, 10), Range(11, 15)));
-        assert(test(Range(5, 15), Range(5, 10), Range(11, 15)));
-        assert(test(Range(5, 15), Range(10, 20), Range(5, 9)));
-        assert(test(Range(5, 15), Range(10, 15), Range(5, 9)));
+        assert(test(This(5, 15), This(0, 10), This(11, 15)));
+        assert(test(This(5, 15), This(5, 10), This(11, 15)));
+        assert(test(This(5, 15), This(10, 20), This(5, 9)));
+        assert(test(This(5, 15), This(10, 15), This(5, 9)));
     }
 
 
@@ -1429,7 +1430,7 @@ public struct Range ( T )
         their values are equal.
 
         Note: In D2 it may be better to rewrite this function to:
-                    RangeEndpoint[4] sortEndpoints ( Range first, Range second )
+                    RangeEndpoint[4] sortEndpoints ( This first, This second )
 
         Params:
             first = the first of the two Ranges
@@ -1440,7 +1441,7 @@ public struct Range ( T )
 
     ***************************************************************************/
 
-    private static void sortEndpoints ( Range first, Range second,
+    private static void sortEndpoints ( This first, This second,
                                         RangeEndpoint[] array )
     in
     {
@@ -1476,82 +1477,82 @@ public struct Range ( T )
         RangeEndpoint[4] a;
 
         // no overlap
-        This.sortEndpoints(Range(0, 10), Range(15, 20), a);
+        This.sortEndpoints(This(0, 10), This(15, 20), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(10, 0),
                         RangeEndpoint(15, 1), RangeEndpoint(20, 1)]);
-        This.sortEndpoints(Range(15, 20), Range(0, 10), a);
+        This.sortEndpoints(This(15, 20), This(0, 10), a);
         test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(10, 1),
                         RangeEndpoint(15, 0), RangeEndpoint(20, 0)]);
 
         // overlap
-        This.sortEndpoints(Range(0, 15), Range(10, 20), a);
+        This.sortEndpoints(This(0, 15), This(10, 20), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(10, 1),
                         RangeEndpoint(15, 0), RangeEndpoint(20, 1)]);
-        This.sortEndpoints(Range(10, 20), Range(0, 15), a);
+        This.sortEndpoints(This(10, 20), This(0, 15), a);
         test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(10, 0),
                         RangeEndpoint(15, 1), RangeEndpoint(20, 0)]);
 
         // outer touch
-        This.sortEndpoints(Range(0, 10), Range(10, 20), a);
+        This.sortEndpoints(This(0, 10), This(10, 20), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(10, 1),
                         RangeEndpoint(10, 0), RangeEndpoint(20, 1)]);
-        This.sortEndpoints(Range(10, 20), Range(0, 10), a);
+        This.sortEndpoints(This(10, 20), This(0, 10), a);
         test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(10, 0),
                         RangeEndpoint(10, 1), RangeEndpoint(20, 0)]);
 
         // inner touch
-        This.sortEndpoints(Range(0, 10), Range(5, 10), a);
+        This.sortEndpoints(This(0, 10), This(5, 10), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(5, 1),
                         RangeEndpoint(10, 0), RangeEndpoint(10, 1)]);
-        This.sortEndpoints(Range(5, 10), Range(0, 10), a);
+        This.sortEndpoints(This(5, 10), This(0, 10), a);
         test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(5, 0),
                         RangeEndpoint(10, 0), RangeEndpoint(10, 1)]);
-        This.sortEndpoints(Range(0, 10), Range(0, 5), a);
+        This.sortEndpoints(This(0, 10), This(0, 5), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(0, 1),
                         RangeEndpoint(5, 1), RangeEndpoint(10, 0)]);
-        This.sortEndpoints(Range(0, 5), Range(0, 10), a);
+        This.sortEndpoints(This(0, 5), This(0, 10), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(0, 1),
                         RangeEndpoint(5, 0), RangeEndpoint(10, 1)]);
 
         // ultra proper subrange
-        This.sortEndpoints(Range(0, 10), Range(3, 7), a);
+        This.sortEndpoints(This(0, 10), This(3, 7), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(3, 1),
                         RangeEndpoint(7, 1), RangeEndpoint(10, 0)]);
-        This.sortEndpoints(Range(3, 7), Range(0, 10), a);
+        This.sortEndpoints(This(3, 7), This(0, 10), a);
         test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(3, 0),
                         RangeEndpoint(7, 0), RangeEndpoint(10, 1)]);
 
         // equal
-        This.sortEndpoints(Range(0, 10), Range(0, 10), a);
+        This.sortEndpoints(This(0, 10), This(0, 10), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(0, 1),
                         RangeEndpoint(10, 0), RangeEndpoint(10, 1)]);
-        This.sortEndpoints(Range(5, 5), Range(5, 5), a);
+        This.sortEndpoints(This(5, 5), This(5, 5), a);
         test!("==")(a, [RangeEndpoint(5, 0), RangeEndpoint(5, 1),
                         RangeEndpoint(5, 0), RangeEndpoint(5, 1)]);
 
         // one point range
-        This.sortEndpoints(Range(4, 4), Range(5, 5), a);
+        This.sortEndpoints(This(4, 4), This(5, 5), a);
         test!("==")(a, [RangeEndpoint(4, 0), RangeEndpoint(4, 0),
                         RangeEndpoint(5, 1), RangeEndpoint(5, 1)]);
-        This.sortEndpoints(Range(5, 5), Range(4, 4), a);
+        This.sortEndpoints(This(5, 5), This(4, 4), a);
         test!("==")(a, [RangeEndpoint(4, 1), RangeEndpoint(4, 1),
                         RangeEndpoint(5, 0), RangeEndpoint(5, 0)]);
-        This.sortEndpoints(Range(5, 5), Range(0, 10), a);
+        This.sortEndpoints(This(5, 5), This(0, 10), a);
         test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(5, 0),
                         RangeEndpoint(5, 0), RangeEndpoint(10, 1)]);
-        This.sortEndpoints(Range(0, 10), Range(5, 5), a);
+        This.sortEndpoints(This(0, 10), This(5, 5), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(5, 1),
                         RangeEndpoint(5, 1), RangeEndpoint(10, 0)]);
-        This.sortEndpoints(Range(5, 5), Range(5, 10), a);
+        This.sortEndpoints(This(5, 5), This(5, 10), a);
         test!("==")(a, [RangeEndpoint(5, 0), RangeEndpoint(5, 1),
                         RangeEndpoint(5, 0), RangeEndpoint(10, 1)]);
-        This.sortEndpoints(Range(5, 10), Range(5, 5), a);
+        This.sortEndpoints(This(5, 10), This(5, 5), a);
         test!("==")(a, [RangeEndpoint(5, 0), RangeEndpoint(5, 1),
                         RangeEndpoint(5, 1), RangeEndpoint(10, 0)]);
-        This.sortEndpoints(Range(5, 5), Range(0, 5), a);
+        This.sortEndpoints(This(5, 5), This(0, 5), a);
         test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(5, 0),
                         RangeEndpoint(5, 0), RangeEndpoint(5, 1)]);
-        This.sortEndpoints(Range(0, 5), Range(5, 5), a);
+        This.sortEndpoints(This(0, 5), This(5, 5), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(5, 1),
                         RangeEndpoint(5, 0), RangeEndpoint(5, 1)]);
     }
