@@ -1168,10 +1168,6 @@ public struct Range ( T )
         Calculates the number of values shared by this range and the other range
         specified.
 
-        This method should not be called if both this instance and other cover
-        the full range, i.e. `this.is_full_range && other.full_range` is true.
-        (This is to prevent an integer overflow.)
-
         Params:
             other = instance to compare with this
 

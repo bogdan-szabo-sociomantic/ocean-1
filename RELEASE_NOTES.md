@@ -34,9 +34,8 @@ Migration Instructions
   - `Range.length()` throws `Exception` for the full range.
   - `Range.overlapAmount()` throws `Exception` called if both ranges are full.
 
-  The preferred way is to use `Range.is_full_range` to check if the range(s)
-  is/are full and not call `Range.length()` or `Range.overlapAmount()` then,
-  resp.
+  To avoid throwing, use `Range.is_full_range` to check if the range(s) is/are
+  full and not call `Range.length()` or `Range.overlapAmount()` then, resp.
 
   This is because these methods return `size_t`, which on x86-64 is an alias of
   `ulong`, the largest integer type. The widely used `hash_t` is an alias of
