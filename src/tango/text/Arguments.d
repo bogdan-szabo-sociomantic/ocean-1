@@ -561,13 +561,28 @@ module tango.text.Arguments;
 
 
 
+/*******************************************************************************
+
+    Imports
+
+*******************************************************************************/
+
 import tango.transition;
 
 import tango.text.Util;
 import tango.util.container.more.Stack;
 
 
-version=dashdash;       // -- everything assigned to the null argument
+
+/*******************************************************************************
+
+    If `version ( dashdash )` is enabled, then all parameters following "--" are
+    assigned to the special 'null' argument. Otherwise, all parameters following
+    "--" are assigned to the last known argument target.
+
+*******************************************************************************/
+
+version=dashdash;
 
 
 
@@ -579,16 +594,100 @@ version=dashdash;       // -- everything assigned to the null argument
 
 class Arguments
 {
+    /***************************************************************************
+
+        Convenience aliases to access a specific argument instance
+
+    ***************************************************************************/
+
     public alias get                opCall;         // args("name")
     public alias get                opIndex;        // args["name"]
 
+
+    /***************************************************************************
+
+        Stack used to help in assigning implicitly assigned parameters to
+        arguments during parsing.
+
+        This stack contains argument instances of only those arguments that can
+        have one or more associated parameters. Implicit parameters always get
+        assigned to the topmost argument in the stack. Once the number of
+        parameters of the topmost argument in the stack reaches its maximum
+        configured value, that argument gets popped off the stack. Future
+        implicit assignments will then happen to the new topmost argument in the
+        stack.
+
+        The null argument is always the first one that gets pushed onto the
+        stack. This ensures that it is able to "catch" all unclaimed parameters
+        at the end.
+
+    ***************************************************************************/
+
     private Stack!(Argument)        stack;
+
+
+    /***************************************************************************
+
+        AA used to store all the argument instances
+        (indexed by the argument name)
+
+    ***************************************************************************/
+
     private Argument[istring]       args;
+
+
+    /***************************************************************************
+
+        AA used to store argument instances that have aliases
+        (indexed by the argument aliases)
+
+    ***************************************************************************/
+
     private Argument[istring]       aliases;
+
+
+    /***************************************************************************
+
+        Character to be used as the explicit assignment symbol
+
+    ***************************************************************************/
+
     private char                    eq;
+
+
+    /***************************************************************************
+
+        The short prefix string
+
+    ***************************************************************************/
+
     private istring                 sp;
+
+
+    /***************************************************************************
+
+        The long prefix string
+
+    ***************************************************************************/
+
     private istring                 lp;
+
+
+    /***************************************************************************
+
+        Error messages
+
+    ***************************************************************************/
+
     private istring[]               msgs;
+
+
+    /***************************************************************************
+
+        Format strings of all default errors
+
+    ***************************************************************************/
+
     private static istring[]        errmsg = [
         "argument '{0}' expects {2} parameter(s) but has {1}\n",
         "argument '{0}' expects {3} parameter(s) but has {1}\n",
@@ -603,9 +702,13 @@ class Arguments
 
     /***************************************************************************
 
-      Construct with the specific short & long prefixes, and the
-      given assignment character (typically ':' on Windows but we
-      set the defaults to look like unix instead)
+        Constructor.
+
+        Params:
+            sp = string to use as the short prefix (defaults to '-')
+            lp = string to use as the long prefix (defaults to '--')
+            eq = character to use as the explicit assignment symbol
+                 (defaults to '=')
 
     ***************************************************************************/
 
@@ -621,16 +724,17 @@ class Arguments
 
     /***************************************************************************
 
-      Parse string[] into a set of Argument instances. The 'sloppy'
-      option allows for unexpected arguments without error.
+        Parses the command-line arguments into a set of Argument instances. The
+        command-line arguments are expected to be passed in a string.
 
-      Returns false where an error condition occurred, whereupon the
-      arguments should be traversed to discover said condition(s):
-      ---
-      auto args = new Arguments;
-      if (! args.parse (...))
-      stderr (args.errors(&stderr.layout.sprint));
-      ---
+        Params:
+            input = string to be parsed (contains command-line arguments)
+            sloppy = true if any unexpected arguments found during parsing
+                should be accepted on-the-fly, false if unexpected arguments
+                should be treated as error
+
+        Returns:
+            true if parsing was successful, false otherwise
 
     ***************************************************************************/
 
@@ -645,16 +749,18 @@ class Arguments
 
     /***************************************************************************
 
-      Parse a string into a set of Argument instances. The 'sloppy'
-      option allows for unexpected arguments without error.
+        Parses the command-line arguments into a set of Argument instances. The
+        command-line arguments are expected to be passed in an array of strings.
 
-      Returns false where an error condition occurred, whereupon the
-      arguments should be traversed to discover said condition(s):
-      ---
-      auto args = new Arguments;
-      if (! args.parse (...))
-      Stderr (args.errors(&Stderr.layout.sprint));
-      ---
+        Params:
+            input = array of strings to be parsed (contains command-line
+                arguments)
+            sloppy = true if any unexpected arguments found during parsing
+                should be accepted on-the-fly, false if unexpected arguments
+                should be treated as error
+
+        Returns:
+            true if parsing was successful, false otherwise
 
     ***************************************************************************/
 
@@ -691,8 +797,15 @@ class Arguments
 
     /***************************************************************************
 
-      Clear parameter assignments, flags and errors. Note this
-      does not remove any Arguments
+        Unsets all configured arguments (as if they weren't given at all on the
+        command-line), clears all parameters that may have been assigned to
+        arguments and also clears any parsing errors that may have been
+        associated with any argument(s).
+
+        Note that configured arguments are *not* removed.
+
+        Returns:
+            this object for method chaining
 
     ***************************************************************************/
 
@@ -711,8 +824,15 @@ class Arguments
 
     /***************************************************************************
 
-      Obtain an argument reference, creating an new instance where
-      necessary. Use array indexing or opCall syntax if you prefer
+        Gets a reference to an argument, creating a new instance if necessary.
+
+        Params:
+            name = character representing the argument to be retrieved (this is
+                usually an alias to the argument, but could also be the argument
+                name if the argument name is exactly one character long)
+
+        Returns:
+            a reference to the argument
 
     ***************************************************************************/
 
@@ -724,11 +844,14 @@ class Arguments
 
     /***************************************************************************
 
-      Obtain an argument reference, creating an new instance where
-      necessary. Use array indexing or opCall syntax if you prefer.
+        Gets a reference to an argument, creating a new instance if necessary.
 
-      Pass null to access the 'default' argument (where unassigned
-      implicit parameters are gathered)
+        Params:
+            name = string containing the argument name (pass null to access the
+                special 'null' argument)
+
+        Returns:
+            a reference to the argument
 
     ***************************************************************************/
 
@@ -746,7 +869,10 @@ class Arguments
 
     /***************************************************************************
 
-      Traverse the set of arguments
+        Enables 'foreach' iteration over the set of configured arguments.
+
+        Params:
+            dg = delegate called for each argument
 
     ***************************************************************************/
 
@@ -762,15 +888,16 @@ class Arguments
 
     /***************************************************************************
 
-      Construct a string of error messages, using the given
-      delegate to format the output. You would typically pass
-      the system formatter here, like so:
-      ---
-      auto msgs = args.errors (&stderr.layout.sprint);
-      ---
+        Constructs a string of error messages, using the given delegate to
+        format the output.
+        The system formatter can be used by passing `&stderr.layout.sprint` as
+        the delegate.
 
-      The messages are replacable with custom (i18n) versions
-      instead, using the errors(char[][]) method
+        Params:
+            dg = delegate that will be called for formatting the error messages
+
+        Returns:
+            formatted error message string
 
     ***************************************************************************/
 
@@ -789,18 +916,23 @@ class Arguments
 
     /***************************************************************************
 
-      Use this method to replace the default error messages. Note
-      that arguments are passed to the formatter in the following
-      order, and these should be indexed appropriately by each of
-      the error messages (see examples in errmsg above):
-      ---
-      index 0: the argument name
-      index 1: number of parameters
-      index 2: configured minimum parameters
-      index 3: configured maximum parameters
-      index 4: conflicting/dependent argument (or invalid param)
-      index 5: array of configured parameter options
-      ---
+        Replaces the default error messages with the given string.
+        Note that arguments are passed to the formatter in the following order,
+        and these should be indexed appropriately by each of the error messages
+        (see the 'errmsg' variable for the format string):
+
+            index 0: the argument name
+            index 1: number of parameters
+            index 2: configured minimum parameters
+            index 3: configured maximum parameters
+            index 4: conflicting/dependent argument (or invalid param)
+            index 5: array of configured parameter options
+
+        Params:
+            errors = string to replace the default error messages with
+
+        Returns:
+            this object for method chaining
 
     ***************************************************************************/
 
@@ -816,8 +948,17 @@ class Arguments
 
     /***************************************************************************
 
-      Expose the configured set of help text, via the given
-      delegate
+        Exposes the configured help text for each of the configured arguments,
+        via the given delegate. Note that the delegate will be called only for
+        those arguments for which a help text has been configured.
+
+        Params:
+            dg = delegate that will be called for each argument having a help
+                text (the argument name and the help text itself will be sent as
+                parameters to the delegate)
+
+        Returns:
+            this object for method chaining
 
     ***************************************************************************/
 
@@ -832,9 +973,24 @@ class Arguments
 
     /***************************************************************************
 
-      Test for the presence of a switch (long/short prefix)
-      and enable the associated arg where found. Also look
-      for and handle explicit parameter assignment
+        Tests for the presence of a switch (long/short prefix) and enables the
+        associated argument if found. Also looks for and handles explicit
+        parameter assignment.
+
+        Params:
+            s = An individual string from the command-line arguments (includes
+                the long/short prefix if it is an argument string)
+            p = the prefix string (whether this is the long prefix or the short
+                prefix is indicated by the 'flag' parameter)
+            sloppy = true if any unexpected arguments found during parsing
+                should be accepted on-the-fly, false if unexpected arguments
+                should be treated as error
+            flag = true if the prefix string given is the short prefix, false if
+                it is the long prefix
+
+        Returns:
+            true if the given string was an argument, false if it was a
+            parameter
 
     ***************************************************************************/
 
@@ -860,10 +1016,21 @@ class Arguments
 
     /***************************************************************************
 
-      Indicate the existance of an argument, and handle sloppy
-      options along with multiple-flags and smushed parameters.
-      Note that sloppy arguments are configured with parameters
-      enabled.
+        Indicates the existence of an argument, and handles sloppy arguments
+        along with multiple-flags and smushed parameters. Note that sloppy
+        arguments are configured with parameters enabled.
+
+        Params:
+            elem = an argument name found during parsing (does not contain the
+                long/short prefix)
+            sloppy = true if any unexpected arguments found during parsing
+                should be accepted on-the-fly, false if unexpected arguments
+                should be treated as error
+            flag = true if the argument name was preceded by the short prefix,
+                false if it was preceded by the long prefix
+
+        Returns:
+            the configured argument instance
 
     ***************************************************************************/
 
@@ -898,8 +1065,10 @@ class Arguments
 
     /***************************************************************************
 
-      A specific argument instance. You get one of these from
-      Arguments.get() and visit them via Arguments.opApply()
+        Class that declares a specific argument instance.
+        One of these is instantiated using one of the outer class' `get()`
+        methods. All existing argument instances can be iterated over using the
+        outer class' `opApply()` method.
 
     ***************************************************************************/
 
@@ -934,33 +1103,196 @@ class Arguments
             Invalid   // invalid error
         }
 
+
+        /***********************************************************************
+
+            Convenience aliases
+
+        ***********************************************************************/
+
         alias void   delegate() Invoker;
         alias istring delegate(istring value) Inspector;
 
+
+        /***********************************************************************
+
+            Minimum number of parameters for this argument
+
+        ***********************************************************************/
+
         public int         min;
+
+
+        /***********************************************************************
+
+            Maximum number of parameters for this argument
+
+        ***********************************************************************/
+
         public int         max;
+
+
+        /***********************************************************************
+
+            The error code for this argument (0 => no error)
+
+        ***********************************************************************/
+
         public int         error;
+
+
+        /***********************************************************************
+
+            Flag to indicate whether this argument is present or not
+
+        ***********************************************************************/
+
         public  bool       set;
+
+
+        /***********************************************************************
+
+            String in which each character is an alias for this argument
+
+        ***********************************************************************/
+
         public  istring    aliases;
+
+
+        /***********************************************************************
+
+            Flag to indicate whether this argument is required or not
+
+        ***********************************************************************/
+
         private bool       req;
+
+
+        /***********************************************************************
+
+            Flag to indicate whether this argument is smushable or not
+
+        ***********************************************************************/
+
         private bool       cat;
+
+
+        /***********************************************************************
+
+            Flag to indicate whether this argument can accept implicit
+            parameters or not
+
+        ***********************************************************************/
+
         private bool       exp;
+
+
+        /***********************************************************************
+
+            Flag to indicate whether this argument has failed parsing or not
+
+        ***********************************************************************/
+
         private bool       fail;
+
+
+        /***********************************************************************
+
+            The name of the argument
+
+        ***********************************************************************/
+
         public  istring    name;
+
+
+        /***********************************************************************
+
+            The help text of the argument
+
+        ***********************************************************************/
+
         public  istring    text;
+
+
+        /***********************************************************************
+
+            The name of the argument that conflicts with this argument
+
+        ***********************************************************************/
+
         private istring    bogus;
+
+
+        /***********************************************************************
+
+            Parameters assigned to this argument
+
+        ***********************************************************************/
+
         private istring[]  values;
+
+
+        /***********************************************************************
+
+            Allowed parameters for this argument (there is no restriction on the
+            acceptable parameters if this array is empty)
+
+        ***********************************************************************/
+
         public istring[]   options;
+
+
+        /***********************************************************************
+
+            Default parameters for this argument
+
+        ***********************************************************************/
+
         public istring[]   deefalts;
+
+
+        /***********************************************************************
+
+            Invocation callback
+
+        ***********************************************************************/
+
         private Invoker    invoker;
+
+
+        /***********************************************************************
+
+            Inspection callback
+
+        ***********************************************************************/
+
         private Inspector  inspector;
+
+
+        /***********************************************************************
+
+            Argument instances that are required by this argument
+
+        ***********************************************************************/
+
         private Argument[] dependees;
+
+
+        /***********************************************************************
+
+            Argument instances that this argument conflicts with
+
+        ***********************************************************************/
+
         private Argument[] conflictees;
 
 
         /***********************************************************************
 
-          Create with the given name
+            Constructor.
+
+            Params:
+                name = name of the argument
 
         ***********************************************************************/
 
@@ -972,7 +1304,8 @@ class Arguments
 
         /***********************************************************************
 
-          Return the name of this argument
+            Returns:
+                the name of this argument
 
         ***********************************************************************/
 
@@ -984,8 +1317,9 @@ class Arguments
 
         /***********************************************************************
 
-          return the assigned parameters, or the defaults if
-          no parameters were assigned
+            Returns:
+                parameters assigned to this argument, or the default parameters
+                if this argument was not present on the command-line
 
         ***********************************************************************/
 
@@ -997,9 +1331,13 @@ class Arguments
 
         /***********************************************************************
 
-          Alias this argument with the given name. If you need
-          long-names to be aliased, create the long-name first
-          and alias it to a short one
+            Sets an alias for this argument.
+
+            Params:
+                name = character to be used as an alias for this argument
+
+            Returns:
+                this object for method chaining
 
         ***********************************************************************/
 
@@ -1024,7 +1362,10 @@ class Arguments
 
         /***********************************************************************
 
-          Make this argument a requirement
+            Makes this a mandatory argument.
+
+            Returns:
+                this object for method chaining
 
         ***********************************************************************/
 
@@ -1037,7 +1378,13 @@ class Arguments
 
         /***********************************************************************
 
-          Set this argument to depend upon another
+            Sets this argument to depend upon another argument.
+
+            Params:
+                arg = argument instance which is to be set as a dependency
+
+            Returns:
+                this object for method chaining
 
         ***********************************************************************/
 
@@ -1050,7 +1397,13 @@ class Arguments
 
         /***********************************************************************
 
-          Set this argument to depend upon another
+            Sets this argument to depend upon another argument.
+
+            Params:
+                other = name of the argument which is to be set as a dependency
+
+            Returns:
+                this object for method chaining
 
         ***********************************************************************/
 
@@ -1062,7 +1415,13 @@ class Arguments
 
         /***********************************************************************
 
-          Set this argument to depend upon another
+            Sets this argument to depend upon another argument.
+
+            Params:
+                other = alias of the argument which is to be set as a dependency
+
+            Returns:
+                this object for method chaining
 
         ***********************************************************************/
 
@@ -1074,7 +1433,13 @@ class Arguments
 
         /***********************************************************************
 
-          Set this argument to conflict with another
+            Sets this argument to conflict with another argument.
+
+            Params:
+                arg = argument instance with which this argument should conflict
+
+            Returns:
+                this object for method chaining
 
         ***********************************************************************/
 
@@ -1087,7 +1452,14 @@ class Arguments
 
         /***********************************************************************
 
-          Set this argument to conflict with another
+            Sets this argument to conflict with another argument.
+
+            Params:
+                other = name of the argument with which this argument should
+                    conflict
+
+            Returns:
+                this object for method chaining
 
         ***********************************************************************/
 
@@ -1099,7 +1471,14 @@ class Arguments
 
         /***********************************************************************
 
-          Set this argument to conflict with another
+            Sets this argument to conflict with another argument.
+
+            Params:
+                other = alias of the argument with which this argument should
+                    conflict
+
+            Returns:
+                this object for method chaining
 
         ***********************************************************************/
 
@@ -1111,7 +1490,11 @@ class Arguments
 
         /***********************************************************************
 
-          Enable parameter assignment: 0 to 42 by default
+            Enables parameter assignment for this argument. The minimum and
+            maximum number of parameters are set to 0 and 42 respectively.
+
+            Returns:
+                this object for method chaining
 
         ***********************************************************************/
 
@@ -1123,7 +1506,14 @@ class Arguments
 
         /***********************************************************************
 
-          Set an exact number of parameters required
+            Enables parameter assignment for this argument and sets an exact
+            count for the number of parameters required.
+
+            Params:
+                count = the number of parameters to be set
+
+            Returns:
+                this object for method chaining
 
         ***********************************************************************/
 
@@ -1135,7 +1525,15 @@ class Arguments
 
         /***********************************************************************
 
-          Set both the minimum and maximum parameter counts
+            Enables parameter assignment for this argument and sets the counts
+            of both the minimum and maximum parameters required.
+
+            Params:
+                min = minimum number of parameters required
+                max = maximum number of parameters required
+
+            Returns:
+                this object for method chaining
 
         ***********************************************************************/
 
@@ -1149,7 +1547,13 @@ class Arguments
 
         /***********************************************************************
 
-          Add another default parameter for this argument
+            Adds a default parameter for this argument.
+
+            Params:
+                values = default parameter to be added
+
+            Returns:
+                this object for method chaining
 
         ***********************************************************************/
 
@@ -1162,10 +1566,20 @@ class Arguments
 
         /***********************************************************************
 
-          Set an inspector for this argument, fired when a
-          parameter is appended to an argument. Return null
-          from the delegate when the value is ok, or a text
-          string describing the issue to trigger an error
+            Sets an inspector for this argument. The inspector delegate gets
+            fired when a parameter is appended to this argument.
+            The appended parameter gets sent to the delegate as the input
+            parameter. If the appended parameter is ok, the delegate should
+            return null. Otherwise, it should return a text string describing
+            the issue. A non-null return value from the delegate will trigger an
+            error.
+
+            Params:
+                inspector = delegate to be called when a parameter is appended
+                    to this argument
+
+            Returns:
+                this object for method chaining
 
         ***********************************************************************/
 
@@ -1178,8 +1592,15 @@ class Arguments
 
         /***********************************************************************
 
-          Set an invoker for this argument, fired when an
-          argument declaration is seen
+            Sets an invoker for this argument. The invoker delegate gets
+            fired when this argument is found during parsing.
+
+            Params:
+                invoker = delegate to be called when this argument's declaration
+                    is seen
+
+            Returns:
+                this object for method chaining
 
         ***********************************************************************/
 
@@ -1192,9 +1613,19 @@ class Arguments
 
         /***********************************************************************
 
-          Enable smushing for this argument, where "-ofile"
-          would result in "file" being assigned to argument
-          'o'
+            Enables/disables smushing for this argument.
+
+            Smushing refers to omitting the explicit assignment symbol ('=' by
+            default) or whitespace (when relying on implicit assignment) that
+            separates an argument from its parameter. Note that smushing is
+            possible only when assigning parameters to an argument using the
+            argument's short prefix version.
+
+            Params:
+                yes = true to enable smushing, false to disable
+
+            Returns:
+                this object for method chaining
 
         ***********************************************************************/
 
@@ -1207,7 +1638,10 @@ class Arguments
 
         /***********************************************************************
 
-          Disable implicit arguments
+            Disables implicit parameter assignment to this argument.
+
+            Returns:
+                this object for method chaining
 
         ***********************************************************************/
 
@@ -1220,8 +1654,14 @@ class Arguments
 
         /***********************************************************************
 
-          Alter the title of this argument, which can be
-          useful for naming the default argument
+            Changes the name of this argument (can be useful for naming the
+            default argument).
+
+            Params:
+                name = new name of this argument
+
+            Returns:
+                this object for method chaining
 
         ***********************************************************************/
 
@@ -1234,7 +1674,13 @@ class Arguments
 
         /***********************************************************************
 
-          Set the help text for this argument
+            Sets the help text for this argument.
+
+            Params:
+                text = the help text to set
+
+            Returns:
+                this object for method chaining
 
         ***********************************************************************/
 
@@ -1247,8 +1693,11 @@ class Arguments
 
         /***********************************************************************
 
-          Fail the parse when this arg is encountered. You
-          might use this for managing help text
+            Fails the parsing immediately upon encountering this argument. This
+            can be used for managing help text.
+
+            Returns:
+                this object for method chaining
 
         ***********************************************************************/
 
@@ -1261,7 +1710,13 @@ class Arguments
 
         /***********************************************************************
 
-          Restrict values to one of the given set
+            Restricts parameters of this argument to be in the given set.
+
+            Params:
+                options = array containing the set of acceptable parameters
+
+            Returns:
+                this object for method chaining
 
         ***********************************************************************/
 
@@ -1274,9 +1729,17 @@ class Arguments
 
         /***********************************************************************
 
-          This arg is present, but set an error condition
-          (Extra) when unexpected and sloppy is not enabled.
-          Fires any configured invoker callback.
+            Sets the flag that indicates that this argument was found during
+            parsing. Also calls the invoker delegate, if configured. If the
+            argument is unexpected (i.e. was not pre-configured), then an
+            appropriate error condition gets set.
+
+            Params:
+                unexpected = true if this is an unexpected argument, false
+                    otherwise
+
+            Returns:
+                this object for method chaining
 
         ***********************************************************************/
 
@@ -1296,8 +1759,13 @@ class Arguments
 
         /***********************************************************************
 
-          Append a parameter value, invoking an inspector as
-          necessary
+            Appends the given parameter to this argument. Also calls the
+            inspector delegate, if configured.
+
+            Params:
+                value = parameter to be appended
+                explicit = true if the parameter was explicitly assigned to this
+                    argument, false otherwise (defaults to false)
 
         ***********************************************************************/
 
@@ -1338,7 +1806,11 @@ class Arguments
 
         /***********************************************************************
 
-          Test and set the error flag appropriately
+            Tests whether an error condition occurred for this argument during
+            parsing, and if so the appropriate error code is set.
+
+            Returns:
+                the error code for this argument (0 => no error)
 
         ***********************************************************************/
 
@@ -1386,6 +1858,8 @@ class Arguments
 
 
 /*******************************************************************************
+
+    Unit tests
 
 *******************************************************************************/
 
@@ -1553,6 +2027,8 @@ unittest
 
 
 /*******************************************************************************
+
+    Debugging helper
 
 *******************************************************************************/
 
