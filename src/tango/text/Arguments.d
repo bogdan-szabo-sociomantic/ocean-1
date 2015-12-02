@@ -559,12 +559,16 @@
 
 module tango.text.Arguments;
 
+
+
 import tango.transition;
 
 import tango.text.Util;
 import tango.util.container.more.Stack;
 
+
 version=dashdash;       // -- everything assigned to the null argument
+
 
 
 /*******************************************************************************
@@ -596,13 +600,14 @@ class Arguments
         "invalid parameter for argument '{0}': {4}\n",
     ];
 
-    /***********************************************************************
+
+    /***************************************************************************
 
       Construct with the specific short & long prefixes, and the
       given assignment character (typically ':' on Windows but we
       set the defaults to look like unix instead)
 
-     ***********************************************************************/
+    ***************************************************************************/
 
     this (istring sp="-", istring lp="--", char eq='=')
     {
@@ -613,7 +618,8 @@ class Arguments
         get(null).params;       // set null argument to consume params
     }
 
-    /***********************************************************************
+
+    /***************************************************************************
 
       Parse string[] into a set of Argument instances. The 'sloppy'
       option allows for unexpected arguments without error.
@@ -626,7 +632,7 @@ class Arguments
       stderr (args.errors(&stderr.layout.sprint));
       ---
 
-     ***********************************************************************/
+    ***************************************************************************/
 
     final bool parse (istring input, bool sloppy=false)
     {
@@ -636,7 +642,8 @@ class Arguments
         return parse (tmp, sloppy);
     }
 
-    /***********************************************************************
+
+    /***************************************************************************
 
       Parse a string into a set of Argument instances. The 'sloppy'
       option allows for unexpected arguments without error.
@@ -649,7 +656,7 @@ class Arguments
       Stderr (args.errors(&Stderr.layout.sprint));
       ---
 
-     ***********************************************************************/
+    ***************************************************************************/
 
     final bool parse (istring[] input, bool sloppy=false)
     {
@@ -681,12 +688,13 @@ class Arguments
         return error is 0;
     }
 
-    /***********************************************************************
+
+    /***************************************************************************
 
       Clear parameter assignments, flags and errors. Note this
       does not remove any Arguments
 
-     ***********************************************************************/
+    ***************************************************************************/
 
     final Arguments clear ()
     {
@@ -700,19 +708,21 @@ class Arguments
         return this;
     }
 
-    /***********************************************************************
+
+    /***************************************************************************
 
       Obtain an argument reference, creating an new instance where
       necessary. Use array indexing or opCall syntax if you prefer
 
-     ***********************************************************************/
+    ***************************************************************************/
 
     final Argument get (char name)
     {
         return get (cast(istring) (&name)[0..1]);
     }
 
-    /***********************************************************************
+
+    /***************************************************************************
 
       Obtain an argument reference, creating an new instance where
       necessary. Use array indexing or opCall syntax if you prefer.
@@ -720,7 +730,7 @@ class Arguments
       Pass null to access the 'default' argument (where unassigned
       implicit parameters are gathered)
 
-     ***********************************************************************/
+    ***************************************************************************/
 
     final Argument get (cstring name)
     {
@@ -733,11 +743,12 @@ class Arguments
         return *a;
     }
 
-    /***********************************************************************
+
+    /***************************************************************************
 
       Traverse the set of arguments
 
-     ***********************************************************************/
+    ***************************************************************************/
 
     final int opApply (int delegate(ref Argument) dg)
     {
@@ -748,7 +759,8 @@ class Arguments
         return result;
     }
 
-    /***********************************************************************
+
+    /***************************************************************************
 
       Construct a string of error messages, using the given
       delegate to format the output. You would typically pass
@@ -760,7 +772,7 @@ class Arguments
       The messages are replacable with custom (i18n) versions
       instead, using the errors(char[][]) method
 
-     ***********************************************************************/
+    ***************************************************************************/
 
     final istring errors (mstring delegate(mstring buf, cstring fmt, ...) dg)
     {
@@ -774,7 +786,8 @@ class Arguments
         return result;
     }
 
-    /***********************************************************************
+
+    /***************************************************************************
 
       Use this method to replace the default error messages. Note
       that arguments are passed to the formatter in the following
@@ -789,7 +802,7 @@ class Arguments
       index 5: array of configured parameter options
       ---
 
-     ***********************************************************************/
+    ***************************************************************************/
 
     final Arguments errors (istring[] errors)
     {
@@ -800,12 +813,13 @@ class Arguments
         return this;
     }
 
-    /***********************************************************************
+
+    /***************************************************************************
 
       Expose the configured set of help text, via the given
       delegate
 
-     ***********************************************************************/
+    ***************************************************************************/
 
     final Arguments help (void delegate(istring arg, istring help) dg)
     {
@@ -815,13 +829,14 @@ class Arguments
         return this;
     }
 
-    /***********************************************************************
+
+    /***************************************************************************
 
       Test for the presence of a switch (long/short prefix)
       and enable the associated arg where found. Also look
       for and handle explicit parameter assignment
 
-     ***********************************************************************/
+    ***************************************************************************/
 
     private bool argument (istring s, istring p, bool sloppy, bool flag)
     {
@@ -842,14 +857,15 @@ class Arguments
         return false;
     }
 
-    /***********************************************************************
+
+    /***************************************************************************
 
       Indicate the existance of an argument, and handle sloppy
       options along with multiple-flags and smushed parameters.
       Note that sloppy arguments are configured with parameters
       enabled.
 
-     ***********************************************************************/
+    ***************************************************************************/
 
     private Argument enable (istring elem, bool sloppy, bool flag=false)
     {
@@ -879,16 +895,17 @@ class Arguments
         return a.enable;
     }
 
-    /***********************************************************************
+
+    /***************************************************************************
 
       A specific argument instance. You get one of these from
       Arguments.get() and visit them via Arguments.opApply()
 
-     ***********************************************************************/
+    ***************************************************************************/
 
     class Argument
     {
-        /***************************************************************
+        /***********************************************************************
 
           Error identifiers:
           ---
@@ -902,7 +919,7 @@ Extra:          unexpected argument (see sloppy)
 Option:         parameter does not match options
 ---
 
-         ***************************************************************/
+        ***********************************************************************/
 
         enum
         {
@@ -940,47 +957,51 @@ Option:         parameter does not match options
         private Argument[] dependees;
         private Argument[] conflictees;
 
-        /***************************************************************
+
+        /***********************************************************************
 
           Create with the given name
 
-         ***************************************************************/
+        ***********************************************************************/
 
         this (istring name)
         {
             this.name = name;
         }
 
-        /***************************************************************
+
+        /***********************************************************************
 
           Return the name of this argument
 
-         ***************************************************************/
+        ***********************************************************************/
 
         override istring toString()
         {
             return name;
         }
 
-        /***************************************************************
+
+        /***********************************************************************
 
           return the assigned parameters, or the defaults if
           no parameters were assigned
 
-         ***************************************************************/
+        ***********************************************************************/
 
         final istring[] assigned ()
         {
             return values.length ? values : deefalts;
         }
 
-        /***************************************************************
+
+        /***********************************************************************
 
           Alias this argument with the given name. If you need
           long-names to be aliased, create the long-name first
           and alias it to a short one
 
-         ***************************************************************/
+        ***********************************************************************/
 
         final Argument aliased (char name)
         {
@@ -1000,11 +1021,12 @@ Option:         parameter does not match options
             return this;
         }
 
-        /***************************************************************
+
+        /***********************************************************************
 
           Make this argument a requirement
 
-         ***************************************************************/
+        ***********************************************************************/
 
         final Argument required ()
         {
@@ -1012,11 +1034,12 @@ Option:         parameter does not match options
             return this;
         }
 
-        /***************************************************************
+
+        /***********************************************************************
 
           Set this argument to depend upon another
 
-         ***************************************************************/
+        ***********************************************************************/
 
         final Argument requires (Argument arg)
         {
@@ -1024,33 +1047,36 @@ Option:         parameter does not match options
             return this;
         }
 
-        /***************************************************************
+
+        /***********************************************************************
 
           Set this argument to depend upon another
 
-         ***************************************************************/
+        ***********************************************************************/
 
         final Argument requires (istring other)
         {
             return requires (this.outer.get(other));
         }
 
-        /***************************************************************
+
+        /***********************************************************************
 
           Set this argument to depend upon another
 
-         ***************************************************************/
+        ***********************************************************************/
 
         final Argument requires (char other)
         {
             return requires (cast(istring) (&other)[0..1]);
         }
 
-        /***************************************************************
+
+        /***********************************************************************
 
           Set this argument to conflict with another
 
-         ***************************************************************/
+        ***********************************************************************/
 
         final Argument conflicts (Argument arg)
         {
@@ -1058,55 +1084,60 @@ Option:         parameter does not match options
             return this;
         }
 
-        /***************************************************************
+
+        /***********************************************************************
 
           Set this argument to conflict with another
 
-         ***************************************************************/
+        ***********************************************************************/
 
         final Argument conflicts (istring other)
         {
             return conflicts (this.outer.get(other));
         }
 
-        /***************************************************************
+
+        /***********************************************************************
 
           Set this argument to conflict with another
 
-         ***************************************************************/
+        ***********************************************************************/
 
         final Argument conflicts (char other)
         {
             return conflicts (cast(istring) (&other)[0..1]);
         }
 
-        /***************************************************************
+
+        /***********************************************************************
 
           Enable parameter assignment: 0 to 42 by default
 
-         ***************************************************************/
+        ***********************************************************************/
 
         final Argument params ()
         {
             return params (0, 42);
         }
 
-        /***************************************************************
+
+        /***********************************************************************
 
           Set an exact number of parameters required
 
-         ***************************************************************/
+        ***********************************************************************/
 
         final Argument params (int count)
         {
             return params (count, count);
         }
 
-        /***************************************************************
+
+        /***********************************************************************
 
           Set both the minimum and maximum parameter counts
 
-         ***************************************************************/
+        ***********************************************************************/
 
         final Argument params (int min, int max)
         {
@@ -1115,11 +1146,12 @@ Option:         parameter does not match options
             return this;
         }
 
-        /***************************************************************
+
+        /***********************************************************************
 
           Add another default parameter for this argument
 
-         ***************************************************************/
+        ***********************************************************************/
 
         final Argument defaults (istring values)
         {
@@ -1127,14 +1159,15 @@ Option:         parameter does not match options
             return this;
         }
 
-        /***************************************************************
+
+        /***********************************************************************
 
           Set an inspector for this argument, fired when a
           parameter is appended to an argument. Return null
           from the delegate when the value is ok, or a text
           string describing the issue to trigger an error
 
-         ***************************************************************/
+        ***********************************************************************/
 
         final Argument bind (Inspector inspector)
         {
@@ -1142,12 +1175,13 @@ Option:         parameter does not match options
             return this;
         }
 
-        /***************************************************************
+
+        /***********************************************************************
 
           Set an invoker for this argument, fired when an
           argument declaration is seen
 
-         ***************************************************************/
+        ***********************************************************************/
 
         final Argument bind (Invoker invoker)
         {
@@ -1155,13 +1189,14 @@ Option:         parameter does not match options
             return this;
         }
 
-        /***************************************************************
+
+        /***********************************************************************
 
           Enable smushing for this argument, where "-ofile"
           would result in "file" being assigned to argument
           'o'
 
-         ***************************************************************/
+        ***********************************************************************/
 
         final Argument smush (bool yes=true)
         {
@@ -1169,11 +1204,12 @@ Option:         parameter does not match options
             return this;
         }
 
-        /***************************************************************
+
+        /***********************************************************************
 
           Disable implicit arguments
 
-         ***************************************************************/
+        ***********************************************************************/
 
         final Argument explicit ()
         {
@@ -1181,12 +1217,13 @@ Option:         parameter does not match options
             return this;
         }
 
-        /***************************************************************
+
+        /***********************************************************************
 
           Alter the title of this argument, which can be
           useful for naming the default argument
 
-         ***************************************************************/
+        ***********************************************************************/
 
         final Argument title (istring name)
         {
@@ -1194,11 +1231,12 @@ Option:         parameter does not match options
             return this;
         }
 
-        /***************************************************************
+
+        /***********************************************************************
 
           Set the help text for this argument
 
-         ***************************************************************/
+        ***********************************************************************/
 
         final Argument help (istring text)
         {
@@ -1206,12 +1244,13 @@ Option:         parameter does not match options
             return this;
         }
 
-        /***************************************************************
+
+        /***********************************************************************
 
           Fail the parse when this arg is encountered. You
           might use this for managing help text
 
-         ***************************************************************/
+        ***********************************************************************/
 
         final Argument halt ()
         {
@@ -1219,11 +1258,12 @@ Option:         parameter does not match options
             return this;
         }
 
-        /***************************************************************
+
+        /***********************************************************************
 
           Restrict values to one of the given set
 
-         ***************************************************************/
+        ***********************************************************************/
 
         final Argument restrict (istring[] options ...)
         {
@@ -1231,13 +1271,14 @@ Option:         parameter does not match options
             return this;
         }
 
-        /***************************************************************
+
+        /***********************************************************************
 
           This arg is present, but set an error condition
           (Extra) when unexpected and sloppy is not enabled.
           Fires any configured invoker callback.
 
-         ***************************************************************/
+        ***********************************************************************/
 
         private Argument enable (bool unexpected=false)
         {
@@ -1252,12 +1293,13 @@ Option:         parameter does not match options
             return this;
         }
 
-        /***************************************************************
+
+        /***********************************************************************
 
           Append a parameter value, invoking an inspector as
           necessary
 
-         ***************************************************************/
+        ***********************************************************************/
 
         private void append (istring value, bool explicit=false)
         {
@@ -1293,11 +1335,12 @@ Option:         parameter does not match options
                 s.pop;
         }
 
-        /***************************************************************
+
+        /***********************************************************************
 
           Test and set the error flag appropriately
 
-         ***************************************************************/
+        ***********************************************************************/
 
         private int valid ()
         {
@@ -1341,9 +1384,10 @@ Option:         parameter does not match options
 }
 
 
+
 /*******************************************************************************
 
- *******************************************************************************/
+*******************************************************************************/
 
 unittest
 {
@@ -1506,9 +1550,11 @@ unittest
     }
 }
 
+
+
 /*******************************************************************************
 
- *******************************************************************************/
+*******************************************************************************/
 
 debug (Arguments)
 {
