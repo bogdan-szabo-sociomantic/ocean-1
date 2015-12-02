@@ -127,28 +127,35 @@ class EmailSender
 
     /***************************************************************************
 
-        Spawns a child process that sends a email with help of sendmail.
+        Spawns a child process that sends an email using sendmail.
+
+        If multiple entries need to be passed in the recipient list, cc list,
+        or bcc list, then the entries need to be comma separated. There exists
+        an overloaded version of this function which takes these lists as 2D
+        arrays instead of regular arrays (with each entry being passed in a
+        different index), and automatically performs the comma separation.
 
         Params:
-            sender     = the sender of the email
-            recipients = the recipient/s of the email
-            subject    = the email subject
-            msg_body   = the email body
-            reply_to   = an optional Reply To. default empty
-            mail_id    = an optional mail id/In-Reply-To. default empty
-            cc         = an optional cc. default empty
-            bcc        = an optional bcc. default empty
+            sender = the sender of the email
+            recipients = the recipient(s) of the email, multiple entries need to
+                be comma separated
+            subject = the email subject
+            msg_body = the email body
+            reply_to = an optional Reply To. default empty
+            mail_id = an optional mail id/In-Reply-To. default empty
+            cc = an optional cc, multiple entries need to be comma separated
+                (defaults to null)
+            bcc = an optional bcc, multiple entries need to be comma separated
+                (defaults to null)
 
         Returns:
-            true if the mail was sent without any errors, otherwise false;
+            true if the mail was sent without any errors, otherwise false
 
     ***************************************************************************/
 
-
-    public bool sendEmail ( char[] sender, char [] recipients, char[] subject,
-                            char[] msg_body, char[] reply_to = null,
-                            char[] mail_id = null,
-                            char[] cc = null, char[] bcc = null )
+    public bool sendEmail ( char[] sender, char[] recipients, char[] subject,
+        char[] msg_body, char[] reply_to = null, char[] mail_id = null,
+        char[] cc = null, char[] bcc = null )
     {
         Process.Result result;
 
