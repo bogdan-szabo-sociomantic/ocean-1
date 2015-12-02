@@ -744,7 +744,9 @@ class Arguments
         istring[] tmp;
 
         foreach ( s; quotes(input, " ") )
+        {
             tmp ~= s;
+        }
 
         return parse(tmp, sloppy);
     }
@@ -791,16 +793,22 @@ class Arguments
                     continue;
                 }
                 else
+                {
                     if ( argument(s, lp, sloppy, false) ||
                          argument(s, sp, sloppy, true) )
+                    {
                         continue;
+                    }
+                }
             }
 
             stack.top.append (s);
         }
 
         foreach ( arg; args )
+        {
             error |= arg.valid;
+        }
 
         return error is 0;
     }
@@ -896,8 +904,12 @@ class Arguments
         int result;
 
         foreach ( arg; args )
+        {
             if ( (result = dg(arg)) != 0 )
+            {
                 break;
+            }
+        }
 
         return result;
     }
@@ -924,10 +936,14 @@ class Arguments
         istring result;
 
         foreach ( arg; args )
+        {
             if ( arg.error )
+            {
                 result ~= dg(tmp, msgs[arg.error-1], arg.name,
                     arg.values.length, arg.min, arg.max, arg.bogus,
                     arg.options);
+            }
+        }
 
         return result;
     }
@@ -958,9 +974,13 @@ class Arguments
     final Arguments errors ( istring[] errors )
     {
         if ( errors.length is errmsg.length )
+        {
             msgs = errors;
+        }
         else
+        {
             assert (false);
+        }
 
         return this;
     }
@@ -985,8 +1005,12 @@ class Arguments
     final Arguments help ( void delegate ( istring arg, istring help ) dg )
     {
         foreach ( arg; args )
+        {
             if ( arg.text.ptr )
+            {
                 dg(arg.name, arg.text);
+            }
+        }
 
         return this;
     }
@@ -1024,13 +1048,21 @@ class Arguments
             auto i = locate(s, eq);
 
             if ( i < s.length )
+            {
                 enable(s[0 .. i], sloppy, flag).append(s[i + 1 .. $], true);
+            }
             else
+            {
                 // trap empty arguments; attach as param to null-arg
                 if ( s.length )
+                {
                     enable(s, sloppy, flag);
+                }
                 else
+                {
                     get(null).append(p, true);
+                }
+            }
 
             return true;
         }
@@ -1073,9 +1105,13 @@ class Arguments
             {
                 // smush remaining text or treat as additional args
                 if ( arg.cat )
+                {
                     arg.append(elem, true);
+                }
                 else
+                {
                     arg = enable(elem, sloppy, true);
+                }
             }
 
             return arg;
@@ -1085,8 +1121,12 @@ class Arguments
         auto a = elem in args;
 
         if ( a is null )
+        {
             if ( (a = elem in aliases) is null )
+            {
                 return get(elem).params.enable(!sloppy);
+            }
+        }
 
         return a.enable;
     }
@@ -1793,13 +1833,19 @@ class Arguments
             this.set = true;
 
             if ( max > 0 )
+            {
                 this.outer.stack.push(this);
+            }
 
             if ( invoker )
+            {
                 invoker();
+            }
 
             if ( unexpected )
+            {
                 error = Extra;
+            }
 
             return this;
         }
@@ -1825,7 +1871,9 @@ class Arguments
                 auto s = &(this.outer.stack);
 
                 while ( s.top.exp && s.size > 1 )
+                {
                     s.pop;
+                }
             }
 
             this.set = true; // needed for default assignments
@@ -1835,16 +1883,24 @@ class Arguments
             if ( error is None )
             {
                 if ( inspector )
+                {
                     if ( (bogus = inspector(value)).length )
+                    {
                         error = Invalid;
+                    }
+                }
 
                 if ( options.length )
                 {
                     error = Option;
 
                     foreach ( option; options )
+                    {
                         if ( option == value )
+                        {
                             error = None;
+                        }
+                    }
                 }
             }
 
@@ -1852,7 +1908,9 @@ class Arguments
             auto s = &(this.outer.stack);
 
             while ( s.top.values.length >= max && s.size > 1 )
+            {
                 s.pop;
+            }
         }
 
 
@@ -1871,30 +1929,52 @@ class Arguments
             if ( error is None )
             {
                 if ( req && !set )
+                {
                     error = Required;
+                }
                 else
+                {
                     if ( set )
                     {
                         // short circuit?
                         if ( fail )
+                        {
                             return -1;
+                        }
 
                         if ( values.length < min )
+                        {
                             error = ParamLo;
+                        }
                         else
+                        {
                             if ( values.length > max )
+                            {
                                 error = ParamHi;
+                            }
                             else
                             {
                                 foreach ( arg; dependees )
+                                {
                                     if ( ! arg.set )
-                                        error = Requires, bogus=arg.name;
+                                    {
+                                        error = Requires;
+                                        bogus = arg.name;
+                                    }
+                                }
 
                                 foreach ( arg; conflictees )
+                                {
                                     if ( arg.set )
-                                        error = Conflict, bogus=arg.name;
+                                    {
+                                        error = Conflict;
+                                        bogus = arg.name;
+                                    }
+                                }
                             }
+                        }
                     }
+                }
             }
 
             debug ( Arguments )
@@ -2100,15 +2180,23 @@ debug (Arguments)
         args('a').required.defaults("hi").requires('y').params(1)
             .help("a help");
         args("foobar").params(2).help("foobar help");
-        if ( ! args.parse("'one =two' -xa=bar -y=ff -yss --foobar=blah1 --foobar barf blah2 -- a b c d e") )
+
+        if ( ! args.parse("'one =two' -xa=bar -y=ff -yss --foobar=blah1 "
+                          "--foobar barf blah2 -- a b c d e") )
+        {
             stdout(args.errors(&stdout.layout.sprint));
+        }
         else
+        {
             if ( args.get('x') )
+            {
                 args.help(
                     (char[] a, char[] b)
                     {
                         Stdout.formatln("{}{}\n\t{}", args.lp, a, b);
                     }
                 );
+            }
+        }
     }
 }
