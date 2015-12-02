@@ -904,7 +904,18 @@ Option:         parameter does not match options
 
          ***************************************************************/
 
-        enum {None, ParamLo, ParamHi, Required, Requires, Conflict, Extra, Option, Invalid};
+        enum
+        {
+            None,
+            ParamLo,
+            ParamHi,
+            Required,
+            Requires,
+            Conflict,
+            Extra,
+            Option,
+            Invalid
+        }
 
         alias void   delegate() Invoker;
         alias istring delegate(istring value) Inspector;
