@@ -592,7 +592,7 @@ version = dashdash;
 
 *******************************************************************************/
 
-class Arguments
+public class Arguments
 {
     /***************************************************************************
 
@@ -712,7 +712,7 @@ class Arguments
 
     ***************************************************************************/
 
-    this ( istring sp="-", istring lp="--", char eq='=' )
+    public this ( istring sp="-", istring lp="--", char eq='=' )
     {
         this.msgs = this.errmsg;
         this.sp = sp;
@@ -739,7 +739,7 @@ class Arguments
 
     ***************************************************************************/
 
-    final bool parse ( istring input, bool sloppy = false )
+    public bool parse ( istring input, bool sloppy = false )
     {
         istring[] tmp;
 
@@ -769,7 +769,7 @@ class Arguments
 
     ***************************************************************************/
 
-    final bool parse ( istring[] input, bool sloppy = false )
+    public bool parse ( istring[] input, bool sloppy = false )
     {
         bool done;
         int error;
@@ -828,7 +828,7 @@ class Arguments
 
     ***************************************************************************/
 
-    final Arguments clear ( )
+    public Arguments clear ( )
     {
         stack.clear;
 
@@ -857,7 +857,7 @@ class Arguments
 
     ***************************************************************************/
 
-    final Argument get ( char name )
+    public Argument get ( char name )
     {
         return get(cast(istring)(&name)[0 .. 1]);
     }
@@ -876,7 +876,7 @@ class Arguments
 
     ***************************************************************************/
 
-    final Argument get ( cstring name )
+    public Argument get ( cstring name )
     {
         auto a = name in args;
 
@@ -899,7 +899,7 @@ class Arguments
 
     ***************************************************************************/
 
-    final int opApply ( int delegate(ref Argument) dg )
+    public int opApply ( int delegate(ref Argument) dg )
     {
         int result;
 
@@ -930,7 +930,7 @@ class Arguments
 
     ***************************************************************************/
 
-    final istring errors ( mstring delegate(mstring buf, cstring fmt, ...) dg )
+    public istring errors ( mstring delegate(mstring buf, cstring fmt, ...) dg )
     {
         char[256] tmp;
         istring result;
@@ -971,7 +971,7 @@ class Arguments
 
     ***************************************************************************/
 
-    final Arguments errors ( istring[] errors )
+    public Arguments errors ( istring[] errors )
     {
         if ( errors.length is errmsg.length )
         {
@@ -1002,7 +1002,7 @@ class Arguments
 
     ***************************************************************************/
 
-    final Arguments help ( void delegate ( istring arg, istring help ) dg )
+    public Arguments help ( void delegate ( istring arg, istring help ) dg )
     {
         foreach ( arg; args )
         {
@@ -1141,7 +1141,7 @@ class Arguments
 
     ***************************************************************************/
 
-    class Argument
+    private class Argument
     {
         /***********************************************************************
 
@@ -1149,7 +1149,7 @@ class Arguments
 
         ***********************************************************************/
 
-        enum
+        public enum
         {
             None,     // ok (no error)
 
@@ -1179,8 +1179,8 @@ class Arguments
 
         ***********************************************************************/
 
-        alias void    delegate ( )               Invoker;
-        alias istring delegate ( istring value ) Inspector;
+        public alias void    delegate ( )               Invoker;
+        public alias istring delegate ( istring value ) Inspector;
 
 
         /***********************************************************************
@@ -1365,7 +1365,7 @@ class Arguments
 
         ***********************************************************************/
 
-        this ( istring name )
+        public this ( istring name )
         {
             this.name = name;
         }
@@ -1378,7 +1378,7 @@ class Arguments
 
         ***********************************************************************/
 
-        override istring toString ( )
+        public override istring toString ( )
         {
             return name;
         }
@@ -1392,7 +1392,7 @@ class Arguments
 
         ***********************************************************************/
 
-        final istring[] assigned ( )
+        public istring[] assigned ( )
         {
             return values.length ? values : deefalts;
         }
@@ -1410,7 +1410,7 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument aliased ( char name )
+        public Argument aliased ( char name )
         {
             if ( auto arg = (&name)[0 .. 1] in this.outer.aliases )
             {
@@ -1440,7 +1440,7 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument required ( )
+        public Argument required ( )
         {
             this.req = true;
 
@@ -1460,7 +1460,7 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument requires ( Argument arg )
+        public Argument requires ( Argument arg )
         {
             dependees ~= arg;
 
@@ -1480,7 +1480,7 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument requires ( istring other )
+        public Argument requires ( istring other )
         {
             return requires(this.outer.get(other));
         }
@@ -1498,7 +1498,7 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument requires ( char other )
+        public Argument requires ( char other )
         {
             return requires(cast(istring)(&other)[0 .. 1]);
         }
@@ -1516,7 +1516,7 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument conflicts ( Argument arg )
+        public Argument conflicts ( Argument arg )
         {
             conflictees ~= arg;
 
@@ -1537,7 +1537,7 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument conflicts ( istring other )
+        public Argument conflicts ( istring other )
         {
             return conflicts(this.outer.get(other));
         }
@@ -1556,7 +1556,7 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument conflicts ( char other )
+        public Argument conflicts ( char other )
         {
             return conflicts(cast(istring)(&other)[0 .. 1]);
         }
@@ -1572,7 +1572,7 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument params ( )
+        public Argument params ( )
         {
             return params(0, 42);
         }
@@ -1591,7 +1591,7 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument params ( int count )
+        public Argument params ( int count )
         {
             return params(count, count);
         }
@@ -1611,7 +1611,7 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument params ( int min, int max )
+        public Argument params ( int min, int max )
         {
             this.min = min;
 
@@ -1633,7 +1633,7 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument defaults ( istring values )
+        public Argument defaults ( istring values )
         {
             this.deefalts ~= values;
 
@@ -1660,7 +1660,7 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument bind ( Inspector inspector )
+        public Argument bind ( Inspector inspector )
         {
             this.inspector = inspector;
 
@@ -1682,7 +1682,7 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument bind ( Invoker invoker )
+        public Argument bind ( Invoker invoker )
         {
             this.invoker = invoker;
 
@@ -1708,7 +1708,7 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument smush ( bool yes = true )
+        public Argument smush ( bool yes = true )
         {
             cat = yes;
 
@@ -1725,7 +1725,7 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument explicit ( )
+        public Argument explicit ( )
         {
             exp = true;
 
@@ -1746,7 +1746,7 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument title ( istring name )
+        public Argument title ( istring name )
         {
             this.name = name;
 
@@ -1766,7 +1766,7 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument help ( istring text )
+        public Argument help ( istring text )
         {
             this.text = text;
 
@@ -1784,7 +1784,7 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument halt ( )
+        public Argument halt ( )
         {
             this.fail = true;
 
@@ -1804,7 +1804,7 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument restrict ( istring[] options ... )
+        public Argument restrict ( istring[] options ... )
         {
             this.options = options;
 
