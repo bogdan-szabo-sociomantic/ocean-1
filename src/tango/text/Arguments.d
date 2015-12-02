@@ -907,31 +907,31 @@ class Arguments
     {
         /***********************************************************************
 
-          Error identifiers:
-          ---
-None:           ok
-ParamLo:        too few params for an argument
-ParamHi:        too many params for an argument
-Required:       missing argument is required
-Requires:       depends on a missing argument
-Conflict:       conflicting argument is present
-Extra:          unexpected argument (see sloppy)
-Option:         parameter does not match options
----
+            Enumeration of all error identifiers
 
         ***********************************************************************/
 
         enum
         {
-            None,
-            ParamLo,
-            ParamHi,
-            Required,
-            Requires,
-            Conflict,
-            Extra,
-            Option,
-            Invalid
+            None,     // ok (no error)
+
+            ParamLo,  // too few parameters were assigned to this argument
+
+            ParamHi,  // too many parameters were assigned to this argument
+
+            Required, // this is a required argument, but was not given
+
+            Requires, // this argument depends on another argument which was not
+                      // given
+
+            Conflict, // this argument conflicts with another given argument
+
+            Extra,    // unexpected argument (will not trigger an error if
+                      // sloppy arguments are enabled)
+
+            Option,   // parameter assigned is not one of the acceptable options
+
+            Invalid   // invalid error
         }
 
         alias void   delegate() Invoker;
