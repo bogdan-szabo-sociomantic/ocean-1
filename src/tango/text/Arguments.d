@@ -774,14 +774,10 @@ public class Arguments
         bool done;
         int error;
 
-        debug ( Arguments ) stdout.formatln ("\ncmdline: '{}'", input);
-
         stack.push(get(null));
 
         foreach ( s; input )
         {
-            debug ( Arguments ) stdout.formatln ("'{}'", s);
-
             if ( done is false )
             {
                 if ( s == "--" )
@@ -1977,12 +1973,6 @@ public class Arguments
                 }
             }
 
-            debug ( Arguments )
-                stdout.formatln("{}: error={}, set={}, min={}, max={}, "
-                    "req={}, values={}, defaults={}, requires={}",
-                    name, error, set, min, max, req, values,
-                    deefalts, dependees);
-
             return error;
         }
     }
@@ -2154,49 +2144,5 @@ unittest
         assert(args.parse("-f -- -bar -wumpus -wombat --abc"));
         assert(args('f').assigned.length is 2);
         assert(args(null).assigned.length is 2);
-    }
-}
-
-
-
-/*******************************************************************************
-
-    Debugging helper
-
-*******************************************************************************/
-
-debug (Arguments)
-{
-    import tango.io.Stdout;
-
-    void main()
-    {
-        char[] crap = "crap";
-        auto args = new Arguments;
-
-        args(null).title("root").params.help("root help");
-        args('x').aliased('X').params(0).required.help("x help");
-        args('y').defaults("hi").params(2).smush.explicit.help("y help");
-        args('a').required.defaults("hi").requires('y').params(1)
-            .help("a help");
-        args("foobar").params(2).help("foobar help");
-
-        if ( ! args.parse("'one =two' -xa=bar -y=ff -yss --foobar=blah1 "
-                          "--foobar barf blah2 -- a b c d e") )
-        {
-            stdout(args.errors(&stdout.layout.sprint));
-        }
-        else
-        {
-            if ( args.get('x') )
-            {
-                args.help(
-                    (char[] a, char[] b)
-                    {
-                        Stdout.formatln("{}{}\n\t{}", args.lp, a, b);
-                    }
-                );
-            }
-        }
     }
 }
