@@ -582,7 +582,7 @@ import tango.util.container.more.Stack;
 
 *******************************************************************************/
 
-version=dashdash;
+version = dashdash;
 
 
 
@@ -600,8 +600,8 @@ class Arguments
 
     ***************************************************************************/
 
-    public alias get                opCall;         // args("name")
-    public alias get                opIndex;        // args["name"]
+    public alias get opCall;  // args("name")
+    public alias get opIndex; // args["name"]
 
 
     /***************************************************************************
@@ -623,7 +623,7 @@ class Arguments
 
     ***************************************************************************/
 
-    private Stack!(Argument)        stack;
+    private Stack!(Argument) stack;
 
 
     /***************************************************************************
@@ -633,7 +633,7 @@ class Arguments
 
     ***************************************************************************/
 
-    private Argument[istring]       args;
+    private Argument[istring] args;
 
 
     /***************************************************************************
@@ -643,7 +643,7 @@ class Arguments
 
     ***************************************************************************/
 
-    private Argument[istring]       aliases;
+    private Argument[istring] aliases;
 
 
     /***************************************************************************
@@ -652,7 +652,7 @@ class Arguments
 
     ***************************************************************************/
 
-    private char                    eq;
+    private char eq;
 
 
     /***************************************************************************
@@ -661,7 +661,7 @@ class Arguments
 
     ***************************************************************************/
 
-    private istring                 sp;
+    private istring sp;
 
 
     /***************************************************************************
@@ -670,7 +670,7 @@ class Arguments
 
     ***************************************************************************/
 
-    private istring                 lp;
+    private istring lp;
 
 
     /***************************************************************************
@@ -679,7 +679,7 @@ class Arguments
 
     ***************************************************************************/
 
-    private istring[]               msgs;
+    private istring[] msgs;
 
 
     /***************************************************************************
@@ -688,7 +688,7 @@ class Arguments
 
     ***************************************************************************/
 
-    private static istring[]        errmsg = [
+    private static istring[] errmsg = [
         "argument '{0}' expects {2} parameter(s) but has {1}\n",
         "argument '{0}' expects {3} parameter(s) but has {1}\n",
         "argument '{0}' is missing\n",
@@ -712,13 +712,14 @@ class Arguments
 
     ***************************************************************************/
 
-    this (istring sp="-", istring lp="--", char eq='=')
+    this ( istring sp="-", istring lp="--", char eq='=' )
     {
         this.msgs = this.errmsg;
         this.sp = sp;
         this.lp = lp;
         this.eq = eq;
-        get(null).params;       // set null argument to consume params
+
+        get(null).params; // set null argument to consume params
     }
 
 
@@ -738,12 +739,14 @@ class Arguments
 
     ***************************************************************************/
 
-    final bool parse (istring input, bool sloppy=false)
+    final bool parse ( istring input, bool sloppy = false )
     {
         istring[] tmp;
-        foreach (s; quotes(input, " "))
+
+        foreach ( s; quotes(input, " ") )
             tmp ~= s;
-        return parse (tmp, sloppy);
+
+        return parse(tmp, sloppy);
     }
 
 
@@ -764,33 +767,41 @@ class Arguments
 
     ***************************************************************************/
 
-    final bool parse (istring[] input, bool sloppy=false)
+    final bool parse ( istring[] input, bool sloppy = false )
     {
-        bool    done;
-        int     error;
+        bool done;
+        int error;
 
-        debug(Arguments) stdout.formatln ("\ncmdline: '{}'", input);
-        stack.push (get(null));
-        foreach (s; input)
+        debug ( Arguments ) stdout.formatln ("\ncmdline: '{}'", input);
+
+        stack.push(get(null));
+
+        foreach ( s; input )
         {
-            debug(Arguments) stdout.formatln ("'{}'", s);
-            if (done is false)
+            debug ( Arguments ) stdout.formatln ("'{}'", s);
+
+            if ( done is false )
             {
-                if (s == "--")
+                if ( s == "--" )
                 {
                     done = true;
-                    version(dashdash) stack.clear.push(get(null));
+
+                    version ( dashdash ) stack.clear.push(get(null));
+
                     continue;
                 }
                 else
-                    if (argument (s, lp, sloppy, false) ||
-                            argument (s, sp, sloppy, true))
+                    if ( argument(s, lp, sloppy, false) ||
+                         argument(s, sp, sloppy, true) )
                         continue;
             }
+
             stack.top.append (s);
         }
-        foreach (arg; args)
+
+        foreach ( arg; args )
             error |= arg.valid;
+
         return error is 0;
     }
 
@@ -809,15 +820,17 @@ class Arguments
 
     ***************************************************************************/
 
-    final Arguments clear ()
+    final Arguments clear ( )
     {
         stack.clear;
-        foreach (arg; args)
+
+        foreach ( arg; args )
         {
             arg.set = false;
             arg.values = null;
             arg.error = arg.None;
         }
+
         return this;
     }
 
@@ -836,9 +849,9 @@ class Arguments
 
     ***************************************************************************/
 
-    final Argument get (char name)
+    final Argument get ( char name )
     {
-        return get (cast(istring) (&name)[0..1]);
+        return get(cast(istring)(&name)[0 .. 1]);
     }
 
 
@@ -855,14 +868,16 @@ class Arguments
 
     ***************************************************************************/
 
-    final Argument get (cstring name)
+    final Argument get ( cstring name )
     {
         auto a = name in args;
-        if (a is null)
+
+        if ( a is null )
         {
             auto _name = idup(name);
             return args[_name] = new Argument(_name);
         }
+
         return *a;
     }
 
@@ -876,12 +891,14 @@ class Arguments
 
     ***************************************************************************/
 
-    final int opApply (int delegate(ref Argument) dg)
+    final int opApply ( int delegate(ref Argument) dg )
     {
         int result;
-        foreach (arg; args)
-            if ((result=dg(arg)) != 0)
+
+        foreach ( arg; args )
+            if ( (result = dg(arg)) != 0 )
                 break;
+
         return result;
     }
 
@@ -901,15 +918,17 @@ class Arguments
 
     ***************************************************************************/
 
-    final istring errors (mstring delegate(mstring buf, cstring fmt, ...) dg)
+    final istring errors ( mstring delegate(mstring buf, cstring fmt, ...) dg )
     {
         char[256] tmp;
         istring result;
-        foreach (arg; args)
-            if (arg.error)
-                result ~= dg (tmp, msgs[arg.error-1], arg.name,
-                        arg.values.length, arg.min, arg.max,
-                        arg.bogus, arg.options);
+
+        foreach ( arg; args )
+            if ( arg.error )
+                result ~= dg(tmp, msgs[arg.error-1], arg.name,
+                    arg.values.length, arg.min, arg.max, arg.bogus,
+                    arg.options);
+
         return result;
     }
 
@@ -936,12 +955,13 @@ class Arguments
 
     ***************************************************************************/
 
-    final Arguments errors (istring[] errors)
+    final Arguments errors ( istring[] errors )
     {
-        if (errors.length is errmsg.length)
+        if ( errors.length is errmsg.length )
             msgs = errors;
         else
             assert (false);
+
         return this;
     }
 
@@ -962,11 +982,12 @@ class Arguments
 
     ***************************************************************************/
 
-    final Arguments help (void delegate(istring arg, istring help) dg)
+    final Arguments help ( void delegate ( istring arg, istring help ) dg )
     {
-        foreach (arg; args)
-            if (arg.text.ptr)
-                dg (arg.name, arg.text);
+        foreach ( arg; args )
+            if ( arg.text.ptr )
+                dg(arg.name, arg.text);
+
         return this;
     }
 
@@ -994,22 +1015,26 @@ class Arguments
 
     ***************************************************************************/
 
-    private bool argument (istring s, istring p, bool sloppy, bool flag)
+    private bool argument ( istring s, istring p, bool sloppy, bool flag )
     {
-        if (s.length >= p.length && s[0..p.length] == p)
+        if ( s.length >= p.length && s[0 .. p.length] == p )
         {
-            s = s [p.length..$];
-            auto i = locate (s, eq);
-            if (i < s.length)
-                enable (s[0..i], sloppy, flag).append (s[i+1..$], true);
+            s = s[p.length .. $];
+
+            auto i = locate(s, eq);
+
+            if ( i < s.length )
+                enable(s[0 .. i], sloppy, flag).append(s[i + 1 .. $], true);
             else
                 // trap empty arguments; attach as param to null-arg
-                if (s.length)
-                    enable (s, sloppy, flag);
+                if ( s.length )
+                    enable(s, sloppy, flag);
                 else
-                    get(null).append (p, true);
+                    get(null).append(p, true);
+
             return true;
         }
+
         return false;
     }
 
@@ -1034,31 +1059,35 @@ class Arguments
 
     ***************************************************************************/
 
-    private Argument enable (istring elem, bool sloppy, bool flag=false)
+    private Argument enable ( istring elem, bool sloppy, bool flag = false )
     {
-        if (flag && elem.length > 1)
+        if ( flag && elem.length > 1 )
         {
             // locate arg for first char
-            auto arg = enable (elem[0..1], sloppy);
-            elem = elem[1..$];
+            auto arg = enable(elem[0 .. 1], sloppy);
+
+            elem = elem[1 .. $];
 
             // drop further processing of this flag where in error
-            if (arg.error is arg.None)
+            if ( arg.error is arg.None )
             {
                 // smush remaining text or treat as additional args
-                if (arg.cat)
-                    arg.append (elem, true);
+                if ( arg.cat )
+                    arg.append(elem, true);
                 else
-                    arg = enable (elem, sloppy, true);
+                    arg = enable(elem, sloppy, true);
             }
+
             return arg;
         }
 
         // if not in args, or in aliases, then create new arg
         auto a = elem in args;
-        if (a is null)
-            if ((a = elem in aliases) is null)
+
+        if ( a is null )
+            if ( (a = elem in aliases) is null )
                 return get(elem).params.enable(!sloppy);
+
         return a.enable;
     }
 
@@ -1110,8 +1139,8 @@ class Arguments
 
         ***********************************************************************/
 
-        alias void   delegate() Invoker;
-        alias istring delegate(istring value) Inspector;
+        alias void    delegate ( )               Invoker;
+        alias istring delegate ( istring value ) Inspector;
 
 
         /***********************************************************************
@@ -1120,7 +1149,7 @@ class Arguments
 
         ***********************************************************************/
 
-        public int         min;
+        public int min;
 
 
         /***********************************************************************
@@ -1129,7 +1158,7 @@ class Arguments
 
         ***********************************************************************/
 
-        public int         max;
+        public int max;
 
 
         /***********************************************************************
@@ -1138,7 +1167,7 @@ class Arguments
 
         ***********************************************************************/
 
-        public int         error;
+        public int error;
 
 
         /***********************************************************************
@@ -1147,7 +1176,7 @@ class Arguments
 
         ***********************************************************************/
 
-        public  bool       set;
+        public bool set;
 
 
         /***********************************************************************
@@ -1156,7 +1185,7 @@ class Arguments
 
         ***********************************************************************/
 
-        public  istring    aliases;
+        public istring aliases;
 
 
         /***********************************************************************
@@ -1165,7 +1194,7 @@ class Arguments
 
         ***********************************************************************/
 
-        private bool       req;
+        private bool req;
 
 
         /***********************************************************************
@@ -1174,7 +1203,7 @@ class Arguments
 
         ***********************************************************************/
 
-        private bool       cat;
+        private bool cat;
 
 
         /***********************************************************************
@@ -1184,7 +1213,7 @@ class Arguments
 
         ***********************************************************************/
 
-        private bool       exp;
+        private bool exp;
 
 
         /***********************************************************************
@@ -1193,7 +1222,7 @@ class Arguments
 
         ***********************************************************************/
 
-        private bool       fail;
+        private bool fail;
 
 
         /***********************************************************************
@@ -1202,7 +1231,7 @@ class Arguments
 
         ***********************************************************************/
 
-        public  istring    name;
+        public istring name;
 
 
         /***********************************************************************
@@ -1211,7 +1240,7 @@ class Arguments
 
         ***********************************************************************/
 
-        public  istring    text;
+        public istring text;
 
 
         /***********************************************************************
@@ -1220,7 +1249,7 @@ class Arguments
 
         ***********************************************************************/
 
-        private istring    bogus;
+        private istring bogus;
 
 
         /***********************************************************************
@@ -1229,7 +1258,7 @@ class Arguments
 
         ***********************************************************************/
 
-        private istring[]  values;
+        private istring[] values;
 
 
         /***********************************************************************
@@ -1239,7 +1268,7 @@ class Arguments
 
         ***********************************************************************/
 
-        public istring[]   options;
+        public istring[] options;
 
 
         /***********************************************************************
@@ -1248,7 +1277,7 @@ class Arguments
 
         ***********************************************************************/
 
-        public istring[]   deefalts;
+        public istring[] deefalts;
 
 
         /***********************************************************************
@@ -1257,7 +1286,7 @@ class Arguments
 
         ***********************************************************************/
 
-        private Invoker    invoker;
+        private Invoker invoker;
 
 
         /***********************************************************************
@@ -1266,7 +1295,7 @@ class Arguments
 
         ***********************************************************************/
 
-        private Inspector  inspector;
+        private Inspector inspector;
 
 
         /***********************************************************************
@@ -1296,7 +1325,7 @@ class Arguments
 
         ***********************************************************************/
 
-        this (istring name)
+        this ( istring name )
         {
             this.name = name;
         }
@@ -1309,7 +1338,7 @@ class Arguments
 
         ***********************************************************************/
 
-        override istring toString()
+        override istring toString ( )
         {
             return name;
         }
@@ -1323,7 +1352,7 @@ class Arguments
 
         ***********************************************************************/
 
-        final istring[] assigned ()
+        final istring[] assigned ( )
         {
             return values.length ? values : deefalts;
         }
@@ -1341,9 +1370,9 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument aliased (char name)
+        final Argument aliased ( char name )
         {
-            if ( auto arg = (&name)[0..1] in this.outer.aliases )
+            if ( auto arg = (&name)[0 .. 1] in this.outer.aliases )
             {
                 assert(
                     false,
@@ -1354,8 +1383,10 @@ class Arguments
                 );
             }
 
-            this.outer.aliases[idup((&name)[0..1])] = this;
+            this.outer.aliases[idup((&name)[0 .. 1])] = this;
+
             this.aliases ~= name;
+
             return this;
         }
 
@@ -1369,9 +1400,10 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument required ()
+        final Argument required ( )
         {
             this.req = true;
+
             return this;
         }
 
@@ -1388,9 +1420,10 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument requires (Argument arg)
+        final Argument requires ( Argument arg )
         {
             dependees ~= arg;
+
             return this;
         }
 
@@ -1407,9 +1440,9 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument requires (istring other)
+        final Argument requires ( istring other )
         {
-            return requires (this.outer.get(other));
+            return requires(this.outer.get(other));
         }
 
 
@@ -1425,9 +1458,9 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument requires (char other)
+        final Argument requires ( char other )
         {
-            return requires (cast(istring) (&other)[0..1]);
+            return requires(cast(istring)(&other)[0 .. 1]);
         }
 
 
@@ -1443,9 +1476,10 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument conflicts (Argument arg)
+        final Argument conflicts ( Argument arg )
         {
             conflictees ~= arg;
+
             return this;
         }
 
@@ -1463,9 +1497,9 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument conflicts (istring other)
+        final Argument conflicts ( istring other )
         {
-            return conflicts (this.outer.get(other));
+            return conflicts(this.outer.get(other));
         }
 
 
@@ -1482,9 +1516,9 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument conflicts (char other)
+        final Argument conflicts ( char other )
         {
-            return conflicts (cast(istring) (&other)[0..1]);
+            return conflicts(cast(istring)(&other)[0 .. 1]);
         }
 
 
@@ -1498,9 +1532,9 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument params ()
+        final Argument params ( )
         {
-            return params (0, 42);
+            return params(0, 42);
         }
 
 
@@ -1517,9 +1551,9 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument params (int count)
+        final Argument params ( int count )
         {
-            return params (count, count);
+            return params(count, count);
         }
 
 
@@ -1537,10 +1571,12 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument params (int min, int max)
+        final Argument params ( int min, int max )
         {
             this.min = min;
+
             this.max = max;
+
             return this;
         }
 
@@ -1557,9 +1593,10 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument defaults (istring values)
+        final Argument defaults ( istring values )
         {
             this.deefalts ~= values;
+
             return this;
         }
 
@@ -1583,9 +1620,10 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument bind (Inspector inspector)
+        final Argument bind ( Inspector inspector )
         {
             this.inspector = inspector;
+
             return this;
         }
 
@@ -1604,9 +1642,10 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument bind (Invoker invoker)
+        final Argument bind ( Invoker invoker )
         {
             this.invoker = invoker;
+
             return this;
         }
 
@@ -1629,9 +1668,10 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument smush (bool yes=true)
+        final Argument smush ( bool yes = true )
         {
             cat = yes;
+
             return this;
         }
 
@@ -1645,9 +1685,10 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument explicit ()
+        final Argument explicit ( )
         {
             exp = true;
+
             return this;
         }
 
@@ -1665,9 +1706,10 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument title (istring name)
+        final Argument title ( istring name )
         {
             this.name = name;
+
             return this;
         }
 
@@ -1684,9 +1726,10 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument help (istring text)
+        final Argument help ( istring text )
         {
             this.text = text;
+
             return this;
         }
 
@@ -1701,9 +1744,10 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument halt ()
+        final Argument halt ( )
         {
             this.fail = true;
+
             return this;
         }
 
@@ -1720,9 +1764,10 @@ class Arguments
 
         ***********************************************************************/
 
-        final Argument restrict (istring[] options ...)
+        final Argument restrict ( istring[] options ... )
         {
             this.options = options;
+
             return this;
         }
 
@@ -1743,16 +1788,19 @@ class Arguments
 
         ***********************************************************************/
 
-        private Argument enable (bool unexpected=false)
+        private Argument enable ( bool unexpected = false )
         {
             this.set = true;
-            if (max > 0)
+
+            if ( max > 0 )
                 this.outer.stack.push(this);
 
-            if (invoker)
+            if ( invoker )
                 invoker();
-            if (unexpected)
+
+            if ( unexpected )
                 error = Extra;
+
             return this;
         }
 
@@ -1769,37 +1817,41 @@ class Arguments
 
         ***********************************************************************/
 
-        private void append (istring value, bool explicit=false)
+        private void append ( istring value, bool explicit = false )
         {
             // pop to an argument that can accept implicit parameters?
-            if (explicit is false)
+            if ( explicit is false )
             {
                 auto s = &(this.outer.stack);
-                while (s.top.exp && s.size > 1)
+
+                while ( s.top.exp && s.size > 1 )
                     s.pop;
             }
 
-            this.set = true;        // needed for default assignments
-            values ~= value;        // append new value
+            this.set = true; // needed for default assignments
 
-            if (error is None)
+            values ~= value; // append new value
+
+            if ( error is None )
             {
-                if (inspector)
-                    if ((bogus = inspector(value)).length)
+                if ( inspector )
+                    if ( (bogus = inspector(value)).length )
                         error = Invalid;
 
-                if (options.length)
+                if ( options.length )
                 {
                     error = Option;
-                    foreach (option; options)
-                        if (option == value)
+
+                    foreach ( option; options )
+                        if ( option == value )
                             error = None;
                 }
             }
-            // pop to an argument that can accept parameters
 
+            // pop to an argument that can accept parameters
             auto s = &(this.outer.stack);
-            while (s.top.values.length >= max && s.size>1)
+
+            while ( s.top.values.length >= max && s.size > 1 )
                 s.pop;
         }
 
@@ -1814,42 +1866,43 @@ class Arguments
 
         ***********************************************************************/
 
-        private int valid ()
+        private int valid ( )
         {
-            if (error is None)
+            if ( error is None )
             {
-                if (req && !set)
+                if ( req && !set )
                     error = Required;
                 else
-                    if (set)
+                    if ( set )
                     {
                         // short circuit?
-                        if (fail)
+                        if ( fail )
                             return -1;
 
-                        if (values.length < min)
+                        if ( values.length < min )
                             error = ParamLo;
                         else
-                            if (values.length > max)
+                            if ( values.length > max )
                                 error = ParamHi;
                             else
                             {
-                                foreach (arg; dependees)
-                                    if (! arg.set)
+                                foreach ( arg; dependees )
+                                    if ( ! arg.set )
                                         error = Requires, bogus=arg.name;
 
-                                foreach (arg; conflictees)
-                                    if (arg.set)
+                                foreach ( arg; conflictees )
+                                    if ( arg.set )
                                         error = Conflict, bogus=arg.name;
                             }
                     }
             }
 
-            debug(Arguments)
-                stdout.formatln ("{}: error={}, set={}, min={}, max={}, "
+            debug ( Arguments )
+                stdout.formatln("{}: error={}, set={}, min={}, max={}, "
                     "req={}, values={}, defaults={}, requires={}",
                     name, error, set, min, max, req, values,
                     deefalts, dependees);
+
             return error;
         }
     }
@@ -1869,158 +1922,158 @@ unittest
 
     // basic
     auto x = args['x'];
-    assert (args.parse (""));
+    assert(args.parse(""));
     x.required;
-    assert (args.parse ("") is false);
-    assert (args.clear.parse ("-x"));
-    assert (x.set);
+    assert(args.parse("") is false);
+    assert(args.clear.parse("-x"));
+    assert(x.set);
 
     // alias
     x.aliased('X');
-    assert (args.clear.parse ("-X"));
-    assert (x.set);
+    assert(args.clear.parse("-X"));
+    assert(x.set);
 
     // unexpected arg (with sloppy)
-    assert (args.clear.parse ("-y") is false);
-    assert (args.clear.parse ("-y") is false);
-    assert (args.clear.parse ("-y", true) is false);
-    assert (args['y'].set);
-    assert (args.clear.parse ("-x -y", true));
+    assert(args.clear.parse("-y") is false);
+    assert(args.clear.parse("-y") is false);
+    assert(args.clear.parse("-y", true) is false);
+    assert(args['y'].set);
+    assert(args.clear.parse("-x -y", true));
 
     // parameters
     x.params(0);
-    assert (args.clear.parse ("-x param"));
-    assert (x.assigned.length is 0);
-    assert (args(null).assigned.length is 1);
+    assert(args.clear.parse("-x param"));
+    assert(x.assigned.length is 0);
+    assert(args(null).assigned.length is 1);
     x.params(1);
-    assert (args.clear.parse ("-x=param"));
-    assert (x.assigned.length is 1);
-    assert (x.assigned[0] == "param");
-    assert (args.clear.parse ("-x param"));
-    assert (x.assigned.length is 1);
-    assert (x.assigned[0] == "param");
+    assert(args.clear.parse("-x=param"));
+    assert(x.assigned.length is 1);
+    assert(x.assigned[0] == "param");
+    assert(args.clear.parse("-x param"));
+    assert(x.assigned.length is 1);
+    assert(x.assigned[0] == "param");
 
     // too many args
     x.params(1);
-    assert (args.clear.parse ("-x param1 param2"));
-    assert (x.assigned.length is 1);
-    assert (x.assigned[0] == "param1");
-    assert (args(null).assigned.length is 1);
-    assert (args(null).assigned[0] == "param2");
+    assert(args.clear.parse("-x param1 param2"));
+    assert(x.assigned.length is 1);
+    assert(x.assigned[0] == "param1");
+    assert(args(null).assigned.length is 1);
+    assert(args(null).assigned[0] == "param2");
 
     // now with default params
-    assert (args.clear.parse ("param1 param2 -x=blah"));
-    assert (args[null].assigned.length is 2);
-    assert (args(null).assigned.length is 2);
-    assert (x.assigned.length is 1);
+    assert(args.clear.parse("param1 param2 -x=blah"));
+    assert(args[null].assigned.length is 2);
+    assert(args(null).assigned.length is 2);
+    assert(x.assigned.length is 1);
     x.params(0);
-    assert (!args.clear.parse ("-x=blah"));
+    assert(!args.clear.parse("-x=blah"));
 
     // args as parameter
-    assert (args.clear.parse ("- -x"));
-    assert (args[null].assigned.length is 1);
-    assert (args[null].assigned[0] == "-");
+    assert(args.clear.parse("- -x"));
+    assert(args[null].assigned.length is 1);
+    assert(args[null].assigned[0] == "-");
 
     // multiple flags, with alias and sloppy
-    assert (args.clear.parse ("-xy"));
-    assert (args.clear.parse ("-xyX"));
-    assert (x.set);
-    assert (args['y'].set);
-    assert (args.clear.parse ("-xyz") is false);
-    assert (args.clear.parse ("-xyz", true));
+    assert(args.clear.parse("-xy"));
+    assert(args.clear.parse("-xyX"));
+    assert(x.set);
+    assert(args['y'].set);
+    assert(args.clear.parse("-xyz") is false);
+    assert(args.clear.parse("-xyz", true));
     auto z = args['z'];
-    assert (z.set);
+    assert(z.set);
 
     // multiple flags with trailing arg
-    assert (args.clear.parse ("-xyz=10"));
-    assert (z.assigned.length is 1);
+    assert(args.clear.parse("-xyz=10"));
+    assert(z.assigned.length is 1);
 
     // again, but without sloppy param declaration
     z.params(0);
-    assert (!args.clear.parse ("-xyz=10"));
-    assert (args.clear.parse ("-xzy=10"));
-    assert (args('y').assigned.length is 1);
-    assert (args('x').assigned.length is 0);
-    assert (args('z').assigned.length is 0);
+    assert(!args.clear.parse("-xyz=10"));
+    assert(args.clear.parse("-xzy=10"));
+    assert(args('y').assigned.length is 1);
+    assert(args('x').assigned.length is 0);
+    assert(args('z').assigned.length is 0);
 
     // x requires y
     x.requires('y');
-    assert (args.clear.parse ("-xy"));
-    assert (args.clear.parse ("-xz") is false);
+    assert(args.clear.parse("-xy"));
+    assert(args.clear.parse("-xz") is false);
 
     // defaults
     z.defaults("foo");
-    assert (args.clear.parse ("-xy"));
-    assert (z.assigned.length is 1);
+    assert(args.clear.parse("-xy"));
+    assert(z.assigned.length is 1);
 
     // long names, with params
-    assert (args.clear.parse ("-xy --foobar") is false);
-    assert (args.clear.parse ("-xy --foobar", true));
-    assert (args["y"].set && x.set);
-    assert (args["foobar"].set);
-    assert (args.clear.parse ("-xy --foobar=10"));
-    assert (args["foobar"].assigned.length is 1);
-    assert (args["foobar"].assigned[0] == "10");
+    assert(args.clear.parse("-xy --foobar") is false);
+    assert(args.clear.parse("-xy --foobar", true));
+    assert(args["y"].set && x.set);
+    assert(args["foobar"].set);
+    assert(args.clear.parse("-xy --foobar=10"));
+    assert(args["foobar"].assigned.length is 1);
+    assert(args["foobar"].assigned[0] == "10");
 
     // smush argument z, but not others
     z.params;
-    assert (args.clear.parse ("-xy -zsmush") is false);
-    assert (x.set);
+    assert(args.clear.parse("-xy -zsmush") is false);
+    assert(x.set);
     z.smush;
-    assert (args.clear.parse ("-xy -zsmush"));
-    assert (z.assigned.length is 1);
-    assert (z.assigned[0] == "smush");
-    assert (x.assigned.length is 0);
+    assert(args.clear.parse("-xy -zsmush"));
+    assert(z.assigned.length is 1);
+    assert(z.assigned[0] == "smush");
+    assert(x.assigned.length is 0);
     z.params(0);
 
     // conflict x with z
     x.conflicts(z);
-    assert (args.clear.parse ("-xyz") is false);
+    assert(args.clear.parse("-xyz") is false);
 
     // word mode, with prefix elimination
-    args = new Arguments (null, null);
-    assert (args.clear.parse ("foo bar wumpus") is false);
-    assert (args.clear.parse ("foo bar wumpus wombat", true));
-    assert (args("foo").set);
-    assert (args("bar").set);
-    assert (args("wumpus").set);
-    assert (args("wombat").set);
+    args = new Arguments(null, null);
+    assert(args.clear.parse("foo bar wumpus") is false);
+    assert(args.clear.parse("foo bar wumpus wombat", true));
+    assert(args("foo").set);
+    assert(args("bar").set);
+    assert(args("wumpus").set);
+    assert(args("wombat").set);
 
     // use '/' instead of '-'
-    args = new Arguments ("/", "/");
-    assert (args.clear.parse ("/foo /bar /wumpus") is false);
-    assert (args.clear.parse ("/foo /bar /wumpus /wombat", true));
-    assert (args("foo").set);
-    assert (args("bar").set);
-    assert (args("wumpus").set);
-    assert (args("wombat").set);
+    args = new Arguments("/", "/");
+    assert(args.clear.parse("/foo /bar /wumpus") is false);
+    assert(args.clear.parse("/foo /bar /wumpus /wombat", true));
+    assert(args("foo").set);
+    assert(args("bar").set);
+    assert(args("wumpus").set);
+    assert(args("wombat").set);
 
     // use '/' for short and '-' for long
-    args = new Arguments ("/", "-");
-    assert (args.clear.parse ("-foo -bar -wumpus -wombat /abc", true));
-    assert (args("foo").set);
-    assert (args("bar").set);
-    assert (args("wumpus").set);
-    assert (args("wombat").set);
-    assert (args("a").set);
-    assert (args("b").set);
-    assert (args("c").set);
+    args = new Arguments("/", "-");
+    assert(args.clear.parse("-foo -bar -wumpus -wombat /abc", true));
+    assert(args("foo").set);
+    assert(args("bar").set);
+    assert(args("wumpus").set);
+    assert(args("wombat").set);
+    assert(args("a").set);
+    assert(args("b").set);
+    assert(args("c").set);
 
     // "--" makes all subsequent be implicit parameters
     args = new Arguments;
-    version (dashdash)
+    version ( dashdash )
     {
         args('f').params(0);
-        assert (args.parse ("-f -- -bar -wumpus -wombat --abc"));
-        assert (args('f').assigned.length is 0);
-        assert (args(null).assigned.length is 4);
+        assert(args.parse("-f -- -bar -wumpus -wombat --abc"));
+        assert(args('f').assigned.length is 0);
+        assert(args(null).assigned.length is 4);
     }
     else
     {
         args('f').params(2);
-        assert (args.parse ("-f -- -bar -wumpus -wombat --abc"));
-        assert (args('f').assigned.length is 2);
-        assert (args(null).assigned.length is 2);
+        assert(args.parse("-f -- -bar -wumpus -wombat --abc"));
+        assert(args('f').assigned.length is 2);
+        assert(args(null).assigned.length is 2);
     }
 }
 
@@ -2044,12 +2097,18 @@ debug (Arguments)
         args(null).title("root").params.help("root help");
         args('x').aliased('X').params(0).required.help("x help");
         args('y').defaults("hi").params(2).smush.explicit.help("y help");
-        args('a').required.defaults("hi").requires('y').params(1).help("a help");
+        args('a').required.defaults("hi").requires('y').params(1)
+            .help("a help");
         args("foobar").params(2).help("foobar help");
-        if (! args.parse ("'one =two' -xa=bar -y=ff -yss --foobar=blah1 --foobar barf blah2 -- a b c d e"))
-            stdout (args.errors(&stdout.layout.sprint));
+        if ( ! args.parse("'one =two' -xa=bar -y=ff -yss --foobar=blah1 --foobar barf blah2 -- a b c d e") )
+            stdout(args.errors(&stdout.layout.sprint));
         else
-            if (args.get('x'))
-                args.help ((char[] a, char[] b){Stdout.formatln ("{}{}\n\t{}", args.lp, a, b);});
+            if ( args.get('x') )
+                args.help(
+                    (char[] a, char[] b)
+                    {
+                        Stdout.formatln("{}{}\n\t{}", args.lp, a, b);
+                    }
+                );
     }
 }
