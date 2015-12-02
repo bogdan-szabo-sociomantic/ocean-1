@@ -578,14 +578,14 @@ class Arguments
     public alias get                opCall;         // args("name")
     public alias get                opIndex;        // args["name"]
 
-    private Stack!(Argument)        stack;          // args with params
-    private Argument[istring]       args;           // the set of args
-    private Argument[istring]       aliases;        // set of aliases
-    private char                    eq;             // '=' or ':'
-    private istring                 sp,             // short prefix
-                                    lp;             // long prefix
-    private istring[]               msgs;           // error messages
-    private static istring[]        errmsg = [      // default errors
+    private Stack!(Argument)        stack;
+    private Argument[istring]       args;
+    private Argument[istring]       aliases;
+    private char                    eq;
+    private istring                 sp;
+    private istring                 lp;
+    private istring[]               msgs;
+    private static istring[]        errmsg = [
         "argument '{0}' expects {2} parameter(s) but has {1}\n",
         "argument '{0}' expects {3} parameter(s) but has {1}\n",
         "argument '{0}' is missing\n",
@@ -909,25 +909,25 @@ Option:         parameter does not match options
         alias void   delegate() Invoker;
         alias istring delegate(istring value) Inspector;
 
-        public int         min,            /// minimum params
-                           max,            /// maximum params
-                           error;          /// error condition
-        public  bool       set;            /// arg is present
-        public  istring    aliases;        /// Array of aliases
-        private bool       req,            // arg is required
-                           cat,            // arg is smushable
-                           exp,            // implicit params
-                           fail;           // fail the parse
-        public  istring    name,           // arg name
-                           text;           // help text
-        private istring    bogus;          // name of conflict
-        private istring[]  values;         // assigned values
-        public istring[]   options,        // validation options
-                           deefalts;       // configured defaults
-        private Invoker    invoker;        // invocation callback
-        private Inspector  inspector;      // inspection callback
-        private Argument[] dependees,      // who we require
-                           conflictees;    // who we conflict with
+        public int         min;
+        public int         max;
+        public int         error;
+        public  bool       set;
+        public  istring    aliases;
+        private bool       req;
+        private bool       cat;
+        private bool       exp;
+        private bool       fail;
+        public  istring    name;
+        public  istring    text;
+        private istring    bogus;
+        private istring[]  values;
+        public istring[]   options;
+        public istring[]   deefalts;
+        private Invoker    invoker;
+        private Inspector  inspector;
+        private Argument[] dependees;
+        private Argument[] conflictees;
 
         /***************************************************************
 
