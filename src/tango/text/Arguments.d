@@ -1,12 +1,559 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2009 Kris. All rights reserved.
+    Module to manage command-line arguments.
 
-        license:        BSD style: $(LICENSE)
+    ____________________________________________________________________________
 
-        version:        Oct 2009: Initial release
 
-        author:         Kris
+    Simple usage:
+
+    ---
+
+        int main ( istring[] cl_args )
+        {
+            // Create an object to parse command-line arguments
+            auto args = new Arguments;
+
+            // Setup what arguments are valid
+            // (these can be configured in various ways as will be demonstrated
+            // later in the documentation)
+            args("alpha");
+            args("bravo");
+
+            // Parse the actual command-line arguments given to the application
+            // (the first element is the application name, so that should not be
+            // passed to the 'parse()' function)
+            auto args_ok = args.parse(cl_args[1 .. $]);
+
+            if ( args_ok )
+            {
+                // Proceed with rest of the application
+                ...
+            }
+            else
+            {
+                // Discover what caused the error and handle appropriately
+            }
+        }
+
+    ---
+
+    ____________________________________________________________________________
+
+
+    For the sake of brevity, the rest of this documentation will not show the
+    'main()' function or the creation of the 'args' object. Also, setting up of
+    arguments will be shown only where necessary. Moreover, the 'args.parse()'
+    function will be called with a custom string representing the command-line
+    arguments. This is as shown in the following example:
+
+    ---
+
+        args.parse("--alpha --bravo");
+
+        if ( args("alpha").set )
+        {
+            // This will be reached as '--alpha' was given
+        }
+
+        if ( args("bravo").set )
+        {
+            // This will be reached as '--bravo' was given
+        }
+
+        if ( args("charlie").set )
+        {
+            // This will *not* be reached as '--charlie' was not given
+        }
+
+    ---
+
+    ____________________________________________________________________________
+
+
+    When arguments are being set up, normally all arguments that an application
+    supports are explicitly declared and suitably configured. But sometimes, it
+    may be desirable to use on-the-fly arguments that are not set up but
+    discovered during parsing. Such arguments are called 'sloppy arguments'.
+    Support for sloppy arguments is disabled by default, but can be enabled when
+    calling the 'parse()' function, as shown below:
+
+    ---
+
+        args("alpha");
+
+        args.parse("--alpha --bravo");
+            // This will result in an error because only 'alpha' was declared,
+            // but not 'bravo'.
+
+        args.parse("--alpha --bravo", true);
+            // This, on the other hand would work. Space for 'bravo' (and
+            // potentially any of its parameters) would be allocated when
+            // 'bravo' gets discovered during parsing.
+
+    ---
+
+    ____________________________________________________________________________
+
+
+    Arguments can be configured to have aliases. This is a convenient way to
+    represent arguments with long names. Aliases are always exactly one
+    character long. An argument can have multiple aliases. Aliases are always
+    given on the command-line using the short prefix.
+
+    ---
+
+        args("alpha").aliased('a');
+        args("help").aliased('?').aliased('h'); // multiple aliases allowed
+
+        args.parse("-a -?");
+
+    ---
+
+    ____________________________________________________________________________
+
+
+    Arguments can be configured to be mandatorily present, by calling the
+    'required()' function as follows:
+
+    ---
+
+        args("alpha").required();
+
+        args.parse("--bravo");
+            // This will fail because the required argument 'alpha' was not
+            // given.
+
+    ---
+
+    ____________________________________________________________________________
+
+
+    An argument can be configured to depend upon another, by calling the
+    'requires()' function as follows:
+
+    ---
+
+        args("alpha");
+        args("bravo").requires("alpha");
+
+        args.parse("--bravo");
+            // This will fail because 'bravo' needs 'alpha', but 'alpha' was not
+            // given.
+
+        args.parse("--alpha --bravo");
+            // This, on the other hand, will succeed.
+
+    ---
+
+    ____________________________________________________________________________
+
+
+    An argument can be configured to conflict with another, by calling the
+    'conflicts()' function as follows:
+
+    ---
+
+        args("alpha");
+        args("bravo").conflicts("alpha");
+
+        args.parse("--alpha --bravo");
+            // This will fail because 'bravo' conflicts with 'alpha', so both of
+            // them can't be present together.
+
+    ---
+
+    ____________________________________________________________________________
+
+
+    By default arguments don't have any associated parameters. When setting up
+    arguments, they can be configured to have zero or more associated
+    parameters. Parameters assigned to an argument can be accessed using that
+    argument's 'assigned[]' array at consecutive indices. The number of
+    parameters assigned to an argument must exactly match the number of
+    parameters it has been set up to have, or else parsing will fail. Dealing
+    with parameters is shown in the following example:
+
+    ---
+
+        args("alpha");
+        args("bravo").params(0);
+            // Doing `params(0)` is redundant
+        args("charlie").params(1);
+            // 'charlie' must have exactly one associated parameter
+
+        args.parse("--alpha --bravo --charlie=chaplin");
+            // the parameter assigned to 'charlie' (i.e. 'chaplin') can be
+            // accessed using `args("charlie").assigned[0]`
+
+    ---
+
+    ____________________________________________________________________________
+
+
+    Parameter assignment can be either explicit or implicit. Explicit assignment
+    is done using an assignment symbol (defaults to '=', can be changed),
+    whereas implicit assignment happens when a parameter is found after a
+    whitespace.
+    Implicit assignment always happens to the last known argument target, such
+    that multiple parameters accumulate (until the configured parameters count
+    for that argument is reached). Any extra parameters encountered after that
+    are assigned to a special 'null' argument. The 'null' argument is always
+    defined and acts as an accumulator for parameters left uncaptured by other
+    arguments.
+
+    Notes:
+        * if sloppy arguments are supported, and if a sloppy argument happens to
+          be the last known argument target, then implicit assignment of any
+          extra parameters will happen to that sloppy argument.
+          [example 2 below]
+
+        * explicit assignment to an argument always associates the parameter
+          with that argument even if that argument's parameters count has been
+          reached. In this case, 'parse()' will fail.
+          [example 3 below]
+
+    ---
+
+        args("alpha").params(3);
+
+        // Example 1
+        args.parse("--alpha=one --alpha=two three four");
+            // In this case, 'alpha' would have 3 parameters assigned to it (so
+            // its 'assigned' array would be `["one", "two", "three"]`), and the
+            // null argument would have 1 parameter (with its 'assigned' array
+            // being `["four"]`).
+            // Here's why:
+            // Two of these parameters ('one' & 'two') were assigned explicitly.
+            // The next parameter ('three') was assigned implicitly since
+            // 'alpha' was the last known argument target. At this point,
+            // alpha's parameters count is reached, so no more implicit
+            // assignment will happen to 'alpha'.
+            // So the last parameter ('four') is assigned to the special 'null'
+            // argument.
+
+        // Example 2
+        // (sloppy arguments supported by passing 'true' as the second parameter
+        // to 'parse()')
+        args.parse("--alpha one two three four --xray five six", true);
+            // In this case, 'alpha' would get its 3 parameters ('one', 'two' &
+            // 'three') by way of implicit assignment.
+            // Parameter 'four' would be assigned to the 'null' argument (since
+            // implicit assignment to the last known argument target 'alpha' is
+            // not possible as alpha's parameter count has been reached).
+            // The sloppy argument 'xray' now becomes the new last known
+            // argument target and hence gets the last two parameters ('five' &
+            // 'six').
+
+        // Example 3
+        args.parse("--alpha one two three --alpha=four");
+            // As before, 'alpha' would get its 3 parameters ('one', 'two' &
+            // 'three') by way of implicit assignment.
+            // Since 'four' is being explicitly assigned to 'alpha', parsing
+            // will fail here as 'alpha' has been configured to have at most 3
+            // parameters.
+
+    ---
+
+    ____________________________________________________________________________
+
+
+    An argument can be configured to have one or more default parameters. This
+    means that if the argument was not given on the command-line, it would still
+    contain the configured parameter(s).
+    It is, of course, possible to have no default parameters configured. But if
+    one or more default parameters have been configured, then their number must
+    exactly match the number of parameters configured.
+
+    Notes:
+        * Irrespective of whether default parameters have been configured or not,
+          if an argument was not given on the command-line, its 'set()' function
+          would return 'false'.
+          [example 1 below]
+
+        * Irrespective of whether default parameters have been configured or not,
+          if an argument is given on the command-line, it must honour its
+          configured number of parameters.
+          [example 2 below]
+
+    ---
+
+        args("alpha").params(1).defaults("one");
+
+        // Example 1
+        args.parse("--bravo");
+            // 'alpha' was not given, so `args("alpha").set` would return false
+            // but still `args("alpha").assigned[0]` would contain 'one'
+
+        // Example 2
+        args.parse("--alpha");
+            // this will fail because 'alpha' expects a parameter and that was
+            // not given. In this case, the configured default parameter will
+            // *not* be picked up.
+
+    ---
+
+    ____________________________________________________________________________
+
+
+    Parameters of an argument can be restricted to a pre-defined set of
+    acceptable values. In this case, argument parsing will fail on an attempt to
+    assign a value from outside the set:
+
+    ---
+
+        args("greeting").restrict(["hello", "namaste", "ahoj", "hola"]);
+        args("enabled").restrict(["true", "false", "t", "f", "y", "n"]);
+
+        args.parse("--greeting=bye");
+            // This will fail since 'bye' is not among the acceptable values
+
+    ---
+
+    ____________________________________________________________________________
+
+
+    The parser makes a distinction between long prefix arguments and short
+    prefix arguments. Long prefix arguments start with two hyphens (--argument),
+    while short prefix arguments start with a single hyphen (-a) [the prefixes
+    themselves are configurable, as shown in later documentation]. Within a
+    short prefix argument, each character represents an individual argument.
+    Long prefix arguments must always be distinct, while short prefix arguments
+    may be combined together.
+
+    ---
+
+        args.parse("--alpha -b");
+            // The argument 'alpha' will be set.
+            // The argument represented by 'b' will be set (note that 'b' here
+            // could be an alias to another argument, or could be the argument
+            // name itself)
+
+    ---
+
+    ____________________________________________________________________________
+
+
+    When assigning parameters to an argument using the argument's short prefix
+    version, it is possible to "smush" the parameter with the argument. Smushing
+    refers to omitting the explicit assignment symbol ('=' by default) or
+    whitespace (when relying on implicit assignment) that separates an argument
+    from its parameter. The ability to smush an argument with its parameter in
+    this manner has to be explicitly enabled using the 'smush()' function.
+
+    Notes:
+        * smushing cannot be done with the long prefix version of an argument
+          [example 2 below]
+
+        * smushing is irrelevant if an argument has no parameters
+          [example 3 below]
+
+        * if an argument has more than one parameter, and smushing is desired,
+          then the short prefix version of the argument needs to be repeated as
+          many times as the number of parameters to be assigned (this is because
+          one smush can only assign one parameter at a time)
+          [example 4 below]
+
+        * smushing cannot be used if the parameter contains the explicit
+          assignment symbol ('=' by default). In this case, either explicit or
+          implicit assignment should be used. This limitation is due to how
+          argv/argc values are stripped of original quotes.
+          [example 5 below]
+
+    ---
+
+        // Example 1
+        args("alpha").aliased('a').params(1).smush;
+        args.parse("-aparam");
+            // OK - this is equivalent to `args.parse("-a param");`
+
+        // Example 2
+        args("bravo").params(1).smush;
+        args.parse("--bravoparam");
+            // ERROR - 'param' cannot be smushed with 'bravo'
+
+        // Example 3
+        args("charlie").smush;
+            // irrelevant smush as argument has no parameters
+
+        // Example 4
+        args('d').params(2).smush;
+        args.parse("-dfile1 -dfile2");
+            // smushing multiple parameters requires the short prefix version of
+            // the argument to be repeated. This could have been done without
+            // smushing as `args.parse("-d file1 file2);`
+
+        // Example 5
+        args("e").params(1).smush;
+        args.parse("-e'foo=bar'");
+            // The parameter 'foo=bar' cannot be smushed with the argument as
+            // the parameter contains '=' within. Be especially careful of this
+            // as the 'parse()' function will not fail in this case, but may
+            // result in unexpected behaviour.
+            // The proper way to assign a parameter containing the explicit
+            // assignment symbol is to use one of the following:
+            //     args.parse("-e='foo=bar'"); // explicit assignment
+            //     args.parse("-e 'foo=bar'"); // implicit assignment
+
+    ---
+
+    ____________________________________________________________________________
+
+
+    The prefixes used for the long prefix and the short prefix version of the
+    arguments default to '--' & '-' respectively, but they are configurable. To
+    change these, the desired prefix strings need to be passed to the
+    constructor as shown below:
+
+    ---
+
+        // Change short prefix to '/' & long prefix to '%'
+        auto args = new Arguments("/", "%");
+
+        args.parse("%alpha=param %bravo /abc");
+            // arguments 'alpha' & 'bravo' set using the long prefix version
+            // arguments represented by the characters 'a', 'b' & 'c' set using
+            // the short prefix version
+
+    ---
+
+    Note that it is also possible to disable both prefixes by passing 'null' as
+    the constructor parameters.
+
+    ____________________________________________________________________________
+
+
+    We noted in the documentation earlier that a parameter following a
+    whitespace gets assigned to the last known target (implicit assignment). On
+    the other hand, the symbol used for explicitly assigning a parameter to an
+    argument defaults to '='. This symbol is also configurable, and can be
+    changed by passing the desired symbol character to the constructor as shown
+    below:
+
+    ---
+
+        // Change the parameter assignment symbol to ':'
+        // (the short prefix and long prefix need to be passed as their default
+        // values since we're not changing them)
+        auto args = new Arguments("-", "--", ':');
+
+        args.parse("--alpha:param");
+            // argument 'alpha' will be assigned parameter 'param' using
+            // explicit assignment
+
+    ---
+
+    ____________________________________________________________________________
+
+
+    All text following a "--" token are treated as parameters (even if they
+    start with the long prefix or the short prefix). This notion is applied by
+    unix systems to terminate argument processing in a similar manner.
+
+    If `version ( dashdash )` is enabled, then these parameters are always
+    assigned to the special 'null' argument. Otherwise, they are assigned to the
+    last known argument target.
+
+    ---
+
+        args("alpha").params(1);
+
+        args.parse("--alpha one -- -two --three");
+            // 'alpha' gets one parameter ('one')
+            // the null argument gets two parameters ('-two' & '--three')
+            // note how 'two' & 'three' are prefixed by the short and long
+            // prefixes respectively, but the prefixes don't play any part as
+            // these are just parameters now
+
+    ---
+
+    ____________________________________________________________________________
+
+
+    When configuring the command-line arguments, qualifiers can be chained
+    together as shown in the following example:
+
+    ---
+
+        args("alpha")
+            .required
+            .params(1)
+            .aliased('a')
+            .requires("bravo")
+            .conflicts("charlie")
+            .defaults("one");
+
+    ---
+
+    ____________________________________________________________________________
+
+
+    The 'parse()' function will return true only where all conditions are met.
+    If an error occurs, the parser will set an error code and return false.
+
+    The error codes (which indicate the nature of the error) are as follows:
+
+        None     : ok (no error)
+        ParamLo  : too few parameters were assigned to this argument
+        ParamHi  : too many parameters were assigned to this argument
+        Required : this is a required argument, but was not given
+        Requires : this argument depends on another argument which was not given
+        Conflict : this argument conflicts with another given argument
+        Extra    : unexpected argument (will not trigger an error if sloppy
+                   arguments are enabled)
+        Option   : parameter assigned is not one of the acceptable options
+
+
+    A simple way to handle errors is to invoke an internal format routine, which
+    constructs error messages on your behalf. The messages are constructed using
+    a layout handler and the messages themselves may be customized (for i18n
+    purposes). See the two 'errors()' methods for more information on this. The
+    following example shows this way of handling errors:
+
+    ---
+
+        if ( ! args.parse (...) )
+        {
+            stderr(args.errors(&stderr.layout.sprint));
+        }
+
+    ---
+
+
+    Another way of handling argument parsing errors, is to traverse the set of
+    arguments, to find out exactly which argument has the error, and what is the
+    error code. This is as shown in the following example:
+
+    ---
+
+        if ( ! args.parse (...) )
+        {
+            foreach ( arg; args )
+            {
+                if ( arg.error )
+                {
+                    // 'arg.error' contains one of the above error-codes
+
+                    ...
+                }
+            }
+        }
+
+    ---
+
+    ____________________________________________________________________________
+
+
+    The following two types of callbacks are supported:
+        - a callback called when an argument is parsed
+        - a callback called whenever a parameter gets assigned to an argument
+    (see the 'bind()' methods for the signatures of these delegates).
+
+    ____________________________________________________________________________
+
+
+    Copyright: Copyright (c) 2009 Kris. All rights reserved.
+
 
 *******************************************************************************/
 
