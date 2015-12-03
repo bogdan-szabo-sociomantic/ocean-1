@@ -1893,7 +1893,7 @@ public class Arguments
 
         public Argument aliased ( char name )
         {
-            if ( auto arg = (&name)[0 .. 1] in this.outer.aliases )
+            if ( auto arg = cast(cstring)((&name)[0..1]) in this.outer.aliases )
             {
                 assert(
                     false,
