@@ -408,7 +408,7 @@
     ---
 
         // Change short prefix to '/' & long prefix to '%'
-        auto args = new Arguments("/", "%");
+        auto args = new Arguments(null, null, null, null, "/", "%");
 
         args.parse("%alpha=param %bravo /abc");
             // arguments 'alpha' & 'bravo' set using the long prefix version
@@ -435,7 +435,7 @@
         // Change the parameter assignment symbol to ':'
         // (the short prefix and long prefix need to be passed as their default
         // values since we're not changing them)
-        auto args = new Arguments("-", "--", ':');
+        auto args = new Arguments(null, null, null, null, "-", "--", ':');
 
         args.parse("--alpha:param");
             // argument 'alpha' will be assigned parameter 'param' using
@@ -484,6 +484,46 @@
             .defaults("one");
 
     ---
+
+    ____________________________________________________________________________
+
+    The full help message for the application (which includes the configured
+    usage, long & short descriptions as well as the help text of each of the
+    arguments) can be displayed using the 'displayHelp()' function as follows:
+
+    ---
+
+        auto args = new Arguments(
+            "my_app",
+            "{0} : this is a short description",
+            "this is the usage string",
+            "this is a long description on how to make '{0}' work");
+
+        args("alpha")
+            .aliased('a')
+            .params(1,3)
+            .help("help for alpha");
+        args("bravo")
+            .aliased('b')
+            .params(1)
+            .defaults("val")
+            .help("help for bravo");
+
+        args.displayHelp();
+
+    ---
+
+    Doing this, would produce the following help message:
+
+        my_app : this is a short description
+
+        Usage:  this is the usage string
+
+        this is a long description on how to make 'my_app' work
+
+        Program options:
+          -a, --alpha  help for alpha (1-3 params)
+          -b, --bravo  help for bravo (1 param, default: [val])
 
     ____________________________________________________________________________
 
@@ -569,7 +609,10 @@ module tango.text.Arguments;
 
 import tango.transition;
 
+import tango.io.Stdout;
+import tango.math.Math;
 import tango.text.Util;
+import tango.text.convert.Integer;
 import tango.util.container.more.Stack;
 
 
@@ -602,6 +645,77 @@ public class Arguments
 
     public alias get opCall;  // args("name")
     public alias get opIndex; // args["name"]
+
+
+    /***************************************************************************
+
+        Convenience alias to get the value of a boolean argument
+
+    ***************************************************************************/
+
+    public alias getBool exists;
+
+
+    /***************************************************************************
+
+        Application's name to use in help messages.
+
+    ***************************************************************************/
+
+    public istring app_name;
+
+
+    /***************************************************************************
+
+        Application's short usage description (as a format string).
+
+        This is used as a format string to print the usage. The first parameter
+        to the format string is the application's name. This string should
+        describe how to invoke the application.
+
+        If the usage description spans multiple lines, then it's better to start
+        each line with a tab character (\t).
+
+        Examples:
+
+        ---
+
+            args.usage = "{0} [OPTIONS] SOMETHING FILE";
+            args.usage = "{0} [OPTIONS] SOMETHING FILE\n"
+                         "\t{0} --version";
+
+        ---
+
+    ***************************************************************************/
+
+    public istring usage = "{0} [OPTIONS] [ARGS]";
+
+
+    /***************************************************************************
+
+        One line description of what the application does (as a format string).
+
+        This is used as a format string to print a short description of what the
+        application does. The first argument is the name of the application (but
+        the name shouldn't normally be used in the description).
+
+    ***************************************************************************/
+
+    public istring short_desc;
+
+
+    /***************************************************************************
+
+        Long description about the application and how to use it (as a format
+        string).
+
+        This is used as a format string to print a long description of what the
+        application does and how to use it. The first argument is the name of
+        the application.
+
+    ***************************************************************************/
+
+    public istring long_desc;
 
 
     /***************************************************************************
@@ -702,9 +816,44 @@ public class Arguments
 
     /***************************************************************************
 
+        Internal string used for spacing of the full help message
+
+    ***************************************************************************/
+
+    private mstring spaces;
+
+
+    /***************************************************************************
+
+        Maximum width of the column showing argument aliases in the full help
+        message
+
+    ***************************************************************************/
+
+    private size_t aliases_width;
+
+
+    /***************************************************************************
+
+        Maximum width of the column showing argument names in the full help
+        message
+
+    ***************************************************************************/
+
+    private size_t long_name_width;
+
+
+    /***************************************************************************
+
         Constructor.
 
         Params:
+            app_name = name of the application (to show in the help message)
+            short_desc = short description of what the application does (should
+                be one line only, preferably less than 80 characters long)
+            usage = how the application is supposed to be invoked
+            long_desc = long description of what the application does and how to
+                use it
             sp = string to use as the short prefix (defaults to '-')
             lp = string to use as the long prefix (defaults to '--')
             eq = character to use as the explicit assignment symbol
@@ -712,12 +861,23 @@ public class Arguments
 
     ***************************************************************************/
 
-    public this ( istring sp="-", istring lp="--", char eq='=' )
+    public this ( istring app_name = null, istring short_desc = null,
+        istring usage = null, istring long_desc = null, istring sp = "-",
+        istring lp = "--", char eq = '=' )
     {
         this.msgs = this.errmsg;
+
+        this.app_name = app_name;
+        this.short_desc = short_desc;
+        this.long_desc = long_desc;
         this.sp = sp;
         this.lp = lp;
         this.eq = eq;
+
+        if ( usage.length > 0 )
+        {
+            this.usage = usage;
+        }
 
         get(null).params; // set null argument to consume params
     }
@@ -1014,6 +1174,156 @@ public class Arguments
 
     /***************************************************************************
 
+        Displays the full help message for the application.
+
+        Params:
+            output = stream where to print the errors (Stderr by default)
+
+    ***************************************************************************/
+
+    public void displayHelp ( typeof(Stderr) output = Stderr )
+    {
+        if ( this.short_desc.length > 0 )
+        {
+            output.formatln(this.short_desc, this.app_name);
+            output.newline;
+        }
+
+        output.formatln("Usage:\t" ~ this.usage, this.app_name);
+        output.newline;
+
+        if ( this.long_desc.length > 0 )
+        {
+            output.formatln(this.long_desc, this.app_name);
+            output.newline;
+        }
+
+        foreach ( arg; this.args )
+        {
+            this.calculateSpacing(arg);
+        }
+
+        output.formatln("Program options:");
+
+        foreach ( arg; this.args )
+        {
+            this.displayArgumentHelp(arg, output);
+        }
+
+        output.newline;
+    }
+
+
+    /***************************************************************************
+
+        Displays any errors that occurred.
+
+        Params:
+            output = stream where to print the errors (Stderr by default)
+
+    ***************************************************************************/
+
+    public void displayErrors ( typeof(Stderr) output = Stderr )
+    {
+        output(this.errors(&output.layout.sprint));
+    }
+
+
+    /***************************************************************************
+
+        Convenience method to check whether an argument is set or not (i.e.
+        whether it was found during parsing of the command-line arguments).
+
+        Params:
+            name = name of the argument
+
+        Returns:
+            true if the argument is set, false otherwise
+
+    ***************************************************************************/
+
+    public bool getBool ( cstring name )
+    {
+        auto arg = this.get(name);
+
+        if ( arg )
+        {
+            return arg.set;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+
+    /***************************************************************************
+
+        Convenience method to get the integer value of the parameter assigned to
+        an argument. This is valid only if the argument has been assigned
+        exactly one parameter.
+
+        Template params:
+            T = type of integer to return
+
+        Params:
+            name = name of the argument
+
+        Returns:
+            integer value of the parameter assigned to the argument
+
+    ***************************************************************************/
+
+    public T getInt ( T ) ( cstring name )
+    {
+        auto arg = this.get(name);
+
+        cstring value;
+
+        if ( arg && arg.assigned.length == 1 )
+        {
+            value = arg.assigned[0];
+        }
+
+        auto num = toLong(value);
+
+        enforce(num <= T.max && num >= T.min);
+
+        return cast(T)num;
+    }
+
+
+    /***************************************************************************
+
+        Convenience method to get the string parameter assigned to an argument.
+        This is valid only if the argument has been assigned exactly one
+        parameter.
+
+        Params:
+            name = name of the argument
+
+        Returns:
+            parameter assigned to the argument
+
+    ***************************************************************************/
+
+    public istring getString ( cstring name )
+    {
+        auto arg = this.get(name);
+
+        istring value;
+
+        if ( arg && arg.assigned.length == 1 )
+        {
+            value = arg.assigned[0];
+        }
+
+        return value;
+    }
+
+
+    /***************************************************************************
+
         Tests for the presence of a switch (long/short prefix) and enables the
         associated argument if found. Also looks for and handles explicit
         parameter assignment.
@@ -1125,6 +1435,181 @@ public class Arguments
         }
 
         return a.enable;
+    }
+
+
+    /***************************************************************************
+
+        Calculates the width required to display all the aliases based on the
+        given number of aliases (in the aliases string, each character is an
+        individual argument alias).
+
+        Params:
+            aliases = number of argument aliases
+
+        Returns:
+            width required to display all the aliases
+
+    ***************************************************************************/
+
+    private size_t aliasesWidth ( size_t aliases )
+    {
+        auto width = aliases * 2; // *2 for a '-' before each alias
+
+        if ( aliases > 1 )
+        {
+            width += (aliases - 1) * 2; // ', ' after each alias except the last
+        }
+
+        return width;
+    }
+
+
+    /***************************************************************************
+
+        Calculates the maximum width required to display the given argument name
+        and its aliases.
+
+        Params:
+            arg = the argument instance
+
+    ***************************************************************************/
+
+    private void calculateSpacing ( Argument arg )
+    {
+        this.long_name_width = max(this.long_name_width, arg.name.length);
+
+        this.aliases_width = max(this.aliases_width,
+            this.aliasesWidth(arg.aliases.length));
+    }
+
+
+    /***************************************************************************
+
+        Displays help text for a single argument.
+
+        Params:
+            arg = argument instance for which the help text is to be printed
+            output = stream where to print the help text (Stderr by default)
+
+    ***************************************************************************/
+
+    private void displayArgumentHelp ( Argument arg,
+        typeof(Stderr) output = Stderr )
+    {
+        if ( arg.text.length == 0 )
+        {
+            return;
+        }
+
+        output.format("  ");
+
+        foreach ( i, al; arg.aliases )
+        {
+            output.format("-{}", al);
+
+            if ( i != arg.aliases.length - 1 || arg.name.length )
+            {
+                output.format(", ");
+            }
+        }
+
+        // there is no trailing ", " in this case, so add two spaces instead.
+        if ( arg.aliases.length == 0 )
+        {
+            output.format("  ");
+        }
+
+        output.format("{}",
+            this.space(this.aliases_width -
+                       this.aliasesWidth(arg.aliases.length)));
+
+        output.format("--{}{}  ",
+            arg.name, this.space(this.long_name_width - arg.name.length));
+
+        output.format("{}", arg.text);
+
+        uint extras;
+
+        bool params = arg.min > 0 || arg.max > 0;
+
+        if ( params )              extras++;
+        if ( arg.options.length )  extras++;
+        if ( arg.deefalts.length ) extras++;
+
+        if ( extras )
+        {
+            // comma separate sections if more info to come
+            void next ( )
+            {
+                extras--;
+
+                if ( extras )
+                {
+                    output.format(", ");
+                }
+            }
+
+            output.format(" (");
+
+            if ( params )
+            {
+                if ( arg.min == arg.max )
+                {
+                    output.format("{} param{}", arg.min,
+                        arg.min == 1 ? "" : "s");
+                }
+                else
+                {
+                    output.format("{}-{} params", arg.min, arg.max);
+                }
+
+                next();
+            }
+
+            if ( arg.options.length )
+            {
+                output.format("{}", arg.options);
+
+                next();
+            }
+
+            if ( arg.deefalts.length )
+            {
+                output.format("default: {}", arg.deefalts);
+
+                next();
+            }
+
+            output.format(")");
+        }
+
+        output.newline.flush;
+    }
+
+
+    /***************************************************************************
+
+        Creates a string with the specified number of spaces.
+
+        Params:
+            width = desired number of spaces
+
+        Returns:
+            string with desired number of spaces.
+
+    ***************************************************************************/
+
+    private mstring space ( size_t width )
+    {
+        this.spaces.length = width;
+
+        if ( width > 0 )
+        {
+            this.spaces[0 .. $] = ' ';
+        }
+
+        return this.spaces;
     }
 
 
@@ -2101,7 +2586,7 @@ unittest
     assert(args.clear.parse("-xyz") is false);
 
     // word mode, with prefix elimination
-    args = new Arguments(null, null);
+    args = new Arguments(null, null, null, null, null, null);
     assert(args.clear.parse("foo bar wumpus") is false);
     assert(args.clear.parse("foo bar wumpus wombat", true));
     assert(args("foo").set);
@@ -2110,7 +2595,7 @@ unittest
     assert(args("wombat").set);
 
     // use '/' instead of '-'
-    args = new Arguments("/", "/");
+    args = new Arguments(null, null, null, null, "/", "/");
     assert(args.clear.parse("/foo /bar /wumpus") is false);
     assert(args.clear.parse("/foo /bar /wumpus /wombat", true));
     assert(args("foo").set);
@@ -2119,7 +2604,7 @@ unittest
     assert(args("wombat").set);
 
     // use '/' for short and '-' for long
-    args = new Arguments("/", "-");
+    args = new Arguments(null, null, null, null, "/", "-");
     assert(args.clear.parse("-foo -bar -wumpus -wombat /abc", true));
     assert(args("foo").set);
     assert(args("bar").set);

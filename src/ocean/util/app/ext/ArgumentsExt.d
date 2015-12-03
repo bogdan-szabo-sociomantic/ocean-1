@@ -296,7 +296,7 @@ unittest
         auto s = cast(mstring) stdout_dev.peek();
         test(s.length > 0,
                 "Stdout should have some help message but it's empty");
-        test(s.find(arg.args.desc) < s.length,
+        test(s.find(arg.args.short_desc) < s.length,
              "No application description found in help message:\n" ~ s);
         test(s.find(usage_text) < s.length,
              "No usage text found in help message:\n" ~ s);
