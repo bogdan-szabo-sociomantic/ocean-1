@@ -130,7 +130,7 @@ private void ArrayDeepReset ( T ) ( ref T[] dst )
     {
         foreach ( i, e; dst )
         {
-            static if ( is(T S == S[]) ) // dynamic array
+            static if ( is(T U == U[]) ) // dynamic array
             {
                 DynamicArrayDeepReset(dst[i]);
             }
@@ -250,7 +250,7 @@ public void ClassDeepReset ( T ) ( ref T dst )
         }
         else static if ( is(typeof(member) S : S[]) )
         {
-            static if ( is(typeof(member) S == S[]) ) // dynamic array
+            static if ( is(typeof(member) U == U[]) ) // dynamic array
             {
                 DynamicArrayDeepReset(dst.tupleof[i]);
             }
