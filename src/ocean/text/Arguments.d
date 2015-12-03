@@ -613,6 +613,7 @@ import tango.io.Stdout;
 import tango.math.Math;
 import tango.text.Util;
 import tango.text.convert.Integer;
+import tango.util.container.SortedMap;
 import tango.util.container.more.Stack;
 
 
@@ -742,22 +743,24 @@ public class Arguments
 
     /***************************************************************************
 
-        AA used to store all the argument instances
-        (indexed by the argument name)
+        All argument instances. A sorted map (indexed by the argument name) is
+        used to store these so that the arguments appear in a sorted manner in
+        the help text output
 
     ***************************************************************************/
 
-    private Argument[istring] args;
+    private SortedMap!(cstring, Argument) args;
 
 
     /***************************************************************************
 
-        AA used to store argument instances that have aliases
-        (indexed by the argument aliases)
+        Argument instances that have aliases. A sorted map (indexed by the
+        argument aliases) is used to store these so that the arguments appear in
+        a sorted manner in the help text output
 
     ***************************************************************************/
 
-    private Argument[istring] aliases;
+    private SortedMap!(cstring, Argument) aliases;
 
 
     /***************************************************************************
@@ -873,6 +876,9 @@ public class Arguments
         this.sp = sp;
         this.lp = lp;
         this.eq = eq;
+
+        this.args = new typeof(this.args)();
+        this.aliases = new typeof(this.aliases)();
 
         if ( usage.length > 0 )
         {
@@ -1039,7 +1045,12 @@ public class Arguments
         if ( a is null )
         {
             auto _name = idup(name);
-            return args[_name] = new Argument(_name);
+
+            auto arg = new Argument(_name);
+
+            args[_name] = arg;
+
+            return arg;
         }
 
         return *a;
@@ -2629,5 +2640,23 @@ unittest
         assert(args.parse("-f -- -bar -wumpus -wombat --abc"));
         assert(args('f').assigned.length is 2);
         assert(args(null).assigned.length is 2);
+    }
+
+    // Confirm arguments are stored in a sorted manner
+    args = new Arguments;
+    assert(args.clear.parse("--beta --alpha --delta --echo --charlie", true));
+    size_t index;
+    foreach (arg; args)
+    {
+        switch ( index++ )
+        {
+            case 0: continue;
+            case 1: assert("alpha"   == arg.name); continue;
+            case 2: assert("beta"    == arg.name); continue;
+            case 3: assert("charlie" == arg.name); continue;
+            case 4: assert("delta"   == arg.name); continue;
+            case 5: assert("echo"    == arg.name); continue;
+            default: assert(0);
+        }
     }
 }
