@@ -18,6 +18,7 @@ module ocean.util.DeepReset;
 
 import ocean.core.Array;
 import tango.core.Traits;
+version(UnitTest) import ocean.core.Test;
 
 /*******************************************************************************
 
@@ -408,4 +409,37 @@ unittest
 
     assert(test_struct.sub_struct.sub_sub_struct.length == 0, "failed DeepReset check");
 
+    //Test nested classes.
+    class TestClass
+    {
+        int a;
+        char[] b;
+        int[2] c;
+
+        public class SubClass
+        {
+            int d;
+            char[] e;
+        }
+
+        SubClass s;
+    }
+
+    TestClass test_class = new TestClass;
+    test_class.s =  test_class.new SubClass;
+    test_class.a = 7;
+    test_class.b = [];
+    test_class.b ~= 't';
+    test_class.c[1] = 1;
+    test_class.s.d = 5;
+    test_class.s.e = [];
+    test_class.s.e ~= 'q';
+
+    DeepReset!(TestClass)(test_class);
+    test!("==")(test_class.a, 0);
+    test!("==")(test_class.b.length, 0);
+    test!("==")(test_class.c[1], 0);
+    test!("!is")(cast(void*)test_class.s, null);
+    test!("==")(test_class.s.d, 0);
+    test!("==")(test_class.s.e.length, 0);
 }
