@@ -390,24 +390,24 @@ unittest
 
     DeepReset!(TestStruct)(test_struct);
 
-    assert (test_struct.a == 0, "failed DeepReset check");
-    assert (test_struct.b == "", "failed DeepReset check");
+    test!("==")(test_struct.a, 0);
+    test!("==")(test_struct.b, "");
     foreach ( item; test_struct.c )
     {
-        assert (item == 0, "failed DeepReset check");
+        test!("==")(item, 0);
     }
 
-    assert(test_struct.sub_struct_array.length == 0, "failed DeepReset check");
+    test!("==")(test_struct.sub_struct_array.length, 0);
 
-    assert (test_struct.sub_struct.d == 0, "failed DeepReset check");
-    assert (test_struct.sub_struct.e == "", "failed DeepReset check");
-    assert (test_struct.sub_struct.f.length == 0, "failed DeepReset check");
+    test!("==")(test_struct.sub_struct.d, 0);
+    test!("==")(test_struct.sub_struct.e, "");
+    test!("==")(test_struct.sub_struct.f.length, 0);
     foreach ( item; test_struct.sub_struct.g )
     {
-        assert (item == 0, "failed DeepReset check");
+        test!("==")(item, 0);
     }
 
-    assert(test_struct.sub_struct.sub_sub_struct.length == 0, "failed DeepReset check");
+    test!("==")(test_struct.sub_struct.sub_sub_struct.length, 0);
 
     //Test nested classes.
     class TestClass
