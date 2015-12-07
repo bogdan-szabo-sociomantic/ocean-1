@@ -84,7 +84,8 @@ class FiberSelectWriter : IFiberSelectProtocol
 
     /**************************************************************************
 
-        true if the TCP_CORK feature is currently enabled or false otherwise
+        true if the TCP_CORK feature should be enabled when sending data through
+        the socket or false if it should not be enabled.
 
      **************************************************************************/
 
@@ -193,7 +194,12 @@ class FiberSelectWriter : IFiberSelectProtocol
             {
                 if (this.cork_ && this.cork_auto_flush)
                 {
-                    this.cork_ = this.setCork(false);
+                    /*
+                     * Disabling TCP_CORK is the only way to explicitly flush
+                     * the output buffer.
+                     */
+                    this.setCork(false);
+                    this.setCork(true);
                 }
 
                 this.data_slice = null;
@@ -209,40 +215,28 @@ class FiberSelectWriter : IFiberSelectProtocol
         Enables or disables the TCP_CORK feature.
 
         Note that, if is enabled, not all data passed to send() may be sent
-        immediately; to force sending pending data, call corkFlush() after
-        send() or set cork_auto_flush to true before calling send().
+        immediately; to force sending pending data, call flush() after send() or
+        set cork_auto_flush to true before calling send().
 
         If enabled is false but the TCP_CORK is currently enabled, pending data
         will be sent now.
-
-        If send() or corkFlush() encounter an error using the TCP_CORK feature,
-        it is disabled automatically.
 
         Params:
             enabled = true: enable the TCP_CORK feature; false: disable it.
 
         Returns:
-            true if successfully enabled or false if either disabled or on
-            failure enabling TCP_CORK.
+            enabled
+
+        Throws:
+            IOError if the TCP_CORK option cannot be set for the socket. If the
+            socket was not yet created by socket() or accept() then the request
+            will fail with the EBADF "Bad file descriptor" error code.
 
      **************************************************************************/
 
     public bool cork ( bool enabled )
     {
-        if (this.cork_)
-        {
-            if (!enabled)
-            {
-                this.setCork(this.cork_ = false);
-            }
-        }
-        else
-        {
-            if (enabled)
-            {
-                this.cork_ = this.setCork(true);
-            }
-        }
+        this.setCork(this.cork_ = enabled);
 
         return this.cork_;
     }
@@ -268,15 +262,18 @@ class FiberSelectWriter : IFiberSelectProtocol
         enabled.
 
         Returns:
-            if the TCP_CORK feature is currently enabled and data have been
-            sent or false if disabled or an error was reported using TCP_CORK.
-            On error the TCP_CORK feature is automatically disabled.
+            true on success (but throws on failure)
+
+        Throws:
+            IOError on I/O error.
 
      **************************************************************************/
 
+    deprecated("Please use flush() instead")
     public bool corkFlush ( )
     {
-        return this.cork_? this.cork_ = this.setCork(false) : false;
+        this.flush();
+        return true;
     }
 
     /**************************************************************************
@@ -287,11 +284,22 @@ class FiberSelectWriter : IFiberSelectProtocol
         Returns:
             this instance.
 
+        Throws:
+            IOError on I/O error.
+
      **************************************************************************/
 
     public typeof (this) flush ( )
     {
-        this.corkFlush();
+        if (this.cork_)
+        {
+            /*
+             * Disabling TCP_CORK is the only way to explicitly flush the
+             * output buffer.
+             */
+            this.setCork(false);
+            this.setCork(true);
+        }
 
         return this;
     }
@@ -307,7 +315,15 @@ class FiberSelectWriter : IFiberSelectProtocol
 
     public typeof (this) reset ( )
     {
-        this.corkFlush();
+        if (this.cork_)
+        {
+            /*
+             * Disabling TCP_CORK is the only way to explicitly clear the
+             * output buffer.
+             */
+            this.setCork(false, false);
+            this.setCork(true, false);
+        }
 
         return this;
     }
@@ -383,16 +399,28 @@ class FiberSelectWriter : IFiberSelectProtocol
         Params:
             enable = 0 disables TCP_CORK and flushes if previously enabled, a
                      different value enables TCP_CORK.
+            throw_on_error = true: throw IOError if setting the TCP_CORK option
+                     failed, false: ignore errors. Ignoring errors is desired to
+                     just clear the cork buffer if TCP_CORK seems to be
+                     currently enabled.
 
-         Returns:
-             true on success or false if setsockopt reports error. On error
-             errno is set accordingly.
+        Throws:
+            IOException on error setting the TCP_CORK option for this.conduit if
+            throw_on_error is true.
+            In practice this can fail only for one of the following reasons:
+             - this.conduit does not contain a valid file descriptor
+               (errno == EBADF). This is the case if the socket was not created
+               by socket() or accept() yet.
+             - this.conduit does not refer to a socket (errno == ENOTSOCK)
 
      **************************************************************************/
 
-    private bool setCork ( int enable )
+    private void setCork ( int enable, bool throw_on_error = true )
     {
-        return !.setsockopt(super.conduit.fileHandle, .IPPROTO_TCP, .TCP_CORK,
-                            &enable, enable.sizeof);
+        this.error_e.enforce(!.setsockopt(this.conduit.fileHandle,
+                                          .IPPROTO_TCP, .TCP_CORK,
+                                          &enable, enable.sizeof) ||
+                             !throw_on_error,
+                             "error setting TCP_CORK option");
     }
 }
