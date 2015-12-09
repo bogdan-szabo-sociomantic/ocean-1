@@ -16,7 +16,7 @@
 
     ---
     module tester;
-    import ocean.core.UnitTestRunner;
+    import tango.core.UnitTestRunner;
     import mymodule;
     ---
 
@@ -172,6 +172,8 @@ private scope class UnitTestRunner
         size_t skipped = 0;
         size_t no_tests = 0;
         size_t no_match = 0;
+        size_t gc_usage_before, gc_usage_after, mem_free;
+        bool collect_gc_usage = !!this.verbose;
 
         if (this.verbose)
             Stdout.formatln("{}: unit tests started", this.prog);
@@ -218,6 +220,7 @@ private scope class UnitTestRunner
             //      calling toHumanTime() and the different xmlAdd*() methods
             static mstring e;
             e.length = 0;
+            enableStomping(e);
             scope (exit)
             {
                 if (this.verbose)
@@ -225,12 +228,23 @@ private scope class UnitTestRunner
                 if (e !is null)
                     Stdout.formatln("{}", e);
             }
+            if (collect_gc_usage)
+            {
+                GC.collect();
+                GC.usage(gc_usage_before, mem_free);
+            }
             switch (this.timedTest(m, t, e))
             {
                 case Result.Pass:
                     passed++;
                     if (this.verbose)
-                        Stdout.format(" PASS [{}]", this.toHumanTime(t));
+                    {
+                        GC.usage(gc_usage_after, mem_free);
+                        Stdout.format(" PASS [{}, {} bytes ({} -> {})]",
+                                      this.toHumanTime(t),
+                                      cast(long)(gc_usage_after - gc_usage_before),
+                                      gc_usage_before, gc_usage_after);
+                    }
                     this.xmlAddSuccess(m.name, t);
                     continue;
 
@@ -902,4 +916,3 @@ int main(cstring[] args)
 
     return runner.run();
 }
-

@@ -40,6 +40,12 @@ Deprecations
 New Features
 ============
 
+* `tango.core.UnitTestRunner`
+
+  When run in verbose mode, the unittests now outputs the memory comsuption
+  (before, after, and the difference).  In order to make the tests reliable,
+  a GC collection is done before each module is tested.
+
 * `ocean.util.container.MallocArray`
 
   A new module which contains collection of functions that aids in creating
