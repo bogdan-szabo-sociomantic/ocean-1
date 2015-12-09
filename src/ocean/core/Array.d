@@ -148,6 +148,7 @@ unittest
 
 public T[] copy ( T, TC ) ( ref T[] dest, TC[] src )
 {
+    enableStomping(dest);
     dest.length = src.length;
     enableStomping(dest);
 
@@ -225,7 +226,7 @@ unittest
     // issue #810
     void[] dst;
     ulong[] src = [15, 10];
-    copyExtend!(void)(dst, src);   
+    copyExtend!(void)(dst, src);
     test!("==")(dst, cast(void[]) src);
 }
 

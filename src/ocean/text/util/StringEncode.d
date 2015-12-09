@@ -211,8 +211,9 @@ public class StringEncode ( istring fromcode, istring tocode ) : StringEncoder
 
     public override void convert ( cstring input, ref mstring output )
     {
+        enableStomping(output);
         output.length = input.length;
-
+        enableStomping(output);
 
         // Do the conversion. Keep trying until there is no E2BIG error.
         size_t inbytesleft  = input.length;
@@ -254,6 +255,7 @@ public class StringEncode ( istring fromcode, istring tocode ) : StringEncoder
         while ( too_big );
 
         output.length = output.length - outbytesleft;
+        enableStomping(output);
 
         // Check for any errors from iconv and throw them as exceptions
         if (result < 0)
@@ -364,6 +366,7 @@ public class StringEncoderSequence ( Encoders... )
     public mstring convert ( cstring input, ref mstring output )
     {
         output.length = 0;
+        enableStomping(output);
 
         foreach ( e; this.encoders )
         {
@@ -387,6 +390,7 @@ public class StringEncoderSequence ( Encoders... )
         }
 
         output.length = 0;
+        enableStomping(output);
         return output;
     }
 
