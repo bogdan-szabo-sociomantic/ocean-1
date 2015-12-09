@@ -826,7 +826,7 @@ public class Logger : ILogger
         private void formatWithBuffer(Level level, cstring fmt, TypeInfo[] types, ArgList args, mstring buf)
         {
             auto msg = Format.vprint (buf, fmt, types, args);
-            append (level, assumeUnique(msg));
+            append (level, msg);
         }
 
         /***********************************************************************
