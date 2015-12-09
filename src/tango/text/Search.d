@@ -498,32 +498,6 @@ package struct SearchFruct(T)
         return len;
     }
 
-    unittest
-    {
-        auto searcher = search("aaa");
-
-        // match
-        mstring content1 = "bbaaa".dup;
-        assert (
-            searcher.find(
-                searcher.what.ptr, searcher.what.length,
-                content1.ptr, content1.length, 0
-            ) == 2
-        );
-
-        // no match
-        mstring content2 = "bbbbb".dup;
-        assert (
-            searcher.find(
-                searcher.what.ptr, searcher.what.length,
-                content2.ptr, content2.length, 0
-            ) == content2.length
-        );
-        
-        // empty text
-        assert (searcher.find(searcher.what.ptr, searcher.what.length,
-            null, 0, 0) == 0);
-    }
 
     /***********************************************************************
 
@@ -545,32 +519,6 @@ package struct SearchFruct(T)
         return len;
     }
 
-    unittest
-    {
-        auto searcher = search("aaa");
-
-        // match
-        mstring content1 = "baaab".dup;
-        assert (
-            searcher.rfind(
-                searcher.what.ptr, searcher.what.length,
-                content1.ptr, content1.length, content1.length
-            ) == 1
-        );
-
-        // no match
-        mstring content2 = "bbbbb".dup;
-        assert (
-            searcher.rfind(
-                searcher.what.ptr, searcher.what.length,
-                content2.ptr, content2.length, content2.length
-            ) == content2.length
-        );
-        
-        // empty text
-        assert (searcher.rfind(searcher.what.ptr, searcher.what.length,
-            null, 0, 0) == 0);
-    }
 
     /***********************************************************************
 
@@ -686,63 +634,56 @@ package struct SearchFruct(T)
 }
 
 
-
-
-/******************************************************************************
-
- ******************************************************************************/
-
-debug (Search)
+unittest
 {
-    import tango.io.Stdout;
-    import tango.time.StopWatch;
+    auto searcher = search("aaa");
 
-    auto x = import("Search.d");
+    // match
+    mstring content1 = "bbaaa".dup;
+    assert (
+        searcher.find(
+            searcher.what.ptr, searcher.what.length,
+            content1.ptr, content1.length, 0
+            ) == 2
+        );
 
-    void main()
-    {
-        StopWatch elapsed;
+    // no match
+    mstring content2 = "bbbbb".dup;
+    assert (
+        searcher.find(
+            searcher.what.ptr, searcher.what.length,
+            content2.ptr, content2.length, 0
+            ) == content2.length
+        );
 
-        auto match = search("foo");
-        auto index = match.reverse ("foo foo");
-        assert (index is 4);
-        index = match.reverse ("foo foo", index);
-        assert (index is 0);
-        index = match.reverse ("foo foo", 1);
-        assert (index is 7);
-
-        foreach (index; find("delegate").indices(x))
-            Stdout.formatln ("< {}", index);
-
-        foreach (index; search("delegate").indices(x))
-            Stdout.formatln ("> {}", index);
-
-        elapsed.start;
-        for (auto i=5000; i--;)
-            Util.mismatch (x.ptr, x.ptr, x.length);
-        Stdout.formatln ("mismatch {}", elapsed.stop);
-
-        elapsed.start;
-        for (auto i=5000; i--;)
-            Util.indexOf (x.ptr, '@', cast(uint) x.length);
-        Stdout.formatln ("indexOf {}", elapsed.stop);
-
-        elapsed.start;
-        for (auto i=5000; i--;)
-            Util.locatePattern (x, "indexOf {}");
-        Stdout.formatln ("pattern {}", elapsed.stop);
-
-        elapsed.start;
-        auto f = find ("indexOf {}");
-        for (auto i=5000; i--;)
-            f.forward(x);
-        Stdout.formatln ("find {}", elapsed.stop);
-
-        elapsed.start;
-        auto s = search ("indexOf {}");
-        for (auto i=5000; i--;)
-            s.forward(x);
-        Stdout.formatln ("search {}", elapsed.stop);
-    }
+    // empty text
+    assert (searcher.find(searcher.what.ptr, searcher.what.length,
+                          null, 0, 0) == 0);
 }
 
+unittest
+{
+    auto searcher = search("aaa");
+
+    // match
+    mstring content1 = "baaab".dup;
+    assert (
+        searcher.rfind(
+            searcher.what.ptr, searcher.what.length,
+            content1.ptr, content1.length, content1.length
+            ) == 1
+        );
+
+    // no match
+    mstring content2 = "bbbbb".dup;
+    assert (
+        searcher.rfind(
+            searcher.what.ptr, searcher.what.length,
+            content2.ptr, content2.length, content2.length
+            ) == content2.length
+        );
+
+    // empty text
+    assert (searcher.rfind(searcher.what.ptr, searcher.what.length,
+                           null, 0, 0) == 0);
+}
