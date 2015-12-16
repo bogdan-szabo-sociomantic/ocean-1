@@ -55,3 +55,64 @@ New Features
 
   Added `registerMicrosec()`, which accepts integer µs time values to allow
   using the precise time unit that is used by the underlying library calls.
+
+* `ocean.util.app.DaemonApp`
+
+  This new application base class should be inherited by all long-running,
+  daemon-type applications.
+
+  The goal is to have a single port-of-call in ocean for the features required
+  by such apps, in contrast to the current status quo, where applications are
+  using all sorts of different app base classes and extension on a fairly random
+  basis. With a single, universal application base class, we will simplify the
+  writing of new apps, simplify the updating of existing apps to the latest
+  recommended practices, and simplify the maintenance of the code in ocean.
+
+  `DaemonApp` provides the same features as the catchily-named
+  `VersionedLoggedStatsCliApp`, with the following additions:
+
+    * More extensions: `TimerExt`, `SignalExt`, and `ReopenableFilesExt`.
+    * The timer extension is used to trigger stats logging once every 30s (as
+      defined by `IStatsLog.default_period`). The protected method
+      `onStatsTimer()` should be overridden by the derived application class to
+      write the required stats via `this.stats_ext.stats_log`. (Applications
+      using a `PeriodicStatsLog` or which implement their own timer to trigger
+      stats output will need to be adapted to the new, more automated system.)
+    * The presence of the signal and reopenable files extensions causes the
+      loggers (including the stats logger) to use the simple file appender, in
+      place of the old `AppendSyslog` appender which handles log rotation and
+      compression. This means that your log files will no longer be
+      automatically rotated. However, the `DaemonApp` base class sets up
+      everything you need in order to use the system `logrotate` facility
+      instead: `SIGHUP`, sent to the application, causes all open log files to
+      be reopened. `logrotate` can then be configured to send this signal when
+      it rotates your log files.
+
+      Example logrotate configuration file (usually located in
+      `/etc/logrotate.d`) for a program called `myapp`:
+
+      ```
+          /srv/myapp/log/*.log
+          {
+              rotate 10
+              missingok
+              notifempty
+              delaycompress
+              compress
+              size 500M
+              sharedscripts
+              postrotate
+                  /usr/bin/killall -HUP myapp
+              endscript
+          }
+      ```
+
+      (`logrotate` is favoured over tango's `AppendSyslog` as bugs have been
+      found in the latter which are not present in the former. It is generally
+      regarded as safer to use a massively tested system component like
+      `logrotate`, rather than a reimplemented (and directly equivalent!)
+      replacement in our libraries.)
+
+  The old application base classes will be deprecated in the next release, along
+  with helpers which are no longer required (e.g. `PeriodicStatsLog` and
+  `AppendSyslog`).
