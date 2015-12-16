@@ -604,3 +604,23 @@ unittest
     queue.ready(&dg);
     test(queue.isRegistered(&dg));
 }
+
+
+// Make sure NotifyingQueue template is instantinated & compiled
+unittest
+{
+    struct Dummy
+    {
+        int a;
+        int b;
+        char[] c;
+    }
+
+    void dg ( ) { }
+
+    auto queue = new NotifyingQueue!(Dummy)(1024);
+    test(!queue.isRegistered(&dg));
+
+    queue.ready(&dg);
+    test(queue.isRegistered(&dg));
+}
