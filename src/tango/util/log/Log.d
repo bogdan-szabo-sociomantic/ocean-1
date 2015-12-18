@@ -1381,7 +1381,7 @@ public class Appender
 
         /***********************************************************************
 
-              Create an Appender and default its layout to LayoutSimple.
+              Create an Appender and default its layout to LayoutTimer.
 
         ***********************************************************************/
 
@@ -1392,7 +1392,7 @@ public class Appender
 
         /***********************************************************************
 
-              Create an Appender and default its layout to LayoutSimple.
+              Create an Appender and default its layout to LayoutTimer.
 
         ***********************************************************************/
 
