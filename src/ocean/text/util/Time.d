@@ -48,6 +48,8 @@ module ocean.text.util.Time;
 
 import tango.transition;
 
+import ocean.core.Exception;
+
 import ocean.core.Array : copy;
 
 import tango.stdc.time : gmtime, strftime, time_t, tm;
@@ -110,7 +112,7 @@ body
 
 *******************************************************************************/
 
-public mstring formatDuration ( uint s, ref mstring output )
+public mstring formatDuration ( ulong s, ref mstring output )
 {
     output.length = 0;
 
@@ -129,7 +131,7 @@ public mstring formatDuration ( uint s, ref mstring output )
 
     ***************************************************************************/
 
-    void append ( uint number, cstring name )
+    void append ( ulong number, cstring name )
     {
         if ( number > 0 )
         {
@@ -175,7 +177,7 @@ public mstring formatDuration ( uint s, ref mstring output )
 
 *******************************************************************************/
 
-public mstring formatDurationShort ( uint s, ref mstring output )
+public mstring formatDurationShort ( ulong s, ref mstring output )
 {
     output.length = 0;
 
@@ -192,7 +194,7 @@ public mstring formatDurationShort ( uint s, ref mstring output )
 
     ***************************************************************************/
 
-    void append ( uint number, cstring name )
+    void append ( ulong number, cstring name )
     {
         if ( number > 0 )
         {
@@ -237,7 +239,7 @@ public mstring formatDurationShort ( uint s, ref mstring output )
 
 *******************************************************************************/
 
-public void extractTimePeriods ( uint s, out uint years, out uint days,
+public void extractTimePeriods ( ulong s, out uint years, out uint days,
     out uint hours, out uint minutes, out uint seconds )
 {
     /***************************************************************************
@@ -256,11 +258,11 @@ public void extractTimePeriods ( uint s, out uint years, out uint days,
 
     ***************************************************************************/
 
-    uint extract ( uint timespan )
+    uint extract ( ulong timespan )
     {
         auto extracted = seconds / timespan;
         seconds -= extracted * timespan;
-        return extracted;
+        return cast(uint) extracted;
     }
 
     const minute_timespan   = 60;
@@ -268,7 +270,8 @@ public void extractTimePeriods ( uint s, out uint years, out uint days,
     const day_timespan      = hour_timespan * 24;
     const year_timespan     = day_timespan * 365;
 
-    seconds = s;
+    enforce(s <= uint.max);
+    seconds = cast(uint) s;
 
     years      = extract(year_timespan);
     days       = extract(day_timespan);
