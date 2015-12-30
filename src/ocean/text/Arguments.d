@@ -306,7 +306,9 @@ class Arguments : Tango.Arguments
             }
         }
 
-        return Integer.toLong(value);
+        auto num = Integer.toLong(value);
+        enforce(num <= T.max && num >= T.min);
+        return cast(T) num;
     }
 
 
