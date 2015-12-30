@@ -251,16 +251,18 @@ final class RandomG(SourceT=DefaultEngine)
     /// (use urandom directly if available?)
     RandomG seed ()
     {
-        static if(source.canSeed){
-            source.seed(&rand.uniform!(uint));
+        static if(is(typeof(SourceT.canSeed))) {
+            static if (SourceT.canSeed)
+                source.seed(&rand.uniform!(uint));
         }
         return this;
     }
     /// if source.canSeed seeds the generator using the given source of uints
     RandomG seed (uint delegate() seedSource)
     {
-        static if(source.canSeed){
-            source.seed(seedSource);
+        static if(is(typeof(SourceT.canSeed))) {
+            static if (SourceT.canSeed)
+                source.seed(seedSource);
         }
         return this;
     }
