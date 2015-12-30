@@ -368,8 +368,8 @@ public class AppStatus
 
     ***************************************************************************/
 
-    public this ( char[] app_name, char[] app_version, char[] app_build_date,
-        char[] app_build_author, IAdvancedMicrosecondsClock clock, uint size,
+    public this ( cstring app_name, cstring app_version, cstring app_build_date,
+        cstring app_build_author, IAdvancedMicrosecondsClock clock, uint size,
         ulong ms_between_calls = 1000 )
     {
         this.app_name.copy(app_name);
