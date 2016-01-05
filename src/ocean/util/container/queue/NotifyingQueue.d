@@ -500,6 +500,14 @@ class NotifyingByteQueue : ISuspendable, IQueueInfo
     array members. Union members are shallowly serialized. Delegate and class
     members cannot be serialized.
 
+    Params:
+        T = type that the queue should store. If it's a struct it is stored
+            using the struct serializer, else it is storing it directly. Note
+            that by default the memory is not gc-aware so you reference
+            something from only the stored object, the gc could collect it. If
+            you desire different behavior pass your own queue instance to the
+            constructor
+
 *******************************************************************************/
 
 class NotifyingQueue ( T ) : NotifyingByteQueue
@@ -549,11 +557,17 @@ class NotifyingQueue ( T ) : NotifyingByteQueue
 
     bool push ( ref T request )
     {
-        auto length = StructSerializer!(true).length(&request);
+        static if ( is(T == struct) )
+            auto length = StructSerializer!(true).length(&request);
+        else
+            auto length = request.sizeof;
 
         void filler ( ubyte[] target )
         {
-            StructSerializer!(true).dump(&request, target);
+            static if ( is(T == struct) )
+                StructSerializer!(true).dump(&request, target);
+            else
+                target.copy((cast(ubyte*)&request)[0..length]);
         }
 
         return super.push(length, &filler);
@@ -588,7 +602,10 @@ class NotifyingQueue ( T ) : NotifyingByteQueue
 
         buffer.copy(data);
 
-        StructSerializer!(true).loadSlice (instance, buffer);
+        static if ( is(T == struct) )
+            StructSerializer!(true).loadSlice (instance, buffer);
+        else
+            instance = cast(T*)buffer.ptr;
 
         return instance;
     }
@@ -624,3 +641,10 @@ unittest
     queue.ready(&dg);
     test(queue.isRegistered(&dg));
 }
+
+
+unittest
+{
+    auto q = new NotifyingQueue!(char)(256);
+}
+

@@ -132,3 +132,6 @@ New Features
   takes email recipients (as well as `cc` * `bcc` lists) in the form of a 2D
   buffer (where each email address is in a separate index).
 
+* `ocean.util.container.queue.NotifyingQueue`
+
+  Now supports types other than a struct as template parameter.
