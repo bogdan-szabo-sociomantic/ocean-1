@@ -83,7 +83,7 @@ class StatsExt : IConfigExtExtension
 
     ***************************************************************************/
 
-    public void processConfig ( IApplication app, ConfigParser config )
+    public override void processConfig ( IApplication app, ConfigParser config )
     {
         auto stats_config = ClassFiller.fill!(IStatsLog.Config)("STATS", config);
 
@@ -125,7 +125,7 @@ class StatsExt : IConfigExtExtension
 
     ***************************************************************************/
 
-    public void preParseConfig ( IApplication app, ConfigParser config )
+    public override void preParseConfig ( IApplication app, ConfigParser config )
     {
         // Unused
     }
@@ -148,7 +148,7 @@ class StatsExt : IConfigExtExtension
 
     ***************************************************************************/
 
-    public istring[] filterConfigFiles ( IApplication app,
+    public override istring[] filterConfigFiles ( IApplication app,
                                          ConfigParser config,
                                          istring[] files )
     {

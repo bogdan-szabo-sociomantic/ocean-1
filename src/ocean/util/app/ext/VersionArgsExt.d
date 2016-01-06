@@ -201,27 +201,11 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     ***************************************************************************/
 
-    public void setupArgs ( IApplication app, Arguments args )
+    public override void setupArgs ( IApplication app, Arguments args )
     {
         args("version").params(0).help("show version information and exit");
     }
 
-
-    /***************************************************************************
-
-        Just print the version number and exit if --version is present.
-
-        Params:
-            app = the application instance
-            args = command-line arguments instance
-
-    ***************************************************************************/
-
-    public void processArgs ( IApplication app, Arguments args )
-    {
-        if (args.exists("version"))
-            this.displayVersion(app);
-    }
 
     /***************************************************************************
 
@@ -261,7 +245,7 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     ***************************************************************************/
 
-    public void postConfigureLoggers ( IApplication app, ConfigParser config,
+    public override void postConfigureLoggers ( IApplication app, ConfigParser config,
             bool loose_config_parsing, bool use_insert_appender )
     {
         this.ver_log.level = this.ver_log.Level.Info;
@@ -287,7 +271,7 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     ***************************************************************************/
 
-    public void preRun ( IApplication app, istring[] args )
+    public override void preRun ( IApplication app, istring[] args )
     {
         auto conf_ext = (cast(Application)app).getExtension!(ConfigExt)();
         if (conf_ext is null)
@@ -314,18 +298,18 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     ***************************************************************************/
 
-    public void postRun ( IApplication app, istring[] args, int status )
+    public override void postRun ( IApplication app, istring[] args, int status )
     {
         // Unused
     }
 
-    public void atExit ( IApplication app, istring[] args, int status,
+    public override void atExit ( IApplication app, istring[] args, int status,
                          ExitException exception )
     {
         // Unused
     }
 
-    public ExitException onExitException ( IApplication app,
+    public override ExitException onExitException ( IApplication app,
                                            istring[] args,
                                            ExitException exception )
     {
@@ -347,10 +331,15 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     ***************************************************************************/
 
-    public cstring validateArgs ( IApplication app, Arguments args )
+    public override cstring validateArgs ( IApplication app, Arguments args )
     {
         // Unused
         return null;
+    }
+
+    public override void processArgs ( IApplication app, Arguments args )
+    {
+        // Unused
     }
 
 
@@ -371,7 +360,7 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     ***************************************************************************/
 
-    public void preConfigureLoggers ( IApplication app, ConfigParser config,
+    public override void preConfigureLoggers ( IApplication app, ConfigParser config,
             bool loose_config_parsing, bool use_insert_appender )
     {
         // Unused

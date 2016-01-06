@@ -40,7 +40,7 @@ class RefuseRootExt : IArgumentsExtExtension
 
     ***************************************************************************/
 
-    int order ()
+    override int order ()
     {
         return 0;
     }
@@ -56,7 +56,7 @@ class RefuseRootExt : IArgumentsExtExtension
 
     ***************************************************************************/
 
-    void setupArgs ( IApplication app, Arguments args )
+    override void setupArgs ( IApplication app, Arguments args )
     {
         args("asroot").params(0).help("Run as root");
     }
@@ -77,7 +77,7 @@ class RefuseRootExt : IArgumentsExtExtension
 
     ***************************************************************************/
 
-    cstring validateArgs ( IApplication app, Arguments args )
+    override cstring validateArgs ( IApplication app, Arguments args )
     {
         if ( getuid() == 0 && !args.exists("asroot"))
         {
@@ -103,5 +103,5 @@ class RefuseRootExt : IArgumentsExtExtension
 
     ***************************************************************************/
 
-    void processArgs ( IApplication app, Arguments args ) {}
+    override void processArgs ( IApplication app, Arguments args ) {}
 }

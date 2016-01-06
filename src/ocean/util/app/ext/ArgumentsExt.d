@@ -145,7 +145,7 @@ class ArgumentsExt : IApplicationExtension
 
     ***************************************************************************/
 
-    public void preRun ( IApplication app, istring[] cl_args )
+    public override void preRun ( IApplication app, istring[] cl_args )
     {
         auto args = this.args;
 
@@ -211,18 +211,18 @@ class ArgumentsExt : IApplicationExtension
 
     ***************************************************************************/
 
-    public void postRun ( IApplication app, istring[] args, int status )
+    public override void postRun ( IApplication app, istring[] args, int status )
     {
         // Unused
     }
 
-    public void atExit ( IApplication app, istring[] args, int status,
+    public override void atExit ( IApplication app, istring[] args, int status,
             ExitException exception )
     {
         // Unused
     }
 
-    public ExitException onExitException ( IApplication app,
+    public override ExitException onExitException ( IApplication app,
             istring[] args, ExitException exception )
     {
         // Unused

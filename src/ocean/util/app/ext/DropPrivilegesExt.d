@@ -74,7 +74,7 @@ class DropPrivilegesExt : IConfigExtExtension
 
     ***************************************************************************/
 
-    public int order ( )
+    public override int order ( )
     {
         return -5000;
     }
@@ -90,7 +90,7 @@ class DropPrivilegesExt : IConfigExtExtension
 
     ***************************************************************************/
 
-    void processConfig ( IApplication app, ConfigParser config )
+    override void processConfig ( IApplication app, ConfigParser config )
     {
         auto conf = ClassFiller.fill!(Config)("PERMISSIONS", config);
 
@@ -211,7 +211,7 @@ class DropPrivilegesExt : IConfigExtExtension
 
     ***************************************************************************/
 
-    void preParseConfig ( IApplication app, ConfigParser config ) {}
+    override void preParseConfig ( IApplication app, ConfigParser config ) {}
 
 
     /***************************************************************************
@@ -229,6 +229,6 @@ class DropPrivilegesExt : IConfigExtExtension
 
     ***************************************************************************/
 
-    istring[] filterConfigFiles ( IApplication app, ConfigParser config,
+    override istring[] filterConfigFiles ( IApplication app, ConfigParser config,
                                   istring[] files ) { return files; }
 }

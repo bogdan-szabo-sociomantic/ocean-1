@@ -148,7 +148,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    public void setupArgs ( IApplication app, Arguments args )
+    public override void setupArgs ( IApplication app, Arguments args )
     {
         args("config").aliased('c').params(1).smush()
             .help("use the given configuration file");
@@ -183,7 +183,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    public void processArgs ( IApplication app, Arguments args )
+    public override void processArgs ( IApplication app, Arguments args )
     {
         if (!this.loose_config_parsing)
         {
@@ -237,7 +237,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    public cstring validateArgs ( IApplication app, Arguments args )
+    public override cstring validateArgs ( IApplication app, Arguments args )
     {
         istring[] errors;
         foreach (opt; args("override-config").assigned)
@@ -277,7 +277,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    public void preRun ( IApplication app, istring[] cl_args )
+    public override void preRun ( IApplication app, istring[] cl_args )
     {
         foreach (ext; this.extensions)
         {
@@ -330,20 +330,20 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    public void postRun ( IApplication app, istring[] args, int status )
+    public override void postRun ( IApplication app, istring[] args, int status )
     {
         // Unused
     }
 
     /// ditto
-    public void atExit ( IApplication app, istring[] args, int status,
+    public override void atExit ( IApplication app, istring[] args, int status,
                          ExitException exception )
     {
         // Unused
     }
 
     /// ditto
-    public ExitException onExitException ( IApplication app,
+    public override ExitException onExitException ( IApplication app,
                                            istring[] args,
                                            ExitException exception )
     {
