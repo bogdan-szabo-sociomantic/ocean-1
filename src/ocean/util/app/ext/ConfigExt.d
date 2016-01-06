@@ -237,7 +237,7 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     ***************************************************************************/
 
-    public istring validateArgs ( IApplication app, Arguments args )
+    public cstring validateArgs ( IApplication app, Arguments args )
     {
         istring[] errors;
         foreach (opt; args("override-config").assigned)

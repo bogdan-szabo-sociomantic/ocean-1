@@ -347,7 +347,7 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     ***************************************************************************/
 
-    public istring validateArgs ( IApplication app, Arguments args )
+    public cstring validateArgs ( IApplication app, Arguments args )
     {
         // Unused
         return null;
