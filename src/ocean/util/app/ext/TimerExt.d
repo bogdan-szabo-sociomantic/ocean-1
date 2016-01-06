@@ -23,7 +23,7 @@ module ocean.util.app.ext.TimerExt;
 
 /*******************************************************************************
 
-    Example of using the PeriodicExt in an application class.
+    Example of using the TimerExt in an application class.
 
 *******************************************************************************/
 
