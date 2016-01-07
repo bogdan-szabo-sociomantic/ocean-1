@@ -450,9 +450,7 @@
     start with the long prefix or the short prefix). This notion is applied by
     unix systems to terminate argument processing in a similar manner.
 
-    If `version ( dashdash )` is enabled, then these parameters are always
-    assigned to the special 'null' argument. Otherwise, they are assigned to the
-    last known argument target.
+    These parameters are always assigned to the special 'null' argument.
 
     ---
 
@@ -615,18 +613,6 @@ import tango.text.Util;
 import tango.text.convert.Integer;
 import tango.util.container.SortedMap;
 import tango.util.container.more.Stack;
-
-
-
-/*******************************************************************************
-
-    If `version ( dashdash )` is enabled, then all parameters following "--" are
-    assigned to the special 'null' argument. Otherwise, all parameters following
-    "--" are assigned to the last known argument target.
-
-*******************************************************************************/
-
-version = dashdash;
 
 
 
@@ -950,7 +936,7 @@ public class Arguments
                 {
                     done = true;
 
-                    version ( dashdash ) stack.clear.push(get(null));
+                    stack.clear.push(get(null));
 
                     continue;
                 }
@@ -2627,20 +2613,10 @@ unittest
 
     // "--" makes all subsequent be implicit parameters
     args = new Arguments;
-    version ( dashdash )
-    {
-        args('f').params(0);
-        assert(args.parse("-f -- -bar -wumpus -wombat --abc"));
-        assert(args('f').assigned.length is 0);
-        assert(args(null).assigned.length is 4);
-    }
-    else
-    {
-        args('f').params(2);
-        assert(args.parse("-f -- -bar -wumpus -wombat --abc"));
-        assert(args('f').assigned.length is 2);
-        assert(args(null).assigned.length is 2);
-    }
+    args('f').params(0);
+    assert(args.parse("-f -- -bar -wumpus -wombat --abc"));
+    assert(args('f').assigned.length is 0);
+    assert(args(null).assigned.length is 4);
 
     // Confirm arguments are stored in a sorted manner
     args = new Arguments;
