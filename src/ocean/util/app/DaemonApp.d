@@ -622,17 +622,22 @@ unittest
 
     /***************************************************************************
 
-        Code like the following would go in your application's main() function.
+        Your application's main() function should look something like this.
+        (This function is not called here as we don't want to actually run the
+        application in this unittest -- it will fail due to the lack of properly
+        configured etc/ and log/ directories.)
 
     ***************************************************************************/
 
-    // Instantiate an instance of your app class.
-    auto my_app = new MyApp;
+    int main ( istring[] cl_args )
+    {
+        // Instantiate an instance of your app class.
+        auto my_app = new MyApp;
 
-    // Pass the raw command line arguments to its main function.
-    istring[] cl_args = ["my_app"];
-    auto ret = my_app.main(cl_args);
+        // Pass the raw command line arguments to its main function.
+        auto ret = my_app.main(cl_args);
 
-    // Return ret from your application's main function.
+        // Return ret to the OS.
+        return ret;
+    }
 }
-
