@@ -198,6 +198,11 @@ abstract class CommandLineApp : Application, IArgumentsExtExtension
         // Dummy implementation of the interface
     }
 
+    public void preValidateArgs ( IApplication app, Arguments args )
+    {
+        // Dummy implementation of the interface
+    }
+
     public cstring validateArgs ( IApplication app, Arguments args )
     {
         // Dummy implementation of the interface

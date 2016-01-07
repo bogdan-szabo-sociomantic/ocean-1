@@ -92,16 +92,20 @@ class RefuseRootExt : IArgumentsExtExtension
 
     /***************************************************************************
 
-        Function executed after (successfully) validating the command line
-        arguments.
+        Unused IArgumentsExtExtension methods.
 
-        Exists to satisfy the interface.
-
-        Params:
-            app = application instance
-            args = command line arguments instance
+        We just need to provide an "empty" implementation to satisfy the
+        interface.
 
     ***************************************************************************/
 
-    override void processArgs ( IApplication app, Arguments args ) {}
+    override void processArgs ( IApplication app, Arguments args )
+    {
+        // Unused
+    }
+
+    override void preValidateArgs ( IApplication app, Arguments args )
+    {
+        // Unused
+    }
 }

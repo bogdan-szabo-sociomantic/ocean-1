@@ -132,8 +132,6 @@ class ArgumentsExt : IApplicationExtension
         This function does all the extension processing invoking all the
         extension hooks. It also adds the --help option, which when present,
         shows the help and exits the program.
-        If the version argument is present and the version extension is in use,
-        the program will exit after displaying the version text.
 
         If argument parsing or validation fails (including extensions
         validation), it also prints an error message and exits. Note that if
@@ -164,6 +162,11 @@ class ArgumentsExt : IApplicationExtension
         {
             args.displayHelp(this.stdout);
             app.exit(0);
+        }
+
+        foreach (ext; this.extensions)
+        {
+            ext.preValidateArgs(app, args);
         }
 
         if ( args_ok )

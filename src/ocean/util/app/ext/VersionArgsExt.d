@@ -48,7 +48,8 @@ import tango.core.Array: sort;
     both (but makes no sense unless it's registered at least as one of them).
 
     If it's registered as an ArgumentsExt, it adds the option --version to print
-    the version information and exit.
+    the version information and exit. (Note that the actual handling of the
+    --version command line option is performed by ArgumentsExt.)
 
     If it's registered as a LogExt, it will log the version information using
     the logger with the name of this module.
@@ -209,6 +210,24 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     /***************************************************************************
 
+        Checks whether the --version flag is present and, if it is, prints the
+        app version and exits without further arguments validation.
+
+        Params:
+            app = application instance
+            args = command line arguments instance
+
+    ***************************************************************************/
+
+    public override void preValidateArgs ( IApplication app, Arguments args )
+    {
+        if ( args.exists("version") )
+            this.displayVersion(app);
+    }
+
+
+    /***************************************************************************
+
         Print the version information to Stdout and exit.
 
         Params:
@@ -218,7 +237,11 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
     public void displayVersion ( IApplication app )
     {
-        Stdout(getVersionString(app.name, this.ver)).newline;
+        version ( UnitTest ) { } // suppress console output in unittests
+        else
+        {
+            Stdout(getVersionString(app.name, this.ver)).newline;
+        }
         app.exit(0);
     }
 

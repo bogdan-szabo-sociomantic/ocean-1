@@ -354,6 +354,20 @@ class ConfigExt : IApplicationExtension, IArgumentsExtExtension
 
     /***************************************************************************
 
+        Unused IArgumentsExtExtension method.
+
+        We just need to provide an "empty" implementation to satisfy the
+        interface.
+
+    ***************************************************************************/
+
+    public override void preValidateArgs ( IApplication app, Arguments args )
+    {
+        // Unused
+    }
+
+    /***************************************************************************
+
         Parses an overriden config.
 
         Category, key and value are filled with slices to the original opt

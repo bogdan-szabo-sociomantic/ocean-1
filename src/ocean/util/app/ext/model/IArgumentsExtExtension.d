@@ -52,6 +52,20 @@ interface IArgumentsExtExtension : IExtension
 
     /***************************************************************************
 
+        Function executed after parsing of command line args (whether the basic
+        parsing failed or succeeded) but before the call to validateArgs().
+
+        Params:
+            app = application instance
+            args = command line arguments instance
+
+    ***************************************************************************/
+
+    void preValidateArgs ( IApplication app, Arguments args );
+
+
+    /***************************************************************************
+
         Function executed after parsing the command line arguments.
 
         This function is only called if the arguments are valid so far.

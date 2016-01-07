@@ -464,6 +464,12 @@ public abstract class DaemonApp : Application,
     }
 
     /// ditto
+    override public void preValidateArgs ( IApplication app, Arguments args )
+    {
+        // Dummy implementation of the interface
+    }
+
+    /// ditto
     override public cstring validateArgs ( IApplication app, Arguments args )
     {
         // Dummy implementation of the interface
