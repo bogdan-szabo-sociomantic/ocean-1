@@ -51,6 +51,21 @@ debug
     import tango.io.Stdout;
 }
 
+import tango.util.log.Log;
+
+/*******************************************************************************
+
+    Static module logger
+
+*******************************************************************************/
+
+private Logger log;
+
+static this ( )
+{
+    log = Log.lookup("ocean.io.select.timeout.TimerEventTimeoutManager");
+}
+
 /******************************************************************************/
 
 class TimerEventTimeoutManager : TimeoutManager
@@ -92,7 +107,16 @@ class TimerEventTimeoutManager : TimeoutManager
         {
             debug ( TimeoutManager ) Stderr("******** " ~ typeof (this.outer).stringof ~ " expired\n").flush();
 
-            this.outer.checkTimeouts();
+            try
+            {
+                this.outer.checkTimeouts();
+            }
+            catch ( Exception e )
+            {
+                log.error("Exception caught in TimerEventTimeoutManager event handler: {} @ {}:{}",
+                    e.msg, e.file, e.line);
+                throw e;
+            }
             return true;
         }
     }
