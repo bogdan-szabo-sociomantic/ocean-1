@@ -315,7 +315,7 @@ unittest
 
     IncrementalAverage distribution;
 
-    int values[] = [1, 2, 3, 4];
+    int[] values = [1, 2, 3, 4];
     distribution.clear();
     foreach (value; values)
     {
