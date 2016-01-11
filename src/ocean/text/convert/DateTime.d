@@ -281,29 +281,31 @@ private bool validTime ( int hour, int minute, int second )
 
 *******************************************************************************/
 
+version ( UnitTest )
+{
+    import ocean.core.Test;
+}
+
 unittest
 {
     void testConversion ( int test_number, cstring datetime,
         time_t expected_time, DateConversion expected_conversion,
         bool should_pass = true )
     {
-        mstring test_name;
         time_t timestamp;
         auto conversion_type = DateConversion.None;
 
-        // format the test name
-        Format.format(test_name, "Date conversion test {}: ", test_number);
+        auto t = new NamedTest(Format("Date conversion test {}", test_number));
 
         // check the conversion works if it should or fails if it should not
         auto success = timeToUnixTime(datetime, timestamp, conversion_type);
-        assert(should_pass == success, test_name ~ "Failed");
+        t.test!("==")(should_pass, success);
 
         // only check the datetime and type if the initial test passes
         if ( should_pass )
         {
-            assert(timestamp == expected_time, test_name ~ "Incorrect DateTime");
-            assert(conversion_type == expected_conversion,
-                test_name ~ "Incorrect Type");
+            t.test!("==")(timestamp, expected_time);
+            t.test!("==")(conversion_type, expected_conversion);
         }
     }
 
