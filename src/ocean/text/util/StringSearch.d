@@ -615,7 +615,7 @@ struct StringSearch ( bool wide_char = false )
 
         if (!terminated)
         {
-            str ~= "\0";
+            str ~= TERM;
         }
 
         return !terminated;
