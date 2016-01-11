@@ -16,6 +16,8 @@
 
 module tango.util.container.Slink;
 
+import tango.core.Enforce;
+
 import tango.transition;
 
 import tango.util.container.model.IContainer;
@@ -74,7 +76,7 @@ struct Slink (V, K=KeyDummy, bool Identity = false, bool HashCache = false)
                         return set (v, n);
                 }
 
-                final int hash()
+                final hash_t hash()
                 {
                         return typeid(K).getHash(&key);
                 }
@@ -314,10 +316,12 @@ struct Slink (V, K=KeyDummy, bool Identity = false, bool HashCache = false)
 
         ***********************************************************************/
 
-        final Ref nth (int n)
+        final Ref nth (long n)
         {
+                enforce(n >= 0);
+
                 auto p = this;
-                for (int i; i < n; ++i)
+                for (long i; i < n; ++i)
                      p = p.next;
                 return p;
         }
