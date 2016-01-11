@@ -288,14 +288,15 @@ version ( UnitTest )
 
 unittest
 {
-    void testConversion ( int test_number, cstring datetime,
-        time_t expected_time, DateConversion expected_conversion,
-        bool should_pass = true )
+    void testConversion ( cstring datetime, time_t expected_time,
+        DateConversion expected_conversion, bool should_pass = true,
+        typeof(__LINE__) line_num = __LINE__ )
     {
         time_t timestamp;
         auto conversion_type = DateConversion.None;
 
-        auto t = new NamedTest(Format("Date conversion test {}", test_number));
+        auto t = new NamedTest(Format("Date conversion test (line {})",
+            line_num));
 
         // check the conversion works if it should or fails if it should not
         auto success = timeToUnixTime(datetime, timestamp, conversion_type);
@@ -309,31 +310,31 @@ unittest
         }
     }
 
-    testConversion(1, "2013-09-05 14:44:01", 1378392241, DateConversion.DateTime);
+    testConversion("2013-09-05 14:44:01", 1378392241, DateConversion.DateTime);
 
-    testConversion(2, "2013-09-05T14:55:17", 1378392917, DateConversion.DateTimeT);
+    testConversion("2013-09-05T14:55:17", 1378392917, DateConversion.DateTimeT);
 
-    testConversion(3, "20130930", 1380499200, DateConversion.YearMonthDay);
+    testConversion("20130930", 1380499200, DateConversion.YearMonthDay);
 
-    testConversion(4, "2013-03-13", 1363132800, DateConversion.YearMonthDayWithHyphen);
+    testConversion("2013-03-13", 1363132800, DateConversion.YearMonthDayWithHyphen);
 
-    testConversion(5, "201309", 1377993600, DateConversion.YearMonth);
+    testConversion("201309", 1377993600, DateConversion.YearMonth);
 
-    testConversion(6, "2013-03", 1362096000, DateConversion.YearMonthWithHyphen);
+    testConversion("2013-03", 1362096000, DateConversion.YearMonthWithHyphen);
 
-    testConversion(7, "10000101", 0, DateConversion.None, false);
+    testConversion("10000101", 0, DateConversion.None, false);
 
-    testConversion(8, "2013-09-31 14:44:01", 0, DateConversion.None, false);
+    testConversion("2013-09-31 14:44:01", 0, DateConversion.None, false);
 
-    testConversion(9, "2013-11-32", 0, DateConversion.None, false);
+    testConversion("2013-11-32", 0, DateConversion.None, false);
 
-    testConversion(10, "2013-13", 0, DateConversion.None, false);
+    testConversion("2013-13", 0, DateConversion.None, false);
 
-    testConversion(11, "2013-12-01-", 0, DateConversion.None, false);
+    testConversion("2013-12-01-", 0, DateConversion.None, false);
 
-    testConversion(12, "2013-09-05 24:44:01", 0, DateConversion.DateTime, false);
+    testConversion("2013-09-05 24:44:01", 0, DateConversion.DateTime, false);
 
-    testConversion(13, "2013-09-05T14:61:17", 0, DateConversion.DateTimeT, false);
+    testConversion("2013-09-05T14:61:17", 0, DateConversion.DateTimeT, false);
 
-    testConversion(14, "2013-09-05 24:44:80", 0, DateConversion.DateTime, false);
+    testConversion("2013-09-05 24:44:80", 0, DateConversion.DateTime, false);
 }
