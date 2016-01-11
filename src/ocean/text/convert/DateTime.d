@@ -59,23 +59,23 @@ public enum DateConversion : uint
 
 /*******************************************************************************
 
-    Given a timestamp, if it is in one of a set of allowable formats, return
-    the equivalent unix timestamp. Allowable formats are 2010-08-14 17:29:06,
-    2010-08-14T17:29:06, 2010-08, 2010-08-14, 201008, or 20100814. These
-    formats are some of the formats supported by ISO 8601 but not all of them.
+    Given a timestamp, if it belongs to a set of supported formats, return the
+    equivalent unix timestamp. Supported formats are 2010-08-14 17:29:06,
+    2010-08-14T17:29:06, 2010-08, 2010-08-14, 201008, or 20100814. These are
+    some (but not all) of the formats supported by ISO 8601.
 
     This method makes use of the C sscanf() function. To use sscanf safely,
     str needs to be null-terminated. Fortunately the format is clearly defined,
     so we can copy it into a fixed-length buffer.
 
     Params:
-        str = string contain timestamp
+        str = string containing the timestamp to be converted
         time = a time_t that is filled with the result of the conversion
-        conversion_type = if the timestamp was converted from an allowable
-                    format set what type of conversion was used
+        conversion_type = if the timestamp was converted from one of the
+            supported formats, then set the type of conversion used
 
     Returns:
-        true if the timestamp has been successfully converted
+        true if the timestamp was successfully converted
 
 *******************************************************************************/
 
@@ -186,7 +186,7 @@ public bool timeToUnixTime ( cstring str, ref time_t time,
 /*******************************************************************************
 
     Check for valid characters in the date string. Valid characters are digits
-    and any characters in the extra paramter.
+    and any characters in the extra parameter.
 
     Params:
         str = string to check for valid characters
