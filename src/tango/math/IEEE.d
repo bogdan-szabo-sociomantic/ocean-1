@@ -84,7 +84,7 @@ version (Naked_D_InlineAsm_X86) {
     // Needed for cos(), sin(), tan() on GNU.
     static import tango.stdc.math;
 }
-import tango.stdc.math : isnan;
+static import tsm = tango.stdc.math;
 
 // Standard Tango NaN payloads.
 // NOTE: These values may change in future Tango releases
@@ -832,7 +832,7 @@ unittest {
  */
 real fdim(real x, real y)
 {
-    return (isnan(x) || isnan(y) || x <= y) ? x - y : +0.0;
+    return (tsm.isnan(x) || tsm.isnan(y) || x <= y) ? x - y : +0.0;
 }
 
 unittest {
@@ -1663,7 +1663,7 @@ T ieeeMean(T)(T x, T y)
 in {
     // both x and y must have the same sign, and must not be NaN.
     assert(signbit(x) == signbit(y));
-    assert(!isnan(x) && !isnan(y));
+    assert(!tsm.isnan(x) && !tsm.isnan(y));
 }
 body {
     // Runtime behaviour for contract violation:

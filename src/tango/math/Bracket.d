@@ -9,7 +9,7 @@
 module tango.math.Bracket;
 import tango.transition;
 
-import tango.stdc.math : isnan;
+static import tsm = tango.stdc.math;
 import tango.math.Math;
 import tango.math.IEEE;
 
@@ -73,7 +73,7 @@ BracketResult!(T, R) findRoot(T,R)(R delegate(T) f, T ax, T bx, R fax, R fbx,
     bool delegate(BracketResult!(T,R) r) tolerance)
 in {
     assert(ax<=bx, "Parameters ax and bx out of order.");
-    assert(!isnan(ax) && !isnan(bx), "Limits must not be NaN");
+    assert(!tsm.isnan(ax) && !tsm.isnan(bx), "Limits must not be NaN");
     assert(oppositeSigns(fax,fbx), "Parameters must bracket the root.");
 }
 body {
@@ -192,7 +192,7 @@ whileloop:
                 real d32 = (d31 - q21) * fd / (fd - fa);
                 real q33 = (d32 - q22) * fa / (fe - fa);
                 c = a + (q31 + q32 + q33);
-                if (isnan(c) || (c <= a) || (c >= b)) {
+                if (tsm.isnan(c) || (c <= a) || (c >= b)) {
                     // DAC: If the interpolation predicts a or b, it's
                     // probable that it's the actual root. Only allow this if
                     // we're already close to the root.
@@ -208,7 +208,7 @@ whileloop:
             }
             if (!ok) {
                c = newtonQuadratic(distinct ? 3 : 2);
-               if(isnan(c) || (c <= a) || (c >= b)) {
+               if(tsm.isnan(c) || (c <= a) || (c >= b)) {
                   // Failure, try a secant step:
                   c = secant_interpolate(a, b, fa, fb);
                }
@@ -235,7 +235,7 @@ whileloop:
         c = u - 2 * (fu / (fb - fa)) * (b - a);
         // DAC: If the secant predicts a value equal to an endpoint, it's
         // probably false.
-        if(c==a || c==b || isnan(c) || fabs(c - u) > (b - a) / 2) {
+        if(c==a || c==b || tsm.isnan(c) || fabs(c - u) > (b - a) / 2) {
             if ((a-b) == a || (b-a) == b) {
                 if ( (a>0 && b<0) || (a<0 && b>0) ) c = 0;
                 else {

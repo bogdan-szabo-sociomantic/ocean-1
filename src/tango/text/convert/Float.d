@@ -27,7 +27,7 @@ module tango.text.convert.Float;
 import tango.transition;
 
 import tango.core.Exception;
-import tango.stdc.math : isnan;
+static import tsm = tango.stdc.math;
 
 /******************************************************************************
 
@@ -345,7 +345,7 @@ version (float_internal)
             value = -value;
 
         *decpt = 9999;
-        if (isnan(value))
+        if (tsm.isnan(value))
             return "nan\0".ptr;
 
         if (isInfinity(value))
