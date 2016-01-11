@@ -321,7 +321,7 @@ struct Slink (V, K=KeyDummy, bool Identity = false, bool HashCache = false)
                 enforce(n >= 0);
 
                 auto p = this;
-                for (long i; i < n; ++i)
+                for (long i; i < n && p; ++i)
                      p = p.next;
                 return p;
         }
@@ -484,3 +484,38 @@ struct Slink (V, K=KeyDummy, bool Identity = false, bool HashCache = false)
 
 }
 
+version (UnitTest)
+{
+    import ocean.core.Test : NamedTest;
+}
+
+unittest
+{
+    auto t = new NamedTest("Test nth() with an index out of bounds");
+
+    const total_items = 11;
+    const index_out_of_bounds = total_items * 2;
+
+    auto slink = new Slink!(int);
+    t.test!("==")(slink.nth(0).value, 0);
+    t.test!("==")(slink.count(), 1);
+
+    auto tail = slink;
+    for (int i = 1; i < total_items; ++i)
+    {
+        auto item = new Slink!(int);
+        item.value = tail.value + 1;
+        tail.set(tail.value, item);
+        tail = item;
+    }
+
+    // Self-verification
+    t.test!("==")(slink.count(), total_items);
+    for (int i = 0; i < total_items; ++i)
+    {
+        t.test!("==")(slink.nth(i).value, i);
+    }
+
+    t.test!("==")(slink.nth(total_items), null);
+    t.test!("==")(slink.nth(index_out_of_bounds), null);
+}
