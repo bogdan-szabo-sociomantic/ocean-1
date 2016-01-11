@@ -619,23 +619,17 @@ Dst testConvMemory(Src, Dst)(Src src)
     auto loader = new VersionDecorator;
     void[] buffer;
 
-    size_t used_memory, free_memory;
-
     const iterations = 10_000;
 
-    for ( size_t i = 0; i < iterations; ++i )
+    static void storeThenLoad (ref NamedTest test, ref VersionDecorator loader,
+                               ref Src src, ref void[] buffer,
+                               ref Contiguous!(Dst) result)
     {
-        // After 1% of the iterations, memory usage shouldn't grow anymore
-        if (i == cast(size_t) (iterations*0.01))
-        {
-            GC.usage(used_memory, free_memory);
-        }
-
         try
         {
             loader.store(src, buffer);
             result = loader.load!(Dst)(buffer);
-        //    result.ptr.compare(test, src);
+            //    result.ptr.compare(test, src);
         }
         catch (Exception e)
         {
@@ -648,17 +642,27 @@ Dst testConvMemory(Src, Dst)(Src src)
                 e.file,
                 e.line,
                 e.toString()
-            );
+                );
             test.file = __FILE__;
             test.line = __LINE__;
             throw test;
         }
     }
 
-    size_t now_used_memory, now_free_memory;
-    GC.usage(now_used_memory, now_free_memory);
+    // After 1% of the iterations, memory usage shouldn't grow anymore
+    for ( size_t i = 0; i < (iterations / 100); ++i )
+    {
+        storeThenLoad(test, loader, src, buffer, result);
+    }
 
-    test.test!("==")(now_used_memory, used_memory);
+    // Do the other 99%
+    testNoAlloc(
+        {
+            for ( size_t i = 0; i < iterations - (iterations / 100); ++i )
+            {
+                storeThenLoad(test, loader, src, buffer, result);
+            }
+        }());
 
     return *result.ptr;
 }
