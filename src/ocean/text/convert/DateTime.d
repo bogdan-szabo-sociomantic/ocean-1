@@ -105,7 +105,7 @@ public bool timeToUnixTime ( cstring str, ref time_t time,
     Converted: switch ( num_matched )
     {
         case 1:
-            if ( validCharacters(str, "") )
+            if ( validCharacters(str) )
             {
                 switch ( str.length )
                 {
@@ -191,13 +191,14 @@ public bool timeToUnixTime ( cstring str, ref time_t time,
     Params:
         str = string to check for valid characters
         extra = string containing characters other than digits that are valid
+            (defaults to an empty string)
 
     Returns:
         true if the string only contains valid characters
 
 *******************************************************************************/
 
-private bool validCharacters ( cstring str, cstring extra )
+private bool validCharacters ( cstring str, cstring extra = "" )
 {
     foreach ( chr; str )
     {
