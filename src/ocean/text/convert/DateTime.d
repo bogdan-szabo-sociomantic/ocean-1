@@ -91,7 +91,7 @@ public bool timeToUnixTime ( cstring str, ref time_t time,
         len = buff.length - 1;
 
     buff[0..len] = str[0..len];
-    buff[len+1] = '\0';
+    buff[len] = '\0';
 
     // Initialise the time and the day of the month to 0 and 1 respectively
     datetime.tm_hour = datetime.tm_min = datetime.tm_sec = 0;
@@ -135,8 +135,8 @@ public bool timeToUnixTime ( cstring str, ref time_t time,
             }
             return false;
 
-        case 4: // 2013-10-01 matches 4 items and the character matched is 255
-            if ( validCharacters(str, "-") && separator == 255 )
+        case 3: // 2013-10-01
+            if ( validCharacters(str, "-") )
             {
                 conversion_type = DateConversion.YearMonthDayWithHyphen;
                 break;
@@ -337,4 +337,6 @@ unittest
     testConversion("2013-09-05T14:61:17", 0, DateConversion.DateTimeT, false);
 
     testConversion("2013-09-05 24:44:80", 0, DateConversion.DateTime, false);
+
+    testConversion("a_really_long_dummy_string", 0, DateConversion.None, false);
 }
