@@ -37,6 +37,11 @@ Removed Symbols
 Deprecations
 ============
 
+* `tango.text.Arguments`
+
+  This module is now deprecated. All its functionality has been moved to
+  `ocean.text.Arguments`.
+
 New Features
 ============
 
