@@ -84,7 +84,7 @@ public class LayoutSimple : Appender.Layout
 
         **********************************************************************/
 
-        private mstring convert (mstring tmp, long i)
+        private cstring convert (mstring tmp, long i)
         {
                 return Integer.formatter (tmp, i, 'u', '?', 8);
         }

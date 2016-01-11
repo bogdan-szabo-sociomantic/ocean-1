@@ -83,7 +83,7 @@ public class LayoutStatsLog : Appender.Layout
 
         **********************************************************************/
 
-        private char[] convert (char[] tmp, long i)
+        private cstring convert (mstring tmp, long i)
         {
                 return Integer.formatter (tmp, i, 'u', '?', 8);
         }
