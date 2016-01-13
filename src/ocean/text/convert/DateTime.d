@@ -81,9 +81,7 @@ public bool timeToUnixTime ( cstring str, ref time_t time,
     char separator;
     char [("2000-12-12T23:59:59:59Z".length+1)] buff;
 
-    auto len = str.length;
-    if ( str.length > buff.length - 1 )
-        len = buff.length - 1;
+    auto len = (str.length < buff.length) ? str.length : (buff.length - 1);
 
     buff[0 .. len] = str[0 .. len];
     buff[len] = '\0';
