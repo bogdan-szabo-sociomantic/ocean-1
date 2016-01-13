@@ -49,7 +49,8 @@ public enum DateConversion : uint
     YearMonthDay,           // 20100814
     YearMonthDayWithHyphen, // 2010-08-14
     YearMonth,              // 201008
-    YearMonthWithHyphen     // 2010-08
+    YearMonthWithHyphen,    // 2010-08
+    InternetMsgFmtDateTime  // Sat, 14 Aug 2010 17:29:06 UTC
 }
 
 
@@ -81,17 +82,29 @@ public bool timeToUnixTime ( cstring str, ref time_t time,
 
     // Create a static buffer of length one more than the longest supported
     // format
-    char [("2000-12-12T23:59:59:59Z".length + 1)] buff;
+    char [("Sat, 14 Aug 2010 17:29:06 UTC".length + 1)] buff;
 
     auto len = (str.length < buff.length) ? str.length : (buff.length - 1);
 
     buff[0 .. len] = str[0 .. len];
     buff[len] = '\0';
 
-    if ( ! getDateTimeForISO8601Format(buff[0 .. len + 1], str.length, datetime,
-        conversion_type) )
+    if ( str.length && !isDigit(str[0]) )
     {
-        return false;
+        if ( ! getDateTimeForInternetMsgFormat(buff[0 .. len + 1], datetime) )
+        {
+            return false;
+        }
+
+        conversion_type = DateConversion.InternetMsgFmtDateTime;
+    }
+    else
+    {
+        if ( ! getDateTimeForISO8601Format(buff[0 .. len + 1], str.length,
+            datetime, conversion_type) )
+        {
+            return false;
+        }
     }
 
     time = timegm(&datetime);
@@ -217,6 +230,37 @@ body
     datetime.tm_isdst = false;
 
     return true;
+}
+
+
+/*******************************************************************************
+
+    Gets a struct containing details of the date and time corresponding to the
+    given string. This function only supports the Internet message format as
+    defined in RFC 5322.
+
+    This method makes use of the C function 'strptime()', and to call
+    'strptime()' safely, the input string must be null-terminated.
+
+    Params:
+        buff = null-terminated string containing the timestamp
+        datetime = output struct to be filled with details of the date and time
+            corresponding to the timestamp
+
+    Returns:
+        true if the timestamp was successfully converted
+
+*******************************************************************************/
+
+private bool getDateTimeForInternetMsgFormat ( cstring buff, ref tm datetime )
+in
+{
+    assert(buff[$ - 1] == '\0', "Input string must be null-terminated");
+}
+body
+{
+    return
+        strptime(buff.ptr, "%A, %d %b %Y %H:%M:%S %Z".ptr, &datetime) !is null;
 }
 
 
@@ -384,4 +428,7 @@ unittest
     testConversion("2013-09-05 24:44:80", 0, DateConversion.DateTime, false);
 
     testConversion("a_really_long_dummy_string", 0, DateConversion.None, false);
+
+    testConversion("Sun, 09 Sep 2001 01:46:40 UTC", 1000000000,
+        DateConversion.InternetMsgFmtDateTime);
 }

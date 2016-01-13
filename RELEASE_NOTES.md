@@ -135,3 +135,9 @@ New Features
 * `ocean.util.container.queue.NotifyingQueue`
 
   Now supports types other than a struct as template parameter.
+
+* `ocean.text.convert.DateTime`
+
+  The `timeToUnixTime()` function now also supports conversion of a timestamp
+  string from the Internet Message Format (e.g. `Sun, 09 Sep 2001 01:46:40 UTC`)
+  to its equivalent Unix timestamp value.
