@@ -101,6 +101,11 @@ Const!(char)* gcry_strsource (gcry_error_t err);
 // octets. On error 0 is returned.
 size_t gcry_cipher_get_algo_blklen (int algo);
 
+// This function returns length of the key for algorithm algo. If the algorithm
+// supports multiple key lengths, the maximum supported key length is returned.
+// On error 0 is returned. The key length is returned as number of octets.
+size_t gcry_cipher_get_algo_keylen (int algo);
+
 /* Check that the library fulfills the version requirement.  */
 Const!(char)* gcry_check_version ( Const!(char)* req_version);
 
