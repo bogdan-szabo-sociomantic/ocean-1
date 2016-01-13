@@ -1,13 +1,9 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2013 sociomantic labs. All rights reserved
+    copyright:      Copyright (c) 2016 sociomantic labs. All rights reserved
 
-    version:        9/3/2013: Initial release
-
-    authors:        Ben Palmer
-
-    Module provides a method to convert from a date time formatted as a string
-    to a UNIX timestamp value.
+    Module that provides a method to convert from a date time formatted as a
+    string to a UNIX timestamp value.
 
 *******************************************************************************/
 
@@ -60,9 +56,8 @@ public enum DateConversion : uint
 /*******************************************************************************
 
     Given a timestamp, if it belongs to a set of supported formats, return the
-    equivalent unix timestamp. Supported formats are 2010-08-14 17:29:06,
-    2010-08-14T17:29:06, 2010-08, 2010-08-14, 201008, or 20100814. These are
-    some (but not all) of the formats supported by ISO 8601.
+    equivalent unix timestamp. Refer to the 'DateConversion' enum for the list
+    of supported formats.
 
     This method makes use of the C sscanf() function. To use sscanf safely,
     str needs to be null-terminated. Fortunately the format is clearly defined,
@@ -90,7 +85,7 @@ public bool timeToUnixTime ( cstring str, ref time_t time,
     if ( str.length > buff.length - 1 )
         len = buff.length - 1;
 
-    buff[0..len] = str[0..len];
+    buff[0 .. len] = str[0 .. len];
     buff[len] = '\0';
 
     // Initialise the time and the day of the month to 0 and 1 respectively
