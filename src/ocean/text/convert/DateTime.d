@@ -93,9 +93,9 @@ public bool timeToUnixTime ( cstring str, ref time_t time,
     datetime.tm_mday = 1;
 
     // try the date format with 2010-08-14T17:29:06 or 2010-08-14 17:29:06
-    int num_matched = sscanf(buff.ptr, "%d-%d-%d%c%d:%d:%d".ptr, &datetime.tm_year,
-        &datetime.tm_mon, &datetime.tm_mday, &separator, &datetime.tm_hour,
-        &datetime.tm_min, &datetime.tm_sec);
+    int num_matched = sscanf(buff.ptr, "%d-%d-%d%c%d:%d:%d".ptr,
+        &datetime.tm_year, &datetime.tm_mon, &datetime.tm_mday, &separator,
+        &datetime.tm_hour, &datetime.tm_min, &datetime.tm_sec);
 
     Converted: switch ( num_matched )
     {
@@ -312,7 +312,8 @@ unittest
 
     testConversion("20130930", 1380499200, DateConversion.YearMonthDay);
 
-    testConversion("2013-03-13", 1363132800, DateConversion.YearMonthDayWithHyphen);
+    testConversion("2013-03-13", 1363132800,
+        DateConversion.YearMonthDayWithHyphen);
 
     testConversion("201309", 1377993600, DateConversion.YearMonth);
 
