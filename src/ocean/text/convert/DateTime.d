@@ -98,7 +98,7 @@ public bool timeToUnixTime ( cstring str, ref time_t time,
     Converted: switch ( num_matched )
     {
         case 1:
-            if ( validCharacters(str) )
+            if ( validateCharacters(str) )
             {
                 switch ( str.length )
                 {
@@ -121,7 +121,7 @@ public bool timeToUnixTime ( cstring str, ref time_t time,
             return false;
 
         case 2:
-            if ( validCharacters(str, "-") ) // 2010-08
+            if ( validateCharacters(str, "-") ) // 2010-08
             {
                 conversion_type = DateConversion.YearMonthWithHyphen;
                 break;
@@ -129,7 +129,7 @@ public bool timeToUnixTime ( cstring str, ref time_t time,
             return false;
 
         case 3: // 2013-10-01
-            if ( validCharacters(str, "-") )
+            if ( validateCharacters(str, "-") )
             {
                 conversion_type = DateConversion.YearMonthDayWithHyphen;
                 break;
@@ -156,12 +156,12 @@ public bool timeToUnixTime ( cstring str, ref time_t time,
             return false;
     }
 
-    if ( !validDate(datetime.tm_mday, datetime.tm_mon, datetime.tm_year) )
+    if ( !validateDate(datetime.tm_mday, datetime.tm_mon, datetime.tm_year) )
     {
         return false;
     }
 
-    if ( !validTime(datetime.tm_hour, datetime.tm_min, datetime.tm_sec) )
+    if ( !validateTime(datetime.tm_hour, datetime.tm_min, datetime.tm_sec) )
     {
         return false;
     }
@@ -191,7 +191,7 @@ public bool timeToUnixTime ( cstring str, ref time_t time,
 
 *******************************************************************************/
 
-private bool validCharacters ( cstring str, cstring extra = "" )
+private bool validateCharacters ( cstring str, cstring extra = "" )
 {
     foreach ( chr; str )
     {
@@ -218,7 +218,7 @@ private bool validCharacters ( cstring str, cstring extra = "" )
 
 *******************************************************************************/
 
-private bool validDate ( uint day, uint month, uint year )
+private bool validateDate ( uint day, uint month, uint year )
 {
     if ( year < 1900 )
     {
@@ -251,7 +251,7 @@ private bool validDate ( uint day, uint month, uint year )
 
 *******************************************************************************/
 
-private bool validTime ( int hour, int minute, int second )
+private bool validateTime ( int hour, int minute, int second )
 {
     if ( hour < 0 || hour > 23 )
     {
