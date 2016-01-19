@@ -624,6 +624,8 @@ import tango.util.container.more.Stack;
 
 public class Arguments
 {
+    import ocean.core.Exception : enforce;
+
     /***************************************************************************
 
         Convenience aliases to access a specific argument instance
@@ -2635,4 +2637,10 @@ unittest
             default: assert(0);
         }
     }
+
+    // Test that getInt() works as expected
+    args = new Arguments;
+    args("num").params(1);
+    assert(args.parse("--num 100"));
+    assert(args.getInt!(uint)("num") == 100);
 }
