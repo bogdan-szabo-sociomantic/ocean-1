@@ -90,7 +90,11 @@ import ocean.util.container.queue.model.IQueueInfo;
 
 import ocean.io.model.ISuspendable;
 
-import ocean.io.serialize.StructSerializer;
+import ocean.util.serialize.contiguous.Contiguous;
+
+import ocean.util.serialize.contiguous.Serializer;
+
+import ocean.util.serialize.contiguous.Deserializer;
 
 import ocean.core.Array;
 
@@ -512,6 +516,17 @@ class NotifyingByteQueue : ISuspendable, IQueueInfo
 
 class NotifyingQueue ( T ) : NotifyingByteQueue
 {
+    static if (is(T == struct))
+    {
+        /***********************************************************************
+
+            Contiguous buffer for deserialization
+
+        ***********************************************************************/
+
+        private Contiguous!(T) contiguous_buffer;
+    }
+
     /***************************************************************************
 
         Constructor
@@ -558,14 +573,14 @@ class NotifyingQueue ( T ) : NotifyingByteQueue
     bool push ( ref T request )
     {
         static if ( is(T == struct) )
-            auto length = StructSerializer!(true).length(&request);
+            auto length = Serializer.countRequiredSize(request);
         else
             auto length = request.sizeof;
 
         void filler ( ubyte[] target )
         {
             static if ( is(T == struct) )
-                StructSerializer!(true).dump(&request, target);
+                Serializer.serialize(request, target);
             else
                 target.copy((cast(ubyte*)&request)[0..length]);
         }
@@ -603,11 +618,16 @@ class NotifyingQueue ( T ) : NotifyingByteQueue
         buffer.copy(data);
 
         static if ( is(T == struct) )
-            StructSerializer!(true).loadSlice (instance, buffer);
-        else
-            instance = cast(T*)buffer.ptr;
+        {
+            auto void_buffer = cast(void[])buffer;
 
-        return instance;
+            Deserializer.deserialize!(T)(void_buffer, this.contiguous_buffer);
+            return this.contiguous_buffer.ptr;
+        }
+        else
+        {
+            return cast(T*)buffer.ptr;
+        }
     }
 }
 
