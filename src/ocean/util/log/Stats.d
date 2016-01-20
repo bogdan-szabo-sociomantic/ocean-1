@@ -645,19 +645,24 @@ public class StatsLog : IStatsLog
     {
         foreach ( i, value; values.tupleof )
         {
-            static if (!isIntegerType!(Unqual!(typeof(value)))
-                       && !isRealType!(Unqual!(typeof(value))))
+            static if (is(typeof(value) : long))
+                long fmtd_value = value;
+            else static if (is(typeof(value) : double))
+                double fmtd_value = value;
+            else
             {
-                pragma(msg, "[", __FILE__, ":", __LINE__, "]", T.stringof,
-                       " should only contain integer or floating point members");
+                pragma(msg, "[", __FILE__, ":", __LINE__, "] '", T.stringof,
+                       "' should only contain integer or floating point members");
+                auto fmtd_value = value;
             }
+
             // stringof results in something like "values.somename", we want
             // only "somename"
             if (this.add_separator)
             {
                 this.layout(' ');
             }
-            this.formatValue!(category)(FieldName!(i, T), value, instance);
+            this.formatValue!(category)(FieldName!(i, T), fmtd_value, instance);
             this.add_separator = true;
         }
     }
