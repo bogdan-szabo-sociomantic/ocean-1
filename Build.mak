@@ -11,11 +11,3 @@ override RDMDFLAGS += --extra-file=$C/src/tango/core/Version.d
 # Link unittests to all used libraries
 $O/%unittests: override LDFLAGS += -lglib-2.0 -lpcre -lxml2 -lxslt -lebtree \
 		-ltokyocabinet -lreadline -lhistory -llzo2 -lbz2 -lz -ldl -lgcrypt
-
-.PHONY: d2conv
-d2conv: $O/d2conv.stamp
-
-$O/d2conv.stamp:
-	$(call exec,find $C/src -type f -name '*.d' | xargs d1to2fix,src/**.d,d1to2fix)
-	$(call exec,find $C/test -type f -name '*.d' | xargs d1to2fix,tests/**.d,d1to2fix)
-	$Vtouch $@
