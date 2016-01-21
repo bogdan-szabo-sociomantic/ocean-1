@@ -162,7 +162,7 @@ public class DigitGrouping
         // Handle negative numbers
         if ( num_as_string[0] == '-' )
         {
-            output.append("-");
+            output.append("-"[]);
             num_as_string = num_as_string[1..$];
         }
 
@@ -190,7 +190,7 @@ public class DigitGrouping
             mstring digits = num_as_string[left..right];
             if ( comma )
             {
-                output.append(digits, ",");
+                output.append(digits, ","[]);
             }
             else
             {

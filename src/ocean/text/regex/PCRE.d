@@ -242,7 +242,7 @@ public class PCRE
             int error_code;
             int error_offset;
 
-            this.outer.buffer_char.concat(pattern, "\0");
+            this.outer.buffer_char.concat(pattern, "\0"[]);
             this.pcre_object = pcre_compile2(this.outer.buffer_char.ptr,
                     (case_sens ? 0 : PCRE_CASELESS), &error_code, &errmsg,
                     &error_offset, null);

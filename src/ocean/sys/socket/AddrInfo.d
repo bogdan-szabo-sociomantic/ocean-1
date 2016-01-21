@@ -675,7 +675,7 @@ class AddrInfo : AddrInfoC
 
 private char* toCstr ( ref char[] dst, char[] src )
 {
-    return src.length? dst.concat(src, "\0").ptr : null;
+    return src.length? dst.concat(src, "\0"[]).ptr : null;
 }
 
 /******************************************************************************

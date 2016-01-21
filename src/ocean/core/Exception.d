@@ -249,7 +249,7 @@ public template ReusableExceptionImplementation()
         char[long.max.stringof.length + 1] buff;
         if (hex)
         {
-            ocean.core.Array.append(this.reused_msg, "0x");
+            ocean.core.Array.append(this.reused_msg, "0x"[]);
             ocean.core.Array.append(this.reused_msg, format (buff, num, "X"));
         }
         else
