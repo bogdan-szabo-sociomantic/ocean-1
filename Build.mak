@@ -2,8 +2,6 @@ override DFLAGS += -w
 
 ifeq ($(DVER),1)
 override DFLAGS += -v2 -v2=-static-arr-params -v2=-volatile
-else
-override DC := dmd-transitional
 endif
 
 override RDMDFLAGS += --extra-file=$C/src/tango/core/Version.d
