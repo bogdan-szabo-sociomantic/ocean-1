@@ -8,11 +8,6 @@ tango      | v1.3.x
 Migration Instructions
 ======================
 
-* `ocean.io.model.ISuspendableThrottler`
-
-  `ISuspendableThrottler` now contains the method `removeSuspendable` to remove an
-  `ISuspendable` from registered suspendables.
-
 * `ocean.sys.CpuAffinity`
 
   - `CpuAffinity.set()` now throws `ErrnoException` on failure. It used to
@@ -45,16 +40,21 @@ Deprecations
 New Features
 ============
 
+* `ocean.io.model.ISuspendableThrottler`
+
+  `ISuspendableThrottler` now contains the method `removeSuspendable` to remove an
+  `ISuspendable` from registered suspendables.
+
 * `tango.core.UnitTestRunner`
 
-  When run in verbose mode, the unittests now outputs the memory comsuption
+  When run in verbose mode, the unittests now outputs the memory consumption
   (before, after, and the difference).  In order to make the tests reliable,
   a GC collection is done before each module is tested.
 
 * `ocean.util.container.MallocArray`
 
-  A new module which contains collection of functions that aids in creating
-  and manipulating malloc based arrays.
+  A new module which contains a collection of functions that aid in creating
+  and manipulating malloc-based arrays.
 
 * `ocean.util.app.ext.TimerExt`
 
@@ -141,3 +141,4 @@ New Features
   The `timeToUnixTime()` function now also supports conversion of a timestamp
   string from the Internet Message Format (e.g. `Sun, 09 Sep 2001 01:46:40 UTC`)
   to its equivalent Unix timestamp value.
+
