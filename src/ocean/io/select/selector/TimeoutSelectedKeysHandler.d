@@ -108,7 +108,7 @@ class TimeoutSelectedKeysHandler: SelectedKeysHandler
                 assert (client !is null, "timeout client is not a select client");
 
                 debug ( ISelectClient )
-                    Stderr.formatln("{} :: Client timed out, unregistering", client);
+                    Stderr.formatln("{} :: Client timed out, unregistering", client).flush();
 
                 this.timed_out_clients ~= client;
 

@@ -53,7 +53,7 @@ public abstract class IRegisteredClients
 
     final public void opAddAssign ( ISelectClient client )
     {
-        debug ( ISelectClient ) Stderr.formatln("{} :: Registered", client);
+        debug ( ISelectClient ) Stderr.formatln("{} :: Registered", client).flush();
         client.registered();
         this.add_(client);
     }
@@ -72,7 +72,7 @@ public abstract class IRegisteredClients
 
     final public void opSubAssign ( ISelectClient client )
     {
-        debug ( ISelectClient ) Stderr.formatln("{} :: Unregistered", client);
+        debug ( ISelectClient ) Stderr.formatln("{} :: Unregistered", client).flush();
         client.unregistered();
         this.remove_(client);
     }

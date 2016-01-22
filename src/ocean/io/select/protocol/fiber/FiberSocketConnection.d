@@ -587,7 +587,7 @@ public class IFiberSocketConnection : IFiberSelectProtocol
             if ( connect_syscall )
             {
                 debug ( ISelectClient ) Stderr.formatln("[{}:{}]: Connected to socket",
-                    this.address, this.port);
+                    this.address, this.port).flush();
                 this.connected_ = true;
                 return ConnectionStatus.Connected;
             }
@@ -598,7 +598,7 @@ public class IFiberSocketConnection : IFiberSelectProtocol
                 debug ( ISelectClient )
                 {
                     Stderr.formatln("[{}:{}]: {}",
-                        this.address_, this.port_, this.socket_error.strerror(errnum));
+                        this.address_, this.port_, this.socket_error.strerror(errnum)).flush();
                 }
 
                 switch (errnum)
@@ -613,13 +613,13 @@ public class IFiberSocketConnection : IFiberSelectProtocol
                          debug ( ISelectClient )
                          {
                              Stderr.formatln("[{}:{}]: waiting for the socket to become writable",
-                                 this.address_, this.port_);
+                                 this.address_, this.port_).flush();
 
                              scope (failure) Stderr.formatln("[{}:{}]: error while waiting for the socket to become writable",
-                                                            this.address_, this.port_);
+                                                            this.address_, this.port_).flush();
 
                              scope (success) Stderr.formatln("[{}:{}]: socket has become writable",
-                                                            this.address_, this.port_);
+                                                            this.address_, this.port_).flush();
                          }
                         this.transmit_calls = 0;
                         this.transmitLoop();

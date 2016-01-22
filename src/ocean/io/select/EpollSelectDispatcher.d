@@ -322,7 +322,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
             debug ( ISelectClient )
             {
                 Stderr.formatln("{} :: Error during register: '{}' @{}:{}",
-                    client, e.toString(), e.file, e.line);
+                    client, e.toString(), e.file, e.line).flush();
             }
             throw e;
         }
@@ -388,7 +388,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
             debug ( ISelectClient )
             {
                 Stderr.formatln("{} :: Error during unregister: '{}' @{}:{}",
-                    client, e.toString(), e.file, e.line);
+                    client, e.toString(), e.file, e.line).flush();
             }
             throw e;
         }
@@ -438,17 +438,17 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
         {
             if (current.fileHandle != next.fileHandle)
             {
-                Stderr.formatln("Error during changeClient: current.fileHandle != next.fileHandle");
+                Stderr.formatln("Error during changeClient: current.fileHandle != next.fileHandle").flush();
             }
 
             if (!current.is_registered)
             {
-                Stderr.formatln("Error during changeClient: !current.is_registered");
+                Stderr.formatln("Error during changeClient: !current.is_registered").flush();
             }
 
             if (next.is_registered)
             {
-                Stderr.formatln("Error during changeClient: next.is_registered");
+                Stderr.formatln("Error during changeClient: next.is_registered").flush();
             }
         }
 
@@ -469,9 +469,9 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
             {
                 debug ( ISelectClient )
                 {
-                    Stderr.formatln("Changed clients for fd:");
-                    Stderr.formatln("  Replaced {}", current);
-                    Stderr.formatln("  with     {}", next);
+                    Stderr.formatln("Changed clients for fd:").flush();
+                    Stderr.formatln("  Replaced {}", current).flush();
+                    Stderr.formatln("  with     {}", next).flush();
                 }
 
                 this.registered_clients -= current;
@@ -485,7 +485,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
             debug ( ISelectClient )
             {
                 Stderr.formatln("Error during changeClient: '{}' @{}:{}",
-                    e.toString(), e.file, e.line);
+                    e.toString(), e.file, e.line).flush();
             }
             throw e;
         }
@@ -691,11 +691,11 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
         debug ( ISelectClient )
         {
             Stderr.formatln("{}.select ({} clients registered):",
-                typeof(this).stringof, this.registered_clients.length);
+                typeof(this).stringof, this.registered_clients.length).flush();
             size_t i;
             foreach ( client; cast(ClientSet)this.registered_clients )
             {
-                Stderr.formatln("   {,3}: {}", i++, client);
+                Stderr.formatln("   {,3}: {}", i++, client).flush();
             }
         }
 
@@ -721,7 +721,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
                 debug ( ISelectClient ) if ( !n )
                 {
                     Stderr.formatln("{}.select: timed out after {}microsec",
-                            typeof(this).stringof, us_left);
+                            typeof(this).stringof, us_left).flush();
                 }
 
                 version ( EpollCounters ) if ( n == 0 ) this.counters.timeouts++;
