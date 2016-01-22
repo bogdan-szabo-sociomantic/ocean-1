@@ -138,6 +138,6 @@ struct EscapeChars
     }
     body
     {
-        this.tokens.concat(tokens, "\0");
+        this.tokens.concat(tokens, "\0"[]);
     }
 }

@@ -529,35 +529,35 @@ private scope class UnitTestRunner
     {
         scope t = new UnitTestRunner;
         timeval tv;
-        test!("==")(t.toHumanTime(tv), "0us");
+        test!("==")(t.toHumanTime(tv), "0us"[]);
         tv.tv_sec = 1;
-        test!("==")(t.toHumanTime(tv), "1.0s");
+        test!("==")(t.toHumanTime(tv), "1.0s"[]);
         tv.tv_sec = 1;
-        test!("==")(t.toHumanTime(tv), "1.0s");
+        test!("==")(t.toHumanTime(tv), "1.0s"[]);
         tv.tv_usec = 100_000;
-        test!("==")(t.toHumanTime(tv), "1.1s");
+        test!("==")(t.toHumanTime(tv), "1.1s"[]);
         tv.tv_usec = 561_235;
-        test!("==")(t.toHumanTime(tv), "1.6s");
+        test!("==")(t.toHumanTime(tv), "1.6s"[]);
         tv.tv_sec = 60;
-        test!("==")(t.toHumanTime(tv), "1.0m");
+        test!("==")(t.toHumanTime(tv), "1.0m"[]);
         tv.tv_sec = 61;
-        test!("==")(t.toHumanTime(tv), "1.0m");
+        test!("==")(t.toHumanTime(tv), "1.0m"[]);
         tv.tv_sec = 66;
-        test!("==")(t.toHumanTime(tv), "1.1m");
+        test!("==")(t.toHumanTime(tv), "1.1m"[]);
         tv.tv_sec = 60*60;
-        test!("==")(t.toHumanTime(tv), "1.0h");
+        test!("==")(t.toHumanTime(tv), "1.0h"[]);
         tv.tv_sec += 10;
-        test!("==")(t.toHumanTime(tv), "1.0h");
+        test!("==")(t.toHumanTime(tv), "1.0h"[]);
         tv.tv_sec += 6*60;
-        test!("==")(t.toHumanTime(tv), "1.1h");
+        test!("==")(t.toHumanTime(tv), "1.1h"[]);
         tv.tv_sec = 0;
-        test!("==")(t.toHumanTime(tv), "561.2ms");
+        test!("==")(t.toHumanTime(tv), "561.2ms"[]);
         tv.tv_usec = 1_235;
-        test!("==")(t.toHumanTime(tv), "1.2ms");
+        test!("==")(t.toHumanTime(tv), "1.2ms"[]);
         tv.tv_usec = 1_000;
-        test!("==")(t.toHumanTime(tv), "1.0ms");
+        test!("==")(t.toHumanTime(tv), "1.0ms"[]);
         tv.tv_usec = 235;
-        test!("==")(t.toHumanTime(tv), "235us");
+        test!("==")(t.toHumanTime(tv), "235us"[]);
     }
 
 

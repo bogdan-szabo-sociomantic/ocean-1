@@ -86,8 +86,8 @@ public D concat ( D, T ... ) ( ref D dest, T arrays )
 unittest
 {
     mstring dest;
-    concat(dest, "hello ", "world");
-    test!("==")(dest, "hello world");
+    concat(dest, "hello "[], "world"[]);
+    test!("==")(dest, "hello world"[]);
 }
 
 /*******************************************************************************
@@ -123,8 +123,8 @@ public D append ( D, T ... ) ( ref D dest, T arrays )
 unittest
 {
     mstring dest = "hello".dup;
-    append(dest, " world", ", what a beautiful day!");
-    test!("==")(dest, "hello world, what a beautiful day!");
+    append(dest, " world"[], ", what a beautiful day!"[]);
+    test!("==")(dest, "hello world, what a beautiful day!"[]);
 }
 
 /*******************************************************************************
@@ -166,7 +166,7 @@ unittest
     mstring dest;
     cstring src = "hello";
     copy(dest, src);
-    test!("==")(dest, "hello");
+    test!("==")(dest, "hello"[]);
 }
 
 /*******************************************************************************
@@ -312,7 +312,7 @@ unittest
 {
     istring[] result;
     split("aaa..bbb..ccc", "..", result);
-    test!("==")(result, [ "aaa", "bbb", "ccc" ]);
+    test!("==")(result, [ "aaa", "bbb", "ccc" ][]);
 }
 
 /*******************************************************************************
@@ -365,7 +365,7 @@ unittest
 {
     mstring result;
     substitute("some string", "ring", "oops", result);
-    test!("==")(result, "some stoops");
+    test!("==")(result, "some stoops"[]);
 }
 
 /*******************************************************************************
@@ -404,7 +404,7 @@ unittest
     mstring arr = "something".dup;
     char elem;
     test(pop(arr, elem));
-    test!("==")(arr, "somethin");
+    test!("==")(arr, "somethin"[]);
     test!("==")(elem, 'g');
 }
 
@@ -438,8 +438,8 @@ public T[] remove ( T, TC1, TC2 ) ( TC1[] source, TC2[] match, ref T[] result )
 unittest
 {
     mstring result;
-    remove("aaabbbaaa", "bbb", result);
-    test!("==")(result, "aaaaaa");
+    remove("aaabbbaaa"[], "bbb"[], result);
+    test!("==")(result, "aaaaaa"[]);
 }
 
 /*******************************************************************************
@@ -469,7 +469,7 @@ unittest
 {
     auto array = "something".dup;
     removeShift(array, 4);
-    test!("==")(array, "somehing");
+    test!("==")(array, "somehing"[]);
 }
 
 /*******************************************************************************
@@ -528,7 +528,7 @@ unittest
 {
     mstring arr = "something".dup;
     removeShift(arr, 3, 4);
-    test!("==")(arr, "somng");
+    test!("==")(arr, "somng"[]);
 }
 
 /*******************************************************************************
@@ -558,7 +558,7 @@ unittest
 {
     mstring arr = "something".dup;
     insertShift(arr, 2);
-    test!("==")(arr, "sommething");
+    test!("==")(arr, "sommething"[]);
 }
 
 /*******************************************************************************
@@ -614,7 +614,7 @@ unittest
 {
     mstring arr = "something".dup;
     insertShift(arr, 2, 2);
-    test!("==")(arr, "somemething");
+    test!("==")(arr, "somemething"[]);
 }
 
 /*******************************************************************************
@@ -669,7 +669,7 @@ unittest
 {
     int[] arr = [ 42, 43, 43, 42, 2 ];
     arr = uniq(arr);
-    test!("==")(arr, [ 2, 42, 43 ]);
+    test!("==")(arr, [ 2, 42, 43 ][]);
 }
 
 /*******************************************************************************
@@ -1751,20 +1751,20 @@ unittest
 
     str.length = 0;
     enableStomping(str);
-    assert (str.concat("Die ", "Katze ", "tritt ", "die ", "Treppe ", "krumm.") == "Die Katze tritt die Treppe krumm.");
+    assert (str.concat("Die "[], "Katze "[], "tritt "[], "die "[], "Treppe "[], "krumm."[]) == "Die Katze tritt die Treppe krumm.");
 
     mstring nothing = null;
 
     str.length = 0;
     enableStomping(str);
-    assert (str.concat("Die ", "", "Katze ", "tritt ", nothing, "die ", "Treppe ", "krumm.") == "Die Katze tritt die Treppe krumm.");
+    assert (str.concat("Die "[], ""[], "Katze "[], "tritt "[], nothing, "die "[], "Treppe "[], "krumm."[]) == "Die Katze tritt die Treppe krumm.");
 
     str.length = 0;
     enableStomping(str);
-    str.append("Die Katze ");
+    str.append("Die Katze "[]);
     assert (str == "Die Katze ");
-    str.append("tritt ", "die ");
-    assert (str.append("Treppe ", "krumm.") == "Die Katze tritt die Treppe krumm.");
+    str.append("tritt "[], "die "[]);
+    assert (str.append("Treppe "[], "krumm."[]) == "Die Katze tritt die Treppe krumm.");
 
     alias bsearch!(long) bs;
 

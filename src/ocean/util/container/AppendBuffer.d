@@ -1655,7 +1655,7 @@ unittest
     assert (ab.capacity  == "Die Katze tritt"d.length);
     assert (ab.dimension == "Die Katze tritt"d.length * dchar.sizeof);
 
-    ab.append(" die"d, " Treppe"d, " krumm."d);
+    ab.append(" die"d[], " Treppe"d[], " krumm."d[]);
 
     assert (ab[]      == "Die Katze tritt die Treppe krumm."d);
     assert (ab.length == "Die Katze tritt die Treppe krumm."d.length);

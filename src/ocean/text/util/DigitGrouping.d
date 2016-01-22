@@ -229,19 +229,19 @@ unittest
 
     mstring buf;
 
-    test!("==")(DigitGrouping.format(-100000, buf),  "-100,000");
-    test!("==")(DigitGrouping.format( -10000, buf),   "-10,000");
-    test!("==")(DigitGrouping.format(  -1000, buf),    "-1,000");
-    test!("==")(DigitGrouping.format(   -100, buf),      "-100");
-    test!("==")(DigitGrouping.format(    -10, buf),       "-10");
-    test!("==")(DigitGrouping.format(     -0, buf),         "0");
-    test!("==")(DigitGrouping.format(      0, buf),         "0");
-    test!("==")(DigitGrouping.format(     10, buf),        "10");
-    test!("==")(DigitGrouping.format(    100, buf),       "100");
-    test!("==")(DigitGrouping.format(   1000, buf),     "1,000");
-    test!("==")(DigitGrouping.format(  10000, buf),    "10,000");
-    test!("==")(DigitGrouping.format( 100000, buf),   "100,000");
-    test!("==")(DigitGrouping.format(1000000, buf), "1,000,000");
+    test!("==")(DigitGrouping.format(-100000, buf),  "-100,000"[]);
+    test!("==")(DigitGrouping.format( -10000, buf),   "-10,000"[]);
+    test!("==")(DigitGrouping.format(  -1000, buf),    "-1,000"[]);
+    test!("==")(DigitGrouping.format(   -100, buf),      "-100"[]);
+    test!("==")(DigitGrouping.format(    -10, buf),       "-10"[]);
+    test!("==")(DigitGrouping.format(     -0, buf),         "0"[]);
+    test!("==")(DigitGrouping.format(      0, buf),         "0"[]);
+    test!("==")(DigitGrouping.format(     10, buf),        "10"[]);
+    test!("==")(DigitGrouping.format(    100, buf),       "100"[]);
+    test!("==")(DigitGrouping.format(   1000, buf),     "1,000"[]);
+    test!("==")(DigitGrouping.format(  10000, buf),    "10,000"[]);
+    test!("==")(DigitGrouping.format( 100000, buf),   "100,000"[]);
+    test!("==")(DigitGrouping.format(1000000, buf), "1,000,000"[]);
 }
 
 
@@ -313,28 +313,28 @@ unittest
 {
     mstring buf;
 
-    test!("==")(BitGrouping.format(0, buf), "0");
-    test!("==")(BitGrouping.format(0, buf, "X"), "0X");
+    test!("==")(BitGrouping.format(0, buf), "0"[]);
+    test!("==")(BitGrouping.format(0, buf, "X"), "0X"[]);
 
-    test!("==")(BitGrouping.format(1000, buf), "1000");
-    test!("==")(BitGrouping.format(1000, buf, "X"), "1000X");
+    test!("==")(BitGrouping.format(1000, buf), "1000"[]);
+    test!("==")(BitGrouping.format(1000, buf, "X"), "1000X"[]);
 
-    test!("==")(BitGrouping.format(1024, buf), "1K");
-    test!("==")(BitGrouping.format(1024, buf, "M"), "1KM");
+    test!("==")(BitGrouping.format(1024, buf), "1K"[]);
+    test!("==")(BitGrouping.format(1024, buf, "M"), "1KM"[]);
 
-    test!("==")(BitGrouping.format(1025, buf), "1K 1");
-    test!("==")(BitGrouping.format(1025, buf, "TEST"), "1KTEST 1TEST");
+    test!("==")(BitGrouping.format(1025, buf), "1K 1"[]);
+    test!("==")(BitGrouping.format(1025, buf, "TEST"), "1KTEST 1TEST"[]);
 
-    test!("==")(BitGrouping.format(10000, buf), "9K 784");
-    test!("==")(BitGrouping.format(10000, buf, "X"), "9KX 784X");
+    test!("==")(BitGrouping.format(10000, buf), "9K 784"[]);
+    test!("==")(BitGrouping.format(10000, buf, "X"), "9KX 784X"[]);
 
-    test!("==")(BitGrouping.format(1000000, buf), "976K 576");
-    test!("==")(BitGrouping.format(1000000, buf, "X"), "976KX 576X");
+    test!("==")(BitGrouping.format(1000000, buf), "976K 576"[]);
+    test!("==")(BitGrouping.format(1000000, buf, "X"), "976KX 576X"[]);
 
-    test!("==")(BitGrouping.format(10000000, buf), "9M 549K 640");
-    test!("==")(BitGrouping.format(10000000, buf, "X"), "9MX 549KX 640X");
+    test!("==")(BitGrouping.format(10000000, buf), "9M 549K 640"[]);
+    test!("==")(BitGrouping.format(10000000, buf, "X"), "9MX 549KX 640X"[]);
 
-    test!("==")(BitGrouping.format(10000000000, buf), "9G 320M 761K");
-    test!("==")(BitGrouping.format(10000000000, buf, "X"), "9GX 320MX 761KX");
+    test!("==")(BitGrouping.format(10000000000, buf), "9G 320M 761K"[]);
+    test!("==")(BitGrouping.format(10000000000, buf, "X"), "9GX 320MX 761KX"[]);
 }
 

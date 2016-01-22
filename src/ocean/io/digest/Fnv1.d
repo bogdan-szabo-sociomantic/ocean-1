@@ -820,8 +820,8 @@ unittest
     }
 
 
-    assert ( StaticFnv1a32!("myString") == Fnv1a32("myString"), "CompileTime Fnv1a32 failed");
-    assert ( StaticFnv1a32!("TEST") == Fnv1a32("TEST"), "CompileTime Fnv1a32 failed");
+    assert ( StaticFnv1a32!("myString") == Fnv1a32("myString"[]), "CompileTime Fnv1a32 failed");
+    assert ( StaticFnv1a32!("TEST") == Fnv1a32("TEST"[]), "CompileTime Fnv1a32 failed");
 
 
     istring d1 = "ABC";

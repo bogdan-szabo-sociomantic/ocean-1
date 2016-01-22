@@ -202,30 +202,30 @@ else
         assert( find( "abc", 'd' ) == 3 );
 
         // null parameters
-        assert( find( "", "" ) == 0 );
-        assert( find( "a", "" ) == 1 );
-        assert( find( "", "a" ) == 0 );
+        assert( find( "", ""[] ) == 0 );
+        assert( find( "a", ""[] ) == 1 );
+        assert( find( "", "a"[] ) == 0 );
 
         // exact match
-        assert( find( "abc", "abc" ) == 0 );
+        assert( find( "abc", "abc"[] ) == 0 );
 
         // simple substring match
-        assert( find( "abc", "a" ) == 0 );
-        assert( find( "abca", "a" ) == 0 );
-        assert( find( "abc", "b" ) == 1 );
-        assert( find( "abc", "c" ) == 2 );
-        assert( find( "abc", "d" ) == 3 );
+        assert( find( "abc", "a"[] ) == 0 );
+        assert( find( "abca", "a"[] ) == 0 );
+        assert( find( "abc", "b"[] ) == 1 );
+        assert( find( "abc", "c"[] ) == 2 );
+        assert( find( "abc", "d"[] ) == 3 );
 
         // multi-char substring match
-        assert( find( "abc", "ab" ) == 0 );
-        assert( find( "abcab", "ab" ) == 0 );
-        assert( find( "abc", "bc" ) == 1 );
-        assert( find( "abc", "ac" ) == 3 );
-        assert( find( "abrabracadabra", "abracadabra" ) == 3 );
+        assert( find( "abc", "ab"[] ) == 0 );
+        assert( find( "abcab", "ab"[] ) == 0 );
+        assert( find( "abc", "bc"[] ) == 1 );
+        assert( find( "abc", "ac"[] ) == 3 );
+        assert( find( "abrabracadabra", "abracadabra"[] ) == 3 );
 
         // different qualifiers
         mstring s = "abcd".dup;
-        assert( find(s, "bc") == 1 );
+        assert( find(s, "bc"[]) == 1 );
 
         // custom predicate
 
@@ -235,7 +235,7 @@ else
         }
 
         assert( find( "abcdxa", 'b', &foo ) == 4 );
-        assert( find( "abcdxa", "b", &foo ) == 4 );
+        assert( find( "abcdxa", "b"[], &foo ) == 4 );
     }
 }
 
@@ -359,26 +359,26 @@ else
         assert( rfind( "abc", 'd' ) == 3 );
 
         // null parameters
-        assert( rfind( "", "" ) == 0 );
-        assert( rfind( "a", "" ) == 1 );
-        assert( rfind( "", "a" ) == 0 );
+        assert( rfind( "", ""[] ) == 0 );
+        assert( rfind( "a", ""[] ) == 1 );
+        assert( rfind( "", "a"[] ) == 0 );
 
         // exact match
-        assert( rfind( "abc", "abc" ) == 0 );
+        assert( rfind( "abc", "abc"[] ) == 0 );
 
         // simple substring match
-        assert( rfind( "abc", "a" ) == 0 );
-        assert( rfind( "abca", "a" ) == 3 );
-        assert( rfind( "abc", "b" ) == 1 );
-        assert( rfind( "abc", "c" ) == 2 );
-        assert( rfind( "abc", "d" ) == 3 );
+        assert( rfind( "abc", "a"[] ) == 0 );
+        assert( rfind( "abca", "a"[] ) == 3 );
+        assert( rfind( "abc", "b"[] ) == 1 );
+        assert( rfind( "abc", "c"[] ) == 2 );
+        assert( rfind( "abc", "d"[] ) == 3 );
 
         // multi-char substring match
-        assert( rfind( "abc", "ab" ) == 0 );
-        assert( rfind( "abcab", "ab" ) == 3 );
-        assert( rfind( "abc", "bc" ) == 1 );
-        assert( rfind( "abc", "ac" ) == 3 );
-        assert( rfind( "abracadabrabra", "abracadabra" ) == 0 );
+        assert( rfind( "abc", "ab"[] ) == 0 );
+        assert( rfind( "abcab", "ab"[] ) == 3 );
+        assert( rfind( "abc", "bc"[] ) == 1 );
+        assert( rfind( "abc", "ac"[] ) == 3 );
+        assert( rfind( "abracadabrabra", "abracadabra"[] ) == 0 );
 
         // custom predicate
 
@@ -388,7 +388,7 @@ else
         }
 
         assert( rfind( "axcdxa", 'b', &foo ) == 4 );
-        assert( rfind( "axcdxa", "b", &foo ) == 4 );
+        assert( rfind( "axcdxa", "b"[], &foo ) == 4 );
 
     }
 }
@@ -539,33 +539,33 @@ else
     unittest
     {
         // find element
-        assert( kfind( "", 'a' ) == 0 );
-        assert( kfind( "abc", 'a' ) == 0 );
-        assert( kfind( "abc", 'b' ) == 1 );
-        assert( kfind( "abc", 'c' ) == 2 );
-        assert( kfind( "abc", 'd' ) == 3 );
+        assert( kfind( ""[], 'a' ) == 0 );
+        assert( kfind( "abc"[], 'a' ) == 0 );
+        assert( kfind( "abc"[], 'b' ) == 1 );
+        assert( kfind( "abc"[], 'c' ) == 2 );
+        assert( kfind( "abc"[], 'd' ) == 3 );
 
         // null parameters
-        assert( kfind( "", "" ) == 0 );
-        assert( kfind( "a", "" ) == 1 );
-        assert( kfind( "", "a" ) == 0 );
+        assert( kfind( ""[], ""[] ) == 0 );
+        assert( kfind( "a"[], ""[] ) == 1 );
+        assert( kfind( ""[], "a"[] ) == 0 );
 
         // exact match
-        assert( kfind( "abc", "abc" ) == 0 );
+        assert( kfind( "abc"[], "abc"[] ) == 0 );
 
         // simple substring match
-        assert( kfind( "abc", "a" ) == 0 );
-        assert( kfind( "abca", "a" ) == 0 );
-        assert( kfind( "abc", "b" ) == 1 );
-        assert( kfind( "abc", "c" ) == 2 );
-        assert( kfind( "abc", "d" ) == 3 );
+        assert( kfind( "abc"[], "a"[] ) == 0 );
+        assert( kfind( "abca"[], "a"[] ) == 0 );
+        assert( kfind( "abc"[], "b"[] ) == 1 );
+        assert( kfind( "abc"[], "c"[] ) == 2 );
+        assert( kfind( "abc"[], "d"[] ) == 3 );
 
         // multi-char substring match
-        assert( kfind( "abc", "ab" ) == 0 );
-        assert( kfind( "abcab", "ab" ) == 0 );
-        assert( kfind( "abc", "bc" ) == 1 );
-        assert( kfind( "abc", "ac" ) == 3 );
-        assert( kfind( "abrabracadabra", "abracadabra" ) == 3 );
+        assert( kfind( "abc"[], "ab"[] ) == 0 );
+        assert( kfind( "abcab"[], "ab"[] ) == 0 );
+        assert( kfind( "abc"[], "bc"[] ) == 1 );
+        assert( kfind( "abc"[], "ac"[] ) == 3 );
+        assert( kfind( "abrabracadabra"[], "abracadabra"[] ) == 3 );
     }
 }
 
@@ -725,33 +725,33 @@ else
     unittest
     {
         // rfind element
-        assert( krfind( "", 'a' ) == 0 );
-        assert( krfind( "abc", 'a' ) == 0 );
-        assert( krfind( "abc", 'b' ) == 1 );
-        assert( krfind( "abc", 'c' ) == 2 );
-        assert( krfind( "abc", 'd' ) == 3 );
+        assert( krfind( ""[], 'a' ) == 0 );
+        assert( krfind( "abc"[], 'a' ) == 0 );
+        assert( krfind( "abc"[], 'b' ) == 1 );
+        assert( krfind( "abc"[], 'c' ) == 2 );
+        assert( krfind( "abc"[], 'd' ) == 3 );
 
         // null parameters
-        assert( krfind( "", "" ) == 0 );
-        assert( krfind( "a", "" ) == 1 );
-        assert( krfind( "", "a" ) == 0 );
+        assert( krfind( ""[], ""[] ) == 0 );
+        assert( krfind( "a"[], ""[] ) == 1 );
+        assert( krfind( ""[], "a"[] ) == 0 );
 
         // exact match
-        assert( krfind( "abc", "abc" ) == 0 );
+        assert( krfind( "abc"[], "abc"[] ) == 0 );
 
         // simple substring match
-        assert( krfind( "abc", "a" ) == 0 );
-        assert( krfind( "abca", "a" ) == 3 );
-        assert( krfind( "abc", "b" ) == 1 );
-        assert( krfind( "abc", "c" ) == 2 );
-        assert( krfind( "abc", "d" ) == 3 );
+        assert( krfind( "abc"[], "a"[] ) == 0 );
+        assert( krfind( "abca"[], "a"[] ) == 3 );
+        assert( krfind( "abc"[], "b"[] ) == 1 );
+        assert( krfind( "abc"[], "c"[] ) == 2 );
+        assert( krfind( "abc"[], "d"[] ) == 3 );
 
         // multi-char substring match
-        assert( krfind( "abc", "ab" ) == 0 );
-        assert( krfind( "abcab", "ab" ) == 3 );
-        assert( krfind( "abc", "bc" ) == 1 );
-        assert( krfind( "abc", "ac" ) == 3 );
-        assert( krfind( "abracadabrabra", "abracadabra" ) == 0 );
+        assert( krfind( "abc"[], "ab"[] ) == 0 );
+        assert( krfind( "abcab"[], "ab"[] ) == 3 );
+        assert( krfind( "abc"[], "bc"[] ) == 1 );
+        assert( krfind( "abc"[], "ac"[] ) == 3 );
+        assert( krfind( "abracadabrabra"[], "abracadabra"[] ) == 0 );
     }
 }
 
@@ -808,12 +808,12 @@ else
 
     unittest
     {
-        assert( findIf( "bcecg", ( char c ) { return c == 'a'; } ) == 5 );
-        assert( findIf( "bcecg", ( char c ) { return c == 'b'; } ) == 0 );
-        assert( findIf( "bcecg", ( char c ) { return c == 'c'; } ) == 1 );
-        assert( findIf( "bcecg", ( char c ) { return c == 'd'; } ) == 5 );
-        assert( findIf( "bcecg", ( char c ) { return c == 'g'; } ) == 4 );
-        assert( findIf( "bcecg", ( char c ) { return c == 'h'; } ) == 5 );
+        assert( findIf( "bcecg"[], ( char c ) { return c == 'a'; } ) == 5 );
+        assert( findIf( "bcecg"[], ( char c ) { return c == 'b'; } ) == 0 );
+        assert( findIf( "bcecg"[], ( char c ) { return c == 'c'; } ) == 1 );
+        assert( findIf( "bcecg"[], ( char c ) { return c == 'd'; } ) == 5 );
+        assert( findIf( "bcecg"[], ( char c ) { return c == 'g'; } ) == 4 );
+        assert( findIf( "bcecg"[], ( char c ) { return c == 'h'; } ) == 5 );
     }
 }
 
@@ -875,12 +875,12 @@ else
 
     unittest
     {
-        assert( rfindIf( "bcecg", ( char c ) { return c == 'a'; } ) == 5 );
-        assert( rfindIf( "bcecg", ( char c ) { return c == 'b'; } ) == 0 );
-        assert( rfindIf( "bcecg", ( char c ) { return c == 'c'; } ) == 3 );
-        assert( rfindIf( "bcecg", ( char c ) { return c == 'd'; } ) == 5 );
-        assert( rfindIf( "bcecg", ( char c ) { return c == 'g'; } ) == 4 );
-        assert( rfindIf( "bcecg", ( char c ) { return c == 'h'; } ) == 5 );
+        assert( rfindIf( "bcecg"[], ( char c ) { return c == 'a'; } ) == 5 );
+        assert( rfindIf( "bcecg"[], ( char c ) { return c == 'b'; } ) == 0 );
+        assert( rfindIf( "bcecg"[], ( char c ) { return c == 'c'; } ) == 3 );
+        assert( rfindIf( "bcecg"[], ( char c ) { return c == 'd'; } ) == 5 );
+        assert( rfindIf( "bcecg"[], ( char c ) { return c == 'g'; } ) == 4 );
+        assert( rfindIf( "bcecg"[], ( char c ) { return c == 'h'; } ) == 5 );
     }
 }
 
@@ -955,10 +955,10 @@ else
 
     unittest
     {
-        assert( findAdj( "aabcdef" ) == 0 );
-        assert( findAdj( "abcddef" ) == 3 );
-        assert( findAdj( "abcdeff" ) == 5 );
-        assert( findAdj( "abcdefg" ) == 7 );
+        assert( findAdj( "aabcdef"[] ) == 0 );
+        assert( findAdj( "abcddef"[] ) == 3 );
+        assert( findAdj( "abcdeff"[] ) == 5 );
+        assert( findAdj( "abcdefg"[] ) == 7 );
     }
 }
 
@@ -1035,33 +1035,33 @@ else
     unittest
     {
         // find element
-        assert( !contains( "", 'a' ) );
-        assert(  contains( "abc", 'a' ) );
-        assert(  contains( "abc", 'b' ) );
-        assert(  contains( "abc", 'c' ) );
-        assert( !contains( "abc", 'd' ) );
+        assert( !contains( ""[], 'a' ) );
+        assert(  contains( "abc"[], 'a' ) );
+        assert(  contains( "abc"[], 'b' ) );
+        assert(  contains( "abc"[], 'c' ) );
+        assert( !contains( "abc"[], 'd' ) );
 
         // null parameters
-        assert( !contains( "", "" ) );
-        assert( !contains( "a", "" ) );
-        assert( !contains( "", "a" ) );
+        assert( !contains( ""[], ""[] ) );
+        assert( !contains( "a"[], ""[] ) );
+        assert( !contains( ""[], "a"[] ) );
 
         // exact match
-        assert(  contains( "abc", "abc" ) );
+        assert(  contains( "abc"[], "abc"[] ) );
 
         // simple substring match
-        assert(  contains( "abc", "a" ) );
-        assert(  contains( "abca", "a" ) );
-        assert(  contains( "abc", "b" ) );
-        assert(  contains( "abc", "c" ) );
-        assert( !contains( "abc", "d" ) );
+        assert(  contains( "abc"[], "a"[] ) );
+        assert(  contains( "abca"[], "a"[] ) );
+        assert(  contains( "abc"[], "b"[] ) );
+        assert(  contains( "abc"[], "c"[] ) );
+        assert( !contains( "abc"[], "d"[] ) );
 
         // multi-char substring match
-        assert(  contains( "abc", "ab" ) );
-        assert(  contains( "abcab", "ab" ) );
-        assert(  contains( "abc", "bc" ) );
-        assert( !contains( "abc", "ac" ) );
-        assert(  contains( "abrabracadabra", "abracadabra" ) );
+        assert(  contains( "abc"[], "ab"[] ) );
+        assert(  contains( "abcab"[], "ab"[] ) );
+        assert(  contains( "abc"[], "bc"[] ) );
+        assert( !contains( "abc"[], "ac"[] ) );
+        assert(  contains( "abrabracadabra"[], "abracadabra"[] ) );
     }
 }
 
@@ -1136,20 +1136,20 @@ else
 
     unittest
     {
-        assert( mismatch( "a", "abcdefg" ) == 1 );
-        assert( mismatch( "abcdefg", "a" ) == 1 );
+        assert( mismatch( "a"[], "abcdefg"[] ) == 1 );
+        assert( mismatch( "abcdefg"[], "a"[] ) == 1 );
 
-        assert( mismatch( "x", "abcdefg" ) == 0 );
-        assert( mismatch( "abcdefg", "x" ) == 0 );
+        assert( mismatch( "x"[], "abcdefg"[] ) == 0 );
+        assert( mismatch( "abcdefg"[], "x"[] ) == 0 );
 
-        assert( mismatch( "xbcdefg", "abcdefg" ) == 0 );
-        assert( mismatch( "abcdefg", "xbcdefg" ) == 0 );
+        assert( mismatch( "xbcdefg"[], "abcdefg"[] ) == 0 );
+        assert( mismatch( "abcdefg"[], "xbcdefg"[] ) == 0 );
 
-        assert( mismatch( "abcxefg", "abcdefg" ) == 3 );
-        assert( mismatch( "abcdefg", "abcxefg" ) == 3 );
+        assert( mismatch( "abcxefg"[], "abcdefg"[] ) == 3 );
+        assert( mismatch( "abcdefg"[], "abcxefg"[] ) == 3 );
 
-        assert( mismatch( "abcdefx", "abcdefg" ) == 6 );
-        assert( mismatch( "abcdefg", "abcdefx" ) == 6 );
+        assert( mismatch( "abcdefx"[], "abcdefg"[] ) == 6 );
+        assert( mismatch( "abcdefg"[], "abcdefx"[] ) == 6 );
     }
 }
 
@@ -1220,11 +1220,11 @@ else
 
     unittest
     {
-        assert( count( "gbbbi", 'a' ) == 0 );
-        assert( count( "gbbbi", 'g' ) == 1 );
-        assert( count( "gbbbi", 'b' ) == 3 );
-        assert( count( "gbbbi", 'i' ) == 1 );
-        assert( count( "gbbbi", 'd' ) == 0 );
+        assert( count( "gbbbi"[], 'a' ) == 0 );
+        assert( count( "gbbbi"[], 'g' ) == 1 );
+        assert( count( "gbbbi"[], 'b' ) == 3 );
+        assert( count( "gbbbi"[], 'i' ) == 1 );
+        assert( count( "gbbbi"[], 'd' ) == 0 );
     }
 }
 
@@ -1284,11 +1284,11 @@ else
 
     unittest
     {
-        assert( countIf( "gbbbi", ( char c ) { return c == 'a'; } ) == 0 );
-        assert( countIf( "gbbbi", ( char c ) { return c == 'g'; } ) == 1 );
-        assert( countIf( "gbbbi", ( char c ) { return c == 'b'; } ) == 3 );
-        assert( countIf( "gbbbi", ( char c ) { return c == 'i'; } ) == 1 );
-        assert( countIf( "gbbbi", ( char c ) { return c == 'd'; } ) == 0 );
+        assert( countIf( "gbbbi"[], ( char c ) { return c == 'a'; } ) == 0 );
+        assert( countIf( "gbbbi"[], ( char c ) { return c == 'g'; } ) == 1 );
+        assert( countIf( "gbbbi"[], ( char c ) { return c == 'b'; } ) == 3 );
+        assert( countIf( "gbbbi"[], ( char c ) { return c == 'i'; } ) == 1 );
+        assert( countIf( "gbbbi"[], ( char c ) { return c == 'd'; } ) == 0 );
     }
 }
 
@@ -2333,7 +2333,7 @@ else
             return p1.age < p2.age;
         }
 
-        auto buf = [a, b, c, d];
+        Person[] buf = [a, b, c, d];
 
         auto kth_element_index = select(buf, 0, &person_age_predicate);
         assert(buf[kth_element_index].name == "Gautam");
@@ -2341,16 +2341,16 @@ else
         kth_element_index = select(buf, 2, &person_age_predicate);
         assert(buf[kth_element_index].name == "George");
 
-        assert(quickselect([7, 3, 4, 1, 9], 1) == 3);
+        assert(quickselect([7, 3, 4, 1, 9][], 1) == 3);
 
         bool greater_than_predicate( int a, int b )
         {
             return a > b;
         }
 
-        assert(quickselect([7, 3, 4, 1, 9], 1, &greater_than_predicate) == 7);
+        assert(quickselect([7, 3, 4, 1, 9][], 1, &greater_than_predicate) == 7);
 
-        assert(quickselect([7, 3, 4, 1], 1, &greater_than_predicate, 2) == 4);
+        assert(quickselect([7, 3, 4, 1][], 1, &greater_than_predicate, 2) == 4);
     }
 }
 
@@ -2669,10 +2669,11 @@ else
 
     unittest
     {
-        assert( lbound( "bcefg", 'a' ) == 0 );
-        assert( lbound( "bcefg", 'h' ) == 5 );
-        assert( lbound( "bcefg", 'd' ) == 2 );
-        assert( lbound( "bcefg", 'e' ) == 2 );
+        istring str = "bcefg";
+        assert( lbound( str, 'a' ) == 0 );
+        assert( lbound( str, 'h' ) == 5 );
+        assert( lbound( str, 'd' ) == 2 );
+        assert( lbound( str, 'e' ) == 2 );
     }
 }
 
@@ -2750,10 +2751,11 @@ else
 
     unittest
     {
-        assert( ubound( "bcefg", 'a' ) == 0 );
-        assert( ubound( "bcefg", 'h' ) == 5 );
-        assert( ubound( "bcefg", 'd' ) == 2 );
-        assert( ubound( "bcefg", 'e' ) == 3 );
+        istring str = "bcefg";
+        assert( ubound( str, 'a' ) == 0 );
+        assert( ubound( str, 'h' ) == 5 );
+        assert( ubound( str, 'd' ) == 2 );
+        assert( ubound( str, 'e' ) == 3 );
     }
 }
 
@@ -2817,14 +2819,15 @@ else
 
     unittest
     {
-        assert( !bsearch( "bcefg", 'a' ) );
-        assert(  bsearch( "bcefg", 'b' ) );
-        assert(  bsearch( "bcefg", 'c' ) );
-        assert( !bsearch( "bcefg", 'd' ) );
-        assert(  bsearch( "bcefg", 'e' ) );
-        assert(  bsearch( "bcefg", 'f' ) );
-        assert(  bsearch( "bcefg", 'g' ) );
-        assert( !bsearch( "bcefg", 'h' ) );
+        istring str = "bcefg";
+        assert( !bsearch( str, 'a' ) );
+        assert(  bsearch( str, 'b' ) );
+        assert(  bsearch( str, 'c' ) );
+        assert( !bsearch( str, 'd' ) );
+        assert(  bsearch( str, 'e' ) );
+        assert(  bsearch( str, 'f' ) );
+        assert(  bsearch( str, 'g' ) );
+        assert( !bsearch( str, 'h' ) );
     }
 }
 
@@ -2902,15 +2905,15 @@ else
 
     unittest
     {
-        assert( includes( "abcdefg", "a" ) );
-        assert( includes( "abcdefg", "g" ) );
-        assert( includes( "abcdefg", "d" ) );
-        assert( includes( "abcdefg", "abcdefg" ) );
-        assert( includes( "aaaabbbcdddefgg", "abbbcdefg" ) );
+        assert( includes( "abcdefg"[], "a"[] ) );
+        assert( includes( "abcdefg"[], "g"[] ) );
+        assert( includes( "abcdefg"[], "d"[] ) );
+        assert( includes( "abcdefg"[], "abcdefg"[] ) );
+        assert( includes( "aaaabbbcdddefgg"[], "abbbcdefg"[] ) );
 
-        assert( !includes( "abcdefg", "aaabcdefg" ) );
-        assert( !includes( "abcdefg", "abcdefggg" ) );
-        assert( !includes( "abbbcdefg", "abbbbcdefg" ) );
+        assert( !includes( "abcdefg"[], "aaabcdefg"[] ) );
+        assert( !includes( "abcdefg"[], "abcdefggg"[] ) );
+        assert( !includes( "abbbcdefg"[], "abbbbcdefg"[] ) );
     }
 }
 
@@ -2991,9 +2994,9 @@ else
 
     unittest
     {
-        assert( unionOf( "", "" ) == "" );
-        assert( unionOf( "abc", "def" ) == "abcdef" );
-        assert( unionOf( "abbbcd", "aadeefg" ) == "aabbbcdeefg" );
+        assert( unionOf( ""[], ""[] ) == "" );
+        assert( unionOf( "abc"[], "def"[] ) == "abcdef" );
+        assert( unionOf( "abbbcd"[], "aadeefg"[] ) == "aabbbcdeefg" );
     }
 }
 
@@ -3072,9 +3075,9 @@ else
 
     unittest
     {
-        assert( intersectionOf( "", "" ) == "" );
-        assert( intersectionOf( "abc", "def" ) == "" );
-        assert( intersectionOf( "abbbcd", "aabdddeefg" ) == "abd" );
+        assert( intersectionOf( ""[], ""[] ) == "" );
+        assert( intersectionOf( "abc"[], "def"[] ) == "" );
+        assert( intersectionOf( "abbbcd"[], "aabdddeefg"[] ) == "abd" );
     }
 }
 
@@ -3152,13 +3155,13 @@ else
 
     unittest
     {
-        assert( missingFrom( "", "" ) == "" );
-        assert( missingFrom( "", "abc" ) == "" );
-        assert( missingFrom( "abc", "" ) == "abc" );
-        assert( missingFrom( "abc", "abc" ) == "" );
-        assert( missingFrom( "abc", "def" ) == "abc" );
-        assert( missingFrom( "abbbcd", "abd" ) == "bbc" );
-        assert( missingFrom( "abcdef", "bc" ) == "adef" );
+        assert( missingFrom( ""[], ""[] ) == "" );
+        assert( missingFrom( ""[], "abc"[] ) == "" );
+        assert( missingFrom( "abc"[], ""[] ) == "abc" );
+        assert( missingFrom( "abc"[], "abc"[] ) == "" );
+        assert( missingFrom( "abc"[], "def"[] ) == "abc" );
+        assert( missingFrom( "abbbcd"[], "abd"[] ) == "bbc" );
+        assert( missingFrom( "abcdef"[], "bc"[] ) == "adef" );
     }
 }
 
@@ -3239,13 +3242,13 @@ else
 
     unittest
     {
-        assert( differenceOf( "", "" ) == "" );
-        assert( differenceOf( "", "abc" ) == "abc" );
-        assert( differenceOf( "abc", "" ) == "abc" );
-        assert( differenceOf( "abc", "abc" ) == "" );
-        assert( differenceOf( "abc", "def" ) == "abcdef" );
-        assert( differenceOf( "abbbcd", "abd" ) == "bbc" );
-        assert( differenceOf( "abd", "abbbcd" ) == "bbc" );
+        assert( differenceOf( ""[], ""[] ) == "" );
+        assert( differenceOf( ""[], "abc"[] ) == "abc" );
+        assert( differenceOf( "abc"[], ""[] ) == "abc" );
+        assert( differenceOf( "abc"[], "abc"[] ) == "" );
+        assert( differenceOf( "abc"[], "def"[] ) == "abcdef" );
+        assert( differenceOf( "abbbcd"[], "abd"[] ) == "bbc" );
+        assert( differenceOf( "abd"[], "abbbcd"[] ) == "bbc" );
     }
 }
 
@@ -3759,7 +3762,7 @@ else
 
     unittest
     {
-        auto arr = map([1, 17, 8, 12], (int i) { return i * 2L; });
+        auto arr = map([1, 17, 8, 12][], (int i) { return i * 2L; });
         assert(arr == [2L, 34L, 16L, 24L]);
     }
 }
@@ -3809,7 +3812,7 @@ else
 
     unittest
     {
-        auto result = reduce([1, 17, 8, 12], (int i, int j) { return i * j; });
+        auto result = reduce([1, 17, 8, 12][], (int i, int j){ return i * j; });
         assert(result == 1632);
     }
 }

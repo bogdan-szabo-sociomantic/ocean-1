@@ -187,7 +187,8 @@ class HttpResponse : HttpHeader
 
         this.addHeaders(this.append_header_lines);
 
-        this.content.append("\r\n", (append_msg_body && !head)? msg_body : null);
+        this.content.append("\r\n"[],
+                            (append_msg_body && !head)? msg_body : null);
 
         return this.content[];
     }
@@ -301,9 +302,9 @@ class HttpResponse : HttpHeader
     {
         char[3] status_dec;
 
-        return this.content.append(HttpVersionIds[this.http_version_],  " ",
-                                   super.writeUnsigned(status_dec, status), " ",
-                                   StatusPhrases[status],               "\r\n");
+        return this.content.append(HttpVersionIds[this.http_version_],  " "[],
+                                   super.writeUnsigned(status_dec, status), " "[],
+                                   StatusPhrases[status],             "\r\n"[]);
     }
 
     /**************************************************************************
@@ -368,7 +369,7 @@ class HttpResponse : HttpHeader
 
         typeof (this) opCall ( cstring name, cstring value )
         {
-            this.content.append(name, ": ", value, "\r\n");
+            this.content.append(name, ": "[], value, "\r\n"[]);
 
             return this;
         }
@@ -440,7 +441,7 @@ class HttpResponse : HttpHeader
             }
             body
             {
-                this.outer.content.append(name, ": ");
+                this.outer.content.append(name, ": "[]);
             }
 
             /******************************************************************

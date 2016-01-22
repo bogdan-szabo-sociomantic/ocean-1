@@ -554,7 +554,7 @@ unittest
 
     auto val = parser.nextNamed("cost", found);
     assert(found, "Boolean flag should be set to true");
-    test!("==")(val, "12.34");
+    test!("==")(val, "12.34"[]);
 
     found = false;
     auto uval = parser.nextNamedNumber!(uint)("cost", found);

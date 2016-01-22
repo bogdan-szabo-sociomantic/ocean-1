@@ -1261,10 +1261,10 @@ bool_arr = true
 
     test!("==")(l.length, 4);
 
-    test!("==")(l, ["a", "b", "c", "d"]);
+    test!("==")(l, ["a", "b", "c", "d"][]);
 
     scope ints = Config.getListStrict!(int)("Section1", "int_arr");
-    test!("==")(ints, [30, 40, -60, 1111111111, 0x10]);
+    test!("==")(ints, [30, 40, -60, 1111111111, 0x10][]);
 
     scope ulong_arr = Config.getListStrict!(ulong)("Section1", "ulong_arr");
     ulong[] ulong_array = [0, 50, ulong.max, 0xa123bcd];
@@ -1275,7 +1275,7 @@ bool_arr = true
     test!("==")(float_arr, float_array);
 
     scope bool_arr = Config.getListStrict!(bool)("Section1", "bool_arr");
-    test!("==")(bool_arr, [true, false]);
+    test!("==")(bool_arr, [true, false][]);
 
     try
     {
@@ -1283,27 +1283,27 @@ bool_arr = true
     }
     catch ( IllegalArgumentException e )
     {
-        test!("==")(e.msg, "Config.toBool :: invalid boolean value");
+        test!("==")(e.msg, "Config.toBool :: invalid boolean value"[]);
     }
 
     // Manually set a property (new category).
-    Config.set("Section2", "set_key", "set_value");
+    Config.set("Section2", "set_key", "set_value"[]);
 
     istring new_val;
     Config.getStrict(new_val, "Section2", "set_key");
-    test!("==")(new_val, "set_value");
+    test!("==")(new_val, "set_value"[]);
 
     // Manually set a property (existing category, new key).
-    Config.set("Section2", "another_set_key", "another_set_value");
+    Config.set("Section2", "another_set_key", "another_set_value"[]);
 
     Config.getStrict(new_val, "Section2", "another_set_key");
-    test!("==")(new_val, "another_set_value");
+    test!("==")(new_val, "another_set_value"[]);
 
     // Manually set a property (existing category, existing key).
     Config.set("Section2", "set_key", "new_set_value");
 
     Config.getStrict(new_val, "Section2", "set_key");
-    test!("==")(new_val, "new_set_value");
+    test!("==")(new_val, "new_set_value"[]);
 
     // Check if the 'exists' function works as expected.
     test( Config.exists("Section1", "int_arr"), "exists API failure");
@@ -1327,12 +1327,12 @@ bool_arr = true
     scope gl1 = Config.getList("Section1", "dummy",
                         ["this", "is", "a", "list", "of", "default", "values"]);
     test!("==")(gl1.length, 7);
-    test!("==")(gl1, ["this", "is", "a", "list", "of", "default", "values"]);
+    test!("==")(gl1, ["this", "is", "a", "list", "of", "default", "values"][]);
 
     scope gl2 = Config.getList("Section1", "multiline",
                         ["this", "is", "a", "list", "of", "default", "values"]);
     test!("==")(gl2.length, 4);
-    test!("==")(gl2, ["a", "b", "c", "d"]);
+    test!("==")(gl2, ["a", "b", "c", "d"][]);
 
     // Whitespaces handling
 

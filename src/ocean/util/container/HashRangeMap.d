@@ -508,10 +508,10 @@ unittest
 {
     HashRangeMap!(int) ihrm;
 
-    testPut([1, 2, 3, 4, 5, 6, 7, 8]);
-    testRemove([1, 2, 3, 4, 5]);
-    testOpInR([1, 2, 3, 4, 5]);
-    testOpApply([1, 2, 3, 4, 5]);
+    testPut([1, 2, 3, 4, 5, 6, 7, 8][]);
+    testRemove([1, 2, 3, 4, 5][]);
+    testOpInR([1, 2, 3, 4, 5][]);
+    testOpApply([1, 2, 3, 4, 5][]);
 }
 
 
@@ -680,32 +680,32 @@ version ( UnitTest )
         test!("==")(*ret, v[0]);
         test(added, "This case should rise added flag");
         test!("==")(hrm.ranges,
-        [R(3, 15)]);
-        test!("==")(hrm.values, [v[0]]);
+        [R(3, 15)][]);
+        test!("==")(hrm.values, [v[0]][]);
 
         // addition to the end
         *(ret = hrm.put(R(19, 25), added)) = v[1];
         test!("==")(*ret, v[1]);
         test(added, "This case should rise added flag");
         test!("==")(hrm.ranges,
-        [R(3, 15), R(19, 25)]);
-        test!("==")(hrm.values, [v[0], v[1]]);
+        [R(3, 15), R(19, 25)][]);
+        test!("==")(hrm.values, [v[0], v[1]][]);
 
         // addition to the middle
         *(ret = hrm.put(R(16, 18), added)) = v[2];
         test!("==")(*ret, v[2]);
         test(added, "This case should rise added flag");
         test!("==")(hrm.ranges,
-        [R(3, 15), R(16, 18), R(19, 25)]);
-        test!("==")(hrm.values, [v[0], v[2], v[1]]);
+        [R(3, 15), R(16, 18), R(19, 25)][]);
+        test!("==")(hrm.values, [v[0], v[2], v[1]][]);
 
         // addition to the middle; min of new HashRange is within existing range
         *(ret = hrm.put(R(10, 20), added)) = v[3];
         test!("==")(*ret, v[3]);
         test(added, "This case should rise added flag");
         test!("==")(hrm.ranges,
-        [R(3, 15), R(10, 20), R(16, 18), R(19, 25)]);
-        test!("==")(hrm.values, [v[0], v[3], v[2], v[1]]);
+        [R(3, 15), R(10, 20), R(16, 18), R(19, 25)][]);
+        test!("==")(hrm.values, [v[0], v[3], v[2], v[1]][]);
 
         // addition to the middle; min of new HashRange is the same with one
         // of the range
@@ -713,32 +713,32 @@ version ( UnitTest )
         test!("==")(*ret, v[4]);
         test(added, "This case should rise added flag");
         test!("==")(hrm.ranges,
-        [R(3, 15), R(10, 12), R(10, 20), R(16, 18), R(19, 25)]);
-        test!("==")(hrm.values, [v[0], v[4], v[3], v[2], v[1]]);
+        [R(3, 15), R(10, 12), R(10, 20), R(16, 18), R(19, 25)][]);
+        test!("==")(hrm.values, [v[0], v[4], v[3], v[2], v[1]][]);
 
         // added existing range
         *(ret = hrm.put(R(10, 12), added)) = v[5];
         test!("==")(*ret, v[5]);
         test(!added, "In this case a range already exists");
         test!("==")(hrm.ranges,
-        [R(3, 15), R(10, 12), R(10, 20), R(16, 18), R(19, 25)]);
-        test!("==")(hrm.values, [v[0], v[5], v[3], v[2], v[1]]);
+        [R(3, 15), R(10, 12), R(10, 20), R(16, 18), R(19, 25)][]);
+        test!("==")(hrm.values, [v[0], v[5], v[3], v[2], v[1]][]);
 
         // addition to the begin
         *(ret = hrm.put(R(1, 2), added)) = v[6];
         test!("==")(*ret, v[6]);
         test(added, "This case should rise added flag");
         test!("==")(hrm.ranges,
-        [R(1, 2), R(3, 15), R(10, 12), R(10, 20), R(16, 18), R(19, 25)]);
-        test!("==")(hrm.values, [v[6], v[0], v[5], v[3], v[2], v[1]]);
+        [R(1, 2), R(3, 15), R(10, 12), R(10, 20), R(16, 18), R(19, 25)][]);
+        test!("==")(hrm.values, [v[6], v[0], v[5], v[3], v[2], v[1]][]);
 
         // addition to the end with gap
         *(ret = hrm.put(R(30, 33), added)) = v[7];
         test!("==")(*ret, v[7]);
         test(added, "This case should rise added flag");
         test!("==")(hrm.ranges,
-        [R(1, 2), R(3, 15), R(10, 12), R(10, 20), R(16, 18), R(19, 25), R(30, 33)]);
-        test!("==")(hrm.values, [v[6], v[0], v[5], v[3], v[2], v[1], v[7]]);
+        [R(1, 2), R(3, 15), R(10, 12), R(10, 20), R(16, 18), R(19, 25), R(30, 33)][]);
+        test!("==")(hrm.values, [v[6], v[0], v[5], v[3], v[2], v[1], v[7]][]);
     }
 
     private void testOpApply ( Value ) ( Value[] values)
@@ -782,14 +782,14 @@ version ( UnitTest )
         // remove existent key
         test(hrm.remove(HashRange(10, 12)), "This range should exist");
         test!("==")(hrm.ranges,
-                    [R(1, 2), R(3, 15), R(10, 20), R(16, 18)]);
-        test!("==")(hrm.values, [v[0], v[1], v[3], v[4]]);
+                    [R(1, 2), R(3, 15), R(10, 20), R(16, 18)][]);
+        test!("==")(hrm.values, [v[0], v[1], v[3], v[4]][]);
 
         // remove nonexistent key
         test(!hrm.remove(HashRange(10, 12)), "This range should be deleted already");
         test!("==")(hrm.ranges,
-                    [R(1, 2), R(3, 15), R(10, 20), R(16, 18)]);
-        test!("==")(hrm.values, [v[0], v[1], v[3], v[4]]);
+                    [R(1, 2), R(3, 15), R(10, 20), R(16, 18)][]);
+        test!("==")(hrm.values, [v[0], v[1], v[3], v[4]][]);
     }
 
     // Unittest function for opIn_r().

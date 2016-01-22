@@ -112,7 +112,7 @@ unittest
     {
         test!("==")(
             e.toString(),
-            "Bad file descriptor (failed operation on '<42>')"
+            "Bad file descriptor (failed operation on '<42>')"[]
         );
         test!("==")(e.line, __LINE__ - 9);
     }

@@ -22,7 +22,7 @@ unittest
 
         void test()
         {
-            .test!("==")(this.layout[], `x:10`);
+            .test!("==")(this.layout[], `x:10`[]);
         }
     }
 

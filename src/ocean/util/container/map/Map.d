@@ -1184,7 +1184,7 @@ version (UnitTest)
         for (T i = 0; i < 10; i++)
         {
             auto p = map.get(i);
-            test!("==")(*p, "Sociomantic");
+            test!("==")(*p, "Sociomantic"[]);
         }
     }
 

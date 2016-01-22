@@ -1028,7 +1028,7 @@ D toString(D,S)(S value)
     // casts to match const qualifier if any
 
     static if( is( S == bool ) )
-        return (value ? to!(D)("true") : to!(D)("false"));
+        return (value ? to!(D)("true"[]) : to!(D)("false"[]));
 
     else static if( isCharType!(S) )
         return toStringFromChar!(D,S)(value);
@@ -1298,10 +1298,10 @@ unittest
     assert( to!(bool)('F') == false );
     assert(ex( to!(bool)('x') ));
 
-    assert( to!(bool)("true") == true );
-    assert( to!(bool)("false") == false );
-    assert( to!(bool)("TrUe") == true );
-    assert( to!(bool)("fAlSe") == false );
+    assert( to!(bool)("true"[]) == true );
+    assert( to!(bool)("false"[]) == false );
+    assert( to!(bool)("TrUe"[]) == true );
+    assert( to!(bool)("fAlSe"[]) == false );
 
     /*
      * Integer
@@ -1329,7 +1329,7 @@ unittest
     assert( to!(int)(3.14159) == 3 );
     assert( to!(int)(2.71828) == 3 );
 
-    assert( to!(int)("1234") == 1234 );
+    assert( to!(int)("1234"[]) == 1234 );
 
     assert( to!(int)(true) == 1 );
     assert( to!(int)(false) == 0 );
@@ -1341,7 +1341,7 @@ unittest
      * Real
      */
     assert( to!(real)(3) == 3.0 );
-    assert( to!(real)("1.125") == 1.125 );
+    assert( to!(real)("1.125"[]) == 1.125 );
 
     /*
      * Imaginary
@@ -1371,22 +1371,22 @@ unittest
     assert(ex( to!(char)(-1) ));
     assert(ex( to!(char)(10) ));
 
-    assert( to!(char)("a"d) == 'a' );
-    assert( to!(dchar)("ε"c) == 'ε' );
+    assert( to!(char)("a"d[]) == 'a' );
+    assert( to!(dchar)("ε"c[]) == 'ε' );
 
-    assert(ex( to!(char)("ε"d) ));
+    assert(ex( to!(char)("ε"d[]) ));
 
     /*
      * String-string
      */
-    assert( to!(char[])("Í love to æt "w) == "Í love to æt "c );
-    assert( to!(istring)("Í love to æt "w) == "Í love to æt "c );
-    assert( to!(char[])("them smûrƒies™,"d) == "them smûrƒies™,"c );
-    assert( to!(istring)("them smûrƒies™,"d) == "them smûrƒies™,"c );
-    assert( to!(wchar[])("Smûrﬁes™ I love"c) == "Smûrﬁes™ I love"w );
-    assert( to!(wchar[])("２ 食い散らす"d) == "２ 食い散らす"w );
-    assert( to!(dchar[])("bite đey µgly"c) == "bite đey µgly"d );
-    assert( to!(dchar[])("headž ㍳ff"w) == "headž ㍳ff"d );
+    assert( to!(char[])("Í love to æt "w[]) == "Í love to æt "c );
+    assert( to!(istring)("Í love to æt "w[]) == "Í love to æt "c );
+    assert( to!(char[])("them smûrƒies™,"d[]) == "them smûrƒies™,"c );
+    assert( to!(istring)("them smûrƒies™,"d[]) == "them smûrƒies™,"c );
+    assert( to!(wchar[])("Smûrﬁes™ I love"c[]) == "Smûrﬁes™ I love"w );
+    assert( to!(wchar[])("２ 食い散らす"d[]) == "２ 食い散らす"w );
+    assert( to!(dchar[])("bite đey µgly"c[]) == "bite đey µgly"d );
+    assert( to!(dchar[])("headž ㍳ff"w[]) == "headž ㍳ff"d );
     // ... nibble on they bluish feet.
 
     /*
@@ -1414,8 +1414,8 @@ unittest
     /*
      * Array-array
      */
-    assert( to!(ubyte[])([1,2,3]) == [cast(ubyte)1, 2, 3] );
-    assert( to!(bool[])(["true"[], "false"]) == [true, false] );
+    assert( to!(ubyte[])([1,2,3][]) == [cast(ubyte)1, 2, 3] );
+    assert( to!(bool[])(["true", "false"][]) == [true, false] );
 
     /*
      * Map-map
@@ -1448,33 +1448,33 @@ unittest
      * Default values
      */
     {
-        assert( to!(int)("123", 456) == 123,
+        assert( to!(int)("123"[], 456) == 123,
                 `to!(int)("123", 456) == "` ~ to!(char[])(
-                    to!(int)("123", 456)) ~ `"` );
-        assert( to!(int)("abc", 456) == 456,
+                    to!(int)("123"[], 456)) ~ `"` );
+        assert( to!(int)("abc"[], 456) == 456,
                 `to!(int)("abc", 456) == "` ~ to!(char[])(
-                    to!(int)("abc", 456)) ~ `"` );
+                    to!(int)("abc"[], 456)) ~ `"` );
     }
 
     /*
      * Ticket #1486
      */
     {
-        assert(ex( to!(int)("") ));
+        assert(ex( to!(int)(""[]) ));
 
-        assert(ex( to!(real)("Foo") ));
-        assert(ex( to!(real)("") ));
-        assert(ex( to!(real)("0x1.2cp+9") ));
+        assert(ex( to!(real)("Foo"[]) ));
+        assert(ex( to!(real)(""[]) ));
+        assert(ex( to!(real)("0x1.2cp+9"[]) ));
 
         // From d0c's patch
-        assert(ex( to!(int)("0x20") ));
-        assert(ex( to!(int)("0x") ));
-        assert(ex( to!(int)("-") ));
-        assert(ex( to!(int)("-0x") ));
+        assert(ex( to!(int)("0x20"[]) ));
+        assert(ex( to!(int)("0x"[]) ));
+        assert(ex( to!(int)("-"[]) ));
+        assert(ex( to!(int)("-0x"[]) ));
 
-        assert( to!(real)("0x20") == cast(real) 0x20 );
-        assert(ex( to!(real)("0x") ));
-        assert(ex( to!(real)("-") ));
+        assert( to!(real)("0x20"[]) == cast(real) 0x20 );
+        assert(ex( to!(real)("0x"[]) ));
+        assert(ex( to!(real)("-"[]) ));
     }
 }
 

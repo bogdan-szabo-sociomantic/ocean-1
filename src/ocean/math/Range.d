@@ -1485,87 +1485,88 @@ public struct Range ( T )
 
     unittest
     {
-        RangeEndpoint[4] a;
+        RangeEndpoint[] a;
+        a.length = 4;
 
         // no overlap
         This.sortEndpoints(This(0, 10), This(15, 20), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(10, 0),
-                        RangeEndpoint(15, 1), RangeEndpoint(20, 1)]);
+                        RangeEndpoint(15, 1), RangeEndpoint(20, 1)][]);
         This.sortEndpoints(This(15, 20), This(0, 10), a);
         test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(10, 1),
-                        RangeEndpoint(15, 0), RangeEndpoint(20, 0)]);
+                        RangeEndpoint(15, 0), RangeEndpoint(20, 0)][]);
 
         // overlap
         This.sortEndpoints(This(0, 15), This(10, 20), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(10, 1),
-                        RangeEndpoint(15, 0), RangeEndpoint(20, 1)]);
+                        RangeEndpoint(15, 0), RangeEndpoint(20, 1)][]);
         This.sortEndpoints(This(10, 20), This(0, 15), a);
         test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(10, 0),
-                        RangeEndpoint(15, 1), RangeEndpoint(20, 0)]);
+                        RangeEndpoint(15, 1), RangeEndpoint(20, 0)][]);
 
         // outer touch
         This.sortEndpoints(This(0, 10), This(10, 20), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(10, 1),
-                        RangeEndpoint(10, 0), RangeEndpoint(20, 1)]);
+                        RangeEndpoint(10, 0), RangeEndpoint(20, 1)][]);
         This.sortEndpoints(This(10, 20), This(0, 10), a);
         test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(10, 0),
-                        RangeEndpoint(10, 1), RangeEndpoint(20, 0)]);
+                        RangeEndpoint(10, 1), RangeEndpoint(20, 0)][]);
 
         // inner touch
         This.sortEndpoints(This(0, 10), This(5, 10), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(5, 1),
-                        RangeEndpoint(10, 0), RangeEndpoint(10, 1)]);
+                        RangeEndpoint(10, 0), RangeEndpoint(10, 1)][]);
         This.sortEndpoints(This(5, 10), This(0, 10), a);
         test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(5, 0),
-                        RangeEndpoint(10, 0), RangeEndpoint(10, 1)]);
+                        RangeEndpoint(10, 0), RangeEndpoint(10, 1)][]);
         This.sortEndpoints(This(0, 10), This(0, 5), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(0, 1),
-                        RangeEndpoint(5, 1), RangeEndpoint(10, 0)]);
+                        RangeEndpoint(5, 1), RangeEndpoint(10, 0)][]);
         This.sortEndpoints(This(0, 5), This(0, 10), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(0, 1),
-                        RangeEndpoint(5, 0), RangeEndpoint(10, 1)]);
+                        RangeEndpoint(5, 0), RangeEndpoint(10, 1)][]);
 
         // ultra proper subrange
         This.sortEndpoints(This(0, 10), This(3, 7), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(3, 1),
-                        RangeEndpoint(7, 1), RangeEndpoint(10, 0)]);
+                        RangeEndpoint(7, 1), RangeEndpoint(10, 0)][]);
         This.sortEndpoints(This(3, 7), This(0, 10), a);
         test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(3, 0),
-                        RangeEndpoint(7, 0), RangeEndpoint(10, 1)]);
+                        RangeEndpoint(7, 0), RangeEndpoint(10, 1)][]);
 
         // equal
         This.sortEndpoints(This(0, 10), This(0, 10), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(0, 1),
-                        RangeEndpoint(10, 0), RangeEndpoint(10, 1)]);
+                        RangeEndpoint(10, 0), RangeEndpoint(10, 1)][]);
         This.sortEndpoints(This(5, 5), This(5, 5), a);
         test!("==")(a, [RangeEndpoint(5, 0), RangeEndpoint(5, 1),
-                        RangeEndpoint(5, 0), RangeEndpoint(5, 1)]);
+                        RangeEndpoint(5, 0), RangeEndpoint(5, 1)][]);
 
         // one point range
         This.sortEndpoints(This(4, 4), This(5, 5), a);
         test!("==")(a, [RangeEndpoint(4, 0), RangeEndpoint(4, 0),
-                        RangeEndpoint(5, 1), RangeEndpoint(5, 1)]);
+                        RangeEndpoint(5, 1), RangeEndpoint(5, 1)][]);
         This.sortEndpoints(This(5, 5), This(4, 4), a);
         test!("==")(a, [RangeEndpoint(4, 1), RangeEndpoint(4, 1),
-                        RangeEndpoint(5, 0), RangeEndpoint(5, 0)]);
+                        RangeEndpoint(5, 0), RangeEndpoint(5, 0)][]);
         This.sortEndpoints(This(5, 5), This(0, 10), a);
         test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(5, 0),
-                        RangeEndpoint(5, 0), RangeEndpoint(10, 1)]);
+                        RangeEndpoint(5, 0), RangeEndpoint(10, 1)][]);
         This.sortEndpoints(This(0, 10), This(5, 5), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(5, 1),
-                        RangeEndpoint(5, 1), RangeEndpoint(10, 0)]);
+                        RangeEndpoint(5, 1), RangeEndpoint(10, 0)][]);
         This.sortEndpoints(This(5, 5), This(5, 10), a);
         test!("==")(a, [RangeEndpoint(5, 0), RangeEndpoint(5, 1),
-                        RangeEndpoint(5, 0), RangeEndpoint(10, 1)]);
+                        RangeEndpoint(5, 0), RangeEndpoint(10, 1)][]);
         This.sortEndpoints(This(5, 10), This(5, 5), a);
         test!("==")(a, [RangeEndpoint(5, 0), RangeEndpoint(5, 1),
-                        RangeEndpoint(5, 1), RangeEndpoint(10, 0)]);
+                        RangeEndpoint(5, 1), RangeEndpoint(10, 0)][]);
         This.sortEndpoints(This(5, 5), This(0, 5), a);
         test!("==")(a, [RangeEndpoint(0, 1), RangeEndpoint(5, 0),
-                        RangeEndpoint(5, 0), RangeEndpoint(5, 1)]);
+                        RangeEndpoint(5, 0), RangeEndpoint(5, 1)][]);
         This.sortEndpoints(This(0, 5), This(5, 5), a);
         test!("==")(a, [RangeEndpoint(0, 0), RangeEndpoint(5, 1),
-                        RangeEndpoint(5, 0), RangeEndpoint(5, 1)]);
+                        RangeEndpoint(5, 0), RangeEndpoint(5, 1)][]);
     }
 }
 
@@ -2055,14 +2056,14 @@ unittest
         Range!(uint)[] a = [Range!(uint).init, Range!(uint).init,
                             Range!(uint)(2, 9), Range!(uint)(12, 19)];
         trimEmptyRanges(a);
-        test!("==")(a, [Range!(uint)(2, 9), Range!(uint)(12, 19)]);
+        test!("==")(a, [Range!(uint)(2, 9), Range!(uint)(12, 19)][]);
     }
 
     // only non-empty ranges
     {
         Range!(uint)[] a = [Range!(uint)(2, 9), Range!(uint)(12, 19)];
         trimEmptyRanges(a);
-        test!("==")(a, [Range!(uint)(2, 9), Range!(uint)(12, 19)]);
+        test!("==")(a, [Range!(uint)(2, 9), Range!(uint)(12, 19)][]);
     }
 
     // array of empty ranges

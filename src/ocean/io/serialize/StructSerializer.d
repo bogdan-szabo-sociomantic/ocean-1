@@ -1506,7 +1506,7 @@ unittest
     TestSerializer ser;
     char[] dst;
     StructSerializer!().serialize(&s, ser, dst);
-    test!("==")(dst, "{char[] name=\"hello\" int[] numbers=[12, 23] int x=0 float y=nan int[4] static_array=[0, 0, 0, 0] a_struct={int z=0 } some_structs={InnerStruct={int z=0 } InnerStruct={int z=0 } } }");
+    test!("==")(dst, "{char[] name=\"hello\" int[] numbers=[12, 23] int x=0 float y=nan int[4] static_array=[0, 0, 0, 0] a_struct={int z=0 } some_structs={InnerStruct={int z=0 } InnerStruct={int z=0 } } }"[]);
 }
 
 

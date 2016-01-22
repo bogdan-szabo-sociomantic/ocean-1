@@ -229,7 +229,7 @@ version (UnitTest)
 
 unittest
 {
-    auto path = "I do not exist";
+    istring path = "I do not exist";
     auto addr = new LocalAddress(path);
     auto saddr = (cast(sockaddr_un*) addr.name);
     test!("==")(saddr.sun_family, AF_UNIX, "Family not properly set");

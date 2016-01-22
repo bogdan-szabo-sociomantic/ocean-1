@@ -209,7 +209,7 @@ struct ByteConverter
 
         test!("==")(hexEncode(cast(ubyte[])([
                         0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef
-                    ]), buffer), "0123456789abcdef");
+                    ]), buffer), "0123456789abcdef"[]);
         // check the right amount of memory was allocated
         test!("==")(buffer.length, 16);
     }

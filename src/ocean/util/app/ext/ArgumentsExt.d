@@ -273,8 +273,8 @@ unittest
     auto stderr_dev = new MemoryDevice;
     auto stderr = new TextOutput(stderr_dev);
 
-    auto usage_text = "test: usage";
-    auto help_text = "test: help";
+    istring usage_text = "test: usage";
+    istring help_text = "test: help";
     auto arg = new ArgumentsExt("test-name", "test-desc", usage_text, help_text,
             stdout, stderr);
     arg.args("--required").params(1).required;
@@ -302,7 +302,7 @@ unittest
              "No usage text found in help message:\n" ~ s);
         test(s.find(help_text) < s.length,
              "No help text found in help message:\n" ~ s);
-        test(s.find("--help") < s.length,
+        test(s.find("--help"[]) < s.length,
              "--help should be found in help message:\n" ~ s);
     }
 }

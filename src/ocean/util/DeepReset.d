@@ -391,7 +391,7 @@ unittest
     DeepReset!(TestStruct)(test_struct);
 
     test!("==")(test_struct.a, 0);
-    test!("==")(test_struct.b, "");
+    test!("==")(test_struct.b, ""[]);
     foreach ( item; test_struct.c )
     {
         test!("==")(item, 0);
@@ -400,7 +400,7 @@ unittest
     test!("==")(test_struct.sub_struct_array.length, 0);
 
     test!("==")(test_struct.sub_struct.d, 0);
-    test!("==")(test_struct.sub_struct.e, "");
+    test!("==")(test_struct.sub_struct.e, ""[]);
     test!("==")(test_struct.sub_struct.f.length, 0);
     foreach ( item; test_struct.sub_struct.g )
     {

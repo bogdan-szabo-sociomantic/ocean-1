@@ -383,7 +383,7 @@ struct Test3
             foreach (index, ref element; this.tupleof)
             {
                 const name = this.tupleof[index].stringof[
-                    rfind(this.tupleof[index].stringof, ".") + 1 .. $
+                    rfind(this.tupleof[index].stringof, "."[]) + 1 .. $
                 ];
 
                 static if (name == "nested_arr")
@@ -436,7 +436,7 @@ struct Test3
             foreach (index, ref member; this.tupleof)
             {
                 const name = this.tupleof[index].stringof[
-                    rfind(this.tupleof[index].stringof, ".") + 1 .. $
+                    rfind(this.tupleof[index].stringof, "."[]) + 1 .. $
                 ];
 
                 static if (name == "nested_arr")
@@ -471,7 +471,7 @@ struct Test3
             foreach (index, ref member; this.tupleof)
             {
                 const name = this.tupleof[index].stringof[
-                    rfind(this.tupleof[index].stringof, ".") + 1 .. $
+                    rfind(this.tupleof[index].stringof, "."[]) + 1 .. $
                 ];
 
                 static if (name == "nested_arr")
@@ -527,7 +527,7 @@ struct Test3
             foreach (index, ref member; this.tupleof)
             {
                 const name = this.tupleof[index].stringof[
-                    rfind(this.tupleof[index].stringof, ".") + 1 .. $
+                    rfind(this.tupleof[index].stringof, "."[]) + 1 .. $
                 ];
 
                 static if (name == "nested_arr")

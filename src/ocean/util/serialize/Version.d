@@ -245,6 +245,6 @@ struct Version
         void[] data = [ cast(ubyte) 1, 2, 3 ];
         auto result = inject(data, V);
         test!("is")(data.ptr + V.sizeof, result.ptr);
-        test!("==")(data, [ V, 2, 3 ]);
+        test!("==")(data, [ V, 2, 3 ][]);
     }
 }

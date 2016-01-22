@@ -151,7 +151,7 @@ class XsltStylesheet
     {
         this.cleanup();
 
-        xslt.append("\0");
+        xslt.append("\0"[]);
         scope ( exit ) xslt.length = xslt.length - 1;
 
         this.stylesheet_xml = xmlParseDoc(xslt.ptr);
@@ -467,7 +467,7 @@ public class XsltProcessor
 
         this.initParser();
 
-        source.append("\0");
+        source.append("\0"[]);
         scope ( exit ) source.length = source.length - 1;
 
         this.original_xml = xmlParseDoc(source.ptr);

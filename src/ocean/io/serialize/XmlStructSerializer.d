@@ -151,7 +151,8 @@ class XmlStructSerializer ( Char )
 
     void open ( ref Char[] output, Char[] name )
     {
-        output.append(`<?xml version="1.0" encoding="UTF-8" ?>`, "<", name, ">");
+        output.append(`<?xml version="1.0" encoding="UTF-8" ?>`[], "<"[], name,
+                      ">"[]);
     }
 
 
@@ -168,7 +169,7 @@ class XmlStructSerializer ( Char )
 
     void close ( ref Char[] output, Char[] name )
     {
-        output.append("</", name, ">");
+        output.append("</"[], name, ">"[]);
     }
 
 
@@ -206,7 +207,7 @@ class XmlStructSerializer ( Char )
         }
         else static if ( is(T == bool) )
         {
-            output.append(item ? "true" : "false");
+            output.append(item ? "true"[] : "false"[]);
         }
         else static assert( false, typeof(this).stringof ~
                 ".serialize - can only serizlies floating point, integer, bool or string types, not " ~ T.stringof );
@@ -266,7 +267,7 @@ class XmlStructSerializer ( Char )
             {
                 foreach ( e; array )
                 {
-                    serializeArray(output, e, "sub_elements");
+                    serializeArray(output, e, "sub_elements"[]);
                 }
             }
             else
@@ -275,7 +276,8 @@ class XmlStructSerializer ( Char )
                 {
                     element_name.length = 0;
                     buf.length = 20;
-                    element_name.append(`element n="`, Integer.format(buf, i), `"`);
+                    element_name.append(`element n="`[], Integer.format(buf, i),
+                                        `"`[]);
 
                     serialize(output, item, element_name);
                 }
@@ -312,7 +314,7 @@ class XmlStructSerializer ( Char )
         {
             element_name.length = 0;
             buf.length = 20;
-            element_name.append(`element n="`, Integer.format(buf, i), `"`);
+            element_name.append(`element n="`[], Integer.format(buf, i), `"`[]);
 
             serializeStruct(output, element_name, { serialize_element(item); });
         }
@@ -333,7 +335,7 @@ class XmlStructSerializer ( Char )
 
     private void openEntity ( ref Char[] output, Char[] name )
     {
-        output.append("<", name, ">");
+        output.append("<"[], name, ">"[]);
     }
 
 
@@ -353,7 +355,7 @@ class XmlStructSerializer ( Char )
     private void closeEntity ( ref Char[] output, Char[] name )
     {
         auto space = name.find(' ');
-        output.append("</", name[0..space], ">");
+        output.append("</"[], name[0..space], ">"[]);
     }
 }
 

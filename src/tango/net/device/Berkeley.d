@@ -1354,7 +1354,7 @@ public class IPv4Address : Address
 unittest
 {
     IPv4Address ia = new IPv4Address("63.105.9.61", 80);
-    test!("==")(ia.toString(), "63.105.9.61:80", "Address not properly set");
+    test!("==")(ia.toString(), "63.105.9.61:80"[], "Address not properly set");
     test!("==")(ia.sin.sin_family, AF_INET, "Family not properly set");
 }
 
@@ -1603,9 +1603,9 @@ protected:
 unittest
 {
     IPv6Address ia = new IPv6Address("7628:0d18:11a3:09d7:1f34:8a2e:07a0:765d", 8080);
-    test!("==")(ia.toString(), "[7628:d18:11a3:9d7:1f34:8a2e:7a0:765d]:8080",
+    test!("==")(ia.toString(), "[7628:d18:11a3:9d7:1f34:8a2e:7a0:765d]:8080"[],
             "Address not properly set");
-    test!("==")(ia.sin.sin6_family, AF_INET6, "Family not properly set");
+    test!("==")(ia.sin.sin6_family, AF_INET6, "Family not properly set"[]);
 }
 
 /*******************************************************************************

@@ -229,5 +229,5 @@ public void formatXmlErrorString ( xmlErrorPtr err, ref mstring str )
         }
     }
 
-    str.concat("Xml parsing error: ", dstr(err.message));
+    str.concat("Xml parsing error: "[], dstr(err.message));
 }

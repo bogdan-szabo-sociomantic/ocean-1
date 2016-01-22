@@ -631,7 +631,7 @@ unittest
 
         foreach ( match; regex.findAll(str, matches_buffer) )
         {
-            t.test!("==")(match, "a ");
+            t.test!("==")(match, "a "[]);
         }
 
         t.test!("==")(matches_buffer.length, 7);
@@ -708,7 +708,7 @@ unittest
 
         foreach (i, match; regex.findAll(str, matches_buffer) )
         {
-            t.test!("==")(match, "a");
+            t.test!("==")(match, "a"[]);
         }
 
         t.test!("==")(matches_buffer.length, 695);

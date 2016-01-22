@@ -349,8 +349,8 @@ unittest
     }
     catch (CardBoardException e)
     {
-        test!("==")(e.msg, "Transmogrification failed");
-        test!("==")(e.file, __FILE__);
+        test!("==")(e.msg, "Transmogrification failed"[]);
+        test!("==")(e.file, __FILE__[]);
         test!("==")(e.line, __LINE__ - 9);
     }
 }

@@ -98,20 +98,20 @@ unittest
     auto buf = memoryToHexAscii(mem);
     test!("==")(buf,
 `000000:  23 00 FF                                            #..
-`);
+`[]);
 
     buf.length = 0;
     buf = memoryToHexAscii(mem, buf);
     test!("==")(buf,
 `000000:  23 00 FF                                            #..
-`);
+`[]);
 
     buf.length = 0;
     mem ~= cast(ubyte[]) "hello world\x32\xf1";
     buf = memoryToHexAscii(mem, buf);
     test!("==")(buf,
 `000000:  23 00 FF 68  65 6C 6C 6F  20 77 6F 72  6C 64 32 F1  #..hello world2.
-`);
+`[]);
 
     buf.length = 0;
     mem ~= cast(ubyte[]) "bye bye world!\x10\x07\00\01";
@@ -120,6 +120,6 @@ unittest
 `000000:  23 00 FF 68  65 6C 6C 6F  20 77 6F 72  6C 64 32 F1  #..hello world2.
 000010:  62 79 65 20  62 79 65 20  77 6F 72 6C  64 21 10 07  bye bye world!..
 000020:  00 01                                               ..
-`);
+`[]);
 }
 

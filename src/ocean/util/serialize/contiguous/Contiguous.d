@@ -161,7 +161,7 @@ unittest
 
     test!("==")(
         instance.data,
-        [ cast(ubyte)42, cast(ubyte) 0, cast(ubyte) 0, cast(ubyte) 0 ]
+        [ cast(ubyte)42, cast(ubyte) 0, cast(ubyte) 0, cast(ubyte) 0 ][]
     );
 
     test!("==")(instance.length, 4);

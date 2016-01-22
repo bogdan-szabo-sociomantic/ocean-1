@@ -127,7 +127,8 @@ public class ErrnoException : Exception
         }
         catch (ErrnoException e)
         {
-            test!("==")(e.toString(), "FUNCTION: Too many open files (extra)");
+            test!("==")(e.toString(),
+                        "FUNCTION: Too many open files (extra)"[]);
             test!("==")(e.errorNumber(), EMFILE);
         }
     }
@@ -206,7 +207,7 @@ public class ErrnoException : Exception
         }
         catch (ErrnoException e)
         {
-            test!("==")(e.toString(), "func: Too many open files");
+            test!("==")(e.toString(), "func: Too many open files"[]);
             test!("==")(e.line, __LINE__ - 6);
         }
     }
@@ -253,8 +254,8 @@ public class ErrnoException : Exception
         }
         catch (ErrnoException e)
         {
-            test!("==")(e.toString(), "func: Too many open files");
-            test!("==")(e.failedFunctionName(), "func");
+            test!("==")(e.toString(), "func: Too many open files"[]);
+            test!("==")(e.failedFunctionName(), "func"[]);
             test!("==")(e.line, __LINE__ - 7);
         }
     }
@@ -286,7 +287,7 @@ public class ErrnoException : Exception
         auto e = new ErrnoException;
         test!("==")(
             e.useGlobalErrno("func").append(" str1").append(" str2").toString(),
-            "func: Block device required str1 str2"
+            "func: Block device required str1 str2"[]
         );
         test!("==")(.errno, ENOTBLK);
     }
@@ -328,7 +329,7 @@ public class ErrnoException : Exception
     {
         auto e = new ErrnoException;
         e.set(0);
-        test!("==")(e.toString(), "Expected non-zero errno after failure");
+        test!("==")(e.toString(), "Expected non-zero errno after failure"[]);
     }
 
     /**************************************************************************
@@ -359,7 +360,7 @@ public class ErrnoException : Exception
     {
         auto e = new ErrnoException;
         e.set(ENOTBLK).message("msg");
-        test!("==")(e.toString(), "Block device required (msg)");
+        test!("==")(e.toString(), "Block device required (msg)"[]);
     }
 }
 

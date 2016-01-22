@@ -88,7 +88,7 @@ public class XmlEntitySet : IEntitySet
         auto name = this.getName(unicode);
         if ( name.length )
         {
-            output.concat("&", name, ";");
+            output.concat("&"[], name, ";"[]);
         }
         else
         {

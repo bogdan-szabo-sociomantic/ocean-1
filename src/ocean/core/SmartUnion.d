@@ -138,7 +138,7 @@ unittest
     testThrown!(Exception)(u3.b(), false);
 
     u1.b("Hello world".dup);
-    test!("==")(u1.b, "Hello world");
+    test!("==")(u1.b, "Hello world"[]);
     testThrown!(Exception)(u1.a(), false);
 
     u2.b(S1.init);

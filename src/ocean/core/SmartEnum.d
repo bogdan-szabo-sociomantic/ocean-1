@@ -449,11 +449,11 @@ public istring CTFE_Int2String ( T ) ( T num )
 
 unittest
 {
-    test!("==")(CTFE_Int2String(42), "42");
-    test!("==")(CTFE_Int2String(ubyte.init), "0");
-    test!("==")(CTFE_Int2String(byte.init), "0");
-    test!("==")(CTFE_Int2String(ushort.init), "0");
-    test!("==")(CTFE_Int2String(short.init), "0");
+    test!("==")(CTFE_Int2String(42), "42"[]);
+    test!("==")(CTFE_Int2String(ubyte.init), "0"[]);
+    test!("==")(CTFE_Int2String(byte.init), "0"[]);
+    test!("==")(CTFE_Int2String(ushort.init), "0"[]);
+    test!("==")(CTFE_Int2String(short.init), "0"[]);
 }
 
 /*******************************************************************************
@@ -755,8 +755,8 @@ unittest
         Code("second", 2)
     ));
 
-    test!("==")(*Commands.description(Commands.first), "first");
-    test!("==")(*Commands.description(1), "first");
+    test!("==")(*Commands.description(Commands.first), "first"[]);
+    test!("==")(*Commands.description(1), "first"[]);
 
     test!("==")(*Commands.code("first"), Commands.first);
     test!("==")(*Commands.code("second"), 2);

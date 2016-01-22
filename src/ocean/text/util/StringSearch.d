@@ -728,19 +728,19 @@ struct StringSearch ( bool wide_char = false )
     ///
     unittest
     {
-        test!("==")(StringSearch!().trim("trim"), "trim");
+        test!("==")(StringSearch!().trim("trim"), "trim"[]);
 
-        test!("==")(StringSearch!().trim("  trim"), "trim");
-        test!("==")(StringSearch!().trim("\ttrim"), "trim");
-        test!("==")(StringSearch!().trim(" \t trim"), "trim");
+        test!("==")(StringSearch!().trim("  trim"), "trim"[]);
+        test!("==")(StringSearch!().trim("\ttrim"), "trim"[]);
+        test!("==")(StringSearch!().trim(" \t trim"), "trim"[]);
 
-        test!("==")(StringSearch!().trim("trim  "), "trim");
-        test!("==")(StringSearch!().trim("trim\t"), "trim");
-        test!("==")(StringSearch!().trim("trim \t "), "trim");
+        test!("==")(StringSearch!().trim("trim  "), "trim"[]);
+        test!("==")(StringSearch!().trim("trim\t"), "trim"[]);
+        test!("==")(StringSearch!().trim("trim \t "), "trim"[]);
 
-        test!("==")(StringSearch!().trim("  trim  "), "trim");
-        test!("==")(StringSearch!().trim("\ttrim\t"), "trim");
-        test!("==")(StringSearch!().trim("\t \ttrim \t "), "trim");
+        test!("==")(StringSearch!().trim("  trim  "), "trim"[]);
+        test!("==")(StringSearch!().trim("\ttrim\t"), "trim"[]);
+        test!("==")(StringSearch!().trim("\t \ttrim \t "), "trim"[]);
     }
 
 
@@ -932,30 +932,30 @@ struct StringSearch ( bool wide_char = false )
         cstring[] slices;
 
         test!("==")(StringSearch!().split(slices, "a;b;c", ';'),
-                    ["a", "b", "c"]);
+                    ["a", "b", "c"][]);
         test!("==")(StringSearch!().split(slices, "a;b;c", '.'),
-                    ["a;b;c"]);
+                    ["a;b;c"][]);
         test!("==")(StringSearch!().split(slices, "abc;", ';'),
-                    ["abc", ""]);
+                    ["abc", ""][]);
         test!("==")(StringSearch!().split(slices, ";abc;", ';'),
-                    ["", "abc", ""]);
+                    ["", "abc", ""][]);
         test!("==")(StringSearch!().split(slices, "a;;bc", ';'),
-                    ["a", "", "bc"]);
+                    ["a", "", "bc"][]);
 
 
         test!("==")(StringSearch!().split(slices, "a;b;c", ';', 2),
-                    ["a", "b"]);
+                    ["a", "b"][]);
 
         test!("==")(StringSearch!().split(slices, "abc;", ';', 0, true),
-                    ["abc"]);
+                    ["abc"][]);
         test!("==")(StringSearch!().split(slices, ";abc;", ';', 0, true),
-                    ["abc"]);
+                    ["abc"][]);
         test!("==")(StringSearch!().split(slices, "a;;bc", ';', 0, true),
-                    ["a", "bc"]);
+                    ["a", "bc"][]);
 
         mstring[] mslices;
         test!("==")(StringSearch!().split(slices, "a;b;c".dup, ';'),
-                    ["a", "b", "c"]);
+                    ["a", "b", "c"][]);
     }
 
 

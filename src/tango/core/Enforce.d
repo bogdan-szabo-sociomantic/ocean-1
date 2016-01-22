@@ -450,7 +450,7 @@ unittest
     auto reusable = new MyException(null);
 
     enforce!("==")(reusable, 2, 2);
-    enforce!("==")(reusable, "2", "2");
+    enforce!("==")(reusable, "2"[], "2"[]);
 
     try
     {

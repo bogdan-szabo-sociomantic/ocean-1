@@ -925,60 +925,60 @@ struct JsonExtractor
         t.test(ok, "parse didn't return true");
 
         t.test!("==")(id.type, Type.String);
-        t.test!("==")(id.value, "8c97472e-098e-4baa-aa63-4a3f2aab10c6");
+        t.test!("==")(id.value, "8c97472e-098e-4baa-aa63-4a3f2aab10c6"[]);
 
         t.test!("==")(impid.type, Type.String);
-        t.test!("==")(impid.value, "7682f6f1-810c-49b0-8388-f91ba4a00c1d");
+        t.test!("==")(impid.value, "7682f6f1-810c-49b0-8388-f91ba4a00c1d"[]);
 
         t.test!("==")(page.type, Type.String);
-        t.test!("==")(page.value, "http://www.example.com/");
+        t.test!("==")(page.value, "http://www.example.com/"[]);
 
         t.test!("==")(uid.type, Type.String);
-        t.test!("==")(uid.value, "45FB778");
+        t.test!("==")(uid.value, "45FB778"[]);
 
         t.test!("==")(not.type, Type.Empty);
-        t.test!("==")(not.value, "");
+        t.test!("==")(not.value, ""[]);
 
         t.test!("==")(h.type, Type.Number);
-        t.test!("==")(h.value, "480");
+        t.test!("==")(h.value, "480"[]);
 
         t.test!("==")(w.type, Type.Number);
-        t.test!("==")(w.value, "640");
+        t.test!("==")(w.value, "640"[]);
 
         imp_element.removeNamedField("h");
         h.reset();
 
         ok = main.parse(content);
 
-        t.test(ok, "parse didn't return true");
+        t.test(ok, "parse didn't return true"[]);
 
         t.test!("==")(h.type, Type.Empty);
-        t.test!("==")(h.value, "");
+        t.test!("==")(h.value, ""[]);
 
 
         ok = main.parse("{}");
 
-        t.test(ok, "parse didn't return true");
+        t.test(ok, "parse didn't return true"[]);
 
-        t.test!("==")(id.value, "");
+        t.test!("==")(id.value, ""[]);
         t.test!("==")(id.type, Type.Empty);
 
-        t.test!("==")(impid.value, "");
+        t.test!("==")(impid.value, ""[]);
         t.test!("==")(impid.type, Type.Empty);
 
-        t.test!("==")(page.value, "");
+        t.test!("==")(page.value, ""[]);
         t.test!("==")(page.type, Type.Empty);
 
-        t.test!("==")(uid.value, "");
+        t.test!("==")(uid.value, ""[]);
         t.test!("==")(uid.type, Type.Empty);
 
         t.test!("==")(not.type, Type.Empty);
-        t.test!("==")(not.value, "");
+        t.test!("==")(not.value, ""[]);
 
-        t.test!("==")(h.value, "");
+        t.test!("==")(h.value, ""[]);
         t.test!("==")(h.type, Type.Empty);
 
-        t.test!("==")(w.value, "");
+        t.test!("==")(w.value, ""[]);
         t.test!("==")(w.type, Type.Empty);
 
         const content2 = `{"imp":null}`;
@@ -986,11 +986,11 @@ struct JsonExtractor
         try
         {
             main.parse(content2);
-            t.test(false, "parse didn't throw");
+            t.test(false, "parse didn't throw"[]);
         }
         catch (JsonException e)
         {
-            t.test!("==")(e.msg, "type mismatch");
+            t.test!("==")(e.msg, "type mismatch"[]);
         }
 
         bool fun (uint i, Type type, cstring value)
@@ -1003,7 +1003,7 @@ struct JsonExtractor
 
         ok = main2.parse(content2);
 
-        t.test(ok, "parse didn't return true");
+        t.test(ok, "parse didn't return true"[]);
 
     }
 }

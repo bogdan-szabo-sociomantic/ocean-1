@@ -256,7 +256,8 @@ void testS(NamedTest t, ref S checked)
             test!("==")(elem.a, defaultS().s4_dynamic_array[index].a);
         }
 
-        test!("==")(checked.static_of_dynamic, defaultS().static_of_dynamic);
+        test!("==")(checked.static_of_dynamic[],
+                    defaultS().static_of_dynamic[]);
 
         test!("==")(checked.union_a, defaultS().union_b);
     }
@@ -510,7 +511,7 @@ unittest
     Serializer.serialize(input, buffer);
     output = Deserializer.deserialize!(S)(buffer);
 
-    test!("==")(output.ptr.b.arr[], [0, 1, 2]);
+    test!("==")(output.ptr.b.arr[], [0, 1, 2][]);
 }
 
 /******************************************************************************
