@@ -8,6 +8,15 @@ tango      | v1.3.x
 Migration Instructions
 ======================
 
+`ocean.util.container.queue.NotifyingQueue`
+
+  A new overload of the `NotifyingQueue.pop` method has been introduced which
+  takes a `ContigousBuffer!(Struct)` and a `ubyte[]` buffer when
+  `NotifyingQueue` is instantiated with a struct type,
+
+  For `NotifyingQueue` instantiated with a struct type, the old `pop()`
+  method only taking a byte buffer has been deprecated.
+
 * `ocean.sys.CpuAffinity`
 
   - `CpuAffinity.set()` now throws `ErrnoException` on failure. It used to
