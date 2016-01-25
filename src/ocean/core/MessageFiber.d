@@ -348,6 +348,9 @@ class MessageFiber
         this.msg.num = 0;
 
         debug(MessageFiberDump) addToList();
+
+        debug (MessageFiber) Stdout.formatln("--FIBER {} CREATED (fiber ptr {}) --",
+            FirstName(this), cast(void*) this.fiber).flush();
     }
 
     /**************************************************************************
@@ -368,6 +371,9 @@ class MessageFiber
         this.msg.num = 0;
 
         debug(MessageFiberDump) addToList();
+
+        debug (MessageFiber) Stdout.formatln("--FIBER {} CREATED (fiber ptr {}) --",
+            FirstName(this), cast(void*) this.fiber).flush();
     }
 
     /**************************************************************************
@@ -461,6 +467,15 @@ class MessageFiber
     }
     body
     {
+        debug (MessageFiber)
+        {
+            Stdout.formatln(
+                "--FIBER {} (fiber ptr {}) STARTED (from fiber ptr {})",
+                FirstName(this), cast(void*) this.fiber,
+                cast(void*) Fiber.getThis()
+            ).flush();
+        }
+     
         if (this.fiber.state == this.fiber.State.TERM)
         {
             this.fiber.reset();
