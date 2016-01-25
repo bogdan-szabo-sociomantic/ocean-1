@@ -685,7 +685,7 @@ class MessageFiber
 
      **************************************************************************/
 
-    public void kill ( istring file = null, long line = 0 )
+    public void kill ( istring file = __FILE__, long line = __LINE__ )
     in
     {
         assert (this.fiber.state == this.fiber.State.HOLD, "attempt to kill a non-held fiber");
