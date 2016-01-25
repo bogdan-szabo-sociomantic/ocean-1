@@ -523,8 +523,14 @@ class MessageFiber
         {
             this.msg = msg;
 
-            debug (MessageFiber) Stdout.formatln("--FIBER {} SUSPENDED -- ({}:{})",
-                FirstName(this), token.str, FirstName(identifier));
+            debug (MessageFiber)
+            {
+                Stdout.formatln(
+                    "--FIBER {} (fiber ptr {}) SUSPENDED (from fiber ptr {}) -- ({}:{})",
+                    FirstName(this), cast(void*) this.fiber,
+                    cast(void*) Fiber.getThis(), token.str, FirstName(identifier)
+                ).flush();
+            }
 
             debug ( MessageFiberDump )
             {
@@ -625,8 +631,14 @@ class MessageFiber
 
         this.identifier = this.createIdentifier(token.hash, identifier);
 
-        debug (MessageFiber) Stdout.formatln("--FIBER {} RESUMED -- ({}:{})",
-                FirstName(this), token.str, FirstName(identifier));
+        debug (MessageFiber)
+        {
+            Stdout.formatln(
+                "--FIBER {} (fiber ptr {}) RESUMED (from fiber ptr {}) -- ({}:{})",
+                FirstName(this), cast(void*) this.fiber, cast(void*) Fiber.getThis(),
+                token.str, FirstName(identifier)
+            ).flush();
+        }
 
         scope (exit) this.msg = msg;
         this.fiber.call();
@@ -666,8 +678,14 @@ class MessageFiber
     }
     body
     {
-        debug (MessageFiber) Stdout.formatln("--FIBER {} KILLED -- ({}:{})",
-                FirstName(this), file, line);
+        debug (MessageFiber)
+        {
+            Stdout.formatln(
+                "--FIBER {} (fiber ptr {}) KILLED (from fiber ptr {}) -- ({}:{})",
+                FirstName(this), cast(void*) this.fiber,
+                cast(void*) Fiber.getThis(), file, line
+            ).flush();
+        }
 
         this.killed = true;
         this.e_killed.set(file, line);
