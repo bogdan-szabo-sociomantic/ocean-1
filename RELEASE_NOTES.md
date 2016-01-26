@@ -61,6 +61,20 @@ Removed Symbols
 Deprecations
 ============
 
+* `tango.util.log.Config`
+
+  This module automatically adds a console output to the root logger.
+  Besides being rarely needed, it is unreliable as it depends on the module constructor
+  call order.  User wishing the retain the behaviour should put its `static this()` code
+  in their `main.d` source file.
+
+* `tango.util.log.Trace`
+
+  This module did not provide anything but an `alias Trace Log` and a `public import`
+  to a (now deprecated) module.  The documentation even recommended to use another
+  module.
+
+
 New Features
 ============
 

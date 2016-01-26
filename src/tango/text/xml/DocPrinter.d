@@ -23,7 +23,6 @@ import tango.core.Exception : XmlException;
 version (UnitTest)
 {
     import tango.text.xml.Document;
-    import tango.util.log.Trace;
 }
 
 

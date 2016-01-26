@@ -10,12 +10,14 @@
 
 *******************************************************************************/
 
-module tango.util.log.Config;
+deprecated module tango.util.log.Config;
 
 public import  tango.util.log.Log : Log;
 
 import tango.util.log.LayoutDate,
        tango.util.log.AppendConsole;
+
+pragma(msg, "Set the root logger in your main file instead of relying on module ctor order");
 
 /*******************************************************************************
 

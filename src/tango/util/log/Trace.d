@@ -18,7 +18,9 @@
 
 *******************************************************************************/
 
-module tango.util.log.Trace;
+deprecated module tango.util.log.Trace;
+
+pragma(msg, "Use Log instead of Trace or set the root logger from your main");
 
 public import tango.util.log.Config;
 
