@@ -34,11 +34,15 @@ private
     {
         static bool opCall( Const!(T) p1, Const!(T) p2 )
         {
+            // HACK: avoid forcing const methods on objects
+            auto _p1 = cast(T) p1;
+            auto _p2 = cast(T) p2;
+
             // TODO: Fix this if/when opEquals is changed to return a bool.
             static if( is( T == class ) || is( T == struct ) )
-                return (p1 == p2) != 0;
+                return (_p1 == _p2) != 0;
             else
-                return p1 == p2;
+                return _p1 == _p2;
         }
     }
 
@@ -47,7 +51,10 @@ private
     {
         static bool opCall( Const!(T) p1, Const!(T) p2 )
         {
-            return p1 < p2;
+            // HACK: avoid forcing const methods on objects
+            auto _p1 = cast(T) p1;
+            auto _p2 = cast(T) p2;
+            return _p1 < _p2;
         }
     }
 
