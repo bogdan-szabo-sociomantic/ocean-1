@@ -20,6 +20,13 @@ import tango.text.xml.Document;
 
 import tango.core.Exception : XmlException;
 
+version (UnitTest)
+{
+    import tango.text.xml.Document;
+    import tango.util.log.Trace;
+}
+
+
 /*******************************************************************************
 
         Simple Document printer, with support for serialization caching
@@ -209,13 +216,9 @@ class DocPrinter(T)
         }
 }
 
-
-debug import tango.text.xml.Document;
-debug import tango.util.log.Trace;
-
+///
 unittest
 {
-
     istring document = "<blah><xml>foo</xml></blah>";
 
     auto doc = new Document!(char);
@@ -227,6 +230,4 @@ unittest
     assert(document == newbuf);
     assert(buf.ptr == newbuf.ptr);
     assert(document == p.print(doc));
-
-
 }
