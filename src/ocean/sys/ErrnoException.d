@@ -109,7 +109,7 @@ public class ErrnoException : Exception
         if (!expr)
         {
             this.func_name = name;
-            throw this.useGlobalErrno(name, file, line).message(msg);
+            throw this.useGlobalErrno(name, file, line).addMessage(msg);
         }
     }
 
@@ -347,7 +347,7 @@ public class ErrnoException : Exception
 
     **************************************************************************/
 
-    public typeof (this) message ( cstring msg )
+    public typeof (this) addMessage ( cstring msg )
     {
         if (msg.length)
             return this.append(" (").append(msg).append(")");
@@ -359,9 +359,12 @@ public class ErrnoException : Exception
     unittest
     {
         auto e = new ErrnoException;
-        e.set(ENOTBLK).message("msg");
+        e.set(ENOTBLK).addMessage("msg");
         test!("==")(e.toString(), "Block device required (msg)"[]);
     }
+
+    deprecated ("Will eventually clash with Throwable.message. 'Use addMessage' instead.")
+    public alias addMessage message;
 }
 
 /*******************************************************************************

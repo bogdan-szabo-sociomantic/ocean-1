@@ -375,7 +375,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
                     case ENOMEM, EINVAL:
                         throw this.e.set(errnum)
-                            .message("error removing epoll client");
+                            .addMessage("error removing epoll client");
                 }
             }
         }
@@ -594,7 +594,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
                 }
                 else
                 {
-                    throw this.e.useGlobalErrno().message(
+                    throw this.e.useGlobalErrno().addMessage(
                         "error adding epoll registration "
                             ~ "after modification resulted in ENOENT"
                     );
@@ -602,7 +602,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
             }
             else
             {
-                throw this.e.useGlobalErrno().message(
+                throw this.e.useGlobalErrno().addMessage(
                     "error modifying epoll registration");
             }
         }
@@ -738,7 +738,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
 
                 if (errnum != EINTR)
                 {
-                    throw this.e.useGlobalErrno().message(
+                    throw this.e.useGlobalErrno().addMessage(
                         "error waiting for epoll events");
                 }
             }
