@@ -630,9 +630,21 @@ T[] lineOf(T) (T[] src, size_t index)
 
 ******************************************************************************/
 
-TM[] join(T, TM = Unqual!(T)) (T[][] src, T[] postfix=null, TM[] dst=null)
+T[] join(T) (in T[][] src, in T[] postfix=null, T[] dst = null)
 {
         return combine!(T) (dst, null, postfix, src);
+}
+
+unittest
+{
+    assert (join([ "aaa", "bbb", "ccc" ], ",") == "aaa,bbb,ccc");
+
+    // ensure `join` works with differently qualified arguments
+    Const!(char[][]) mut = [ "xxx".dup, "yyy".dup, "zzz" ];
+    char[20] buf;
+    auto ret = join(mut, " ", buf);
+    assert (ret == "xxx yyy zzz");
+    assert (ret.ptr is buf.ptr);
 }
 
 /******************************************************************************
@@ -690,7 +702,7 @@ T[] postfix(T) (T[] dst, T[] postfix, T[][] src...)
 
 ******************************************************************************/
 
-TM[] combine(T, TM = Unqual!(T)) (TM[] dst, T[] prefix, T[] postfix, T[][] src ...)
+T[] combine(T) (T[] dst, in T[] prefix, in T[] postfix, in T[][] src ...)
 {
         size_t len = src.length * prefix.length +
                    src.length * postfix.length;

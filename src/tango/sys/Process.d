@@ -211,7 +211,7 @@ class Process
     const uint DefaultStderrBufferSize   = 512;
     const Redirect DefaultRedirectFlags  = Redirect.All;
 
-    private cstring[] _args;
+    private cstring[]        _args;
     private istring[istring] _env;
     private char[]           _workDir;
     private PipeConduit      _stdin;
@@ -1386,7 +1386,7 @@ class Process
      * character can be used to specify arguments with embedded spaces.
      * e.g. first "second param" third
      */
-    protected static cstring[] splitArgs(ref cstring command, cstring delims = " \t\r\n")
+    protected static cstring[] splitArgs(cstring command, cstring delims = " \t\r\n")
     in
     {
         assert(!contains(delims, '"'),
@@ -1759,4 +1759,13 @@ unittest
     {
         assert(false, e.msg);
     }
+}
+
+// check differently qualified argument calls
+unittest
+{
+    auto p = new Process("aaa", "bbb", "ccc");
+    mstring s = "xxxx".dup;
+    p.argsWithCommand([ s, "aaa", "bbb"]);
+    p.programName("huh");
 }

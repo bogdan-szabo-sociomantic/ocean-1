@@ -516,16 +516,7 @@ class NotifyingByteQueue : ISuspendable, IQueueInfo
 
 class NotifyingQueue ( T ) : NotifyingByteQueue
 {
-    static if (is(T == struct))
-    {
-        /***********************************************************************
-
-            Contiguous buffer for deserialization
-
-        ***********************************************************************/
-
-        private Contiguous!(T) contiguous_buffer;
-    }
+    import ocean.io.serialize.StructSerializer;
 
     /***************************************************************************
 
@@ -588,44 +579,108 @@ class NotifyingQueue ( T ) : NotifyingByteQueue
         return super.push(length, &filler);
     }
 
-
-    /***************************************************************************
-
-        Pops an Request instance from the queue
-
-        Params:
-            buffer = deserialisation buffer to use
-
-        Returns:
-            pointer to the deserialized struct, completely allocated in the
-            given buffer
-
-        ***************************************************************************/
-
-    T* pop ( ref ubyte[] buffer )
+    static if ( is(T == struct) )
     {
-        if ( !this.enabled ) return null;
+        /***********************************************************************
 
-        T* instance;
+            Pops a Request instance from the queue
 
-        auto data = super.pop();
+            Params:
+                cont_buffer = contiguous buffer
+                byte_buffer = byte buffer
 
-        if (data is null)
+            Returns:
+                pointer to the deserialized struct, completely allocated in the
+                given buffer
+
+            *******************************************************************/
+
+        T* pop ( ref Contiguous!(T) cont_buffer, ubyte[] byte_buffer )
         {
-            return null;
+            if ( !this.enabled ) return null;
+
+            T* instance;
+
+            auto data = super.pop();
+
+            if (data is null)
+            {
+                return null;
+            }
+
+            byte_buffer.copy(data);
+
+            auto void_buffer = cast(void[])byte_buffer;
+
+            Deserializer.deserialize!(T)(void_buffer, cont_buffer);
+
+            return cont_buffer.ptr;
         }
 
-        buffer.copy(data);
+        /***********************************************************************
 
-        static if ( is(T == struct) )
+            Pops a Request instance from the queue
+
+            Params:
+                buffer = deserialisation buffer to use
+
+            Returns:
+                pointer to the deserialized struct, completely allocated in the
+                given buffer
+
+        ***********************************************************************/
+
+        deprecated("Please use the version of pop() taking a contiguous buffer")
+        T* pop ( ref ubyte[] buffer )
         {
-            auto void_buffer = cast(void[])buffer;
+            if ( !this.enabled ) return null;
 
-            Deserializer.deserialize!(T)(void_buffer, this.contiguous_buffer);
-            return this.contiguous_buffer.ptr;
+            T* instance;
+
+            auto data = super.pop();
+
+            if (data is null)
+            {
+                return null;
+            }
+
+            buffer.copy(data);
+
+            StructSerializer!(true).loadSlice (instance, buffer);
+
+            return instance;
         }
-        else
+    }
+    else
+    {
+        /***********************************************************************
+
+            Pops a Request instance from the queue
+
+            Params:
+                buffer = deserialisation buffer to use
+
+            Returns:
+                pointer to the deserialized item, completely allocated in the
+                given buffer
+
+        ***********************************************************************/
+
+        T* pop ( ref ubyte[] buffer )
         {
+            if ( !this.enabled ) return null;
+
+            T* instance;
+
+            auto data = super.pop();
+
+            if (data is null)
+            {
+                return null;
+            }
+
+            buffer.copy(data);
+
             return cast(T*)buffer.ptr;
         }
     }
@@ -640,6 +695,84 @@ unittest
 
     queue.ready(&dg);
     test(queue.isRegistered(&dg));
+}
+
+/// NotifyingQueue with a non-struct type
+unittest
+{
+    auto queue = new NotifyingQueue!(char[])(1024);
+
+    char[][] arr = ["foo".dup, "bar".dup];
+
+    queue.push(arr[0]);
+    queue.push(arr[1]);
+
+    ubyte[] buffer_1;
+
+    auto str_0 = queue.pop(buffer_1);
+
+    test!("==")(*str_0, "foo");
+
+    ubyte[] buffer_2;
+
+    auto str_1 = queue.pop(buffer_2);
+
+    test!("==")(*str_0, "foo");  // ensure there was no overwrite
+    test!("==")(*str_1, "bar");
+}
+
+/// deprecated NotifyingQueue.pop() with a struct
+deprecated unittest
+{
+    struct S { char[] value; }
+
+    S[2] arr = [S("foo".dup), S("bar".dup)];
+
+    auto queue = new NotifyingQueue!(S)(1024);
+
+    queue.push(arr[0]);
+    queue.push(arr[1]);
+
+    ubyte[] buffer_1;
+
+    auto s0 = queue.pop(buffer_1);
+
+    test!("==")(s0.value, "foo");
+
+    ubyte[] buffer_2;
+
+    auto s1 = queue.pop(buffer_2);
+
+    test!("==")(s0.value, "foo");  // ensure there was no overwrite
+    test!("==")(s1.value, "bar");
+}
+
+/// NotifyingQueue with a struct
+unittest
+{
+    struct S { char[] value; }
+
+    S[2] arr = [S("foo".dup), S("bar".dup)];
+
+    auto queue = new NotifyingQueue!(S)(1024);
+
+    queue.push(arr[0]);
+    queue.push(arr[1]);
+
+    Contiguous!(S) con_buffer_1;
+    ubyte[] buffer_1;
+
+    auto s0 = queue.pop(con_buffer_1, buffer_1);
+
+    test!("==")(s0.value, "foo");
+
+    Contiguous!(S) con_buffer_2;
+    ubyte[] buffer_2;
+
+    auto s1 = queue.pop(con_buffer_2, buffer_2);
+
+    test!("==")(s0.value, "foo");  // ensure there was no overwrite
+    test!("==")(s1.value, "bar");
 }
 
 
