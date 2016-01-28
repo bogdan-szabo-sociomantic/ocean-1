@@ -84,6 +84,7 @@ import ocean.io.Stdout;
 import ocean.core.Array : removePrefix, removeSuffix;
 import ocean.util.config.ClassFiller;
 import ocean.util.config.ConfigParser;
+import ocean.util.log.AppendSysLog;
 import ocean.text.util.StringSearch;
 
 import tango.util.log.Log;
@@ -122,6 +123,14 @@ class Config
     ***************************************************************************/
 
     public SetInfo!(bool) console;
+
+    /***************************************************************************
+
+        Whether to use syslog output or not
+
+    ***************************************************************************/
+
+    public SetInfo!(bool) syslog;
 
     /***************************************************************************
 
@@ -379,17 +388,20 @@ public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
     foreach (name, settings; config)
     {
         bool console_enabled = false;
+        bool syslog_enabled = false;
         Logger log;
 
         if ( name == "Root" )
         {
             log = Log.root;
             console_enabled = settings.console(true);
+            syslog_enabled = settings.syslog(false);
         }
         else
         {
             log = Log.lookup(name);
             console_enabled = settings.console();
+            syslog_enabled = settings.syslog();
         }
 
         size_t buffer_size = m_config.buffer_size;
@@ -404,10 +416,11 @@ public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
         }
 
         log.clear();
-        // if console/file is specifically set, don't inherit other appenders
-        // (unless we have been specifically asked to be additive)
+
+        // if console/file/syslog is specifically set, don't inherit other
+        // appenders (unless we have been specifically asked to be additive)
         log.additive = settings.additive ||
-                       !(settings.console.set || settings.file.set);
+            !(settings.console.set || settings.file.set || settings.syslog.set);
 
         if ( settings.file.set )
         {
@@ -415,6 +428,11 @@ public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
                                          ? newLayout(settings.file_layout)
                                          : new FileLayout;
             log.add(new_appender(settings.file(), file_log_layout));
+        }
+
+        if ( syslog_enabled )
+        {
+            log.add(new AppendSysLog);
         }
 
         if ( console_enabled )

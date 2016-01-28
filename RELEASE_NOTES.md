@@ -64,4 +64,22 @@ Deprecations
 New Features
 ============
 
+* `ocean.util.log.AppendSysLog`
 
+  A new log appender which outputs to the system log
+  ([syslog](http://linux.die.net/man/3/syslog)).
+
+  Note that the name of this class is very similar to the old
+  `tango.util.log.AppendSyslog`. The tango class is scheduled to be deprecated,
+  though, so the potential for confusion will only exist for a limited time.
+
+* `ocean.util.log.Config`
+
+  A new option has been added to the logger config, allowing a logger's output
+  to be sent to syslog (possibly in addition to the console and/or a normal log
+  file). To configure this, just add `syslog = true` to the logger configuration
+  section of your `config.ini` file.
+
+  The big advantage of writing to syslog, instead of to a file, is that file
+  writes are blocking, whereas syslog writes just require an in-memory copy: the
+  actual writing of log messages to disk is handled by the syslogd process.
