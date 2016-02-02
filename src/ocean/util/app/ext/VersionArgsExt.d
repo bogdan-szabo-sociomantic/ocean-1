@@ -390,3 +390,61 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
     }
 
 }
+
+version ( UnitTest )
+{
+    import tango.core.Test;
+    import ocean.util.app.ext.ArgumentsExt;
+}
+
+/*******************************************************************************
+
+    Test that --version succeeds when there are unprovided required arguments.
+
+*******************************************************************************/
+
+unittest
+{
+    class MyApp : Application, IArgumentsExtExtension
+    {
+        this ( )
+        {
+            super("test_app", "desc");
+
+            auto args_ext = new ArgumentsExt("test", "just a test");
+            args_ext.registerExtension(this);
+            this.registerExtension(args_ext);
+
+            auto ver_ext = new VersionArgsExt(VersionInfo.init);
+            args_ext.registerExtension(ver_ext);
+            this.registerExtension(ver_ext);
+        }
+
+        override protected int run ( istring[] ) { return 10; }
+
+        override public void setupArgs ( IApplication, Arguments args )
+        {
+            args("important").params(1).required;
+        }
+
+        override public void preValidateArgs ( IApplication, Arguments ) { }
+
+        override public cstring validateArgs ( IApplication, Arguments )
+            { return null; }
+
+        override public void processArgs ( IApplication, Arguments ) { }
+
+        // ArgumentsExt.preRun() calls exit(2) if the args parsing fails,
+        // VersionArgsExt.displayVersion() should call exit(0) before that
+        // happens.
+        override public void exit ( int status, istring msg = null )
+        {
+            test!("==")(status, 0);
+
+            super.exit(status, msg);
+        }
+    }
+
+    auto app = new MyApp;
+    app.main(["app_name", "--version"]);
+}
