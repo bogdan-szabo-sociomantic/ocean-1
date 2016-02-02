@@ -97,3 +97,20 @@ New Features
   The big advantage of writing to syslog, instead of to a file, is that file
   writes are blocking, whereas syslog writes just require an in-memory copy: the
   actual writing of log messages to disk is handled by the syslogd process.
+
+* `ocean.util.app.CliApp`
+
+  This new application base class should be inherited by all applications which
+  do not run as daemons, that is apps which run either as one-shot tools or
+  `cron`-triggered jobs.
+
+  `CliApp` has the same features (i.e. extensions) as the older
+  `VersionedCliApp`; the only difference is in the way that optional settings
+  are passed to the constructor.
+
+  The goal is to have a single port-of-call in ocean for the features required
+  by such apps, in contrast to the current status quo, where applications are
+  using all sorts of different app base classes and extension on a fairly random
+  basis. With a single, universal application base class, we will simplify the
+  writing of new apps, simplify the updating of existing apps to the latest
+  recommended practices, and simplify the maintenance of the code in ocean.
