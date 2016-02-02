@@ -9,7 +9,7 @@
 
 *******************************************************************************/
 
-module ocean.util.app.ConfiguredCliApp;
+deprecated module ocean.util.app.ConfiguredCliApp;
 
 
 
@@ -103,6 +103,8 @@ import tango.transition;
 
 *******************************************************************************/
 
+deprecated("All applications should be migrated to use either DaemonApp or "
+           "CliApp")
 abstract class ConfiguredCliApp : CommandLineApp, IConfigExtExtension
 {
 

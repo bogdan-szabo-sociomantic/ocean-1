@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module ocean.util.app.VersionedLoggedCliApp;
+deprecated module ocean.util.app.VersionedLoggedCliApp;
 
 /*******************************************************************************
 
@@ -28,6 +28,8 @@ import ocean.util.app.ext.VersionArgsExt;
 
 
 
+deprecated("All applications should be migrated to use either DaemonApp or "
+           "CliApp")
 abstract class VersionedLoggedCliApp : LoggedCliApp
 {
 

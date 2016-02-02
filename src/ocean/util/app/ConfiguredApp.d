@@ -9,7 +9,7 @@
 
 *******************************************************************************/
 
-module ocean.util.app.ConfiguredApp;
+deprecated module ocean.util.app.ConfiguredApp;
 
 
 
@@ -82,6 +82,8 @@ import ocean.util.app.ext.ConfigExt;
 
 *******************************************************************************/
 
+deprecated("All applications should be migrated to use either DaemonApp or "
+           "CommandLineApp")
 abstract class ConfiguredApp : Application, IConfigExtExtension
 {
 

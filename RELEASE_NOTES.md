@@ -74,6 +74,16 @@ Deprecations
   to a (now deprecated) module.  The documentation even recommended to use another
   module.
 
+* `ocean.util.app.CommandLineApp`,
+  `ocean.util.app.ConfiguredApp`,
+  `ocean.util.app.LoggedCliApp`,
+  `ocean.util.app.VersionedCliApp`,
+  `ocean.util.app.VersionedLoggedCliApp`,
+  `ocean.util.app.VersionedLoggedStatsCliApp`
+
+  The menagerie of application base classes have been deprecated. All programs
+  deriving from these classes should change to use either `CliApp` or
+  `DaemonApp`.
 
 New Features
 ============

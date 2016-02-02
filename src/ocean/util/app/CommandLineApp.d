@@ -9,7 +9,7 @@
 
 *******************************************************************************/
 
-module ocean.util.app.CommandLineApp;
+deprecated module ocean.util.app.CommandLineApp;
 
 
 

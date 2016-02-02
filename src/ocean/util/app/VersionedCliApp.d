@@ -9,7 +9,7 @@
 
 *******************************************************************************/
 
-module ocean.util.app.VersionedCliApp;
+deprecated module ocean.util.app.VersionedCliApp;
 
 
 
@@ -69,6 +69,8 @@ import ocean.util.app.ext.VersionArgsExt;
 
 *******************************************************************************/
 
+deprecated("All applications should be migrated to use either DaemonApp or "
+           "CliApp")
 abstract class VersionedCliApp : CommandLineApp
 {
 

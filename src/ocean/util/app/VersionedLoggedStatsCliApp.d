@@ -13,7 +13,7 @@
 
 *******************************************************************************/
 
-module ocean.util.app.VersionedLoggedStatsCliApp;
+deprecated module ocean.util.app.VersionedLoggedStatsCliApp;
 
 /*******************************************************************************
 
@@ -32,6 +32,8 @@ import ocean.util.app.ext.StatsExt;
 
 
 
+deprecated("All applications should be migrated to use either DaemonApp or "
+           "CliApp")
 abstract class VersionedLoggedStatsCliApp : VersionedLoggedCliApp
 {
     /***************************************************************************
