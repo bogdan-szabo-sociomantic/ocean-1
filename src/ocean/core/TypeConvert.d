@@ -18,6 +18,8 @@ module ocean.core.TypeConvert;
 import tango.transition;
 version ( UnitTest ) import ocean.core.Test;
 
+import tango.core.Tuple;
+import ocean.core.Traits;
 
 /*******************************************************************************
 
@@ -162,3 +164,67 @@ unittest
     static assert(is(typeof({ int x; castFrom!(int).to!(float)(x); })));
 }
 
+
+/*******************************************************************************
+
+    Creates a new array from the elements supplied as function arguments,
+    casting each of them to T.
+
+    Template Params:
+        T = type of element of new array
+
+    Params:
+        original = original elements of a type that can be cast to T safely
+
+/******************************************************************************/
+
+T[] arrayOf (T, U...) (U original)
+{
+    static assert (U.length > 0);
+    static assert (!hasIndirections!(U));
+    static assert (!hasIndirections!(T));
+
+    // workaround for dmd1 semantic analysis bug
+    auto unused = original[0];
+
+    static istring generateCast ( )
+    {
+        istring result = "[ ";
+
+        foreach (i, _; U)
+        {
+            result ~= "cast(T) original[" ~ i.stringof ~ "]";
+            if (i + 1 < U.length)
+                result ~= ", ";
+        }
+
+        return result ~ " ]";
+    }
+
+    return mixin(generateCast());
+}
+
+///
+unittest
+{
+    auto arr = arrayOf!(hash_t)(1, 2, 3);
+    test!("==")(arr, [ cast(hash_t) 1, 2, 3 ][]); 
+}
+
+unittest
+{
+    // ensure it works with Typedef structs in D2
+    mixin (Typedef!(hash_t, "Hash"));
+    auto arr = arrayOf!(Hash)(1, 2, 3);
+
+    // ensure it works in CTFE
+    const manifest = arrayOf!(long)(42, 44, 46);
+    static assert (manifest.length == 3);
+    static assert (manifest[0] == 42L);
+    static assert (manifest[1] == 44L);
+    static assert (manifest[2] == 46L);
+
+    // reject stuff with indirections
+    static assert (!is(typeof(arrayOf!(int*)(1000))));
+    static assert (!is(typeof(arrayOf!(int)((int[]).init))));
+}

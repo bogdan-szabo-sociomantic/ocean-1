@@ -124,3 +124,11 @@ New Features
   basis. With a single, universal application base class, we will simplify the
   writing of new apps, simplify the updating of existing apps to the latest
   recommended practices, and simplify the maintenance of the code in ocean.
+
+* `ocean.core.TypeConvert`
+
+  Added new utility `arrayOf` which helps to create array literals with
+  specific element type instead of relying on type deduction. One of most
+  important use cases for it is creating arrays of `Typedef` types in a way that
+  is compatible with DMD2 - implicit casting of base type to `Typedef` struct
+  doesn't work.
