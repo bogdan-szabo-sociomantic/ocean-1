@@ -1602,6 +1602,7 @@ public class Arguments
     private mstring space ( size_t width )
     {
         this.spaces.length = width;
+        enableStomping(this.spaces);
 
         if ( width > 0 )
         {
