@@ -317,7 +317,7 @@ abstract class ISelectListener : ISelectClient
 
     final bool terminate ( )
     {
-        scope (exit) if (!this.terminated)
+        if (!this.terminated)
         {
             this.terminated = true;
 
@@ -332,9 +332,10 @@ abstract class ISelectListener : ISelectClient
             {
                 this.socket.close();
             }
+            return false;
         }
 
-        return this.terminated;
+        return true;
     }
 
     /**************************************************************************
