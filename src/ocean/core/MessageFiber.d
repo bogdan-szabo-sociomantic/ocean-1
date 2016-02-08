@@ -475,7 +475,7 @@ class MessageFiber
                 cast(void*) Fiber.getThis()
             ).flush();
         }
-     
+
         if (this.fiber.state == this.fiber.State.TERM)
         {
             this.fiber.reset();
@@ -534,32 +534,29 @@ class MessageFiber
             msg.num = 0;
         }
 
-        scope (exit)
+        scope (exit) this.msg = msg;
+
+        debug (MessageFiber)
         {
-            this.msg = msg;
-
-            debug (MessageFiber)
-            {
-                Stdout.formatln(
-                    "--FIBER {} (fiber ptr {}) SUSPENDED (from fiber ptr {}) -- ({}:{})",
-                    FirstName(this), cast(void*) this.fiber,
-                    cast(void*) Fiber.getThis(), token.str, FirstName(identifier)
+            Stdout.formatln(
+                "--FIBER {} (fiber ptr {}) SUSPENDED (from fiber ptr {}) -- ({}:{})",
+                FirstName(this), cast(void*) this.fiber,
+                cast(void*) Fiber.getThis(), token.str, FirstName(identifier)
                 ).flush();
-            }
+        }
 
-            debug ( MessageFiberDump )
-            {
-                this.last = token;
-                this.time = Clock.now().unix().seconds();
-                this.suspender = identifier !is null ? identifier.classinfo.name : "";
-            }
+        debug ( MessageFiberDump )
+        {
+            this.last = token;
+            this.time = Clock.now().unix().seconds();
+            this.suspender = identifier !is null ? identifier.classinfo.name : "";
+        }
 
-            this.suspend_();
+        this.suspend_();
 
-            if ( this.identifier != this.createIdentifier(token.hash, identifier) )
-            {
-                throw this.e_resume.set(__FILE__, __LINE__);
-            }
+        if ( this.identifier != this.createIdentifier(token.hash, identifier) )
+        {
+            throw this.e_resume.set(__FILE__, __LINE__);
         }
 
         return this.msg;
