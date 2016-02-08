@@ -13,6 +13,7 @@ import tango.transition;
 
 import tango.core.Traits;
 import tango.stdc.stdlib : alloca, rand;
+import tango.core.Test;
 
 version( TangoDoc )
 {
@@ -32,7 +33,7 @@ private
 {
     struct IsEqual( T )
     {
-        static bool opCall( Const!(T) p1, Const!(T) p2 )
+        static equals_t opCall( Const!(T) p1, Const!(T) p2 )
         {
             // HACK: avoid forcing const methods on objects
             auto _p1 = cast(T) p1;
@@ -45,7 +46,7 @@ private
 
     struct IsLess( T )
     {
-        static bool opCall( Const!(T) p1, Const!(T) p2 )
+        static equals_t opCall( Const!(T) p1, Const!(T) p2 )
         {
             // HACK: avoid forcing const methods on objects
             auto _p1 = cast(T) p1;
@@ -54,6 +55,27 @@ private
         }
     }
 
+    unittest
+    {
+        static struct Custom
+        {
+            equals_t opEquals ( Custom rhs )
+            {
+                return 0;
+            }
+
+            mixin(genOpCmp(`
+            {
+                return 0;
+            }`));
+        }
+
+        IsEqual!(Custom) equal;
+        IsLess!(Custom) less;
+
+        test(!equal(Custom.init, Custom.init));
+        test(!less(Custom.init, Custom.init));
+    }
 
     struct RandOper()
     {
