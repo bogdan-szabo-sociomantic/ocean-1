@@ -136,6 +136,20 @@ New Features
       `logrotate`, rather than a reimplemented (and directly equivalent!)
       replacement in our libraries.)
 
+  **Important note** on `DaemonApp`'s event handling requirements:
+
+  The `DaemonApp` class does not currently interact with epoll in any way
+  (either registering clients or starting the event loop). This is a deliberate
+  choice, in order to leave the epoll handling up to the user, without enforcing
+  any required sequence of events. (This may come in the future.)
+
+  An epoll instance must be passed to the constructor, as this is required by
+  the `TimerExt` and `SignalExt`. The user must manually call the
+  `startEventHandling()` method, which registers the select clients required by
+  the extensions with epoll (see [`DaemonApp`'s usage example](https://github.com/sociomantic/ocean/blob/e87b3e0e735aaaa8b603315e02127ac1fdbe27c0/src/ocean/util/app/DaemonApp.d#L549)).
+  This method must be called before the application's main event loop begins --
+  the signal and timer event handlers will never become unregistered, so the
+  event loop will never exit, after that point.
 
 * `ocean.util.cipher.gcrypt.Twofish`
 
