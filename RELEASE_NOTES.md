@@ -87,6 +87,10 @@ New Features
   writing of new apps, simplify the updating of existing apps to the latest
   recommended practices, and simplify the maintenance of the code in ocean.
 
+  The old application base classes will be deprecated in the next release, along
+  with helpers which are no longer required (e.g. `PeriodicStatsLog` and
+  `AppendSyslog`).
+
   `DaemonApp` provides the same features as the catchily-named
   `VersionedLoggedStatsCliApp`, with the following additions:
 
@@ -132,9 +136,6 @@ New Features
       `logrotate`, rather than a reimplemented (and directly equivalent!)
       replacement in our libraries.)
 
-  The old application base classes will be deprecated in the next release, along
-  with helpers which are no longer required (e.g. `PeriodicStatsLog` and
-  `AppendSyslog`).
 
 * `ocean.util.cipher.gcrypt.Twofish`
 
