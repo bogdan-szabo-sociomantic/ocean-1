@@ -118,7 +118,7 @@ struct StandardHash
     {
         foreach (d; cast (ubyte[]) data)
         {
-            hash = (hash ^ d) * this.fnv1a_prime;
+            hash = (hash ^ d) * StandardHash.fnv1a_prime;
         }
 
         return hash;
