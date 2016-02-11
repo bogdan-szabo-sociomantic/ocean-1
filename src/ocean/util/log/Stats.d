@@ -3,7 +3,7 @@
     Classes to write statistics to be used in graphite.
 
     Applications that want to log statistics usually make use of the `StatsExt`
-    extension (most likely by deriving from `VersionedLoggedStatsCliApp`),
+    extension (most likely by deriving from `DaemonApp`),
     which provides a `StatsLog` instance which is automatically configured from
     the application's config.ini.
 
@@ -63,7 +63,7 @@ import tango.stdc.time : time_t;
 
 version (UnitTest)
 {
-    import ocean.util.app.VersionedLoggedStatsCliApp;
+    import ocean.util.app.DaemonApp;
 }
 
 
@@ -231,10 +231,15 @@ public class PeriodicStatsLog ( T ) : IPeriodicStatsLog
     }
 }
 
+// Note that this usage example no longer demonstrates recommended practice.
+// Applications using the PeriodicStatsLog should migrate to use the DaemonApp
+// base class and use its built-in stats updated timer (the protected method
+// onStatsTimer(), which can be overridden). See the StatsLog usage example to
+// see what this looks like.
 /// Usage example for PeriodicStatsLog in a simple application
 unittest
 {
-    class MyPeriodicStatsApp : VersionedLoggedStatsCliApp
+    class MyPeriodicStatsApp : DaemonApp
     {
         private static struct Stats
         {
@@ -247,8 +252,8 @@ unittest
 
         public this ()
         {
-            super("Test", null, null, null, null);
             auto epoll = new EpollSelectDispatcher;
+            super(epoll, "Test", null, null);
 
             // 30 seconds
             this.periodic = new PeriodicStatsLog!(Stats)
@@ -666,7 +671,7 @@ public class StatsLog : IStatsLog
 /// Usage example for StatsLog in a simple application
 unittest
 {
-    class MyStatsLogApp : VersionedLoggedStatsCliApp
+    class MyStatsLogApp : DaemonApp
     {
         private static struct Stats
         {
@@ -683,15 +688,21 @@ unittest
 
         public this ()
         {
-            super("Test", null, null, null, null);
+            super(null, "Test", null, null);
         }
 
         protected override int run (Arguments args, ConfigParser config)
+        {
+            return 0;
+        }
+
+        protected override void onStatsTimer ( )
         {
             // Do some heavy-duty processing ...
             Stats app_stats1 = { 42_000_000, 10_000_000,  1_000_000 };
             Stats app_stats2 = { 42_000_000,  1_000_000, 10_000_000 };
             this.stats_ext.stats_log.add(app_stats1);
+
             // A given struct should be `add`ed once and only once, unless
             // you flush in between
             this.stats_ext.stats_log.flush();
@@ -707,8 +718,6 @@ unittest
             // no known use case where you want it to differ.
             this.stats_ext.stats_log.addObject!("channel")("disney", disney);
             this.stats_ext.stats_log.addObject!("channel")("discovery", discovery);
-
-            return 0;
         }
     }
 }
