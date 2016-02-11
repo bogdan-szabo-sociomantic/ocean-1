@@ -3923,3 +3923,22 @@ else
         test( "xaxbcdxxex".dup, ( char c ) { return c == 'x'; },  5 );
     }
 }
+
+T[] reverse (T) (T[] array)
+{
+    for (ptrdiff_t i = 0; i < array.length / 2; ++i)
+    {
+        auto tmp = array[i];
+        array[i] = array[$-i-1];
+        array[$-i-1] = tmp;
+    }
+
+    return array;
+}
+
+unittest
+{
+    assert (reverse((int[]).init) == (int[]).init);
+    assert (reverse([1, 2, 3]) == [3, 2, 1]);
+    assert (reverse([1, 2, 3, 4]) == [4, 3, 2, 1]);
+}
