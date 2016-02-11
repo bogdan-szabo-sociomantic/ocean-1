@@ -42,6 +42,8 @@ import ocean.core.Traits: ReturnAndArgumentTypesOf;
 
 import tango.core.Traits;
 
+import tango.core.Array;
+
 import tango.stdc.string : memmove, memset;
 
 import tango.stdc.posix.sys.types : ssize_t;
@@ -641,7 +643,7 @@ public T[] uniq ( T, bool sort = true ) ( T[] array )
 
         static if (sort)
         {
-            array.sort;
+            .sort(array);
         }
 
         T item = array[n];
@@ -744,7 +746,7 @@ public int findDuplicates ( T, bool sort = true )
     {
         static if (sort)
         {
-            array.sort;
+            .sort(array);
         }
 
         foreach (i, ref element; array[1 .. $])

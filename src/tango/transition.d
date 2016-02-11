@@ -614,16 +614,22 @@ unittest
     assert (new C(2) >= new C(2));
     assert (new C(2) <= new C(2));
 
-    auto s_arr = [ S(2), S(3), S(1) ];
-    auto c_arr = [ new C(2), new C(3), new C(1) ];
-    s_arr.sort;
-    c_arr.sort;
+    version (D_Version2) { }
+    else
+    {
+        // built-in sort is deprecated and importing tango.core.Array
+        // introduces module cycle
+        auto s_arr = [ S(2), S(3), S(1) ];
+        auto c_arr = [ new C(2), new C(3), new C(1) ];
+        s_arr.sort;
+        c_arr.sort;
 
-    assert (s_arr == [ S(1), S(2), S(3) ]);
-    assert (c_arr <= [ new C(1), new C(2), new C(3) ]);
-    assert (c_arr >= [ new C(1), new C(2), new C(3) ]);
-    // Fails because we haven't overriden opEquals...
-    // assert (c_arr == [ new C(1), new C(2), new C(3) ]);
+        assert (s_arr == [ S(1), S(2), S(3) ]);
+        assert (c_arr <= [ new C(1), new C(2), new C(3) ]);
+        assert (c_arr >= [ new C(1), new C(2), new C(3) ]);
+        // Fails because we haven't overriden opEquals...
+        // assert (c_arr == [ new C(1), new C(2), new C(3) ]);
+    }
 }
 
 /*******************************************************************************

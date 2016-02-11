@@ -23,6 +23,8 @@ import ocean.core.Exception;
 
 import ocean.io.Stdout;
 
+import tango.core.Array;
+
 import tango.io.stream.TextFile;
 
 import tango.io.stream.Format;
@@ -1197,9 +1199,9 @@ unittest
 
         t.test!("==")(obtained_categories.length, expected.num_categories);
 
-        t.test!("==")(obtained_categories.sort, expected.categories.sort);
+        t.test!("==")(sort(obtained_categories), sort(expected.categories));
 
-        t.test!("==")(obtained_keys.sort, expected.keys.sort);
+        t.test!("==")(sort(obtained_keys), sort(expected.keys));
     }
 
     // Wrapper function that just calls the 'parsedConfigSanityCheck' function,

@@ -39,6 +39,7 @@ version ( UnitTest )
 public struct Range ( T )
 {
     import tango.core.Traits : isUnsignedIntegerType;
+    import tango.core.Array;
 
     static assert(isUnsignedIntegerType!(T),
         "Range only works with unsigned integer types");
@@ -624,7 +625,7 @@ public struct Range ( T )
     {
         if ( sub_ranges.length == 0 ) return false;
 
-        sub_ranges.sort;
+        sort(sub_ranges);
 
         // sort() moves empty ranges to the start of the list. Slice them off.
         while ( sub_ranges[0].is_empty )

@@ -63,6 +63,7 @@ module ocean.util.container.FixedKeyMap;
 *******************************************************************************/
 
 import tango.transition;
+import tango.core.Array;
 import ocean.core.Array: copy, bsearch;
 import ocean.core.Exception;
 
@@ -142,7 +143,7 @@ public class FixedKeyMap ( K, V )
     public this ( Const!(K[]) keys )
     {
         this.keys.copy(keys);
-        this.keys.sort;
+        sort(this.keys);
 
         this.values.length = this.keys.length;
 
@@ -300,7 +301,7 @@ public class FixedKeyMap ( K, V )
     private size_t keyIndex ( Const!(K) key, bool throw_if_not_found )
     {
         size_t pos;
-        auto found = this.keys.bsearch(key, pos);
+        auto found = ocean.core.Array.bsearch(this.keys, key, pos);
 
         if ( !found )
         {

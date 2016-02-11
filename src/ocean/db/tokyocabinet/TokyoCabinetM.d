@@ -47,6 +47,7 @@ import ocean.db.tokyocabinet.c.tcmdb :
            tcmdbiterinit, tcmdbiterinit2, tcmdbiternext;
 
 import tango.stdc.stdlib : free;
+import tango.core.Array;
 
 
 /*******************************************************************************
@@ -752,8 +753,8 @@ unittest
 
     // Check that both iterations returned the same set of keys
     test!("==")(keys.length, keys2.length);
-    keys.sort;
-    keys2.sort;
+    sort(keys);
+    sort(keys2);
 
     foreach ( i, k; keys )
     {

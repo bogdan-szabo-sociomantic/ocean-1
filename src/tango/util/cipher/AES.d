@@ -7,7 +7,7 @@
 module tango.util.cipher.AES;
 
 import tango.transition;
-
+import tango.core.Array;
 import tango.util.cipher.Cipher;
 
 /**
