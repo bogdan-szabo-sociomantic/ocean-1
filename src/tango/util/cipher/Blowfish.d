@@ -10,6 +10,7 @@ module tango.util.cipher.Blowfish;
 
 import tango.transition;
 
+import tango.core.Array;
 import tango.util.cipher.Cipher;
 
 /** Implementation of the Blowfish cipher designed by Bruce Schneier. */
@@ -243,7 +244,7 @@ class Blowfish : BlockCipher
         setup(workingKey);
 
         if (!_encrypt)
-            P.reverse; // Oh yes I did.
+            reverse(P); // Oh yes I did.
     }
 
     private uint F(uint x)
