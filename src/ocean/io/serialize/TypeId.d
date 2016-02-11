@@ -84,6 +84,7 @@ module ocean.io.serialize.TypeId;
  ******************************************************************************/
 
 import ocean.io.digest.Fnv1: StaticFnv1a64, Fnv164Const;
+import ocean.core.Traits;
 
 /******************************************************************************
 
@@ -340,7 +341,14 @@ template CheckedBaseType ( T )
 
 template BaseType ( T )
 {
-    static if (is (T Base == typedef) || is (T Base == enum))
+    static if (isTypedef!(T))
+    {
+        mixin(`
+            static if (is (T Base == typedef))
+                alias BaseType!(Base) BaseType;
+        `);
+    }
+    else static if (is (T Base == enum))
     {
         alias BaseType!(Base) BaseType;
     }

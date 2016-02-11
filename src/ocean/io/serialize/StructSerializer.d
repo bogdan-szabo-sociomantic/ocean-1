@@ -104,7 +104,7 @@ import ocean.core.Exception;
 import tango.io.model.IConduit: IOStream, InputStream, OutputStream;
 
 import tango.core.Traits;
-
+import ocean.core.Traits;
 
 
 /*******************************************************************************
@@ -1064,11 +1064,16 @@ struct StructSerializer ( bool AllowUnions = false )
             {
                 mixin AssertSupportedType!(T, S, i);
 
-                static if ( is(T B == enum) )
+                static if (isTypedef!(T))
                 {
-                    serializer.serialize(data, cast(B)(field), field_name);
+                    mixin(`
+                    static if ( is(T B == typedef) )
+                    {
+                        serializer.serialize(data, cast(B)(field), field_name);
+                    }
+                    `);
                 }
-                else static if ( is(T B == typedef) )
+                else static if ( is(T B == enum) )
                 {
                     serializer.serialize(data, cast(B)(field), field_name);
                 }
@@ -1180,11 +1185,16 @@ struct StructSerializer ( bool AllowUnions = false )
             {
                 mixin AssertSupportedType!(T, S, i);
 
-                static if ( is(T B == enum) )
+                static if (isTypedef!(T))
                 {
-                    deserializer.deserialize(cast(B)(*field), field_name);
+                    mixin(`
+                    else static if ( is(T B == typedef) )
+                    {
+                        deserializer.deserialize(cast(B)(*field), field_name);
+                    }
+                    `);
                 }
-                else static if ( is(T B == typedef) )
+                else static if ( is(T B == enum) )
                 {
                     deserializer.deserialize(cast(B)(*field), field_name);
                 }

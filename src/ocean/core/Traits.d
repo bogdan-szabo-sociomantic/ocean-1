@@ -952,11 +952,16 @@ template ContainsDynamicArray ( T ... )
 {
     static if (T.length)
     {
-        static if (is (T[0] Base == typedef))
+        static if (isTypedef!(T[0]))
         {
-            // Recurse into typedef.
+            mixin(`
+            static if (is (T[0] Base == typedef))
+            {
+                // Recurse into typedef.
 
-            const ContainsDynamicArray = ContainsDynamicArray!(Base, T[1 .. $]);
+                const ContainsDynamicArray = ContainsDynamicArray!(Base, T[1 .. $]);
+            }
+            `);
         }
         else static if (is (T[0] == struct) || is (T[0] == union))
         {
@@ -998,6 +1003,8 @@ template ContainsDynamicArray ( T ... )
 unittest
 {
     static assert (!ContainsDynamicArray!(TestStruct));
+    mixin (Typedef!(int[], "MyInt"));
+    static assert ( ContainsDynamicArray!(MyInt));
 }
 
 
@@ -1020,12 +1027,19 @@ unittest
 
 template ReturnAndArgumentTypesOf ( T )
 {
-    static if (is(T Args == function) && is(T Return == return))
+    static if (isTypedef!(T))
+    {
+        mixin(`
+        static if (is(T F == typedef))
+            alias ReturnAndArgumentTypesOf!(F) ReturnAndArgumentTypesOf;
+        `);
+    }
+    else static if (is(T Args == function) && is(T Return == return))
     {
         alias Tuple!(Return, Args) ReturnAndArgumentTypesOf;
     }
     else static if (is(T F == delegate) || is(T F == F*) ||
-                    is(T F == typedef)  || is(typeof(&(T.init.opCall)) F))
+                    is(typeof(&(T.init.opCall)) F))
     {
         alias ReturnAndArgumentTypesOf!(F) ReturnAndArgumentTypesOf;
     }
