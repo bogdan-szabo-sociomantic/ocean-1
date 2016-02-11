@@ -353,15 +353,17 @@ private bool hasMultiDimensionalDynamicArraysImpl ( T ) ()
     }
     else static if (is(Type == struct) || is(Type == union))
     {
+        bool result = false;
+
         foreach (Field; typeof(Type.tupleof))
         {
             static if (hasMultiDimensionalDynamicArraysImpl!(Field)())
             {
-                return true;
+                result = true;
             }
         }
 
-        return false;
+        return result;
     }
     else
     {
