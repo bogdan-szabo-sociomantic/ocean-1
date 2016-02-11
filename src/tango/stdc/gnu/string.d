@@ -26,5 +26,8 @@ void*    memrchr(void* block, int c, size_t size);
 char*    strchrnul(char* string, int c);
 wchar_t* wcschrnul(wchar_t* wstring, wchar_t wc);
 void*    memmem(void* haystack, size_t hlen, void *needle, size_t nlen);
-char*    strerror_r(int errnum, char *buf, size_t buflen);
 
+static if (__VERSION__ < 2070)
+{
+    char*    strerror_r(int errnum, char *buf, size_t buflen);
+}
