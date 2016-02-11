@@ -141,3 +141,8 @@ New Features
   important use cases for it is creating arrays of `Typedef` types in a way that
   is compatible with DMD2 - implicit casting of base type to `Typedef` struct
   doesn't work.
+
+* `tango.core.Array`
+
+  `sort` function now returns its argument after sorting. This is done to be
+  able to replace built-in sort which is needed for D2 migration.

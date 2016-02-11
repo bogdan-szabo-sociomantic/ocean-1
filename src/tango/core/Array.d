@@ -2413,7 +2413,7 @@ else
         static assert( isCallableType!(Pred ) );
 
 
-        void fn( Elem[] buf, Pred pred = Pred.init )
+        Elem[] fn( Elem[] buf, Pred pred = Pred.init )
         {
             bool equiv( Elem p1, Elem p2 )
             {
@@ -2577,13 +2577,14 @@ else
             {
                 quicksort( 0, buf.length - 1, maxDepth( buf.length ) );
             }
+            return buf;
         }
     }
 
 
     template sort( Buf )
     {
-        void sort( Buf buf )
+        ElemTypeOf!(Buf)[] sort( Buf buf )
         {
             return sort_!(ElemTypeOf!(Buf)).fn( buf );
         }
@@ -2592,7 +2593,7 @@ else
 
     template sort( Buf, Pred )
     {
-        void sort( Buf buf, Pred pred )
+        ElemTypeOf!(Buf)[] sort( Buf buf, Pred pred )
         {
             return sort_!(ElemTypeOf!(Buf), Pred).fn( buf, pred );
         }
