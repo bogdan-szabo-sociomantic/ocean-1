@@ -670,13 +670,8 @@ class Layout(T)
                                 return (tsize + size_t.sizeof - 1) & ~(size_t.sizeof - 1);
                         }
 
-                        foreach (ref v; aa)
+                        void handleKV ( void* pk, void* pv )
                         {
-                            // the key is befor the value, so substrace with fixed key size from above
-                            auto pk = cast(Arg)( &v - roundUp(AK.sizeof));
-                            // now the real value pos is plus the real key size
-                            auto pv = cast(Arg)(pk + roundUp(tiKey.tsize()));
-
                             if (!first)
                                 length += sink (", ");
                             process (tiKey, pk);
@@ -684,6 +679,29 @@ class Layout(T)
                             process (tiVal, pv);
                             first = false;
                         }
+
+                        static if (__VERSION__ > 2067)
+                        {
+                            foreach (ref k, ref v; aa)
+                            {
+                                auto pk = cast(Arg) &k;
+                                auto pv = cast(Arg) &v;
+                                handleKV(pk, pv);
+                            }
+                        }
+                        else
+                        {
+                            foreach (ref v; aa)
+                            {
+                                // the key is befor the value, so substrace with
+                                //fixed key size from above
+                                auto pk = cast(Arg)( &v - roundUp(AK.sizeof));
+                                // now the real value pos is plus the real key size
+                                auto pv = cast(Arg)(pk + roundUp(tiKey.tsize()));
+                                handleKV(pk, pv);
+                            }
+                        }
+
                         length += sink ("}");
                     }
                     else
