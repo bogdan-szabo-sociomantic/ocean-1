@@ -1690,7 +1690,9 @@ class TextView(T) : UniText
 
 class UniText
 {
-    abstract cstring toString  (char[]  dst = null);
+    abstract cstring toString  (char[]  dst);
+
+    override abstract istring toString ( );
 
     abstract Const!(wchar)[] toString16 (wchar[] dst = null);
 
