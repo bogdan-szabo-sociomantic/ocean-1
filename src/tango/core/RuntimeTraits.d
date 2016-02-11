@@ -34,8 +34,12 @@ TypeInfo realType (TypeInfo type)
                  (type.classinfo.name.length is 15  && type.classinfo.name[9..$] == "Shared") ||
                  (type.classinfo.name.length is 14  && type.classinfo.name[9..$] == "Inout"))
         {
-            return (cast(TypeInfo_Const)type).next;
+            static if (__VERSION__ >= 2070)
+                return (cast(TypeInfo_Const)type).base;
+            else
+                return (cast(TypeInfo_Const)type).next;
         }
+
         return type;
     }
     else
