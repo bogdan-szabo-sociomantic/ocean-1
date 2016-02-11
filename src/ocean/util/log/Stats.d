@@ -82,6 +82,8 @@ version (UnitTest)
 
 *******************************************************************************/
 
+deprecated("Applications using the periodic stats log should instead use the "
+    "DaemonApp application base class and override its onStatsTimer() method.")
 public class PeriodicStatsLog ( T ) : IPeriodicStatsLog
 {
     /***************************************************************************
@@ -237,7 +239,7 @@ public class PeriodicStatsLog ( T ) : IPeriodicStatsLog
 // onStatsTimer(), which can be overridden). See the StatsLog usage example to
 // see what this looks like.
 /// Usage example for PeriodicStatsLog in a simple application
-unittest
+deprecated unittest
 {
     class MyPeriodicStatsApp : DaemonApp
     {
@@ -289,6 +291,8 @@ unittest
 
 *******************************************************************************/
 
+deprecated("Applications using the periodic stats log should instead use the "
+    "DaemonApp application base class and override its onStatsTimer() method.")
 public abstract class IPeriodicStatsLog
 {
     /***************************************************************************

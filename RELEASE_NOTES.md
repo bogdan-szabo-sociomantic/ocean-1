@@ -85,6 +85,15 @@ Deprecations
   deriving from these classes should change to use either `CliApp` or
   `DaemonApp`.
 
+* `ocean.util.log.Stats`
+
+  The classes `PeriodicStatsLog` and `IPeriodicStatsLog` have been deprecated.
+  Applications using these classes should be migrated to use the periodic stats
+  logging feature of the `DaemonApp` application base class. `DaemonApp` has a
+  method called `onStatsTimer()` which is called every 30s
+  (`IStatsLog.default_period`). Applications should override this method and use
+  the `StatsLog` instance (`this.stats_ext.stats_log`) to write their stats.
+
 New Features
 ============
 
