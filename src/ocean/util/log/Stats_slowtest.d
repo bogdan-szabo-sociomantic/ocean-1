@@ -89,16 +89,23 @@ unittest
 
     FactoryStats stats;
     stats.workers_hired = 420;
-    ProductionLineStats[istring] line_stats;
-    line_stats["samsung"] = ProductionLineStats(10_000, 200);
-    line_stats["apple"] = ProductionLineStats(800, 100);
+
+    static struct Entry
+    {
+        istring name;
+        ProductionLineStats stats;
+    } 
+
+    Entry[] entries = [
+        Entry("samsung", ProductionLineStats(10_000, 200)),
+        Entry("apple", ProductionLineStats(800, 100))
+    ];
 
     // log everything
     logger.add(stats);
-    foreach ( name, stats; line_stats )
-    {
-        logger.addObject!("production_line")(name, stats);
-    }
+
+    foreach (entry; entries)
+        logger.addObject!("production_line")(entry.name, entry.stats);
 
     logger.test();
 }
