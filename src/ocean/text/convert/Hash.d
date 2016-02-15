@@ -496,3 +496,84 @@ private bool handleRadix ( cstring str, bool allow_radix,
     return process(str);
 }
 
+/*********************************************************************
+
+    Convert a string of hex digits to a byte array. This is only useful
+    for RT strings. If one needs to do this with literals, x"FF FF" is
+    a better approach.
+
+    Params:
+        str = the string of hex digits to be converted
+        buf = a byte array where the values will be stored
+
+    Returns:
+        true if conversion succeeded, false if the length of the
+        string is odd, or any of the characters is not valid hex digit.
+
+ *********************************************************************/
+
+public bool hexToBin (cstring str, ref ubyte[] buf)
+{
+    static uint digit_for_character (char c)
+    {
+        if ( c >= '0' && c <= '9' )
+              return c - '0';
+        else if ( c >= 'a' && c <= 'f' )
+              return c - 'a' + 10;
+        else if ( c >= 'A' && c <= 'F' )
+              return c - 'A' + 10;
+
+        // c is guaranteed to be a valid hex string
+        // by the caller
+        assert (false);
+    }
+
+    if (str.length % 2 != 0)
+    {
+        return false;
+    }
+
+    if (!isHex(str))
+    {
+        return false;
+    }
+
+    buf.length = str.length / 2;
+
+    foreach (i, ref b; buf)
+    {
+        auto j = i * 2;
+
+        b = cast(ubyte)(((digit_for_character(str[j]) & 0x0F) << 4) |
+                       (digit_for_character(str[j + 1]) & 0x0F));
+    }
+
+    return true;
+}
+
+unittest
+{
+    ubyte[] arr;
+    test!("==")(hexToBin("FFFF", arr), true);
+    test!("==")(arr, cast(ubyte[])[255, 255]);
+    arr.length = 0;
+    enableStomping(arr);
+
+    test!("==")(hexToBin("0000", arr), true);
+    test!("==")(arr, cast(ubyte[])[0, 0]);
+    arr.length = 0;
+    enableStomping(arr);
+
+    test!("==")(hexToBin("", arr), true);
+    test!("==")(arr, cast(ubyte[])[]);
+    arr.length = 0;
+    enableStomping(arr);
+
+    test!("==")(hexToBin("FFF", arr), false);
+    arr.length = 0;
+    enableStomping(arr);
+
+    test!("==")(hexToBin("(FFF", arr), false);
+    arr.length = 0;
+    enableStomping(arr);
+}

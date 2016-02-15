@@ -128,3 +128,8 @@ New Features
 
   `sort` function now returns its argument after sorting. This is done to be
   able to replace built-in sort which is needed for D2 migration.
+
+* `ocean.text.convert.Hash`
+
+  New method `hexToBin` is added to convert a string of hex digits to a byte array
+  (only byte per two characters).
