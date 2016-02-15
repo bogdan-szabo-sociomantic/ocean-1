@@ -33,6 +33,11 @@ import Integer = ocean.text.convert.Integer;
 
 import ocean.core.TypeConvert;
 
+version (UnitTest)
+{
+    import ocean.core.Test;
+}
+
 
 /*******************************************************************************
 
@@ -77,27 +82,27 @@ unittest
         hash_t hash;
 
         // empty string
-        assert(!toHashT("", hash));
+        test!("==")(toHashT("", hash), false);
 
         // just radix
-        assert(!toHashT("0x", hash, true));
+        test!("==")(toHashT("0x", hash, true), false);
 
         // non-hex
-        assert(!toHashT("zzz", hash));
+        test!("==")(toHashT("zzz", hash), false);
 
         // integer overflow
-        assert(!toHashT("12345678123456789", hash));
+        test!("==")(toHashT("12345678123456789", hash), false);
 
         // simple hash
         toHashT("12345678", hash);
-        assert(hash == 0x12345678);
+        test!("==")(hash, 0x12345678);
 
         // hash with radix, disallowed
-        assert(!toHashT("0x12345678", hash));
+        test!("==")(toHashT("0x12345678", hash), false);
 
         // hash with radix, allowed
         toHashT("0x12345678", hash, true);
-        assert(hash == 0x12345678);
+        test!("==")(hash, 0x12345678);
     }
     else
     {
@@ -144,36 +149,36 @@ unittest
         hash_t hash;
 
         // empty string
-        assert(!hashDigestToHashT("", hash));
+        test!("==")(hashDigestToHashT("", hash), false);
 
         // just radix
-        assert(!hashDigestToHashT("0x", hash, true));
+        test!("==")(hashDigestToHashT("0x", hash, true), false);
 
         // non-hex
-        assert(!hashDigestToHashT("zzz", hash));
+        test!("==")(hashDigestToHashT("zzz", hash), false);
 
         // too short
-        assert(!hashDigestToHashT("123456781234567", hash));
+        test!("==")(hashDigestToHashT("123456781234567", hash), false);
 
         // too short, with radix
-        assert(!hashDigestToHashT("0x" ~ "123456781234567", hash, true));
+        test!("==")(hashDigestToHashT("0x" ~ "123456781234567", hash, true), false);
 
         // too long
-        assert(!hashDigestToHashT("12345678123456789", hash));
+        test!("==")(hashDigestToHashT("12345678123456789", hash), false);
 
         // too long, with radix
-        assert(!hashDigestToHashT("0x12345678123456789", hash, true));
+        test!("==")(hashDigestToHashT("0x12345678123456789", hash, true), false);
 
         // just right
         hashDigestToHashT("1234567812345678", hash);
-        assert(hash == 0x1234567812345678);
+        test!("==")(hash, 0x1234567812345678);
 
         // just right with radix, disallowed
-        assert(!hashDigestToHashT("0x1234567812345678", hash));
+        test!("==")(hashDigestToHashT("0x1234567812345678", hash), false);
 
         // just right with radix, allowed
         hashDigestToHashT("0x1234567812345678", hash, true);
-        assert(hash == 0x1234567812345678);
+        test!("==")(hash, 0x1234567812345678);
     }
     else
     {
@@ -212,13 +217,13 @@ unittest
 
     static if ( HashDigits == 16 )
     {
-        assert(toHashDigest(hash_t.min, str) == "0000000000000000");
-        assert(toHashDigest(hash_t.max, str) == "ffffffffffffffff");
+        test!("==")(toHashDigest(hash_t.min, str), "0000000000000000");
+        test!("==")(toHashDigest(hash_t.max, str), "ffffffffffffffff");
     }
     else
     {
-        assert(toHashDigest(hash_t.min, str) == "00000000");
-        assert(toHashDigest(hash_t.max, str) == "ffffffff");
+        test!("==")(toHashDigest(hash_t.min, str), "00000000");
+        test!("==")(toHashDigest(hash_t.max, str), "ffffffff");
     }
 }
 
@@ -257,28 +262,28 @@ public bool isHex ( cstring str, bool allow_radix = false )
 unittest
 {
     // empty string
-    assert(isHex(""));
+    test!("==")(isHex(""), true);
 
     // radix only, allowed
-    assert(isHex("0x", true));
+    test!("==")(isHex("0x", true), true);
 
     // radix only, disallowed
-    assert(!isHex("0x"));
+    test!("==")(isHex("0x"), false);
 
     // non-hex
-    assert(!isHex("zzz"));
+    test!("==")(isHex("zzz"), false);
 
     // simple hex
-    assert(isHex("1234567890abcdef"));
+    test!("==")(isHex("1234567890abcdef"), true);
 
     // simple hex, upper case
-    assert(isHex("1234567890ABCDEF"));
+    test!("==")(isHex("1234567890ABCDEF"), true);
 
     // simple hex with radix, allowed
-    assert(isHex("0x1234567890abcdef", true));
+    test!("==")(isHex("0x1234567890abcdef", true), true);
 
     // simple hex with radix, disallowed
-    assert(!isHex("0x1234567890abcdef"));
+    test!("==")(isHex("0x1234567890abcdef"), false);
 }
 
 
@@ -323,11 +328,11 @@ unittest
         auto c = castFrom!(int).to!(char)(i);
         if ( contains(good, c) )
         {
-            assert(isHex(c));
+            test!("==")(isHex(c), true);
         }
         else
         {
-            assert(!isHex(c));
+            test!("==")(!isHex(c), true);
         }
     }
 }
@@ -366,31 +371,31 @@ unittest
     static if ( HashDigits == 16 )
     {
         // empty string
-        assert(!isHashDigest(""));
+        test!("==")(isHashDigest(""), false);
 
         // radix only, allowed
-        assert(!isHashDigest("0x", true));
+        test!("==")(isHashDigest("0x", true), false);
 
         // radix only, disallowed
-        assert(!isHashDigest("0x"));
+        test!("==")(isHashDigest("0x"), false);
 
         // too short
-        assert(!isHashDigest("123456781234567"));
+        test!("==")(isHashDigest("123456781234567"), false);
 
         // too short, with radix
-        assert(!isHashDigest("0x" ~ "123456781234567", true));
+        test!("==")(isHashDigest("0x" ~ "123456781234567", true), false);
 
         // too long
-        assert(!isHashDigest("12345678123456789"));
+        test!("==")(isHashDigest("12345678123456789"), false);
 
         // too long, with radix
-        assert(!isHashDigest("0x" ~ "12345678123456789", true));
+        test!("==")(isHashDigest("0x" ~ "12345678123456789", true), false);
 
         // just right
-        assert(isHashDigest("1234567812345678"));
+        test!("==")(isHashDigest("1234567812345678"), true);
 
         // just right, with radix
-        assert(isHashDigest("0x1234567812345678", true));
+        test!("==")(isHashDigest("0x1234567812345678", true), true);
     }
     else
     {
@@ -429,30 +434,30 @@ public mstring hexToLower ( mstring str )
 unittest
 {
     // empty string
-    assert(hexToLower(null) == "");
+    test!("==")(hexToLower(null), "");
 
     // numbers only
-    assert(hexToLower("123456678".dup) == "123456678");
+    test!("==")(hexToLower("123456678".dup), "123456678");
 
     // lower case letters
-    assert(hexToLower("abcdef".dup) == "abcdef");
+    test!("==")(hexToLower("abcdef".dup), "abcdef");
 
     // upper case letters
-    assert(hexToLower("ABCDEF".dup) == "abcdef");
+    test!("==")(hexToLower("ABCDEF".dup), "abcdef");
 
     // non-hex letters, lower case
-    assert(hexToLower("uvwxyz".dup) == "uvwxyz");
+    test!("==")(hexToLower("uvwxyz".dup), "uvwxyz");
 
     // non-hex letters, upper case
-    assert(hexToLower("UVWXYZ".dup) == "UVWXYZ");
+    test!("==")(hexToLower("UVWXYZ".dup), "UVWXYZ");
 
     // mixed
-    assert(hexToLower("12345678abcdefABCDEFUVWXYZ".dup) == "12345678abcdefabcdefUVWXYZ");
+    test!("==")(hexToLower("12345678abcdefABCDEFUVWXYZ".dup), "12345678abcdefabcdefUVWXYZ");
 
     // check that string is modified in-place
     mstring str = "ABCDEF".dup;
     auto converted = hexToLower(str);
-    assert(converted.ptr == str.ptr);
+    test!("==")(converted.ptr, str.ptr);
 }
 
 
