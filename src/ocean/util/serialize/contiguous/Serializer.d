@@ -18,6 +18,7 @@ module ocean.util.serialize.contiguous.Serializer;
 import tango.transition;
 
 import ocean.util.serialize.model.Traits;
+import ocean.util.serialize.contiguous.Contiguous;
 
 import ocean.core.Traits : ContainsDynamicArray;
 
@@ -107,6 +108,29 @@ struct Serializer
         {
             return data[0 .. src.sizeof];
         }
+    }
+
+    /***************************************************************************
+
+        In-place serialization that takes advantage of the fact Contiguous
+        instances already have required data layout. All arrays within 
+        `src` will be reset to null (and their length to 0) making their data
+        unreachable from original struct. This is done to minimize risk of
+        dangling array pointers.
+
+        Params:
+            src = contiguous struct instance to serialize
+
+        Returns:
+            slice of internal `src` byte array after setting all array pointers
+            to null
+
+    ***************************************************************************/
+
+    public static void[] serialize ( S ) ( ref Contiguous!(S) src )
+    {
+        This.resetReferences(*src.ptr);
+        return src.data[];
     }
 
     /***************************************************************************
@@ -829,7 +853,7 @@ unittest
 
     test!("==")(ptr.a, 42);
     test!("==")(ptr.b, 43);
-    test!("is")(ptr.c, null);
+    test!("is")(ptr.c.ptr, null);
 }
 
 // non-void[] dst

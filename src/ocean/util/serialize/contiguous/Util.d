@@ -60,7 +60,7 @@ public Contiguous!(S) copy(S) ( Contiguous!(S) src, ref Contiguous!(S) dst )
 
 public Contiguous!(S) copy(S) ( ref S src, ref Contiguous!(S) dst )
 {
-    Serializer.serialize!(S)(src, dst.data);
+    Serializer.serialize(src, dst.data);
     dst = Deserializer.deserialize!(S)(dst.data);
     return dst;
 }
@@ -105,7 +105,7 @@ unittest
 
 public S deepCopy (S) (  ref S src, ref void[] dst )
 {
-    Serializer.serialize!(S)(src, dst);
+    Serializer.serialize(src, dst);
     return *Deserializer.deserialize!(S)(dst).ptr;
 }
 

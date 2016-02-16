@@ -77,7 +77,7 @@ template StoreMethod(Serializer)
             + Version.Type.sizeof;
         enableStomping(buffer);
         auto unversioned = Version.inject(*buffer_untyped, VInfo.number);
-        Serializer.serialize!(S)(input, unversioned);
+        Serializer.serialize(input, unversioned);
 
         assert(unversioned.ptr is (buffer.ptr + Version.Type.sizeof));
 

@@ -17,6 +17,13 @@ Migration Instructions
   For `NotifyingQueue` instantiated with a struct type, the old `pop()`
   method only taking a byte buffer has been deprecated.
 
+* `ocean.util.serialize.contiguous.Serializer`
+
+  If you have been using partial explicit template argument list
+  (``Serializer.serialize!(S)(instance, dst)``) it will need to be replaced
+  with fully implicit version (``Serializer.serialize(instance, dst)``) because
+  of dmd1 template function overloading glitches.
+
 Removed Symbols
 ---------------
 
@@ -137,3 +144,10 @@ New Features
 
   New method `hexToBin` is added to convert a string of hex digits to a byte array
   (only byte per two characters).
+
+* `ocean.util.serialize.contiguous.Serializer`
+
+  `Serializer.serialize` has new single-argument overload which serializes
+  given contiguous struct instance in place, resetting all its array
+  pointers to null. This take advantage of `Contiguous` data layout and is
+  both very fast and doesn't require new memory buffer.

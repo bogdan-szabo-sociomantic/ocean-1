@@ -317,6 +317,30 @@ unittest
 
 /******************************************************************************
 
+    Serialize in-place
+
+******************************************************************************/
+
+unittest
+{
+    auto t = new NamedTest("In-place serialization");
+    auto s = defaultS();
+    void[] buffer;
+
+    // create Contiguous!(S) instance first
+    Serializer.serialize(s, buffer);
+    auto cont_S = Deserializer.deserialize!(S)(buffer);
+
+    // check that serializations nulls pointers 
+    auto serialized = Serializer.serialize(cont_S);
+    test!("is")(serialized.ptr, cont_S.ptr);
+    test!("is")(cont_S.ptr.s4_dynamic_array.ptr, null);
+    test!("is")(cont_S.ptr.s2.a.ptr, null);
+    test!("is")(cont_S.ptr.s2.b.ptr, null);
+}
+
+/******************************************************************************
+
     Extra unused bytes in source
 
 ******************************************************************************/
