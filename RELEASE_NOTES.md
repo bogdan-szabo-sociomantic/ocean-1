@@ -17,24 +17,6 @@ Migration Instructions
   For `NotifyingQueue` instantiated with a struct type, the old `pop()`
   method only taking a byte buffer has been deprecated.
 
-* `ocean.sys.CpuAffinity`
-
-  - `CpuAffinity.set()` now throws `ErrnoException` on failure. It used to
-    return `false` before; the return type is now `void`.
-
-* `ocean.io.select.protocol.fiber.FiberSelectWriter`
-
-  The following methods can now throw `IOError`:
-
-    * `flush()`
-    * `cork(bool)` (the setter method)
-
-  Before these methods didn't throw. Now they do, especially if the socket file
-  handle is invalid. A known case where this happens is if a server application
-  attempts to enable cork for a client socket `FiberSelectWriter` object
-  *before* handing the socket over to the writer object. This is wrong usage and
-  a bug in the application code, which is not silently accepted any more.
-
 Removed Symbols
 ---------------
 
