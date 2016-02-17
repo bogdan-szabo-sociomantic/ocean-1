@@ -76,6 +76,10 @@ Deprecations
   (`IStatsLog.default_period`). Applications should override this method and use
   the `StatsLog` instance (`this.stats_ext.stats_log`) to write their stats.
 
+* `ocean.text.convert.Hash.isHex`, `ocean.text.convert.Hash.hexToLower`
+
+  These methods were moved to a new module `ocean.text.convert.Hex`.
+
 New Features
 ============
 
@@ -129,7 +133,7 @@ New Features
   `sort` function now returns its argument after sorting. This is done to be
   able to replace built-in sort which is needed for D2 migration.
 
-* `ocean.text.convert.Hash`
+* `ocean.text.convert.Hex`
 
   New method `hexToBin` is added to convert a string of hex digits to a byte array
   (only byte per two characters).
