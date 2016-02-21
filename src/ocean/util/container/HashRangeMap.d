@@ -627,6 +627,7 @@ unittest
 
 version ( UnitTest )
 {
+    import ocean.core.Traits;
     import tango.core.Traits;
 
     private template hasAtomicEquality ( T )
@@ -637,7 +638,7 @@ version ( UnitTest )
         }
         else
         {
-            const hasAtomicEquality = isAtomicType!(T) || isPointerType!(T);
+            const hasAtomicEquality = isPrimitiveType!(T) || isPointerType!(T);
         }
     }
 

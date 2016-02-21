@@ -164,41 +164,6 @@ template isFloatingPointType( T )
                                      isImaginaryType!(T);
 }
 
-/// true if T is an atomic type
-template isAtomicType(T)
-{
-    static if( is( T == bool )
-            || is( T == char )
-            || is( T == wchar )
-            || is( T == dchar )
-            || is( T == byte )
-            || is( T == short )
-            || is( T == int )
-            || is( T == long )
-            || is( T == ubyte )
-            || is( T == ushort )
-            || is( T == uint )
-            || is( T == ulong )
-            || is( T == float )
-            || is( T == double )
-            || is( T == real )
-            || is( T == ifloat )
-            || is( T == idouble )
-            || is( T == ireal ) )
-        const isAtomicType = true;
-    else
-        const isAtomicType = false;
-}
-
-unittest
-{
-    static assert ( isAtomicType!(long));
-    static assert (!isAtomicType!(long[]));
-
-    struct Test { }
-    static assert (!isAtomicType!(Test));
-}
-
 /**
  * complex type for the given type
  */
