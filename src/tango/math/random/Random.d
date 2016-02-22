@@ -174,7 +174,6 @@ import tango.transition;
 import tango.math.random.engines.URandom;
 import tango.math.random.engines.KissCmwc;
 import tango.math.random.engines.ArraySource;
-import tango.math.random.engines.Sync;
 import tango.math.random.engines.Twister;
 import tango.math.random.NormalSource;
 import tango.math.random.ExpSource;
@@ -280,7 +279,7 @@ final class RandomG(SourceT=DefaultEngine)
         return uniformR2!(uint)(from,to);
     }
     /// ditto
-    static RandomG!(Sync!(DefaultEngine)) instance(){
+    static RandomG!(DefaultEngine) instance(){
         return rand;
     }
     //-------- Utility functions to quickly get a uniformly distributed random number -----------
@@ -1232,7 +1231,7 @@ final class RandomG(SourceT=DefaultEngine)
 /// you can safely expect a new instance of this to be indipendent from all the others
 alias RandomG!() Random;
 /// default threadsafe random number generator type
-alias RandomG!(Sync!(DefaultEngine)) RandomSync;
+alias RandomG!(DefaultEngine) RandomSync;
 
 /// shared locked (threadsafe) random number generator
 /// initialized with urandom if available, with time otherwise
@@ -1456,5 +1455,4 @@ unittest {
     testRandSource!(KissCmwc_default)();
     testRandSource!(Twister)();
     testRandSource!(DefaultEngine)();
-    testRandSource!(Sync!(DefaultEngine))();
 }
