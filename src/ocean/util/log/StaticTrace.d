@@ -137,7 +137,7 @@ public class StaticSyncPrint
 
     /***************************************************************************
 
-        Outputs a thread-synchronized string to the console.
+        Outputs a string to the console.
 
         Params:
             fmt = format string (same format as tanog.util.log.Trace)

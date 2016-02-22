@@ -1050,46 +1050,43 @@ public class Hierarchy : Logger.Context
 
         private Logger inject (cstring label, Logger delegate(cstring name) dg)
         {
-            synchronized (this)
-            {
-                // try not to allocate unless you really need to
-                char[255] stack_buffer;
-                mstring buffer = stack_buffer;
+            // try not to allocate unless you really need to
+            char[255] stack_buffer;
+            mstring buffer = stack_buffer;
 
-                if (buffer.length < label.length + 1)
-                    buffer.length = label.length + 1;
+            if (buffer.length < label.length + 1)
+                buffer.length = label.length + 1;
 
-                buffer[0 .. label.length] = label[];
-                buffer[label.length] = '.';
+            buffer[0 .. label.length] = label[];
+            buffer[label.length] = '.';
 
-                auto name_ = buffer[0 .. label.length + 1];
-                cstring name;
-                auto l = name_ in loggers;
+            auto name_ = buffer[0 .. label.length + 1];
+            cstring name;
+            auto l = name_ in loggers;
 
-                if (l is null)
-                   {
-                   // don't use the stack allocated buffer
-                   if (name_.ptr is stack_buffer.ptr)
-                       name = idup(name_);
-                   else
-                       name = assumeUnique(name_);
-                   // create a new logger
-                   auto li = dg(name);
-                   l = &li;
+            if (l is null)
+               {
+               // don't use the stack allocated buffer
+               if (name_.ptr is stack_buffer.ptr)
+                   name = idup(name_);
+               else
+                   name = assumeUnique(name_);
+               // create a new logger
+               auto li = dg(name);
+               l = &li;
 
-                   // insert into linked list
-                   insert (li);
+               // insert into linked list
+               insert (li);
 
-                   // look for and adjust children. Don't force
-                   // property inheritance on existing loggers
-                   update (li);
+               // look for and adjust children. Don't force
+               // property inheritance on existing loggers
+               update (li);
 
-                   // insert into map
-                   loggers [name] = li;
-                   }
+               // insert into map
+               loggers [name] = li;
+               }
 
-                return *l;
-            }
+            return *l;
         }
 
         /***********************************************************************
@@ -1629,13 +1626,10 @@ public class AppendStream : Appender
         {
                 const istring Eol = "\n";
 
-                synchronized (stream_)
-                             {
-                             layout.format (event, (Const!(void)[] content){return stream_.write(content);});
-                             stream_.write (Eol);
-                             if (flush_)
-                                 stream_.flush;
-                             }
+                layout.format (event, (Const!(void)[] content){return stream_.write(content);});
+                stream_.write (Eol);
+                if (flush_)
+                    stream_.flush;
         }
 }
 

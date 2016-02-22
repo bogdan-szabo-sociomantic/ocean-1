@@ -489,11 +489,8 @@ void constructor()
 
 static ~this()
 {
-    synchronized (Cout.stream)
-        Cout.flush;
-
-    synchronized (Cerr.stream)
-        Cerr.flush;
+    Cout.flush;
+    Cerr.flush;
 }
 
 

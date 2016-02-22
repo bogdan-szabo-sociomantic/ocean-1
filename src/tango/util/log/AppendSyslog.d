@@ -150,28 +150,25 @@ public class AppendSyslog: Filer
 
     final override void append ( LogEvent event )
     {
-        synchronized (this) 
+        // file already full?
+        if (file_size >= max_size) nextFile();
+
+        size_t write ( Const!(void)[] content )
         {
-            // file already full?
-            if (file_size >= max_size) nextFile();
+            file_size += content.length;
+            return buffer.write(content);
+        }
 
-            size_t write ( Const!(void)[] content )
-            {
-                file_size += content.length;
-                return buffer.write(content);
-            }
-
-            // write log message and flush it
-            layout.format(event, &write);
-            try
-            {
-                write(FileConst.NewlineString);
-                buffer.flush;
-            }
-            catch ( Exception e )
-            {
-                Stderr.formatln("Failed to write logline: {}", e.msg);
-            }
+        // write log message and flush it
+        layout.format(event, &write);
+        try
+        {
+            write(FileConst.NewlineString);
+            buffer.flush;
+        }
+        catch ( Exception e )
+        {
+            Stderr.formatln("Failed to write logline: {}", e.msg);
         }
     }
 

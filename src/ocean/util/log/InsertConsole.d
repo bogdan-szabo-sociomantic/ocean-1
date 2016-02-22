@@ -136,7 +136,7 @@ public class InsertConsole: Appender
 
         const istring Eol = "\n";
 
-        synchronized (stream_) with ( Terminal )
+        with ( Terminal )
         {
             layout.format(
               event,

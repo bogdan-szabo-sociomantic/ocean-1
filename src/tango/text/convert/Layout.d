@@ -332,139 +332,136 @@ class Layout(T)
 
     public final size_t convert (SizeSink sink, TypeInfo[] arguments, ArgList args, Const!(T)[] formatStr)
     {
-        synchronized (this)
+        version (LinuxVarArgs)
         {
-            version (LinuxVarArgs)
+            assert (formatStr, "null format specifier");
+            assert (arguments.length < 64, "too many args in Layout.convert");
+
+            union ArgU {int i; byte b; long l; short s; void[] a;
+                real r; float f; double d;
+                cfloat cf; cdouble cd; creal cr;}
+
+            Arg[64] arglist = void;
+            ArgU[64] storedArgs = void;
+
+            foreach (i, arg; arguments)
             {
-                assert (formatStr, "null format specifier");
-                assert (arguments.length < 64, "too many args in Layout.convert");
-
-                union ArgU {int i; byte b; long l; short s; void[] a;
-                    real r; float f; double d;
-                    cfloat cf; cdouble cd; creal cr;}
-
-                Arg[64] arglist = void;
-                ArgU[64] storedArgs = void;
-
-                foreach (i, arg; arguments)
-                {
-                    static if (is(typeof(args.ptr)))
-                        arglist[i] = args.ptr;
-                    else
-                        arglist[i] = args;
-
-                    /* Since floating point types don't live on
-                     * the stack, they must be accessed by the
-                     * correct type. */
-                    bool converted = false;
-
-                    auto tinfo = arg;
-
-                    if (tinfo is typeid(float) || tinfo is typeid(ifloat))
-                    {
-                        storedArgs[i].f = va_arg!(float)(args);
-                        arglist[i] = &(storedArgs[i].f);
-                        converted = true;
-                    }
-                    else if (tinfo is typeid(cfloat))
-                    {
-                        storedArgs[i].cf = va_arg!(cfloat)(args);
-                        arglist[i] = &(storedArgs[i].cf);
-                        converted = true;
-                    }
-                    else if (tinfo is typeid(double) || tinfo is typeid(idouble))
-                    {
-                        storedArgs[i].d = va_arg!(double)(args);
-                        arglist[i] = &(storedArgs[i].d);
-                        converted = true;
-                    }
-                    else if (tinfo is typeid(cdouble))
-                    {
-                        storedArgs[i].cd = va_arg!(cdouble)(args);
-                        arglist[i] = &(storedArgs[i].cd);
-                        converted = true;
-                    }
-                    else if (tinfo is typeid(real) || tinfo is typeid(ireal))
-                    {
-                        storedArgs[i].r = va_arg!(real)(args);
-                        arglist[i] = &(storedArgs[i].r);
-                        converted = true;
-                    }
-                    else if (tinfo is typeid(creal))
-                    {
-                        storedArgs[i].cr = va_arg!(creal)(args);
-                        arglist[i] = &(storedArgs[i].cr);
-                        converted = true;
-                    }
-
-                    if (! converted)
-                    {
-                        switch (arg.tsize)
-                        {
-                            version (D_Version2)
-                            {
-                                case 0: // null literal, consider it pointer size 
-                                    static if (is(size_t == ulong))
-                                    {
-                                        storedArgs[i].l = va_arg!(long)(args);
-                                        arglist[i] = &(storedArgs[i].l);
-                                    }
-                                    else
-                                    {
-                                        storedArgs[i].i = va_arg!(int)(args);
-                                        arglist[i] = &(storedArgs[i].i);
-                                    }
-                                    break;
-                            }
-                            case 1:
-                                storedArgs[i].b = va_arg!(byte)(args);
-                                arglist[i] = &(storedArgs[i].b);
-                                break;
-                            case 2:
-                                storedArgs[i].s = va_arg!(short)(args);
-                                arglist[i] = &(storedArgs[i].s);
-                                break;
-                            case 4:
-                                storedArgs[i].i = va_arg!(int)(args);
-                                arglist[i] = &(storedArgs[i].i);
-                                break;
-                            case 8:
-                                storedArgs[i].l = va_arg!(long)(args);
-                                arglist[i] = &(storedArgs[i].l);
-                                break;
-                            case 16:
-                                assert((void[]).sizeof==16,"Structure size not supported");
-                                storedArgs[i].a = va_arg!(void[])(args);
-                                arglist[i] = &(storedArgs[i].a);
-                                break;
-                            default:
-                                assert (false, "Unknown size: " ~ Integer.toString (arg.tsize));
-                        }
-                    }
-                }
-            }
-            else
-            {
-                /+
-                    Arg[64] arglist = void;
-                foreach (i, arg; arguments)
-                {
+                static if (is(typeof(args.ptr)))
+                    arglist[i] = args.ptr;
+                else
                     arglist[i] = args;
-                    args += (arg.tsize + size_t.sizeof - 1) & ~ (size_t.sizeof - 1);
-                }
-                +/
 
-                this.arglist.length = arguments.length;
+                /* Since floating point types don't live on
+                 * the stack, they must be accessed by the
+                 * correct type. */
+                bool converted = false;
 
-                foreach (i, arg; arguments)
+                auto tinfo = arg;
+
+                if (tinfo is typeid(float) || tinfo is typeid(ifloat))
                 {
-                    this.arglist[i] = args;
-                    args += (arg.tsize + size_t.sizeof - 1) & ~ (size_t.sizeof - 1);
+                    storedArgs[i].f = va_arg!(float)(args);
+                    arglist[i] = &(storedArgs[i].f);
+                    converted = true;
+                }
+                else if (tinfo is typeid(cfloat))
+                {
+                    storedArgs[i].cf = va_arg!(cfloat)(args);
+                    arglist[i] = &(storedArgs[i].cf);
+                    converted = true;
+                }
+                else if (tinfo is typeid(double) || tinfo is typeid(idouble))
+                {
+                    storedArgs[i].d = va_arg!(double)(args);
+                    arglist[i] = &(storedArgs[i].d);
+                    converted = true;
+                }
+                else if (tinfo is typeid(cdouble))
+                {
+                    storedArgs[i].cd = va_arg!(cdouble)(args);
+                    arglist[i] = &(storedArgs[i].cd);
+                    converted = true;
+                }
+                else if (tinfo is typeid(real) || tinfo is typeid(ireal))
+                {
+                    storedArgs[i].r = va_arg!(real)(args);
+                    arglist[i] = &(storedArgs[i].r);
+                    converted = true;
+                }
+                else if (tinfo is typeid(creal))
+                {
+                    storedArgs[i].cr = va_arg!(creal)(args);
+                    arglist[i] = &(storedArgs[i].cr);
+                    converted = true;
                 }
 
+                if (! converted)
+                {
+                    switch (arg.tsize)
+                    {
+                        version (D_Version2)
+                        {
+                            case 0: // null literal, consider it pointer size 
+                                static if (is(size_t == ulong))
+                                {
+                                    storedArgs[i].l = va_arg!(long)(args);
+                                    arglist[i] = &(storedArgs[i].l);
+                                }
+                                else
+                                {
+                                    storedArgs[i].i = va_arg!(int)(args);
+                                    arglist[i] = &(storedArgs[i].i);
+                                }
+                                break;
+                        }
+                        case 1:
+                            storedArgs[i].b = va_arg!(byte)(args);
+                            arglist[i] = &(storedArgs[i].b);
+                            break;
+                        case 2:
+                            storedArgs[i].s = va_arg!(short)(args);
+                            arglist[i] = &(storedArgs[i].s);
+                            break;
+                        case 4:
+                            storedArgs[i].i = va_arg!(int)(args);
+                            arglist[i] = &(storedArgs[i].i);
+                            break;
+                        case 8:
+                            storedArgs[i].l = va_arg!(long)(args);
+                            arglist[i] = &(storedArgs[i].l);
+                            break;
+                        case 16:
+                            assert((void[]).sizeof==16,"Structure size not supported");
+                            storedArgs[i].a = va_arg!(void[])(args);
+                            arglist[i] = &(storedArgs[i].a);
+                            break;
+                        default:
+                            assert (false, "Unknown size: " ~ Integer.toString (arg.tsize));
+                    }
+                }
             }
-            return parse (formatStr, arguments, arglist, sink);
         }
+        else
+        {
+            /+
+                Arg[64] arglist = void;
+            foreach (i, arg; arguments)
+            {
+                arglist[i] = args;
+                args += (arg.tsize + size_t.sizeof - 1) & ~ (size_t.sizeof - 1);
+            }
+            +/
+
+            this.arglist.length = arguments.length;
+
+            foreach (i, arg; arguments)
+            {
+                this.arglist[i] = args;
+                args += (arg.tsize + size_t.sizeof - 1) & ~ (size_t.sizeof - 1);
+            }
+
+        }
+        return parse (formatStr, arguments, arglist, sink);
     }
 
     /**********************************************************************

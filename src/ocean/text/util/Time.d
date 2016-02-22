@@ -85,11 +85,7 @@ in
 body
 {
     tm time;
-
-    synchronized // gmtime returns a pointer to a shared tm instance
-    {
-        time = *gmtime(&utc);
-    }
+    time = *gmtime(&utc);
 
     const format = "%F %T\0";
     output.length = strftime(output.ptr, output.length, format.ptr, &time);

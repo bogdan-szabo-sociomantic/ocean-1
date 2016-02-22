@@ -300,11 +300,8 @@ public class TokyoCabinetM
     }
     body
     {
-        synchronized ( this )
-        {
-            tcmdbiterinit(this.db);
-            return this.iterateNextKey(key);
-        }
+        tcmdbiterinit(this.db);
+        return this.iterateNextKey(key);
     }
 
     /**************************************************************************
@@ -334,26 +331,23 @@ public class TokyoCabinetM
     }
     body
     {
-        synchronized ( this )
+        key.length = 0;
+        enableStomping(key);
+
+        if ( exists(last_key) )
         {
-            key.length = 0;
-            enableStomping(key);
+            tcmdbiterinit2(this.db, last_key.ptr,
+                castFrom!(size_t).to!(int)(last_key.length));
 
-            if ( exists(last_key) )
-            {
-                tcmdbiterinit2(this.db, last_key.ptr,
-                    castFrom!(size_t).to!(int)(last_key.length));
-
-                if ( !this.iterateNextKey(key) )
-                {
-                    return false;
-                }
-                return this.iterateNextKey(key);
-            }
-            else
+            if ( !this.iterateNextKey(key) )
             {
                 return false;
             }
+            return this.iterateNextKey(key);
+        }
+        else
+        {
+            return false;
         }
     }
 

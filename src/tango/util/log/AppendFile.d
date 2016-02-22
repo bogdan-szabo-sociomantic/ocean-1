@@ -84,12 +84,9 @@ class AppendFile : Filer
 
         final override void append (LogEvent event)
         {
-            synchronized (this)
-            {
-                layout.format (event, &buffer.write);
-                buffer.append (FileConst.NewlineString)
-                      .flush;
-            }
+            layout.format (event, &buffer.write);
+            buffer.append (FileConst.NewlineString)
+                  .flush;
         }
 }
 
@@ -124,14 +121,11 @@ class Filer : Appender
 
         final override void close ()
         {
-            synchronized (this)
-            {
-                if (conduit_)
-                   {
-                   conduit_.detach;
-                   conduit_ = null;
-                   }
-            }
+            if (conduit_)
+               {
+               conduit_.detach;
+               conduit_ = null;
+               }
         }
 
         /***********************************************************************

@@ -890,9 +890,7 @@ final class RandomG(SourceT=DefaultEngine)
     /// returns another (mostly indipendent, depending on seed size) random generator
     RandG spawn(RandG=RandomG)(){
         RandG res=new RandG(false);
-        synchronized(this){
-            res.seed(&uniform!(uint));
-        }
+        res.seed(&uniform!(uint));
         return res;
     }
 
