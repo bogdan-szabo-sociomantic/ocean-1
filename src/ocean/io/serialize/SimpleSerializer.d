@@ -54,7 +54,7 @@ module ocean.io.serialize.SimpleSerializer;
 
 import tango.transition;
 
-import ocean.core.Exception: enforce;
+import ocean.core.Enforce: enforce;
 
 import tango.core.Traits;
 

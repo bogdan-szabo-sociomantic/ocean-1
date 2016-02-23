@@ -20,7 +20,7 @@ import tango.transition;
 import ocean.util.serialize.contiguous.Contiguous;
 import ocean.util.serialize.model.Traits;
 
-import ocean.core.Exception;
+import ocean.core.Enforce;
 import ocean.core.Traits;
 
 import tango.text.convert.Format;

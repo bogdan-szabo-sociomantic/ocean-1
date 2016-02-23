@@ -28,7 +28,7 @@ import tango.transition;
 
 import tango.text.json.JsonParser;
 
-import tango.core.Enforce;
+import ocean.core.Enforce;
 import tango.core.Traits;
 
 import Integer = tango.text.convert.Integer;

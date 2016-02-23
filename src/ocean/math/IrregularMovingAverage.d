@@ -17,7 +17,7 @@ module ocean.math.IrregularMovingAverage;
 
 *******************************************************************************/
 
-import ocean.core.Exception;
+import ocean.core.Enforce;
 
 import tango.core.Traits;
 import tango.math.IEEE;

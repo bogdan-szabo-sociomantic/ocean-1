@@ -25,7 +25,7 @@ module ocean.net.http.message.HttpHeaderParser;
  ******************************************************************************/
 
 import tango.transition;
-import tango.core.Enforce;
+import ocean.core.Enforce;
 import ocean.text.util.SplitIterator: ChrSplitIterator, ISplitIterator;
 
 import ocean.net.http.HttpException: HttpParseException;

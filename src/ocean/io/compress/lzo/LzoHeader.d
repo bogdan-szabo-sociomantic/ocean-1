@@ -39,7 +39,7 @@ import ocean.io.compress.lzo.LzoCrc;
 
 import ocean.io.compress.CompressException;
 
-import ocean.core.Exception: enforce;
+import ocean.core.Enforce: enforce;
 
 version (UnitTestVerbose) import ocean.io.Stdout : Stderr;
 

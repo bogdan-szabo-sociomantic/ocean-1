@@ -44,7 +44,7 @@ public struct Range ( T )
     static assert(isUnsignedIntegerType!(T),
         "Range only works with unsigned integer types");
 
-    import ocean.core.Exception : enforce;
+    import ocean.core.Enforce : enforce;
 
     /***************************************************************************
 

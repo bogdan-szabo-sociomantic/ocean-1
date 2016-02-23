@@ -30,7 +30,7 @@ module ocean.db.tokyocabinet.util.TokyoCabinetCursor;
 
 import tango.transition;
 
-import ocean.core.Exception: enforce;
+import ocean.core.Enforce: enforce;
 import ocean.core.TypeConvert;
 
 import ocean.db.tokyocabinet.c.util.tcxstr:  TCXSTR;

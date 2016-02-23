@@ -119,7 +119,7 @@ module ocean.core.SmartEnum;
 
 import tango.transition;
 
-public import ocean.core.Exception;
+public import ocean.core.Enforce;
 
 import ocean.core.Traits;
 
@@ -840,7 +840,7 @@ unittest
 
 *******************************************************************************/
 
-import ocean.core.Exception;
+import ocean.core.Enforce;
 
 import tango.core.Array : find;
 

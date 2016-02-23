@@ -65,7 +65,7 @@ module ocean.util.container.FixedKeyMap;
 import tango.transition;
 import tango.core.Array;
 import ocean.core.Array: copy, bsearch;
-import ocean.core.Exception;
+import ocean.core.Enforce;
 
 debug import ocean.io.Stdout;
 

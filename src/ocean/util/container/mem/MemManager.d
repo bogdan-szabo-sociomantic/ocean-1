@@ -16,7 +16,7 @@ module ocean.util.container.mem.MemManager;
 
 *******************************************************************************/
 
-import ocean.core.Exception;
+import ocean.core.Enforce;
 
 import tango.core.Exception : onOutOfMemoryError;
 

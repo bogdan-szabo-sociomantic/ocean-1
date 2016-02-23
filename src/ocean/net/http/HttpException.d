@@ -24,10 +24,10 @@ module ocean.net.http.HttpException;
  ******************************************************************************/
 
 import ocean.core.Array: copy, concat;
+import ocean.core.Enforce;
 import ocean.core.Exception;
 import ocean.net.http.consts.StatusCodes;
 
-import tango.core.Enforce;
 import tango.net.http.HttpConst: HttpResponseCode;
 
 

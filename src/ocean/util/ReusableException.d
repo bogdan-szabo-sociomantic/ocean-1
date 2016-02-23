@@ -82,7 +82,7 @@ class ReusableException : Exception
 version (UnitTest)
 {
     import ocean.core.Test;
-    import ocean.core.Exception;
+    import ocean.core.Enforce;
 }
 
 unittest

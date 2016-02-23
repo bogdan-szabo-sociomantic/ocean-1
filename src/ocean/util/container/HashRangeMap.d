@@ -19,7 +19,7 @@ module ocean.util.container.HashRangeMap;
 
 *******************************************************************************/
 
-import ocean.core.Exception;
+import ocean.core.Enforce;
 import ocean.math.Range;
 
 import tango.transition;

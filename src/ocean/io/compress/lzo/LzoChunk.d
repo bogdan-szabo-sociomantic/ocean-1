@@ -57,7 +57,7 @@ import      ocean.io.compress.lzo.LzoHeader;
 
 import      ocean.io.compress.CompressException;
 
-import      ocean.core.Exception: enforce;
+import      ocean.core.Enforce;
 
 /*******************************************************************************
 

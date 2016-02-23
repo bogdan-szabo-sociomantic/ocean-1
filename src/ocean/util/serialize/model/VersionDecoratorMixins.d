@@ -17,7 +17,7 @@ module ocean.util.serialize.model.VersionDecoratorMixins;
 
 import tango.transition;
 
-import ocean.core.Exception,
+import ocean.core.Enforce,
        ocean.util.container.ConcatBuffer,
        ocean.core.StructConverter;
 

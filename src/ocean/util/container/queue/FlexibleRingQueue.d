@@ -48,7 +48,7 @@ debug import ocean.io.Stdout;
 
 class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 {
-    import ocean.core.Exception: enforce;
+    import ocean.core.Enforce: enforce;
 
     import Integer = tango.text.convert.Integer: toString;
     private alias Integer.toString itoa;

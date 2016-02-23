@@ -37,7 +37,7 @@ debug (Raw) import tango.io.Stdout: Stderr;
 
 class FiberSelectReader : IFiberSelectProtocol
 {
-    import tango.core.Enforce: enforce;
+    import ocean.core.Enforce: enforce;
 
     /**************************************************************************
 
