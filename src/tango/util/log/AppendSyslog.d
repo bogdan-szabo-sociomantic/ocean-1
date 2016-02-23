@@ -73,7 +73,7 @@ public class AppendSyslog: Filer
     {
         Stdout.formatln("Warning: AppendSyslog is going to be deprecated in "
             ~ "the next ocean release. This will mean that there is no longer "
-            ~ "any automatc log rotation support in ocean. Applications which "
+            ~ "any automatic log rotation support in ocean. Applications which "
             ~ "require log rotation should move across to using the system "
             ~ "logrotate facility. Most programs which use loggers should be "
             ~ "based on ocean's `DaemonApp`, which provides all the facilities "
