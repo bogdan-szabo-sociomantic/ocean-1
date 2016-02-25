@@ -860,16 +860,34 @@ public class SAXException : Exception {
          *
          * @return The error or warning message.
          *******************************************************************************/
-        public istring message() {
-                if (msg is null && next !is null) {
-                        return next.msg;
-                }
-                else {
-                        return msg;
-                }
+        static if (is(typeof(Exception.message())))
+        {
+            // if current runtime defines `message` method in base Exception/Throwable
+            // class, this method must override it to compile. In D2 mode the method
+            // also needs to be marked as const to match base.
+            public override cstring message() /* d1to2fix_inject: const */ {
+                    if (msg is null && next !is null) {
+                            return next.msg;
+                    }
+                    else {
+                            return msg;
+                    }
 
+            }
         }
+        else
+        {
+            // old runtime with no base `message` method, keep old signature
+            public istring message() {
+                    if (msg is null && next !is null) {
+                            return next.msg;
+                    }
+                    else {
+                            return msg;
+                    }
 
+            }
+        }
 }
 /*******************************************************************************
  *******************************************************************************/
