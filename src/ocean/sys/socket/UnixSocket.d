@@ -15,7 +15,7 @@ module ocean.sys.socket.UnixSocket;
 
 *******************************************************************************/
 
-import ocean.core.Exception;
+import ocean.core.Enforce;
 import ocean.sys.socket.model.ISocket;
 
 import tango.net.device.LocalSocket;

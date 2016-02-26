@@ -16,7 +16,7 @@ module ocean.util.serialize.contiguous.VersionDecorator;
 
 *******************************************************************************/
 
-import ocean.core.Exception,
+import ocean.core.Enforce,
        ocean.util.container.ConcatBuffer,
        ocean.core.StructConverter : structConvert;
 

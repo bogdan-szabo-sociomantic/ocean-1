@@ -22,7 +22,7 @@ module test.unixsocket.main;
 
 *******************************************************************************/
 
-import ocean.core.Exception;
+import ocean.core.Enforce;
 import ocean.core.Test;
 import ocean.sys.socket.UnixSocket;
 

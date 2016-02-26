@@ -164,7 +164,7 @@ import tango.transition;
 
 import ocean.text.json.JsonParserIter;
 import ocean.core.Array;
-import ocean.core.Exception : enforce;
+import ocean.core.Enforce : enforce;
 import ocean.core.Test;
 import ocean.util.ReusableException;
 

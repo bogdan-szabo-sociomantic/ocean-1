@@ -71,16 +71,6 @@ public class AppendSyslog: Filer
            istring compress_cmd = null, istring compress_suffix = null,
            size_t compress_begin = 2, Appender.Layout how = null )
     {
-        Stdout.formatln("Warning: AppendSyslog is going to be deprecated in "
-            ~ "the next ocean release. This will mean that there is no longer "
-            ~ "any automatc log rotation support in ocean. Applications which "
-            ~ "require log rotation should move across to using the system "
-            ~ "logrotate facility. Most programs which use loggers should be "
-            ~ "based on ocean's `DaemonApp`, which provides all the facilities "
-            ~ "required for rotated log files (see the v1.26.0 release notes: "
-            ~ "(https://github.com/sociomantic/ocean/releases/tag/v1.26.0) for "
-            ~ "migration instructions).");
-
         assert (path);
         assert (count < 1000);
         assert (compress_begin >= 2);

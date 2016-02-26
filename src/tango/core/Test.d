@@ -16,7 +16,7 @@ module tango.core.Test;
 
 ********************************************************************************/
 
-import tango.core.Enforce;
+import ocean.core.Enforce;
 
 import tango.transition;
 

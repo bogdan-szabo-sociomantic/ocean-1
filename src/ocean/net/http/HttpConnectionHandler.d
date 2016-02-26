@@ -36,7 +36,7 @@ import ocean.net.server.connection.IFiberConnectionHandler,
        ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
 
 import ocean.sys.ErrnoException;
-import tango.core.Enforce;
+import ocean.core.Enforce;
 
 /******************************************************************************/
 

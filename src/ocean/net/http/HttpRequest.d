@@ -56,7 +56,7 @@ import ocean.net.http.consts.HttpVersion: HttpVersionIds;
 
 import ocean.net.http.HttpException: HttpException, HeaderParameterException;
 
-import tango.core.Enforce;
+import ocean.core.Enforce;
 import tango.net.Uri: Uri;
 
 import tango.net.http.HttpConst: HttpResponseCode;

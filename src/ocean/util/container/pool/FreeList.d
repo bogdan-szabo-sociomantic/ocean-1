@@ -39,8 +39,7 @@ import ocean.util.container.pool.model.IFreeList;
 
 import ocean.core.Array : pop;
 
-import ocean.core.Traits : StripTypedef;
-
+import ocean.core.Traits;
 import tango.core.Traits;
 
 import tango.transition;
@@ -91,7 +90,7 @@ public class FreeList ( T ) : IFreeList!(ItemType_!(T))
     static assert(!isStaticArrayType!(T), "Cannot use static array type '"
         ~ T.stringof ~ "' as base type for FreeList");
 
-    static assert(!isAtomicType!(T), "Cannot use atomic type '" ~ T.stringof ~
+    static assert(!isPrimitiveType!(T), "Cannot use primitive type '" ~ T.stringof ~
         "' as base type for FreeList");
 
 

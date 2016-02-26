@@ -624,7 +624,7 @@ import tango.util.container.more.Stack;
 
 public class Arguments
 {
-    import ocean.core.Exception : enforce;
+    import ocean.core.Enforce : enforce;
 
     /***************************************************************************
 

@@ -16,7 +16,7 @@
 
 module tango.util.container.Slink;
 
-import tango.core.Enforce;
+import ocean.core.Enforce;
 
 import tango.transition;
 

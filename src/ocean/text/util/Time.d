@@ -48,7 +48,7 @@ module ocean.text.util.Time;
 
 import tango.transition;
 
-import ocean.core.Exception;
+import ocean.core.Enforce;
 
 import ocean.core.Array : copy;
 

@@ -22,7 +22,14 @@ module ocean.core.Exception;
 import tango.text.convert.Format;
 import tango.transition;
 
-public import tango.core.Enforce;
+static import ocean.core.Enforce;
+
+deprecated ("Import ocean.core.Enforce instead")
+alias ocean.core.Enforce.enforce enforce;
+deprecated ("Import ocean.core.Enforce instead")
+alias ocean.core.Enforce.enforceImpl enforceImpl;
+deprecated ("Import ocean.core.Enforce instead")
+alias ocean.core.Enforce.throwChained throwChained;
 
 version (UnitTest)
 {
@@ -269,7 +276,7 @@ unittest
 
     try
     {
-        enforce(e, false, "immutable");
+        ocean.core.Enforce.enforce(e, false, "immutable");
         assert (false);
     }
     catch (SomeReusableException) { }

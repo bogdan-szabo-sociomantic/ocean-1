@@ -21,7 +21,7 @@ import tango.transition;
 import tango.stdc.string : memmove;
 import tango.math.Math;
 
-import ocean.core.Exception,
+import ocean.core.Enforce,
        ocean.util.container.ConcatBuffer,
        ocean.core.StructConverter : structConvert;
 

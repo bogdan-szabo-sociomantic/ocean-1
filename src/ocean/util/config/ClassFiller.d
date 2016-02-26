@@ -127,7 +127,7 @@ public import ocean.util.config.ConfigParser: ConfigException;
 
 import ocean.core.Traits;
 
-import tango.core.Exception, tango.core.Enforce;
+import tango.core.Exception, ocean.core.Enforce;
 
 import tango.core.Traits;
 

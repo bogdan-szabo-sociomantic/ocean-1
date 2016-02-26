@@ -333,7 +333,7 @@ private template Methods ( U, uint i )
     const ini = "static Type opCall(" ~ type ~ ' ' ~ member ~ ")"
         ~ "{ Type su; su." ~ member ~ '=' ~ member ~ "; return su; }";
 
-    const local_import = "import ocean.core.Exception;\n";
+    const local_import = "import ocean.core.Enforce;\n";
 
     const all = local_import ~ get ~ '\n' ~ set ~ '\n' ~ ini;
 }

@@ -20,6 +20,7 @@ import tango.transition;
 import ocean.core.Array : copy;
 
 import ocean.core.Exception;
+import ocean.core.Enforce;
 
 import ocean.io.Stdout;
 
@@ -39,7 +40,7 @@ import tango.text.Util: locate, trim, delimit, lines;
 
 import tango.text.convert.Utf;
 
-import tango.core.Exception, tango.core.Enforce;
+import tango.core.Exception;
 
 import tango.core.Traits : DynamicArrayType;
 

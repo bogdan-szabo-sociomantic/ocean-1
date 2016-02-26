@@ -17,7 +17,7 @@ module ocean.util.serialize.contiguous.Contiguous;
 
 import tango.transition;
 
-import ocean.core.Exception,
+import ocean.core.Enforce,
        ocean.core.Traits;
 
 version(UnitTest)
