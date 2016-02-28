@@ -1,6 +1,8 @@
 Dependencies
 ============
 
+Based on v1.27.1
+
 Dependency | Version
 -----------|---------
 tango      | v1.3.x
