@@ -17,13 +17,13 @@
 
 module ocean.io.device.File;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.sys.Common;
+import ocean.sys.Common;
 
-import tango.io.device.Device;
+import ocean.io.device.Device;
 
-import stdc = tango.stdc.stringz;
+import stdc = ocean.stdc.stringz;
 
 /*******************************************************************************
 
@@ -31,7 +31,7 @@ import stdc = tango.stdc.stringz;
 
 *******************************************************************************/
 
-import tango.stdc.posix.unistd;
+import ocean.stdc.posix.unistd;
 
 
 /*******************************************************************************
@@ -121,7 +121,7 @@ import tango.stdc.posix.unistd;
         ---
 
         Note that File is unbuffered by default - wrap an instance within
-        tango.io.stream.Buffered for buffered I/O.
+        ocean.io.stream.Buffered for buffered I/O.
 
         Compile with -version=Win32SansUnicode to enable Win95 &amp; Win32s file
         support.
@@ -267,7 +267,7 @@ class File : Device, Device.Seek, Device.Truncate
                 Create a File for use with open().
 
                 Note that File is unbuffered by default - wrap an instance
-                within tango.io.stream.Buffered for buffered I/O.
+                within ocean.io.stream.Buffered for buffered I/O.
 
         ***********************************************************************/
 
@@ -280,7 +280,7 @@ class File : Device, Device.Seek, Device.Truncate
                 Create a File with the provided path and style.
 
                 Note that File is unbuffered by default - wrap an instance
-                within tango.io.stream.Buffered for buffered I/O.
+                within ocean.io.stream.Buffered for buffered I/O.
 
         ***********************************************************************/
 
@@ -544,7 +544,7 @@ class File : Device, Device.Seek, Device.Truncate
 
 debug (File)
 {
-        import tango.io.Stdout;
+        import ocean.io.Stdout_tango;
 
         void main()
         {

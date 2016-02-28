@@ -124,7 +124,7 @@ module ocean.io.selector.Selector;
 
 version (linux)
 {
-    public import tango.io.selector.EpollSelector;
+    public import ocean.io.selector.EpollSelector;
 
     /**
      * Default Selector for Linux.
@@ -133,7 +133,7 @@ version (linux)
 }
 else version(Posix)
 {
-    public import tango.io.selector.PollSelector;
+    public import ocean.io.selector.PollSelector;
 
     /**
      * Default Selector for POSIX-compatible platforms.
@@ -142,7 +142,7 @@ else version(Posix)
 }
 else
 {
-    public import tango.io.selector.SelectSelector;
+    public import ocean.io.selector.SelectSelector;
 
     /**
      * Default Selector for Windows.

@@ -27,5 +27,5 @@ version (X86)
 }
 else
 {
-    public import tango.stdc.stdarg;
+    public import ocean.stdc.stdarg;
 }

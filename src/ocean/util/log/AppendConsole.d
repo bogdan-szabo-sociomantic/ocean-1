@@ -12,13 +12,13 @@
 
 module ocean.util.log.AppendConsole;
 
-import tango.transition;
+import ocean.transition;
 
-import  tango.io.Console;
+import ocean.io.Console;
 
-import tango.io.model.IConduit;
+import ocean.io.model.IConduit;
 
-import  tango.util.log.Log;
+import ocean.util.log.Log;
 
 /*******************************************************************************
 

@@ -12,13 +12,13 @@
 
 module ocean.io.vfs.model.Vfs;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.time.Time : Time;
+import ocean.time.Time : Time;
 
-import tango.io.model.IConduit;
+import ocean.io.model.IConduit;
 
-import tango.io.model.IFile : FileInfo;
+import ocean.io.model.IFile : FileInfo;
 
 /*******************************************************************************
 

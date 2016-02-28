@@ -22,9 +22,9 @@ import ocean.sys.ErrnoException;
 
 import ocean.sys.socket.IPSocket: IIPSocket;
 
-import tango.io.model.IConduit: ISelectable;
+import ocean.io.model.IConduit: ISelectable;
 
-import tango.stdc.errno: errno;
+import ocean.stdc.errno: errno;
 
 /******************************************************************************
 

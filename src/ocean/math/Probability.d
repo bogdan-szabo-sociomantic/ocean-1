@@ -25,10 +25,10 @@
  */
 
 module ocean.math.Probability;
-static import tango.math.ErrorFunction;
-import tango.math.GammaFunction;
-import tango.math.Math;
-import tango.math.IEEE;
+static import ocean.math.ErrorFunction;
+import ocean.math.GammaFunction;
+import ocean.math.Math;
+import ocean.math.IEEE;
 
 
 /***
@@ -55,13 +55,13 @@ Journal of Statistical Software <b>11</b>, (July 2004).
 */
 real normalDistribution(real a)
 {
-    return tango.math.ErrorFunction.normalDistributionImpl(a);
+    return ocean.math.ErrorFunction.normalDistributionImpl(a);
 }
 
 /** ditto */
 real normalDistributionCompl(real a)
 {
-    return -tango.math.ErrorFunction.normalDistributionImpl(-a);
+    return -ocean.math.ErrorFunction.normalDistributionImpl(-a);
 }
 
 /******************************
@@ -79,13 +79,13 @@ real normalDistributionCompl(real a)
  */
 real normalDistributionInv(real p)
 {
-    return tango.math.ErrorFunction.normalDistributionInvImpl(p);
+    return ocean.math.ErrorFunction.normalDistributionInvImpl(p);
 }
 
 /** ditto */
 real normalDistributionComplInv(real p)
 {
-    return -tango.math.ErrorFunction.normalDistributionInvImpl(-p);
+    return -ocean.math.ErrorFunction.normalDistributionInvImpl(-p);
 }
 
 unittest {

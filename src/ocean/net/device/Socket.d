@@ -15,13 +15,13 @@
 
 module ocean.net.device.Socket;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.sys.Common;
+import ocean.sys.Common;
 
-import tango.io.device.Conduit;
+import ocean.io.device.Conduit;
 
-import tango.net.device.Berkeley;
+import ocean.net.device.Berkeley;
 
 /*******************************************************************************
 

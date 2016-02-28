@@ -11,7 +11,7 @@
     --
 
     UTF conversion from UTF8/16/32 to UTF8/16/32. Build on top of
-    tango.text.convert.Utf and provides the following advantages:
+    ocean.text.convert.Utf and provides the following advantages:
 
     - destination is forced to be an existing object and resized before
       conversion to avoid heap activity
@@ -20,7 +20,7 @@
     - generic conversion template
     - class holding conversion result buffer
 
-    Note: Since tango.text.Utf of the current version  0.99.8 provides support
+    Note: Since ocean.text.Utf of the current version  0.99.8 provides support
     for a maximum of 4 byte per character, the output string is resized to this
     length before conversion.
 
@@ -86,7 +86,7 @@ deprecated module ocean.text.utf.UtfConvert;
 
 import ocean.text.utf.GlibUnicode;
 
-import Utf = tango.text.convert.Utf: toString, toString16, toString32;
+import Utf = ocean.text.convert.Utf: toString, toString16, toString32;
 
 import ocean.text.util.StringReplace;
 
@@ -247,7 +247,7 @@ public static T[] convertUtf ( S, T, bool noop_dup = true ) ( S[] input, ref T[]
 
     Composes an Unicode character from two UTF-8 bytes
 
-    (Taken from tango.text.convert.Utf.toString())
+    (Taken from ocean.text.convert.Utf.toString())
 
     Params:
         lb = lower byte

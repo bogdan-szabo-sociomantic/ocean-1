@@ -12,22 +12,22 @@
 
 module ocean.net.http.HttpTokens;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.time.Time;
+import ocean.time.Time;
 
-import tango.io.device.Array;
+import ocean.io.device.Array;
 
-import tango.io.stream.Buffered;
+import ocean.io.stream.Buffered;
 
-import tango.net.http.HttpStack,
-       tango.net.http.HttpConst;
+import ocean.net.http.HttpStack,
+       ocean.net.http.HttpConst;
 
-import Text = tango.text.Util;
+import Text = ocean.text.Util;
 
-import Integer = tango.text.convert.Integer;
+import Integer = ocean.text.convert.Integer_tango;
 
-import TimeStamp = tango.text.convert.TimeStamp;
+import TimeStamp = ocean.text.convert.TimeStamp;
 
 /******************************************************************************
 

@@ -16,19 +16,19 @@
 
 module ocean.io.stream.Zlib;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.util.compress.c.zlib;
+import ocean.util.compress.c.zlib;
 
-import tango.stdc.stringz : fromStringz;
+import ocean.stdc.stringz : fromStringz;
 
-import tango.core.Exception : IOException;
+import ocean.core.Exception_tango : IOException;
 
-import tango.io.device.Conduit : InputFilter, OutputFilter;
+import ocean.io.device.Conduit : InputFilter, OutputFilter;
 
-import tango.io.model.IConduit : InputStream, OutputStream, IConduit;
+import ocean.io.model.IConduit : InputStream, OutputStream, IConduit;
 
-import tango.text.convert.Integer : toString;
+import ocean.text.convert.Integer_tango : toString;
 
 
 /* This constant controls the size of the input/output buffers we use
@@ -504,7 +504,7 @@ class ZlibOutput : OutputFilter
          * windowBits is in the expected range, so we'll check it.
          *
          * Also, note that OUR Encoding enum doesn't contain the 'Guess'
-         * member.  I'm still waiting on tango.io.psychic...
+         * member.  I'm still waiting on ocean.io.psychic...
          */
         if( !( 8 <= windowBits && windowBits <= 15 ) )
         {
@@ -852,7 +852,7 @@ class ZlibException : IOException
 
 version (UnitTest)
 {
-    import tango.io.device.Array : Array;
+    import ocean.io.device.Array : Array;
 
     void check_array(istring FILE=__FILE__, int LINE=__LINE__)(
             Const!(ubyte)[] as, ubyte[] bs, lazy istring msg)

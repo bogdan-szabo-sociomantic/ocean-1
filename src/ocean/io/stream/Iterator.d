@@ -12,11 +12,11 @@
 
 module ocean.io.stream.Iterator;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.io.stream.Buffered;
+import ocean.io.stream.Buffered;
 
-protected import tango.io.device.Conduit : InputFilter, InputBuffer, InputStream;
+protected import ocean.io.device.Conduit : InputFilter, InputBuffer, InputStream;
 
 /*******************************************************************************
 
@@ -24,7 +24,7 @@ protected import tango.io.device.Conduit : InputFilter, InputBuffer, InputStream
         upon a buffered input stream, and are designed to deal with
         partial content. That is, stream iterators go to work the
         moment any data becomes available in the buffer. Contrast
-        this behaviour with the tango.text.Util iterators, which
+        this behaviour with the ocean.text.Util iterators, which
         operate upon the extent of an array.
 
         There are two types of iterators supported; exclusive and
@@ -33,7 +33,7 @@ protected import tango.io.device.Conduit : InputFilter, InputBuffer, InputStream
         include space, comma, and end-of-line delineation. Inclusive
         tokens are just the opposite: they look for patterns in the
         text that should be part of the token itself - everything else
-        is considered foreign. Currently tango.io.stream includes the
+        is considered foreign. Currently ocean.io.stream includes the
         exclusive variety only.
 
         Each pattern is exposed to the client as a slice of the original

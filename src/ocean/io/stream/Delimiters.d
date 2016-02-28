@@ -12,9 +12,9 @@
 
 module ocean.io.stream.Delimiters;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.io.stream.Iterator;
+import ocean.io.stream.Iterator;
 
 /*******************************************************************************
 
@@ -106,7 +106,7 @@ class Delimiters(T) : Iterator!(T)
 
 version (UnitTest)
 {
-    import tango.io.device.Array;
+    import ocean.io.device.Array;
 }
 
 unittest

@@ -10,23 +10,23 @@
 
 module ocean.net.util.c.OpenSSL;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.sys.SharedLib;
-import tango.sys.Environment;
+import ocean.sys.SharedLib;
+import ocean.sys.Environment;
 
-import tango.stdc.stdio;
-import tango.stdc.stringz;
-import tango.stdc.config: c_long,c_ulong;
+import ocean.stdc.stdio;
+import ocean.stdc.stringz;
+import ocean.stdc.config: c_long,c_ulong;
 
-import tango.io.FilePath;
+import ocean.io.FilePath_tango;
 
-import tango.core.Thread;
-import tango.core.sync.Mutex;
-import tango.core.sync.ReadWriteMutex;
+import ocean.core.Thread;
+import ocean.core.sync.Mutex;
+import ocean.core.sync.ReadWriteMutex;
 
-import tango.text.convert.Format;
-import Integer = tango.text.convert.Integer;
+import ocean.text.convert.Format;
+import Integer = ocean.text.convert.Integer_tango;
 
 /*******************************************************************************
 
@@ -41,7 +41,7 @@ import Integer = tango.text.convert.Integer;
    A lot of unsigned longs and longs were converted to uint and int
 
    These will need to be reversed to support 64bit tango
-   (should use c_long and c_ulong from tango.stdc.config)
+   (should use c_long and c_ulong from ocean.stdc.config)
 
    XXX TODO XXX
 */

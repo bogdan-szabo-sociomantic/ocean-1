@@ -13,15 +13,15 @@
 
 module ocean.text.xml.PullParser;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.text.Util : indexOf;
+import ocean.text.Util : indexOf;
 
-import tango.core.Exception : XmlException;
+import ocean.core.Exception_tango : XmlException;
 
-import Integer = tango.text.convert.Integer;
+import Integer = ocean.text.convert.Integer_tango;
 
-import Utf = tango.text.convert.Utf : toString;
+import Utf = ocean.text.convert.Utf : toString;
 
 /*******************************************************************************
 

@@ -45,7 +45,7 @@ module ocean.text.entities.model.MarkupEntityCodec;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.core.Array;
 
@@ -56,11 +56,11 @@ import ocean.text.utf.UtfString;
 
 import ocean.text.util.StringSearch;
 
-import Utf = tango.text.convert.Utf;
+import Utf = ocean.text.convert.Utf;
 
-import Math = tango.math.Math: min;
+import Math = ocean.math.Math: min;
 
-import Integer = tango.text.convert.Integer: toInt;
+import Integer = ocean.text.convert.Integer_tango: toInt;
 
 
 

@@ -12,11 +12,11 @@
 
 module ocean.time.WallClock;
 
-public  import  tango.time.Time;
+public  import ocean.time.Time;
 
-import  tango.time.Clock;
+import ocean.time.Clock;
 
-import  tango.sys.Common;
+import ocean.sys.Common;
 
 /******************************************************************************
 

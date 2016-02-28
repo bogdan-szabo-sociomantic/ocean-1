@@ -48,9 +48,9 @@ module ocean.io.compress.ZlibStream;
 
 *******************************************************************************/
 
-import tango.util.compress.c.zlib;
+import ocean.util.compress.c.zlib;
 
-import tango.io.stream.Zlib : ZlibException, ZlibInput;
+import ocean.io.stream.Zlib : ZlibException, ZlibInput;
 
 import ocean.core.TypeConvert;
 

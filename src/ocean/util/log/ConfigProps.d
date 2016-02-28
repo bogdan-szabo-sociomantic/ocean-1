@@ -13,12 +13,12 @@
 
 module ocean.util.log.ConfigProps;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.util.log.Log;
+import ocean.util.log.Log;
 
-import tango.io.stream.Map,
-       tango.io.device.File;
+import ocean.io.stream.Map,
+       ocean.io.device.File;
 
 /*******************************************************************************
 
@@ -50,11 +50,11 @@ struct ConfigProps
                 For example, the declaration
 
                 ---
-                tango.unittest = INFO
+                ocean.unittest = INFO
                 myApp.SocketActivity = TRACE
                 ---
 
-                sets the level of the loggers called tango.unittest and
+                sets the level of the loggers called ocean.unittest and
                 myApp.SocketActivity
 
         ***********************************************************************/

@@ -7,11 +7,11 @@
  *
  */
 module ocean.math.Bracket;
-import tango.transition;
+import ocean.transition;
 
-static import tsm = tango.stdc.math;
-import tango.math.Math;
-import tango.math.IEEE;
+static import tsm = ocean.stdc.math;
+import ocean.math.Math;
+import ocean.math.IEEE;
 
 private:
 

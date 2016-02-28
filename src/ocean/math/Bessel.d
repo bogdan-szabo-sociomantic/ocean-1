@@ -9,8 +9,8 @@
 
 module ocean.math.Bessel;
 
-import tango.math.Math;
-import tango.math.IEEE;
+import ocean.math.Math;
+import ocean.math.IEEE;
 
 
 private {   // Rational polynomial approximations to j0, y0, j1, y1.

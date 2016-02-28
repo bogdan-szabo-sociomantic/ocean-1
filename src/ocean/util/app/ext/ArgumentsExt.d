@@ -25,8 +25,8 @@ import ocean.util.app.ext.model.IArgumentsExtExtension;
 import ocean.text.Arguments;
 import ocean.io.Stdout : Stdout, Stderr;
 
-import tango.transition;
-import tango.io.stream.Format : FormatOutput;
+import ocean.transition;
+import ocean.io.stream.Format : FormatOutput;
 
 
 
@@ -247,8 +247,8 @@ version (UnitTest)
     import ocean.core.Test;
     import ocean.util.app.Application;
     import ocean.io.device.MemoryDevice;
-    import tango.io.stream.Text : TextOutput;
-    import tango.core.Array : find;
+    import ocean.io.stream.Text : TextOutput;
+    import ocean.core.Array_tango : find;
 
     class App : Application
     {

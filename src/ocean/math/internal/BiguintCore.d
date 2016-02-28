@@ -24,7 +24,7 @@
 */
 module ocean.math.internal.BiguintCore;
 
-import tango.transition;
+import ocean.transition;
 
 //version=TangoBignumNoAsm;       /// temporal: see ticket #1878
 
@@ -37,21 +37,21 @@ version(TangoBignumNoAsm) {
 }
 
 version(Naked_D_InlineAsm_X86) {
-import tango.math.internal.BignumX86;
+import ocean.math.internal.BignumX86;
 } else {
-import tango.math.internal.BignumNoAsm;
+import ocean.math.internal.BignumNoAsm;
 }
 version(build){// bud/build won't link properly without this.
-    static import tango.math.internal.BignumX86;
+    static import ocean.math.internal.BignumX86;
 }
 
 alias multibyteAddSub!('+') multibyteAdd;
 alias multibyteAddSub!('-') multibyteSub;
 
-// import tango.core.Cpuid;
+// import ocean.core.Cpuid;
 static this()
 {
-    CACHELIMIT = 8000; // tango.core.Cpuid.datacache[0].size/2;
+    CACHELIMIT = 8000; // ocean.core.Cpuid.datacache[0].size/2;
     FASTDIVLIMIT = 100;
 }
 
@@ -1057,7 +1057,7 @@ void squareInternal(BigDigit[] result, Const!(BigDigit)[] x)
 }
 
 
-import tango.core.BitManip : bsr;
+import ocean.core.BitManip : bsr;
 
 /// if remainder is null, only calculate quotient.
 void divModInternal(BigDigit [] quotient, BigDigit[] remainder, Const!(BigDigit)[] u,

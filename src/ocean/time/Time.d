@@ -6,7 +6,7 @@
 
         version:        mid 2005: Initial release
                         Apr 2007: heavily reshaped
-                        Dec 2007: moved to tango.time
+                        Dec 2007: moved to ocean.time
 
         author:         John Chapman, Kris, scheivguy
 
@@ -14,7 +14,7 @@
 
 module ocean.time.Time;
 
-import tango.transition;
+import ocean.transition;
 
 /******************************************************************************
 
@@ -24,7 +24,7 @@ import tango.transition;
 
     Notably missing from this is a representation of weeks, months and years.
     This is because weeks, months, and years vary according to local calendars.
-    Use tango.time.chrono.* to deal with these concepts.
+    Use ocean.time.chrono.* to deal with these concepts.
 
     Note: nobody should change this struct without really good reason as it is
     required to be a part of some interfaces.  It should be treated as a
@@ -41,7 +41,7 @@ import tango.transition;
     Stdout.formatln("slept for {} ms", (Clock.now-start).millis);
     -------------------
 
-    See_Also: tango.core.Thread, tango.time.Clock
+    See_Also: ocean.core.Thread, ocean.time.Clock
 
 ******************************************************************************/
 
@@ -903,9 +903,9 @@ unittest
 
 debug (Time)
 {
-        import tango.io.Stdout;
-        import tango.time.Clock;
-        import tango.time.chrono.Gregorian;
+        import ocean.io.Stdout_tango;
+        import ocean.time.Clock;
+        import ocean.time.chrono.Gregorian;
 
         Time foo()
         {

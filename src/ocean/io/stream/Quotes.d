@@ -12,9 +12,9 @@
 
 module ocean.io.stream.Quotes;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.io.stream.Iterator;
+import ocean.io.stream.Iterator;
 
 /*******************************************************************************
 
@@ -114,8 +114,8 @@ class Quotes(T) : Iterator!(T)
 
 version (UnitTest)
 {
-    import tango.io.device.Array;
-    import tango.text.Util;
+    import ocean.io.device.Array;
+    import ocean.text.Util;
 }
 
 unittest

@@ -107,8 +107,8 @@ module ocean.util.container.map.model.BucketElementMallocAllocator;
 
 import ocean.util.container.map.model.IAllocator;
 
-import tango.core.Memory;
-import tango.transition;
+import ocean.core.Memory;
+import ocean.transition;
 
 /*******************************************************************************
 
@@ -130,8 +130,8 @@ import tango.transition;
 
 public class BucketElementMallocAllocator (Bucket) : IAllocator
 {
-    import tango.stdc.stdio : fputs, stderr;
-    import tango.stdc.stdlib : malloc, free, abort;
+    import ocean.stdc.stdio : fputs, stderr;
+    import ocean.stdc.stdlib : malloc, free, abort;
 
     /***************************************************************************
 

@@ -30,7 +30,7 @@ module ocean.util.container.ConcatBuffer;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.core.Array : removeShift;
 

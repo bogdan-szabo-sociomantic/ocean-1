@@ -24,14 +24,14 @@ module ocean.text.util.StringSearch;
 
  ******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import c_stddef = tango.stdc.stddef: wchar_t;
-import c_wctype = tango.stdc.wctype;
-import c_ctype  = tango.stdc.ctype;
-import c_string = tango.stdc.string;
+import c_stddef = ocean.stdc.stddef: wchar_t;
+import c_wctype = ocean.stdc.wctype;
+import c_ctype  = ocean.stdc.ctype;
+import c_string = ocean.stdc.string;
 
-import tango.math.Math:   min;
+import ocean.math.Math:   min;
 
 version (UnitTest)
 {

@@ -37,20 +37,20 @@
 
 module ocean.text.locale.Locale;
 
-public import tango.text.locale.Core : Culture;
+public import ocean.text.locale.Core : Culture;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.text.locale.Core,
-       tango.text.locale.Convert;
+import ocean.text.locale.Core,
+       ocean.text.locale.Convert;
 
-import tango.time.Time;
+import ocean.time.Time;
 
-import tango.text.convert.Layout;
+import ocean.text.convert.Layout_tango;
 
 /*******************************************************************************
 
-        Locale-enabled wrapper around tango.text.convert.Layout
+        Locale-enabled wrapper around ocean.text.convert.Layout
 
 *******************************************************************************/
 
@@ -112,8 +112,8 @@ public class Locale : Layout!(char)
 
 debug (Locale)
 {
-        import tango.io.Console;
-        import tango.time.WallClock;
+        import ocean.io.Console;
+        import ocean.time.WallClock;
 
         void main ()
         {

@@ -13,10 +13,10 @@
 
 module ocean.net.device.Datagram;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.net.device.Socket;
-import tango.net.device.Berkeley;
+import ocean.net.device.Socket;
+import ocean.net.device.Berkeley;
 
 /*******************************************************************************
 
@@ -143,9 +143,9 @@ class Datagram : Socket
 
 debug (Datagram)
 {
-        import tango.io.Console;
+        import ocean.io.Console;
 
-        import tango.net.InternetAddress;
+        import ocean.net.InternetAddress;
 
         void main()
         {

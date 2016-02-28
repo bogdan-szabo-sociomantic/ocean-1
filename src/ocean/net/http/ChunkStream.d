@@ -16,14 +16,14 @@
 
 module ocean.net.http.ChunkStream;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.io.stream.Lines;
+import ocean.io.stream.Lines;
 
-import tango.io.device.Conduit,
-       tango.io.stream.Buffered;
+import ocean.io.device.Conduit,
+       ocean.io.stream.Buffered;
 
-import Integer = tango.text.convert.Integer;
+import Integer = ocean.text.convert.Integer_tango;
 
 /*******************************************************************************
 
@@ -181,8 +181,8 @@ class ChunkInput : Lines!(char)
 
 debug (ChunkStream)
 {
-        import tango.io.Console;
-        import tango.io.device.Array;
+        import ocean.io.Console;
+        import ocean.io.device.Array;
 
         void main()
         {

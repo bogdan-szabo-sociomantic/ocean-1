@@ -8,7 +8,7 @@
 
 module ocean.util.ReusableException;
 
-import tango.transition;
+import ocean.transition;
 
 /*******************************************************************************
 

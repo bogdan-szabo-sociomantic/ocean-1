@@ -54,12 +54,12 @@ import ocean.text.convert.Layout: StringLayout;
 
 import ocean.util.log.layout.LayoutStatsLog;
 
-import tango.transition;
-import tango.core.Traits;
-import tango.util.log.Log;
-import tango.util.log.AppendSyslog;
+import ocean.transition;
+import ocean.core.Traits;
+import ocean.util.log.Log;
+import ocean.util.log.AppendSyslog;
 
-import tango.stdc.time : time_t;
+import ocean.stdc.time : time_t;
 
 version (UnitTest)
 {

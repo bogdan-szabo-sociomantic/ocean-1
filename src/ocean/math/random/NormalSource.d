@@ -5,11 +5,11 @@
         author:         Fawzi Mohamed
 *******************************************************************************/
 module ocean.math.random.NormalSource;
-import Integer = tango.text.convert.Integer;
-import tango.math.Math:exp,sqrt,log,PI;
-import tango.math.ErrorFunction:erfc;
-import tango.math.random.Ziggurat;
-import tango.core.Traits: isRealType;
+import Integer = ocean.text.convert.Integer_tango;
+import ocean.math.Math:exp,sqrt,log,PI;
+import ocean.math.ErrorFunction:erfc;
+import ocean.math.random.Ziggurat;
+import ocean.core.Traits: isRealType;
 
 /// class that returns gaussian (normal) distributed numbers (f=exp(-0.5*x*x)/sqrt(2*pi))
 class NormalSource(RandG,T){

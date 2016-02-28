@@ -23,13 +23,13 @@
 
 module ocean.io.FilePath_tango;
 
-import tango.transition;
+import ocean.transition;
 
-import  tango.io.Path;
+import ocean.io.Path;
 
-import  tango.io.model.IFile : FileConst, FileInfo;
+import ocean.io.model.IFile : FileConst, FileInfo;
 
-import tango.stdc.string : memmove;
+import ocean.stdc.string : memmove;
 
 /*******************************************************************************
 
@@ -1439,7 +1439,7 @@ unittest
 
 debug (FilePath)
 {
-    import tango.io.Console;
+    import ocean.io.Console;
 
     void main()
     {

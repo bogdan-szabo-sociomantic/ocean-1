@@ -9,7 +9,7 @@
 module ocean.core.Signal;
 
 
-import tango.core.Array;
+import ocean.core.Array_tango;
 
 
 /**

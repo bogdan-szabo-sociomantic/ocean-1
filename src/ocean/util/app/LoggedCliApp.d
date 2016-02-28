@@ -28,8 +28,8 @@ import ocean.util.app.ext.model.ILogExtExtension;
 import ocean.util.app.ext.LogExt;
 import ocean.util.app.ExitException;
 
-import tango.transition;
-import tango.util.log.Log;
+import ocean.transition;
+import ocean.util.log.Log;
 
 
 
@@ -52,8 +52,8 @@ import tango.util.log.Log;
 
     import ocean.util.app.LoggedCliApp;
     import ocean.io.Stdout;
-    import tango.util.log.Log;
-    import tango.text.convert.Integer;
+    import ocean.util.log.Log;
+    import ocean.text.convert.Integer_tango;
 
     class Returner : LoggedCliApp
     {

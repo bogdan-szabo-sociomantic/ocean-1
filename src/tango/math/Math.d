@@ -1,2 +1,2 @@
 module tango.math.Math;
-public import ocean.math.Math_tango;
+public import ocean.math.Math;

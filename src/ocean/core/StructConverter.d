@@ -22,9 +22,9 @@ module ocean.core.StructConverter;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 import ocean.core.Traits,
-       tango.core.Traits;
+       ocean.core.Traits;
 
 /*******************************************************************************
 

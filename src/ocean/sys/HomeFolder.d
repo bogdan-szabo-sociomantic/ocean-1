@@ -17,18 +17,18 @@
 
 module ocean.sys.HomeFolder;
 
-import tango.transition;
+import ocean.transition;
 
-import TextUtil = tango.text.Util;
-import Path = tango.io.Path;
-import tango.sys.Environment;
+import TextUtil = ocean.text.Util;
+import Path = ocean.io.Path;
+import ocean.sys.Environment;
 
 version (Posix)
 {
-    import tango.core.Exception;
-    import tango.stdc.stdlib;
-    import tango.stdc.posix.pwd;
-    import tango.stdc.errno;
+    import ocean.core.Exception_tango;
+    import ocean.stdc.stdlib;
+    import ocean.stdc.posix.pwd;
+    import ocean.stdc.errno;
 
     private extern (C) size_t strlen (in char *);
 }
@@ -81,7 +81,7 @@ version (Posix)
 
         Examples:
         -----
-        import tango.sys.HomeFolder;
+        import ocean.sys.HomeFolder;
 
         void processFile(char[] filename)
         {
@@ -91,7 +91,7 @@ version (Posix)
         -----
 
         -----
-        import tango.sys.HomeFolder;
+        import ocean.sys.HomeFolder;
 
         const char[] RESOURCE_DIR_TEMPLATE = "~/.applicationrc";
         char[] RESOURCE_DIR;    // This gets expanded below.
@@ -174,17 +174,17 @@ version (Posix)
         int extra_memory_size = 5 * 1024;
         void* extra_memory;
 
-        scope (exit) if(extra_memory) tango.stdc.stdlib.free(extra_memory);
+        scope (exit) if(extra_memory) ocean.stdc.stdlib.free(extra_memory);
 
         while (1)
         {
-            extra_memory = tango.stdc.stdlib.malloc(extra_memory_size);
+            extra_memory = ocean.stdc.stdlib.malloc(extra_memory_size);
             if (extra_memory is null)
                 throw new OutOfMemoryException("Not enough memory for user lookup in tilde expansion.", __LINE__);
 
             // Obtain info from database.
             passwd *verify;
-            tango.stdc.errno.errno(0);
+            ocean.stdc.errno.errno(0);
             if (getpwnam_r(username.ptr, &result, cast(char*)extra_memory, extra_memory_size,
                 &verify) == 0)
             {
@@ -199,11 +199,11 @@ version (Posix)
                 return path;
             }
 
-            if (tango.stdc.errno.errno() != ERANGE)
+            if (ocean.stdc.errno.errno() != ERANGE)
                 throw new OutOfMemoryException("Not enough memory for user lookup in tilde expansion.", __LINE__);
 
             // extra_memory isn't large enough
-            tango.stdc.stdlib.free(extra_memory);
+            ocean.stdc.stdlib.free(extra_memory);
             extra_memory_size *= 2;
         }
     }
@@ -227,16 +227,16 @@ unittest
         assert(expandTilde("~") == "~");
 
         // Testing when an environment variable is set.
-        Environment.set("HOME", "tango/test");
-        assert (Environment.get("HOME") == "tango/test");
+        Environment.set("HOME", "ocean/test");
+        assert (Environment.get("HOME") == "ocean/test");
 
-        assert(expandTilde("~/") == "tango/test/");
-        assert(expandTilde("~") == "tango/test");
+        assert(expandTilde("~/") == "ocean/test/");
+        assert(expandTilde("~") == "ocean/test");
 
         // The same, but with a variable ending in a slash.
-        Environment.set("HOME", "tango/test/");
-        assert(expandTilde("~/") == "tango/test/");
-        assert(expandTilde("~") == "tango/test");
+        Environment.set("HOME", "ocean/test/");
+        assert(expandTilde("~/") == "ocean/test/");
+        assert(expandTilde("~") == "ocean/test");
 
         // Recover original HOME variable before continuing.
         if (home)

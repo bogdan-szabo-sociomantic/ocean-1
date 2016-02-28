@@ -24,7 +24,7 @@ import ocean.core.TypeConvert;
 
 import ocean.db.tokyocabinet.c.tcutil: TCERRCODE;
 import ocean.text.util.StringC;
-import tango.stdc.stdlib: free;
+import ocean.stdc.stdlib: free;
 
 
 /******************************************************************************

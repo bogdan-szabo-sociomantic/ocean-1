@@ -30,17 +30,17 @@ module ocean.sys.SafeFork;
 
 import ocean.sys.ErrnoException;
 
-import tango.stdc.posix.stdlib : exit;
+import ocean.stdc.posix.stdlib : exit;
 
-import tango.stdc.posix.unistd : fork;
+import ocean.stdc.posix.unistd : fork;
 
-import tango.stdc.posix.sys.wait;
+import ocean.stdc.posix.sys.wait;
 
-import tango.stdc.posix.signal;
+import ocean.stdc.posix.signal;
 
-import tango.stdc.errno;
+import ocean.stdc.errno;
 
-import tango.stdc.string;
+import ocean.stdc.string;
 
 
 
@@ -54,7 +54,7 @@ version ( TimeFork )
 {
     import ocean.io.Stdout;
 
-    import tango.time.StopWatch;
+    import ocean.time.StopWatch;
 }
 
 

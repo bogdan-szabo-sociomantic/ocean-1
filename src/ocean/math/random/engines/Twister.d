@@ -14,8 +14,8 @@
 *******************************************************************************/
 
 module ocean.math.random.engines.Twister;
-import tango.transition;
-import Integer = tango.text.convert.Integer;
+import ocean.transition;
+import Integer = ocean.text.convert.Integer_tango;
 
 /*******************************************************************************
 

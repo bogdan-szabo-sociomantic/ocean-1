@@ -13,7 +13,7 @@
 
 module ocean.time.chrono.Taiwan;
 
-import tango.time.chrono.GregorianBased;
+import ocean.time.chrono.GregorianBased;
 
 /**
  * $(ANCHOR _Taiwan)

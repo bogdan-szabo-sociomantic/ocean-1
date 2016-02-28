@@ -12,10 +12,10 @@
 
 module ocean.text.locale.Collation;
 
-import tango.text.locale.Core;
+import ocean.text.locale.Core;
 
 version (Posix)
-  import tango.text.locale.Posix;
+  import ocean.text.locale.Posix;
 
   /**
   Compares strings using the specified case and cultural comparision rules.

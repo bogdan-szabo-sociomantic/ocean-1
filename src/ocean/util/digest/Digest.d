@@ -14,9 +14,9 @@
 
 module ocean.util.digest.Digest;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.stdc.stdlib : alloca;
+import ocean.stdc.stdlib : alloca;
 
 /*******************************************************************************
 

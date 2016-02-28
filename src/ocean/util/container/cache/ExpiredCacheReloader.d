@@ -22,7 +22,7 @@ import CacheValue = ocean.util.container.cache.model.Value;
 
 import ocean.util.serialize.contiguous.package_;
 
-import tango.stdc.time: time_t, time;
+import ocean.stdc.time: time_t, time;
 
 /*******************************************************************************
 

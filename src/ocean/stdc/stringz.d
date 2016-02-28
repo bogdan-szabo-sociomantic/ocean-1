@@ -12,7 +12,7 @@
 
 module ocean.stdc.stringz;
 
-import tango.transition;
+import ocean.transition;
 
 /*********************************
  * Convert array of chars to a C-style 0 terminated string.
@@ -49,7 +49,7 @@ Const!(char)* toStringz (cstring s, char[] tmp = null)
 
 version (UnitTest)
 {
-    import tango.stdc.string;
+    import ocean.stdc.string;
 }
 
 unittest

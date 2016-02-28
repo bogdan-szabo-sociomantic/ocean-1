@@ -21,13 +21,13 @@
 
 module ocean.io.stream.Data;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.core.ByteSwap;
+import ocean.core.ByteSwap;
 
-import tango.io.device.Conduit;
+import ocean.io.device.Conduit;
 
-import tango.io.stream.Buffered;
+import ocean.io.stream.Buffered;
 
 /*******************************************************************************
 
@@ -454,7 +454,7 @@ class DataOutput : OutputFilter
 
 version (UnitTest)
 {
-    import tango.io.device.Array;
+    import ocean.io.device.Array;
 }
 
 unittest
@@ -476,7 +476,7 @@ unittest
 
 debug (Data)
 {
-        import tango.io.device.Array;
+        import ocean.io.device.Array;
 
         void main()
         {

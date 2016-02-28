@@ -13,9 +13,9 @@
 
 module ocean.text.json.JsonParser;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.util.container.more.Stack;
+import ocean.util.container.more.Stack;
 
 /*******************************************************************************
 

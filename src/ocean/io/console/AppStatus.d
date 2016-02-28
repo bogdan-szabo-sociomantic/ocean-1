@@ -93,7 +93,7 @@ module ocean.io.console.AppStatus;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.io.Terminal;
 
@@ -113,19 +113,21 @@ import ocean.util.log.InsertConsole;
 
 import ocean.util.log.layout.LayoutMessageOnly;
 
-import tango.stdc.math: lroundf;
+import ocean.stdc.math: lroundf;
 
-import tango.core.Memory;
+import ocean.core.Memory;
 
-import tango.stdc.stdlib: div;
+import ocean.stdc.stdarg;
 
-import tango.stdc.time: clock_t, clock, tm, time_t;
+import ocean.stdc.stdlib: div;
 
-import tango.text.convert.Format;
+import ocean.stdc.time: clock_t, clock, tm, time_t;
 
-import tango.util.log.Log;
+import ocean.text.convert.Format;
 
-import tango.io.Console;
+import ocean.util.log.Log;
+
+import ocean.io.Console;
 
 
 

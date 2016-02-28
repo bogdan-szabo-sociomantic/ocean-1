@@ -8,19 +8,19 @@ module ocean.io.selector.PollSelector;
 
 version (Posix)
 {
-    public import tango.io.model.IConduit;
-    public import tango.io.selector.model.ISelector;
+    public import ocean.io.model.IConduit;
+    public import ocean.io.selector.model.ISelector;
 
-    import tango.io.selector.AbstractSelector;
-    import tango.io.selector.SelectorException;
-    import tango.sys.Common;
-    import tango.stdc.errno;
+    import ocean.io.selector.AbstractSelector;
+    import ocean.io.selector.SelectorException;
+    import ocean.sys.Common;
+    import ocean.stdc.errno;
 
     version (linux)
-        import tango.sys.linux.linux;
+        import ocean.sys.linux.linux;
 
     debug (selector)
-        import tango.io.Stdout;
+        import ocean.io.Stdout_tango;
 
 
     /**
@@ -30,7 +30,7 @@ version (Posix)
      *
      * Examples:
      * ---
-     * import tango.io.selector.PollSelector;
+     * import ocean.io.selector.PollSelector;
      *
      * Socket socket;
      * ISelector selector = new PollSelector();

@@ -39,12 +39,12 @@
 
     The class is templated for use with char[], wchar[], and dchar[],
     and should migrate across encodings seamlessly. In particular, all
-    functions in tango.text.Util are compatible with Text content in
+    functions in ocean.text.Util are compatible with Text content in
     any of the supported encodings. In future, this class will become
     a principal gateway to the extensive ICU unicode library.
 
     Note that several common text operations can be constructed through
-    combining tango.text.Text with tango.text.Util e.g. lines of text
+    combining ocean.text.Text with ocean.text.Util e.g. lines of text
     can be processed thusly:
     ---
     auto source = new Text!(char)("one\ntwo\nthree");
@@ -197,27 +197,27 @@
 
 module ocean.text.Text;
 
-import tango.transition;
+import ocean.transition;
 
-import  tango.text.Search;
+import ocean.text.Search;
 
-import  tango.io.model.IConduit;
+import ocean.io.model.IConduit;
 
-import  tango.text.convert.Layout;
+import ocean.text.convert.Layout_tango;
 
-import  Util = tango.text.Util;
+import  Util = ocean.text.Util;
 
-import  Utf = tango.text.convert.Utf;
+import  Utf = ocean.text.convert.Utf;
 
-import  Float = tango.text.convert.Float;
+import  Float = ocean.text.convert.Float;
 
-import  Integer = tango.text.convert.Integer;
+import  Integer = ocean.text.convert.Integer_tango;
 
-import tango.stdc.string : memmove;
+import ocean.stdc.string : memmove;
 
 version(DigitalMars)
 {
-    import tango.core.Vararg;
+    import ocean.core.Vararg;
     version(X86_64) version=DigitalMarsX64;
 }
 
@@ -794,7 +794,7 @@ class Text(T) : TextView!(T)
     /***********************************************************************
 
       Append content from input stream at insertion point. Use
-      tango.io.stream.Utf as a wrapper to perform conversion as
+      ocean.io.stream.Utf as a wrapper to perform conversion as
       necessary
 
      ***********************************************************************/
@@ -1709,7 +1709,7 @@ class UniText
 
 version (UnitTest)
 {
-    import tango.io.device.Array;
+    import ocean.io.device.Array;
 }
 
 unittest

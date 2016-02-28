@@ -13,9 +13,9 @@
 
 module ocean.net.device.Multicast;
 
-public  import  tango.net.InternetAddress;
-public  import  tango.net.device.Datagram;
-import  tango.net.device.Berkeley;
+public  import ocean.net.InternetAddress;
+public  import ocean.net.device.Datagram;
+import ocean.net.device.Berkeley;
 
 /******************************************************************************
 
@@ -178,7 +178,7 @@ class Multicast : Datagram
 
 debug (Multicast)
 {
-        import tango.io.Console;
+        import ocean.io.Console;
 
         void main()
         {

@@ -12,9 +12,9 @@
 
 module ocean.net.InternetAddress;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.net.device.Berkeley;
+import ocean.net.device.Berkeley;
 
 /*******************************************************************************
 

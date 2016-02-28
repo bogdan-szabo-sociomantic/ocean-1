@@ -19,8 +19,8 @@ module ocean.core.Exception;
 
 *******************************************************************************/
 
-import tango.text.convert.Format;
-import tango.transition;
+import ocean.text.convert.Format;
+import ocean.transition;
 
 static import ocean.core.Enforce;
 
@@ -105,8 +105,8 @@ unittest
 
 public template ReusableExceptionImplementation()
 {
-    import tango.transition;
-    import tango.text.convert.Integer;
+    import ocean.transition;
+    import ocean.text.convert.Integer_tango;
     static import ocean.core.Array;
 
     static assert (is(typeof(this) : Exception));
@@ -329,7 +329,7 @@ version (UnitTest)
 
 public template DefaultExceptionCtor()
 {
-    import tango.transition;
+    import ocean.transition;
 
     public this (istring msg, istring file = __FILE__,
                  typeof(__LINE__) line = __LINE__)

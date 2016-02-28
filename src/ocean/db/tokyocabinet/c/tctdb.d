@@ -28,7 +28,7 @@ import ocean.db.tokyocabinet.c.tcmdb;
 
 import ocean.db.tokyocabinet.c.tcbdb;
 
-import tango.stdc.time : time_t;
+import ocean.stdc.time : time_t;
 
 /*************************************************************************************************
  * API

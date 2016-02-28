@@ -36,21 +36,21 @@ module ocean.core.Array;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.core.Traits: ReturnAndArgumentTypesOf;
 
-import tango.core.Traits;
+import ocean.core.Traits;
 
-import tango.core.Array;
+import ocean.core.Array_tango;
 
-import tango.stdc.string : memmove, memset;
+import ocean.stdc.string : memmove, memset;
 
-import tango.stdc.posix.sys.types : ssize_t;
+import ocean.stdc.posix.sys.types : ssize_t;
 
-import tango.text.Util : patterns;
+import ocean.text.Util : patterns;
 
-import tango.stdc.math: fabs;
+import ocean.stdc.math: fabs;
 
 version ( UnitTest )
 {
@@ -279,7 +279,7 @@ unittest
     Note that the src content is not duplicated by this function, but is sliced
     instead.
 
-    (Adapted from tango.text.Util : split, which isn't memory safe.)
+    (Adapted from ocean.text.Util : split, which isn't memory safe.)
 
     Template params:
         T = type of array element
@@ -322,7 +322,7 @@ unittest
     Substitute all instances of match from source. Set replacement to null in
     order to remove instead of replace (or use the remove() function, below).
 
-    (Adapted from tango.text.Util : substitute, which isn't memory safe.)
+    (Adapted from ocean.text.Util : substitute, which isn't memory safe.)
 
     Template params:
         T = type of array element
@@ -1621,7 +1621,7 @@ private T[] concat_ ( T, TC ) ( T[] dest, TC[][] arrays, size_t start = 0 )
     . The "[2, 3, 5, 7]" array literal is implemented by the _d_arrayliteralTX()
     function of the run-time library which uses gc_malloc() to allocate the
     array buffer.
-    @see tango.rt.compiler.dmd.rt.lifetime
+    @see ocean.rt.compiler.dmd.rt.lifetime
 
     Template params:
         func = function name for static assertion messages

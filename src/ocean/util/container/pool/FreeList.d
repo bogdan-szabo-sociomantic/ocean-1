@@ -40,9 +40,9 @@ import ocean.util.container.pool.model.IFreeList;
 import ocean.core.Array : pop;
 
 import ocean.core.Traits;
-import tango.core.Traits;
+import ocean.core.Traits;
 
-import tango.transition;
+import ocean.transition;
 
 /*******************************************************************************
 

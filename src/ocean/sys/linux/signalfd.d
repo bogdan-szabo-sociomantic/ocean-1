@@ -1,7 +1,7 @@
 
 module ocean.sys.linux.signalfd;
 
-import tango.stdc.posix.signal: sigset_t;
+import ocean.stdc.posix.signal: sigset_t;
 
 extern (C):
 

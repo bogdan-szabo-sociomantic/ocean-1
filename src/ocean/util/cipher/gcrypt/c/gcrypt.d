@@ -10,7 +10,7 @@
 
 module ocean.util.cipher.gcrypt.c.gcrypt;
 
-import tango.transition;
+import ocean.transition;
 
 // The minimum version supported by the bindings
 public istring gcrypt_version = "1.5.0";

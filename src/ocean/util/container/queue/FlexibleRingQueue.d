@@ -20,7 +20,7 @@ module ocean.util.container.queue.FlexibleRingQueue;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.util.container.queue.model.IRingQueue;
 
@@ -28,7 +28,7 @@ import ocean.util.container.queue.model.IByteQueue;
 
 import ocean.util.container.mem.MemManager;
 
-import tango.io.model.IConduit: InputStream, OutputStream;
+import ocean.io.model.IConduit: InputStream, OutputStream;
 
 import ocean.io.serialize.SimpleSerializer;
 
@@ -50,7 +50,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 {
     import ocean.core.Enforce: enforce;
 
-    import Integer = tango.text.convert.Integer: toString;
+    import Integer = ocean.text.convert.Integer_tango: toString;
     private alias Integer.toString itoa;
 
     /***************************************************************************
@@ -916,7 +916,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
 version ( UnitTest )
 {
-    import tango.io.model.IConduit: IConduit;
+    import ocean.io.model.IConduit: IConduit;
 }
 
 unittest
@@ -1196,10 +1196,10 @@ version ( UnitTest )
 
     import ocean.core.Test;
 
-    import tango.math.random.Random;
-    import tango.time.StopWatch;
-    import tango.core.Memory;
-    import tango.io.FilePath;
+    import ocean.math.random.Random;
+    import ocean.time.StopWatch;
+    import ocean.core.Memory;
+    import ocean.io.FilePath_tango;
 }
 
 unittest

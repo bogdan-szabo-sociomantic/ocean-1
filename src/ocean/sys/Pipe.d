@@ -6,21 +6,21 @@
 
 module ocean.sys.Pipe;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.sys.Common;
-import tango.io.device.Device;
+import ocean.sys.Common;
+import ocean.io.device.Device;
 
-import tango.core.Exception;
+import ocean.core.Exception_tango;
 
 version (Posix)
 {
-    import tango.stdc.posix.unistd;
+    import ocean.stdc.posix.unistd;
 }
 
 debug (PipeConduit)
 {
-    import tango.io.Stdout;
+    import ocean.io.Stdout_tango;
 }
 
 private enum {DefaultBufferSize = 8 * 1024}

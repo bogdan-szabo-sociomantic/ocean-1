@@ -14,15 +14,15 @@
 
 module ocean.io.FileSystem;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.sys.Common;
+import ocean.sys.Common;
 
-import tango.io.FilePath;
+import ocean.io.FilePath_tango;
 
-import tango.core.Exception;
+import ocean.core.Exception_tango;
 
-import tango.io.Path : standard, native;
+import ocean.io.Path : standard, native;
 
 /*******************************************************************************
 
@@ -30,12 +30,12 @@ import tango.io.Path : standard, native;
 
 version (Posix)
         {
-        import tango.stdc.string;
-        import tango.stdc.posix.unistd,
-                       tango.stdc.posix.sys.statvfs;
+        import ocean.stdc.string;
+        import ocean.stdc.posix.unistd,
+                       ocean.stdc.posix.sys.statvfs;
 
-        import tango.io.device.File;
-        import Integer = tango.text.convert.Integer;
+        import ocean.io.device.File;
+        import Integer = ocean.text.convert.Integer_tango;
         }
 
 /*******************************************************************************
@@ -141,7 +141,7 @@ struct FileSystem
                         tmp [path.length] = 0;
                         tmp[0..path.length] = path;
 
-                        if (tango.stdc.posix.unistd.chdir (tmp.ptr))
+                        if (ocean.stdc.posix.unistd.chdir (tmp.ptr))
                             exception ("Failed to set current directory");
                 }
 
@@ -157,7 +157,7 @@ struct FileSystem
                 {
                         char[512] tmp = void;
 
-                        char *s = tango.stdc.posix.unistd.getcwd (tmp.ptr, tmp.length);
+                        char *s = ocean.stdc.posix.unistd.getcwd (tmp.ptr, tmp.length);
                         if (s is null)
                             exception ("Failed to get current directory");
 
@@ -233,7 +233,7 @@ struct FileSystem
                         including those spent on metadata and file nodes.
 
                         If actual used space is wanted one should use the
-                        statistics functionality of tango.io.vfs.
+                        statistics functionality of ocean.io.vfs.
 
                         See_also: totalSpace()
 
@@ -297,7 +297,7 @@ struct FileSystem
 
 debug (FileSystem)
 {
-        import tango.io.Stdout;
+        import ocean.io.Stdout_tango;
 
         static void foo (FilePath path)
         {

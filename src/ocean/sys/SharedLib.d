@@ -9,19 +9,19 @@
 
 module ocean.sys.SharedLib;
 
-import tango.transition;
+import ocean.transition;
 
 private {
-    import tango.stdc.stringz : fromStringz;
+    import ocean.stdc.stringz : fromStringz;
 
     version (Posix) {
-        import tango.stdc.posix.dlfcn;
+        import ocean.stdc.posix.dlfcn;
     }
     else {
         static assert (false, "No support for this platform");
     }
 
-    version (SharedLibVerbose) import tango.util.log.Trace;
+    version (SharedLibVerbose) import ocean.util.log.Trace;
 }
 
 version (Posix) {

@@ -28,14 +28,14 @@ import ocean.core.Test;
 import ocean.sys.Epoll;
 import ocean.sys.SignalMask;
 
-import tango.transition;
-import tango.core.Array : contains;
+import ocean.transition;
+import ocean.core.Array_tango : contains;
 
-import tango.stdc.posix.signal : kill, pid_t, sigaction, sigaction_t,
+import ocean.stdc.posix.signal : kill, pid_t, sigaction, sigaction_t,
     SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGABRT, SIGBUS;
-import tango.stdc.posix.stdlib : exit;
-import tango.stdc.posix.unistd : fork;
-import tango.stdc.posix.sys.wait : waitpid;
+import ocean.stdc.posix.stdlib : exit;
+import ocean.stdc.posix.unistd : fork;
+import ocean.stdc.posix.sys.wait : waitpid;
 
 
 

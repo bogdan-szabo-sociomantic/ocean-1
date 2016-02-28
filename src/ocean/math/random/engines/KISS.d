@@ -5,8 +5,8 @@
         author:         Fawzi Mohamed
 *******************************************************************************/
 module ocean.math.random.engines.KISS;
-import tango.transition;
-import Integer = tango.text.convert.Integer;
+import ocean.transition;
+import Integer = ocean.text.convert.Integer_tango;
 
 /+ Kiss99 random number generator, by Marisaglia
 + a simple RNG that passes all statistical tests

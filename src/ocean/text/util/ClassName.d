@@ -1,6 +1,6 @@
 module ocean.text.util.ClassName;
 
-import tango.transition;
+import ocean.transition;
 
 extern (C) private void* memrchr(Const!(void)* s, int c, size_t n);
 

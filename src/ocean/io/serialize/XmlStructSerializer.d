@@ -86,13 +86,13 @@ import ocean.core.Array;
 
 import ocean.io.serialize.StructSerializer;
 
-import tango.core.Array;
+import ocean.core.Array_tango;
 
-import tango.core.Traits;
+import ocean.core.Traits;
 
-import Integer = tango.text.convert.Integer;
+import Integer = ocean.text.convert.Integer_tango;
 
-import Float = tango.text.convert.Float;
+import Float = ocean.text.convert.Float;
 
 
 

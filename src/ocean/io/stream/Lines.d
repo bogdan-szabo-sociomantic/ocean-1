@@ -12,9 +12,9 @@
 
 module ocean.io.stream.Lines;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.io.stream.Iterator;
+import ocean.io.stream.Iterator;
 
 /*******************************************************************************
 
@@ -118,7 +118,7 @@ class Lines(T) : Iterator!(T)
 
 version (UnitTest)
 {
-    import tango.io.device.Array;
+    import ocean.io.device.Array;
 }
 
 unittest
@@ -132,8 +132,8 @@ unittest
 
 debug (Lines)
 {
-        import tango.io.Console;
-        import tango.io.device.Array;
+        import ocean.io.Console;
+        import ocean.io.device.Array;
 
         void main()
         {

@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    Subclass of tango.io.FilePath to provide some extra functionality
+    Subclass of ocean.io.FilePath to provide some extra functionality
 
     copyright:      Copyright (c) 2013 sociomantic labs. All rights reserved
 
@@ -18,13 +18,13 @@ module ocean.io.FilePath;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import tango.io.FilePath;
+import ocean.io.FilePath_tango;
 
-import tango.io.Path : FS;
+import ocean.io.Path : FS;
 
-import tango.stdc.posix.unistd : link;
+import ocean.stdc.posix.unistd : link;
 
 
 
@@ -32,19 +32,19 @@ import tango.stdc.posix.unistd : link;
 
     Models a file path.
 
-    See tango.io.FilePath module for more details. The purpose of this class is
+    See ocean.io.FilePath module for more details. The purpose of this class is
     only to provide missing functionality.
 
 *******************************************************************************/
 
-public class FilePath : tango.io.FilePath.FilePath
+public class FilePath : ocean.io.FilePath_tango.FilePath
 {
 
     /***********************************************************************
 
         Create a FilePath from a copy of the provided string.
 
-        See tango.io.FilePath.FilePath constructor for details.
+        See ocean.io.FilePath.FilePath constructor for details.
 
     ***********************************************************************/
 

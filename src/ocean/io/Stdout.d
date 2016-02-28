@@ -8,7 +8,7 @@
 
     authors:        Gavin Norman
 
-    Console output classes extending those in tango.io.Stdout.
+    Console output classes extending those in ocean.io.Stdout.
 
     Additional features are:
         * clearline() method which erases the rest of the line
@@ -27,17 +27,17 @@ module ocean.io.Stdout;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.io.Terminal;
 
-import tango.io.device.Conduit;
+import ocean.io.device.Conduit;
 
-import tango.io.stream.Format;
+import ocean.io.stream.Format;
 
-import tango.io.Console;
+import ocean.io.Console;
 
-import tango.text.convert.Layout;
+import ocean.text.convert.Layout_tango;
 
 
 
@@ -49,21 +49,21 @@ import tango.text.convert.Layout;
 
 version (GNU)
 {
-    import tango.core.Vararg;
+    import ocean.core.Vararg;
 
     alias void* Arg;
     alias va_list ArgList;
 }
 else version (LDC)
 {
-    import tango.core.Vararg;
+    import ocean.core.Vararg;
 
     alias void* Arg;
     alias va_list ArgList;
 }
 else version (DigitalMars)
 {
-    import tango.core.Vararg;
+    import ocean.core.Vararg;
 
     alias void* Arg;
     alias va_list ArgList;
@@ -108,7 +108,7 @@ static this ( )
 
     Terminal output class.
 
-    Derived from FormatOutput in tango.io.stream.Format, and reimplements
+    Derived from FormatOutput in ocean.io.stream.Format, and reimplements
     methods to return typeof(this), for easy method chaining. Note that not all
     methods are reimplemented in this way, only those which we commonly use.
     Others may be added if needed.

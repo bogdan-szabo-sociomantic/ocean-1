@@ -8,15 +8,15 @@
   *
   * To use this module, just:
   * ---
-  * import tango.util.uuid.RandomGen;
+  * import ocean.util.uuid.RandomGen;
   *
   * Uuid id = randUuid.next;
   * ---
   */
 module ocean.util.uuid.RandomGen;
 
-public import tango.util.uuid.Uuid;
-import tango.math.random.Twister;
+public import ocean.util.uuid.Uuid;
+import ocean.math.random.Twister;
 
 /** The default random UUID generator. You can set this if you need to generate
   * UUIDs in another manner and already have code pointing to this module.

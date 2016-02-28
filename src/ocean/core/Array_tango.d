@@ -9,11 +9,11 @@
  */
 module ocean.core.Array_tango;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.core.Traits;
-import tango.stdc.stdlib : alloca, rand;
-import tango.core.Test;
+import ocean.core.Traits;
+import ocean.stdc.stdlib : alloca, rand;
+import ocean.core.Test;
 
 version( TangoDoc )
 {

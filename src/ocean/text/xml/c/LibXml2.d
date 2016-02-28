@@ -20,13 +20,13 @@ module ocean.text.xml.c.LibXml2;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.core.Array;
 
-import tango.stdc.string;
+import ocean.stdc.string;
 
-import tango.stdc.stdarg;
+import ocean.stdc.stdarg;
 
 
 

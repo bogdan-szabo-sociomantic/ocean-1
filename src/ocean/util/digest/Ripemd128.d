@@ -22,11 +22,11 @@
 
 module ocean.util.digest.Ripemd128;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.util.digest.MerkleDamgard;
+import ocean.util.digest.MerkleDamgard;
 
-public  import tango.util.digest.Digest;
+public  import ocean.util.digest.Digest;
 
 /*******************************************************************************
 

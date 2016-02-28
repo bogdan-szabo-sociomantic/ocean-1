@@ -12,16 +12,16 @@
 
 module ocean.util.log.LayoutDate;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.text.Util;
+import ocean.text.Util;
 
-import tango.time.Clock,
-       tango.time.WallClock;
+import ocean.time.Clock,
+       ocean.time.WallClock;
 
-import tango.util.log.Log;
+import ocean.util.log.Log;
 
-import Integer = tango.text.convert.Integer;
+import Integer = ocean.text.convert.Integer_tango;
 
 /*******************************************************************************
 

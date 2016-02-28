@@ -21,10 +21,10 @@
 
 module ocean.text.xml.SaxParser;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.io.model.IConduit;
-import tango.text.xml.PullParser;
+import ocean.io.model.IConduit;
+import ocean.text.xml.PullParser;
 
 /*******************************************************************************
 

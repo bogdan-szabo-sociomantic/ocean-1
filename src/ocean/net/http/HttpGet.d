@@ -12,10 +12,10 @@
 
 module ocean.net.http.HttpGet;
 
-public import tango.net.Uri;
+public import ocean.net.Uri;
 
-import tango.net.http.HttpClient,
-       tango.net.http.HttpHeaders;
+import ocean.net.http.HttpClient,
+       ocean.net.http.HttpHeaders;
 
 /*******************************************************************************
 
@@ -86,7 +86,7 @@ class HttpGet : HttpClient
 
 debug (HttpGet)
 {
-        import tango.io.Console;
+        import ocean.io.Console;
 
         void main()
         {

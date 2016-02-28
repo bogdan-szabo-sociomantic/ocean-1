@@ -16,7 +16,7 @@ module ocean.core._util.string;
 // D1 has it in runtime
 version (D_Version2):
 
-import tango.stdc.string : memcmp;
+import ocean.stdc.string : memcmp;
 
 // convert uint to char[], within the given buffer
 // Returns a valid slice of the populated buffer

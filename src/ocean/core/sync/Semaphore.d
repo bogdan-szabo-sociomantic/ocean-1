@@ -8,18 +8,18 @@
 module ocean.core.sync.Semaphore;
 
 
-public import tango.core.Exception : SyncException;
+public import ocean.core.Exception_tango : SyncException;
 
 version( Win32 )
 {
-    import tango.sys.win32.UserGdi;
+    import ocean.sys.win32.UserGdi;
 }
 else version( Posix )
 {
-    import tango.core.sync.Config;
-    import tango.stdc.errno;
-    import tango.stdc.posix.pthread;
-    import tango.stdc.posix.semaphore;
+    import ocean.core.sync.Config;
+    import ocean.stdc.errno;
+    import ocean.stdc.posix.pthread;
+    import ocean.stdc.posix.semaphore;
 }
 
 
@@ -320,8 +320,8 @@ private:
 
 version (UnitTest)
 {
-    import tango.core.Thread,
-                   tango.core.Time;
+    import ocean.core.Thread,
+                   ocean.core.Time;
 
 
     void testWait()

@@ -12,16 +12,16 @@
 
 module ocean.util.log.AppendFile;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.util.log.Log;
+import ocean.util.log.Log;
 
-import tango.io.device.File;
+import ocean.io.device.File;
 
-import tango.io.stream.Buffered;
+import ocean.io.stream.Buffered;
 
-import tango.io.model.IFile,
-       tango.io.model.IConduit;
+import ocean.io.model.IFile,
+       ocean.io.model.IConduit;
 
 /*******************************************************************************
 

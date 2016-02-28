@@ -20,14 +20,14 @@ version (UnitTest)
     import ocean.core.Array: shuffle;
     import ocean.core.Test;
 
-    import tango.core.Memory;
-    import tango.math.random.Random;
-    import tango.io.Stdout;
-    import tango.stdc.posix.stdlib: srand48, mrand48, drand48;
-    import tango.stdc.posix.unistd: getpid;
-    import tango.stdc.stdio : printf;
-    import tango.stdc.time: time_t, time;
-    import tango.time.StopWatch;
+    import ocean.core.Memory;
+    import ocean.math.random.Random;
+    import ocean.io.Stdout_tango;
+    import ocean.stdc.posix.stdlib: srand48, mrand48, drand48;
+    import ocean.stdc.posix.unistd: getpid;
+    import ocean.stdc.stdio : printf;
+    import ocean.stdc.time: time_t, time;
+    import ocean.time.StopWatch;
 }
 
 unittest

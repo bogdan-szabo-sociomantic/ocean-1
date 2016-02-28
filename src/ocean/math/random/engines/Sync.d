@@ -5,9 +5,9 @@
         author:         Fawzi Mohamed
 *******************************************************************************/
 module ocean.math.random.engines.Sync;
-import tango.transition;
-import Integer = tango.text.convert.Integer;
-import tango.core.sync.Mutex: Mutex;
+import ocean.transition;
+import Integer = ocean.text.convert.Integer_tango;
+import ocean.core.sync.Mutex: Mutex;
 
 /+ Makes a synchronized engine out of the engine E, so multiple thread access is ok
 + (but if you need multiple thread access think about having a random number generator per thread)

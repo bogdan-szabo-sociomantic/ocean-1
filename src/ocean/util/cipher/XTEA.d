@@ -6,9 +6,9 @@
 
 module ocean.util.cipher.XTEA;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.util.cipher.Cipher;
+import ocean.util.cipher.Cipher;
 
 /** Implementation of the XTEA cipher designed by
     David Wheeler and Roger Needham. */

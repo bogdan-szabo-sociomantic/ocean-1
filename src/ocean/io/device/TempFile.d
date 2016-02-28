@@ -12,26 +12,26 @@
 
 module ocean.io.device.TempFile;
 
-import tango.transition;
+import ocean.transition;
 
-import Path = tango.io.Path;
-import tango.math.random.Kiss : Kiss;
-import tango.io.device.Device : Device;
-import tango.io.device.File;
-import tango.stdc.stringz : toStringz;
+import Path = ocean.io.Path;
+import ocean.math.random.Kiss : Kiss;
+import ocean.io.device.Device : Device;
+import ocean.io.device.File;
+import ocean.stdc.stringz : toStringz;
 
 /******************************************************************************
  ******************************************************************************/
 
 version( Win32 )
 {
-    import tango.sys.Common : DWORD, LONG, MAX_PATH, PCHAR, CP_UTF8;
+    import ocean.sys.Common : DWORD, LONG, MAX_PATH, PCHAR, CP_UTF8;
 
     enum : DWORD { FILE_FLAG_OPEN_REPARSE_POINT = 0x00200000 }
 
     version( Win32SansUnicode )
     {
-        import tango.sys.Common :
+        import ocean.sys.Common :
             GetVersionExA, OSVERSIONINFO,
             FILE_FLAG_DELETE_ON_CLOSE,
             GetTempPathA;
@@ -51,7 +51,7 @@ version( Win32 )
     }
     else
     {
-        import tango.sys.Common :
+        import ocean.sys.Common :
             WideCharToMultiByte,
             GetVersionExW, OSVERSIONINFO,
             FILE_FLAG_DELETE_ON_CLOSE,
@@ -99,13 +99,13 @@ version( Win32 )
 
 else version( Posix )
 {
-    import tango.stdc.posix.pwd : getpwnam;
-    import tango.stdc.posix.unistd : access, getuid, lseek, unlink, W_OK;
-    import tango.stdc.posix.sys.types : off_t;
-    import tango.stdc.posix.sys.stat : stat, stat_t;
-    import tango.stdc.posix.fcntl : O_NOFOLLOW;
-    import tango.stdc.posix.stdlib : getenv;
-    import tango.stdc.string : strlen;
+    import ocean.stdc.posix.pwd : getpwnam;
+    import ocean.stdc.posix.unistd : access, getuid, lseek, unlink, W_OK;
+    import ocean.stdc.posix.sys.types : off_t;
+    import ocean.stdc.posix.sys.stat : stat, stat_t;
+    import ocean.stdc.posix.fcntl : O_NOFOLLOW;
+    import ocean.stdc.posix.stdlib : getenv;
+    import ocean.stdc.string : strlen;
 }
 
 /******************************************************************************
@@ -459,8 +459,8 @@ class TempFile : File
 
 version( TempFile_SelfTest ):
 
-import tango.io.Console : Cin;
-import tango.io.Stdout : Stdout;
+import ocean.io.Console : Cin;
+import ocean.io.Stdout_tango : Stdout;
 
 void main()
 {

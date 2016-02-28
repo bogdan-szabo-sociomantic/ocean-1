@@ -14,7 +14,7 @@
     Applying the D "import alias" mechanism to this module is highly
     recommended, in order to limit namespace pollution:
     ---
-    import Integer = tango.text.convert.Integer;
+    import Integer = ocean.text.convert.Integer_tango;
 
     auto i = Integer.parse ("32767");
     ---
@@ -23,9 +23,9 @@
 
 module ocean.text.convert.Integer_tango;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.core.Exception;
+import ocean.core.Exception_tango;
 
 /******************************************************************************
 
@@ -817,7 +817,7 @@ unittest
 
 debug (Integer)
 {
-    import tango.io.Stdout;
+    import ocean.io.Stdout_tango;
 
     void main()
     {

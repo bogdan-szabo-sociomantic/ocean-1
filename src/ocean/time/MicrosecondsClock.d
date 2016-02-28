@@ -20,7 +20,7 @@ module ocean.time.MicrosecondsClock;
 
 import ocean.time.model.IMicrosecondsClock;
 
-import tango.stdc.posix.sys.time: timeval, gettimeofday;
+import ocean.stdc.posix.sys.time: timeval, gettimeofday;
 
 /******************************************************************************/
 

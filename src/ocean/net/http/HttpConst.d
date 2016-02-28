@@ -12,7 +12,7 @@
 
 module ocean.net.http.HttpConst;
 
-import tango.transition;
+import ocean.transition;
 
 /*******************************************************************************
 

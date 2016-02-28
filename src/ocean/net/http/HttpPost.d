@@ -12,12 +12,12 @@
 
 module ocean.net.http.HttpPost;
 
-public import tango.net.Uri;
+public import ocean.net.Uri;
 
-import tango.io.model.IConduit;
+import ocean.io.model.IConduit;
 
-import tango.net.http.HttpClient,
-       tango.net.http.HttpHeaders;
+import ocean.net.http.HttpClient,
+       ocean.net.http.HttpHeaders;
 
 /*******************************************************************************
 

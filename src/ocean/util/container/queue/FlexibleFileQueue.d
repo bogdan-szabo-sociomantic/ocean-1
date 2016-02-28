@@ -34,11 +34,11 @@ import ocean.util.container.queue.model.IQueueInfo;
 
 import ocean.util.container.queue.FlexibleRingQueue;
 
-import tango.util.log.Log;
+import ocean.util.log.Log;
 
-import tango.io.stream.Buffered,
-       tango.io.device.File,
-       Filesystem = tango.io.Path;
+import ocean.io.stream.Buffered,
+       ocean.io.device.File,
+       Filesystem = ocean.io.Path;
 
 
 
@@ -705,8 +705,8 @@ version (UnitTest)
 {
     import ocean.text.util.StringC;
     import ocean.io.Stdout;
-    import tango.stdc.posix.unistd;
-    import tango.stdc.posix.stdlib: mkdtemp;
+    import ocean.stdc.posix.unistd;
+    import ocean.stdc.posix.stdlib: mkdtemp;
 }
 
 unittest

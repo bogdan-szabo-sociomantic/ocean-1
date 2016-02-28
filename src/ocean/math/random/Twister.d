@@ -17,7 +17,7 @@ module ocean.math.random.Twister;
 
 version (Posix)
         {
-        import tango.stdc.posix.sys.time;
+        import ocean.stdc.posix.sys.time;
         }
 
 /*******************************************************************************
@@ -294,8 +294,8 @@ struct Twister
 
 debug (Twister)
 {
-        import tango.io.Stdout;
-        import tango.time.StopWatch;
+        import ocean.io.Stdout_tango;
+        import ocean.time.StopWatch;
 
         void main()
         {

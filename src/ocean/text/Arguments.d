@@ -605,14 +605,14 @@ module ocean.text.Arguments;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import tango.io.Stdout;
-import tango.math.Math;
-import tango.text.Util;
-import tango.text.convert.Integer;
-import tango.util.container.SortedMap;
-import tango.util.container.more.Stack;
+import ocean.io.Stdout_tango;
+import ocean.math.Math;
+import ocean.text.Util;
+import ocean.text.convert.Integer_tango;
+import ocean.util.container.SortedMap;
+import ocean.util.container.more.Stack;
 
 
 

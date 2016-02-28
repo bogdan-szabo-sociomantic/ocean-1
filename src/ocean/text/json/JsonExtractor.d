@@ -160,7 +160,7 @@ module ocean.text.json.JsonExtractor;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.text.json.JsonParserIter;
 import ocean.core.Array;
@@ -244,7 +244,7 @@ struct JsonExtractor
 
             Throws:
                 Propagates exceptions thrown in
-                tango.text.json.JsonParser.parse().
+                ocean.text.json.JsonParser.parse().
 
          **********************************************************************/
 

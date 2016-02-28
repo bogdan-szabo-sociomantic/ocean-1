@@ -12,19 +12,19 @@
 
 module ocean.text.locale.Posix;
 
-import tango.transition;
+import ocean.transition;
 
 version (Posix)
 {
-    alias tango.text.locale.Posix nativeMethods;
+    alias ocean.text.locale.Posix nativeMethods;
 
-    import tango.core.Exception;
-    import tango.text.locale.Data;
-    import tango.stdc.ctype;
-    import tango.stdc.posix.stdlib;
-    import tango.stdc.string;
-    import tango.stdc.stringz;
-    import tango.stdc.locale;
+    import ocean.core.Exception_tango;
+    import ocean.text.locale.Data;
+    import ocean.stdc.ctype;
+    import ocean.stdc.posix.stdlib;
+    import ocean.stdc.string;
+    import ocean.stdc.stringz;
+    import ocean.stdc.locale;
 
     /*private extern(C) char* setlocale(int type, char* locale);
       private extern(C) void putenv(char*);
@@ -62,16 +62,16 @@ version (Posix)
         foreach (entry; CultureData.cultureDataTable)
         {
             // todo: there is also a local compareString defined. Is it correct that here
-            // we use tango.text.locale.Data, which matches the signature?
-            if (tango.text.locale.Data.compareString(entry.name, s) == 0)
+            // we use ocean.text.locale.Data, which matches the signature?
+            if (ocean.text.locale.Data.compareString(entry.name, s) == 0)
                 return entry.lcid;
         }
 
         foreach (entry; CultureData.cultureDataTable)
         {
             // todo: there is also a local compareString defined. Is it correct that here
-            // we use tango.text.locale.Data, which matches the signature?
-            if (tango.text.locale.Data.compareString(entry.name, "en-US") == 0)
+            // we use ocean.text.locale.Data, which matches the signature?
+            if (ocean.text.locale.Data.compareString(entry.name, "en-US") == 0)
                 return entry.lcid;
         }
         return 0;

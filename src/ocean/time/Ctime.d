@@ -1,8 +1,8 @@
 module ocean.time.Ctime;
 
-import tango.stdc.time: time_t;
-import tango.stdc.posix.time: ctime_r;
-import tango.stdc.string: strlen;
+import ocean.stdc.time: time_t;
+import ocean.stdc.posix.time: ctime_r;
+import ocean.stdc.string: strlen;
 
 const ctime_min_length = 26;
 

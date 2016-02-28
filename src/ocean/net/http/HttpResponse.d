@@ -43,9 +43,9 @@ module ocean.net.http.HttpResponse;
 
  ******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import tango.net.http.HttpConst : HttpResponseCode;
+import ocean.net.http.HttpConst : HttpResponseCode;
 
 import ocean.net.http.message.HttpHeader;
 

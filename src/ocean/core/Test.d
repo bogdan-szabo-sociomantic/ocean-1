@@ -16,11 +16,11 @@ module ocean.core.Test;
 
 ********************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.core.Enforce;
-import tango.core.Memory;
-import tango.text.convert.Format;
+import ocean.core.Memory;
+import ocean.text.convert.Format;
 
 /******************************************************************************
 

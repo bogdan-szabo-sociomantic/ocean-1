@@ -1,6 +1,6 @@
 module ocean.sys.linux.timerfd;
 
-import tango.stdc.posix.time: itimerspec, clockid_t;
+import ocean.stdc.posix.time: itimerspec, clockid_t;
 
 // based on sys/timerfd.h
 

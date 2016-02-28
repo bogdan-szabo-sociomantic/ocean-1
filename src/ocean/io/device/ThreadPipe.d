@@ -13,13 +13,13 @@
 
 module ocean.io.device.ThreadPipe;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.core.Exception;
+import ocean.core.Exception_tango;
 
-import tango.io.device.Conduit;
+import ocean.io.device.Conduit;
 
-import tango.core.sync.Condition;
+import ocean.core.sync.Condition;
 
 /**
  * Conduit to support a data stream between 2 threads.  One creates a
@@ -281,7 +281,7 @@ class ThreadPipe : Conduit
 
 version (UnitTest)
 {
-    import tango.core.Thread;
+    import ocean.core.Thread;
 }
 
 unittest

@@ -12,9 +12,9 @@
 
 module ocean.util.digest.Crc32;
 
-import tango.transition;
+import ocean.transition;
 
-public import tango.util.digest.Digest;
+public import ocean.util.digest.Digest;
 
 
 /** This class implements the CRC-32 checksum algorithm.

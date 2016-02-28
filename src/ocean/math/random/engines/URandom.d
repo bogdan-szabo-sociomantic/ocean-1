@@ -6,16 +6,16 @@
 *******************************************************************************/
 module ocean.math.random.engines.URandom;
 
-import tango.transition;
+import ocean.transition;
 
 version(darwin) { version=has_urandom; }
 version(linux)  { version=has_urandom; }
 version(solaris){ version=has_urandom; }
 
 version(has_urandom) {
-    import Integer = tango.text.convert.Integer;
-    import tango.core.sync.Mutex: Mutex;
-    import tango.io.device.File; // use stdc read/write?
+    import Integer = ocean.text.convert.Integer_tango;
+    import ocean.core.sync.Mutex: Mutex;
+    import ocean.io.device.File; // use stdc read/write?
 
     /// basic source that takes data from system random device
     /// This is an engine, do not use directly, use RandomG!(Urandom)

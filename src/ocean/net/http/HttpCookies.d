@@ -12,19 +12,19 @@
 
 module ocean.net.http.HttpCookies;
 
-import tango.transition;
+import ocean.transition;
 
-import  tango.stdc.ctype;
+import ocean.stdc.ctype;
 
-import  tango.io.device.Array;
+import ocean.io.device.Array;
 
-import  tango.io.model.IConduit;
+import ocean.io.model.IConduit;
 
-import  tango.io.stream.Iterator;
+import ocean.io.stream.Iterator;
 
-import  tango.net.http.HttpHeaders;
+import ocean.net.http.HttpHeaders;
 
-import  Integer = tango.text.convert.Integer;
+import  Integer = ocean.text.convert.Integer_tango;
 
 /*******************************************************************************
 

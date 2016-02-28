@@ -84,7 +84,7 @@ module ocean.util.container.map.Map;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.util.container.map.model.BucketSet;
 
@@ -1166,7 +1166,7 @@ public abstract class Map ( size_t V, K ) : BucketSet!(V, K)
 
 version (UnitTest)
 {
-    import tango.core.Memory;
+    import ocean.core.Memory;
     import ocean.core.Test;
 
     void test_key (T) ()

@@ -16,7 +16,7 @@
 
     ---
     module tester;
-    import tango.core.UnitTestRunner;
+    import ocean.core.UnitTestRunner;
     import mymodule;
     ---
 
@@ -41,7 +41,7 @@
 
 module ocean.core.UnitTestRunner;
 
-import tango.transition;
+import ocean.transition;
 
 /*******************************************************************************
 
@@ -49,20 +49,20 @@ import tango.transition;
 
 *******************************************************************************/
 
-import tango.stdc.string: strdup, strlen, strncmp;
-import tango.stdc.posix.unistd: unlink;
-import tango.stdc.posix.libgen: basename;
-import tango.stdc.posix.sys.time: gettimeofday, timeval, timersub;
-import tango.core.Runtime: Runtime;
-import tango.core.Exception : AssertException;
-import tango.io.Stdout: Stdout, Stderr;
-import tango.io.stream.Format: FormatOutput;
-import tango.io.stream.TextFile: TextFileOutput;
-import tango.text.xml.Document: Document;
-import tango.text.xml.DocPrinter: DocPrinter;
-import tango.text.convert.Format: Format;
-import tango.core.Test: TestException, test;
-import tango.core.Memory: GC;
+import ocean.stdc.string: strdup, strlen, strncmp;
+import ocean.stdc.posix.unistd: unlink;
+import ocean.stdc.posix.libgen: basename;
+import ocean.stdc.posix.sys.time: gettimeofday, timeval, timersub;
+import ocean.core.Runtime: Runtime;
+import ocean.core.Exception_tango : AssertException;
+import ocean.io.Stdout_tango: Stdout, Stderr;
+import ocean.io.stream.Format: FormatOutput;
+import ocean.io.stream.TextFile: TextFileOutput;
+import ocean.text.xml.Document: Document;
+import ocean.text.xml.DocPrinter: DocPrinter;
+import ocean.text.convert.Format: Format;
+import ocean.core.Test: TestException, test;
+import ocean.core.Memory: GC;
 
 
 

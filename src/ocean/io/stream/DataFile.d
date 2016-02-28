@@ -12,9 +12,9 @@
 
 module ocean.io.stream.DataFile;
 
-import tango.io.device.File;
+import ocean.io.device.File;
 
-import tango.io.stream.Data;
+import ocean.io.stream.Data;
 
 /*******************************************************************************
 
@@ -109,7 +109,7 @@ class DataFileOutput : DataOutput
 
 debug (DataFile)
 {
-        import tango.io.Stdout;
+        import ocean.io.Stdout_tango;
 
         void main()
         {

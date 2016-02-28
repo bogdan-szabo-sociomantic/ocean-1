@@ -46,7 +46,7 @@
         Applying the D "import alias" mechanism to this module is highly
         recommended, in order to limit namespace pollution:
         ---
-        import Util = tango.text.Util;
+        import Util = ocean.text.Util;
 
         auto s = Util.trim ("  foo ");
         ---
@@ -101,7 +101,7 @@
 
 module ocean.text.Util;
 
-import tango.transition;
+import ocean.transition;
 
 /******************************************************************************
 

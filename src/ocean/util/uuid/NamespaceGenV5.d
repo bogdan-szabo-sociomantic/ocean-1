@@ -20,15 +20,15 @@
   *
   * To use this module:
   * ---
-  * import tango.util.uuid.NamespaceGenV5;
+  * import ocean.util.uuid.NamespaceGenV5;
   * auto dnsNamespace = Uuid.parse("6ba7b810-9dad-11d1-80b4-00c04fd430c8");
   * auto uuid = newUuid(namespace, "rainbow.flotilla.example.org");
   * ---
   */
 module ocean.util.uuid.NamespaceGenV5;
 
-public import tango.util.uuid.Uuid;
-import tango.util.digest.Sha1;
+public import ocean.util.uuid.Uuid;
+import ocean.util.digest.Sha1;
 
 /** Generates a UUID as described above. */
 Uuid newUuid(Uuid namespace, char[] name)

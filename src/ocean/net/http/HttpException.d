@@ -28,7 +28,7 @@ import ocean.core.Enforce;
 import ocean.core.Exception;
 import ocean.net.http.consts.StatusCodes;
 
-import tango.net.http.HttpConst: HttpResponseCode;
+import ocean.net.http.HttpConst: HttpResponseCode;
 
 
 /******************************************************************************/

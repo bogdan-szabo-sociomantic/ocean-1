@@ -10,17 +10,17 @@
 
 module ocean.io.device.SerialPort;
 
-import tango.transition;
+import ocean.transition;
 
-import  tango.core.Array : sort;
+import ocean.core.Array_tango : sort;
 
-import  tango.core.Exception,
-                tango.io.device.Device,
-                tango.stdc.stringz,
-                tango.sys.Common;
+import ocean.core.Exception_tango,
+                ocean.io.device.Device,
+                ocean.stdc.stringz,
+                ocean.sys.Common;
 
-import tango.io.FilePath;
-import tango.sys.linux.termios;
+import ocean.io.FilePath_tango;
+import ocean.sys.linux.termios;
 
 /*******************************************************************************
 

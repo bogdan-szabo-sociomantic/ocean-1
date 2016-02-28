@@ -9,16 +9,16 @@ module ocean.io.selector.EpollSelector;
 
 version (linux)
 {
-    public import tango.io.model.IConduit;
-    public import tango.io.selector.model.ISelector;
+    public import ocean.io.model.IConduit;
+    public import ocean.io.selector.model.ISelector;
 
-    import tango.io.selector.AbstractSelector;
-    import tango.sys.Common;
-    import tango.sys.linux.linux;
-    import tango.stdc.errno;
+    import ocean.io.selector.AbstractSelector;
+    import ocean.sys.Common;
+    import ocean.sys.linux.linux;
+    import ocean.stdc.errno;
 
     debug (selector)
-        import tango.io.Stdout;
+        import ocean.io.Stdout_tango;
 
 
     /**
@@ -33,9 +33,9 @@ version (linux)
      *
      * Examples:
      * ---
-     * import tango.io.selector.EpollSelector;
-     * import tango.net.device.Socket;
-     * import tango.io.Stdout;
+     * import ocean.io.selector.EpollSelector;
+     * import ocean.net.device.Socket;
+     * import ocean.io.Stdout_tango;
      *
      * SocketConduit conduit1;
      * SocketConduit conduit2;

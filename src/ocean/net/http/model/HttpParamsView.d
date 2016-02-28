@@ -12,9 +12,9 @@
 
 module ocean.net.http.model.HttpParamsView;
 
-import tango.transition;
+import ocean.transition;
 
-import  tango.time.Time;
+import ocean.time.Time;
 
 /******************************************************************************
 

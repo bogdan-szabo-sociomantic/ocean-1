@@ -6,9 +6,9 @@
 
 module ocean.util.cipher.RC6;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.util.cipher.Cipher;
+import ocean.util.cipher.Cipher;
 
 /**
  * Implementation of the RC6-32/20/b cipher designed by

@@ -23,7 +23,7 @@ module ocean.net.http.message.HttpHeader;
 
  ******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.core.TypeConvert;
 

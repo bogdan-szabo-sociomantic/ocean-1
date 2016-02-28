@@ -5,8 +5,8 @@
         author:         Fawzi Mohamed
 *******************************************************************************/
 module ocean.math.random.engines.KissCmwc;
-import tango.transition;
-import Integer = tango.text.convert.Integer;
+import ocean.transition;
+import Integer = ocean.text.convert.Integer_tango;
 
 /+ CMWC and KISS random number generators combined, for extra security wrt. plain CMWC and
 + Marisaglia, Journal of Modern Applied Statistical Methods (2003), vol.2,No.1,p 2-13

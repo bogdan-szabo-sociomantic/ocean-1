@@ -12,17 +12,17 @@
 
 module ocean.net.http.HttpHeaders;
 
-import tango.transition;
+import ocean.transition;
 
-import  tango.time.Time;
+import ocean.time.Time;
 
-import  tango.io.stream.Lines;
+import ocean.io.stream.Lines;
 
-import  tango.io.model.IConduit;
+import ocean.io.model.IConduit;
 
-public  import  tango.net.http.HttpConst;
+public  import ocean.net.http.HttpConst;
 
-import  tango.net.http.HttpTokens;
+import ocean.net.http.HttpTokens;
 
 /******************************************************************************
 

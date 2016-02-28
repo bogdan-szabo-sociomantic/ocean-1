@@ -20,11 +20,11 @@ import ocean.sys.socket.IPSocket,
        ocean.sys.socket.InetAddress,
        ocean.sys.socket.AddrInfo;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.io.device.Conduit: ISelectable;
+import ocean.io.device.Conduit: ISelectable;
 
-import tango.stdc.string: strlen;
+import ocean.stdc.string: strlen;
 
 
 /******************************************************************************

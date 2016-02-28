@@ -12,15 +12,15 @@
 
 module ocean.text.locale.Parse;
 
-import tango.transition;
+import ocean.transition;
 
-import  tango.time.WallClock;
+import ocean.time.WallClock;
 
-import  tango.core.Exception;
+import ocean.core.Exception_tango;
 
-import  tango.text.locale.Core;
+import ocean.text.locale.Core;
 
-import  tango.time.chrono.Calendar;
+import ocean.time.chrono.Calendar;
 
 private struct DateTimeParseResult {
 

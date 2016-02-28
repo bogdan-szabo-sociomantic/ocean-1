@@ -18,13 +18,13 @@ module ocean.util.container.mem.MemManager;
 
 import ocean.core.Enforce;
 
-import tango.core.Exception : onOutOfMemoryError;
+import ocean.core.Exception_tango : onOutOfMemoryError;
 
-import tango.stdc.stdlib : malloc, free;
+import ocean.stdc.stdlib : malloc, free;
 
-import tango.core.Memory;
+import ocean.core.Memory;
 
-import tango.transition;
+import ocean.transition;
 
 /*******************************************************************************
 

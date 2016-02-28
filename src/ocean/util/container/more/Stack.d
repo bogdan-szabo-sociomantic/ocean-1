@@ -14,7 +14,7 @@
 
 module ocean.util.container.more.Stack;
 
-import tango.core.Exception : ArrayBoundsException;
+import ocean.core.Exception_tango : ArrayBoundsException;
 
 /******************************************************************************
 
@@ -315,7 +315,7 @@ struct Stack (V, int Size = 0)
 
 debug (Stack)
 {
-        import tango.io.Stdout;
+        import ocean.io.Stdout_tango;
 
         void main()
         {

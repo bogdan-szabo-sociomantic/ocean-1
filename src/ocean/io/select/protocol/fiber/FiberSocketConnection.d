@@ -23,7 +23,7 @@ module ocean.io.select.protocol.fiber.FiberSocketConnection;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
 
@@ -38,11 +38,11 @@ import ocean.sys.socket.AddressIPSocket,
 
 import ocean.io.select.protocol.generic.ErrnoIOException: SocketError;
 
-import tango.stdc.posix.sys.socket: SOL_SOCKET, IPPROTO_TCP, SO_KEEPALIVE;
+import ocean.stdc.posix.sys.socket: SOL_SOCKET, IPPROTO_TCP, SO_KEEPALIVE;
 
-import tango.stdc.errno: errno, EINPROGRESS, EINTR, EALREADY, EISCONN;
+import ocean.stdc.errno: errno, EINPROGRESS, EINTR, EALREADY, EISCONN;
 
-debug ( EpollTiming ) import tango.time.StopWatch;
+debug ( EpollTiming ) import ocean.time.StopWatch;
 
 debug ( ISelectClient ) import ocean.io.Stdout : Stderr;
 

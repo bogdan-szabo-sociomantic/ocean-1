@@ -39,9 +39,9 @@
 
         import ocean.math.Distribution;
 
-        import tango.io.Stdout;
+        import ocean.io.Stdout_tango;
 
-        import tango.time.StopWatch;
+        import ocean.time.StopWatch;
 
         // Stopwatch instance.
         StopWatch sw;

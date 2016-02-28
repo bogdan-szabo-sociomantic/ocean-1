@@ -12,7 +12,7 @@
 
 module ocean.text.xml.DocEntity;
 
-import Util = tango.text.Util;
+import Util = ocean.text.Util;
 
 /******************************************************************************
 
@@ -312,7 +312,7 @@ void toEntity(T) (T[] src, void delegate(T[]) emit)
 
 debug (DocEntity)
 {
-        import tango.io.Console;
+        import ocean.io.Console;
 
         void main()
         {

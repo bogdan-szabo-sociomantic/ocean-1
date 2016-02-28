@@ -17,7 +17,7 @@ module ocean.io.digest.FirstName;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.io.digest.Fnv1;
 

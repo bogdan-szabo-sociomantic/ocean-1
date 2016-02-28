@@ -18,8 +18,8 @@ module ocean.net.http.consts.HttpVersion;
 
  ******************************************************************************/
 
-import tango.transition;
-import tango.stdc.ctype: isdigit;
+import ocean.transition;
+import ocean.stdc.ctype: isdigit;
 
 
 /******************************************************************************

@@ -9,15 +9,15 @@
 module ocean.core.sync.Mutex;
 
 
-public import tango.core.Exception : SyncException;
+public import ocean.core.Exception_tango : SyncException;
 
 version( Win32 )
 {
-    import tango.sys.win32.UserGdi;
+    import ocean.sys.win32.UserGdi;
 }
 else version( Posix )
 {
-    import tango.stdc.posix.pthread;
+    import ocean.stdc.posix.pthread;
 }
 
 
@@ -231,7 +231,7 @@ package:
 
 version (UnitTest)
 {
-    import tango.core.Thread;
+    import ocean.core.Thread;
 }
 
 unittest

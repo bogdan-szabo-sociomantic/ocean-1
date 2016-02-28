@@ -13,11 +13,11 @@
 
 module ocean.time.chrono.Gregorian;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.time.chrono.Calendar;
+import ocean.time.chrono.Calendar;
 
-import tango.core.Exception;
+import ocean.core.Exception_tango;
 
 /**
  * $(ANCHOR _Gregorian)
@@ -474,7 +474,7 @@ class Gregorian : Calendar
 
 debug(Gregorian)
 {
-    import tango.io.Stdout;
+    import ocean.io.Stdout_tango;
 
     void output(Time t)
     {

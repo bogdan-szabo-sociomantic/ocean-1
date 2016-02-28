@@ -169,17 +169,17 @@
 *******************************************************************************/
 module ocean.math.random.Random;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.math.random.engines.URandom;
-import tango.math.random.engines.KissCmwc;
-import tango.math.random.engines.ArraySource;
-import tango.math.random.engines.Sync;
-import tango.math.random.engines.Twister;
-import tango.math.random.NormalSource;
-import tango.math.random.ExpSource;
-import tango.math.Math;
-import tango.core.Traits;
+import ocean.math.random.engines.URandom;
+import ocean.math.random.engines.KissCmwc;
+import ocean.math.random.engines.ArraySource;
+import ocean.math.random.engines.Sync;
+import ocean.math.random.engines.Twister;
+import ocean.math.random.NormalSource;
+import ocean.math.random.ExpSource;
+import ocean.math.Math;
+import ocean.core.Traits;
 
 // ----- templateFu begin --------
 /// compile time integer power
@@ -197,7 +197,7 @@ private Unqual!(T) ctfe_powI(T)(T _x,int p){
 // ----- templateFu end --------
 
 version (Posix) {
-    import tango.stdc.posix.sys.time;
+    import ocean.stdc.posix.sys.time;
 }
 
 version(darwin) { version=has_urandom; }
@@ -1259,9 +1259,9 @@ static this ()
 
 version (UnitTest)
 {
-    import tango.math.random.engines.KISS;
-    import tango.math.random.engines.CMWC;
-    import tango.stdc.stdio:printf;
+    import ocean.math.random.engines.KISS;
+    import ocean.math.random.engines.CMWC;
+    import ocean.stdc.stdio:printf;
 
     /// very simple statistal test, mean within maxOffset, and maximum/minimum at least minmax/maxmin
     bool checkMean(T)(T[] a, real maxmin, real minmax, real expectedMean, real maxOffset,bool alwaysPrint=false,bool checkB=false){
@@ -1282,9 +1282,9 @@ version (UnitTest)
             if (cast(real)maxV<minmax) printM=true;
             if (expectedMean-maxOffset>meanV || meanV>expectedMean+maxOffset) printM=true;
             if (printM){
-                printf("WARNING tango.math.Random statistic is strange: %.*s[%d] %Lg %Lg %Lg\n\0",cast(int)T.stringof.length,T.stringof.ptr,a.length,cast(real)minV,meanV,cast(real)maxV);
+                printf("WARNING ocean.math.Random statistic is strange: %.*s[%d] %Lg %Lg %Lg\n\0",cast(int)T.stringof.length,T.stringof.ptr,a.length,cast(real)minV,meanV,cast(real)maxV);
             } else if (alwaysPrint) {
-                printf("tango.math.Random statistic: %.*s[%d] %Lg %Lg %Lg\n\0",cast(int)T.stringof.length,T.stringof.ptr,a.length,cast(real)minV,meanV,cast(real)maxV);
+                printf("ocean.math.Random statistic: %.*s[%d] %Lg %Lg %Lg\n\0",cast(int)T.stringof.length,T.stringof.ptr,a.length,cast(real)minV,meanV,cast(real)maxV);
             }
             return printM;
         }

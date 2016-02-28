@@ -13,9 +13,9 @@
 
 module ocean.time.chrono.Hijri;
 
-import tango.time.chrono.Calendar;
+import ocean.time.chrono.Calendar;
 
-import tango.transition;
+import ocean.transition;
 
 
 /**

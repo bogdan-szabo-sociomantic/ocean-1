@@ -13,7 +13,7 @@
 
 module ocean.time.chrono.Korean;
 
-import tango.time.chrono.GregorianBased;
+import ocean.time.chrono.GregorianBased;
 
 
 /**

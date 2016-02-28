@@ -40,8 +40,8 @@ import C = ocean.io.console.readline.c.readline;
 import ocean.core.Array : copy;
 import ocean.text.util.StringC;
 
-import tango.stdc.string: strlen;
-import tango.stdc.stdlib : free;
+import ocean.stdc.string: strlen;
+import ocean.stdc.stdlib : free;
 
 /*******************************************************************************
 

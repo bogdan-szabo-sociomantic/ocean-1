@@ -34,15 +34,15 @@ module ocean.net.util.ParamSet;
 
  ******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.core.TypeConvert;
 
 import ocean.text.util.SplitIterator: ISplitIterator;
 
-import tango.stdc.ctype:  tolower;
+import ocean.stdc.ctype:  tolower;
 
-import tango.core.Exception: ArrayBoundsException;
+import ocean.core.Exception_tango: ArrayBoundsException;
 
 /******************************************************************************
 

@@ -31,7 +31,7 @@
 
 module ocean.util.encode.Base64;
 
-import tango.transition;
+import ocean.transition;
 
 /*******************************************************************************
 
@@ -341,10 +341,10 @@ body
 
 version (Test)
 {
-    import tango.scrapple.util.Test;
-    import tango.io.device.File;
-    import tango.time.StopWatch;
-    import tango.io.Stdout;
+    import ocean.scrapple.util.Test;
+    import ocean.io.device.File;
+    import ocean.time.StopWatch;
+    import ocean.io.Stdout_tango;
 
     unittest
     {
@@ -419,7 +419,7 @@ version (Test)
             return Test.Status.Success;
         }
 
-        auto t = new Test("tango.util.encode.Base64");
+        auto t = new Test("ocean.util.encode.Base64");
         t["Encode"] = &encodeTest;
         t["Encode Stream"] = &encodeChunktest;
         t["Decode"] = &decodeTest;

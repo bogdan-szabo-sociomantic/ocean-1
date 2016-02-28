@@ -14,11 +14,11 @@
 
 module ocean.util.container.more.StackMap;
 
-import tango.stdc.stdlib;
+import ocean.stdc.stdlib;
 
-import tango.util.container.HashMap;
+import ocean.util.container.HashMap;
 
-public  import tango.util.container.Container;
+public  import ocean.util.container.Container;
 
 /******************************************************************************
 
@@ -444,9 +444,9 @@ class StackMap (K, V, alias Hash = Container.hash,
 
 debug (StackMap)
 {
-        import tango.io.Stdout;
-        import tango.core.Memory;
-        import tango.time.StopWatch;
+        import ocean.io.Stdout_tango;
+        import ocean.core.Memory;
+        import ocean.time.StopWatch;
 
         void main()
         {

@@ -44,7 +44,7 @@ module ocean.net.http.HttpRequest;
 
  ******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.net.http.message.HttpHeader;
 
@@ -57,9 +57,9 @@ import ocean.net.http.consts.HttpVersion: HttpVersionIds;
 import ocean.net.http.HttpException: HttpException, HeaderParameterException;
 
 import ocean.core.Enforce;
-import tango.net.Uri: Uri;
+import ocean.net.Uri: Uri;
 
-import tango.net.http.HttpConst: HttpResponseCode;
+import ocean.net.http.HttpConst: HttpResponseCode;
 import ocean.net.http.time.HttpTimeParser;
 
 /******************************************************************************/
@@ -525,15 +525,15 @@ class HttpRequest : HttpHeader
 
 version (OceanPerformanceTest)
 {
-    import tango.io.Stdout;
-    import tango.core.internal.gcInterface: gc_disable, gc_enable;
+    import ocean.io.Stdout_tango;
+    import ocean.core.internal.gcInterface: gc_disable, gc_enable;
 }
 
 version ( UnitTest )
 {
-    import tango.core.Test;
-    import tango.stdc.time: time;
-    import tango.stdc.posix.stdlib: srand48, drand48;
+    import ocean.core.Test;
+    import ocean.stdc.time: time;
+    import ocean.stdc.posix.stdlib: srand48, drand48;
 }
 
 unittest

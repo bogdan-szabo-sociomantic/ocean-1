@@ -12,7 +12,7 @@
 
 module ocean.net.model.UriView;
 
-import tango.transition;
+import ocean.transition;
 
 /*******************************************************************************
 

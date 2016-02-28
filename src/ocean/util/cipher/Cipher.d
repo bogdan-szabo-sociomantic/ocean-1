@@ -6,9 +6,9 @@
 
 module ocean.util.cipher.Cipher;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.core.Exception : IllegalArgumentException;
+import ocean.core.Exception_tango : IllegalArgumentException;
 
 /** Base symmetric cipher class */
 abstract class Cipher

@@ -1253,7 +1253,7 @@ void multibyteSquare(BigDigit[] result, BigDigit [] x)
 }
 
 version(TangoPerformanceTest) {
-import tango.stdc.stdio;
+import ocean.stdc.stdio;
 int clock() { asm { push EBX; xor EAX, EAX; cpuid; pop EBX; rdtsc; } }
 
 uint [2200] X1;

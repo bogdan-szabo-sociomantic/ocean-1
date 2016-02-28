@@ -8,10 +8,10 @@
 
 module ocean.util.cipher.Blowfish;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.core.Array;
-import tango.util.cipher.Cipher;
+import ocean.core.Array_tango;
+import ocean.util.cipher.Cipher;
 
 /** Implementation of the Blowfish cipher designed by Bruce Schneier. */
 class Blowfish : BlockCipher

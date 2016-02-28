@@ -19,8 +19,8 @@ module ocean.util.container.map.model.BucketInfo;
 
 *******************************************************************************/
 
-import tango.transition;
-debug (BucketInfo) import tango.io.Stdout;
+import ocean.transition;
+debug (BucketInfo) import ocean.io.Stdout_tango;
 
 /*******************************************************************************/
 

@@ -15,11 +15,11 @@
 
 module ocean.util.digest.Md5;
 
-import tango.transition;
+import ocean.transition;
 
-public  import tango.util.digest.Md4;
+public  import ocean.util.digest.Md4;
 
-import tango.util.digest.MerkleDamgard;
+import ocean.util.digest.MerkleDamgard;
 
 /*******************************************************************************
 

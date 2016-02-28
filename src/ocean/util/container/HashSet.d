@@ -16,11 +16,11 @@
 
 module ocean.util.container.HashSet;
 
-import  tango.util.container.Slink;
+import ocean.util.container.Slink;
 
-public  import  tango.util.container.Container;
+public  import ocean.util.container.Container;
 
-import tango.util.container.model.IContainer;
+import ocean.util.container.model.IContainer;
 
 /*******************************************************************************
 
@@ -799,9 +799,9 @@ class HashSet (V, alias Hash = Container.hash,
 
 debug (HashSet)
 {
-        import tango.io.Stdout;
-        import tango.core.Thread;
-        import tango.time.StopWatch;
+        import ocean.io.Stdout_tango;
+        import ocean.core.Thread;
+        import ocean.time.StopWatch;
 
         void main()
         {

@@ -19,11 +19,11 @@ module ocean.io.Terminal;
 
 ******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import tango.stdc.posix.signal;
+import ocean.stdc.posix.signal;
 
-debug(Term) import tango.io.Stdout;
+debug(Term) import ocean.io.Stdout_tango;
 
 
 private

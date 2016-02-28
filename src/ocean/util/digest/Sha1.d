@@ -16,11 +16,11 @@
 
 module ocean.util.digest.Sha1;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.util.digest.Sha01;
+import ocean.util.digest.Sha01;
 
-public  import tango.util.digest.Digest;
+public  import ocean.util.digest.Digest;
 
 /*******************************************************************************
 

@@ -12,7 +12,7 @@
 
 module ocean.time.StopWatch;
 
-import tango.core.Exception;
+import ocean.core.Exception_tango;
 
 /*******************************************************************************
 
@@ -20,7 +20,7 @@ import tango.core.Exception;
 
 version (Posix)
 {
-        import tango.stdc.posix.sys.time;
+        import ocean.stdc.posix.sys.time;
 }
 
 /*******************************************************************************
@@ -118,7 +118,7 @@ public struct StopWatch
 
 debug (StopWatch)
 {
-        import tango.io.Stdout;
+        import ocean.io.Stdout_tango;
 
         void main()
         {

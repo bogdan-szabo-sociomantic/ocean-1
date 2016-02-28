@@ -24,8 +24,8 @@
  */
 module ocean.math.ErrorFunction;
 
-import tango.math.Math;
-import tango.math.IEEE;  // only required for unit tests
+import ocean.math.Math;
+import ocean.math.IEEE;  // only required for unit tests
 
 const real SQRT2PI = 0x1.40d931ff62705966p+1L;    // 2.5066282746310005024
 const real EXP_2  = 0.13533528323661269189L; /* exp(-2) */

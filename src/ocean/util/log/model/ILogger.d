@@ -12,7 +12,7 @@
 
 module ocean.util.log.model.ILogger;
 
-import tango.transition;
+import ocean.transition;
 
 /*******************************************************************************
 

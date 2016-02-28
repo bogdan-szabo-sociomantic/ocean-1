@@ -16,9 +16,9 @@
 
 module ocean.util.container.RedBlack;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.util.container.model.IContainer;
+import ocean.util.container.model.IContainer;
 
 private
 {
@@ -122,7 +122,7 @@ struct RedBlack (V, A = AttributeDummy)
 
 
         /**
-         * See_Also: tango.util.collection.model.View.View.checkImplementation.
+         * See_Also: ocean.util.collection.model.View.View.checkImplementation.
         **/
         public void checkImplementation ()
         {

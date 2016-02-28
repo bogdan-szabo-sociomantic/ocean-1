@@ -12,12 +12,12 @@
 
 module ocean.net.device.LocalSocket;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.net.device.Socket;
-import tango.net.device.Berkeley;
+import ocean.net.device.Socket;
+import ocean.net.device.Berkeley;
 
-import tango.stdc.posix.sys.un; // : sockaddr_un, UNIX_PATH_MAX;
+import ocean.stdc.posix.sys.un; // : sockaddr_un, UNIX_PATH_MAX;
 
 
 /*******************************************************************************
@@ -222,9 +222,9 @@ class LocalAddress : Address
 
 version (UnitTest)
 {
-    import tango.core.Test;
-    import tango.stdc.string; // : strnlen
-    import tango.stdc.posix.sys.socket; // : AF_UNIX
+    import ocean.core.Test;
+    import ocean.stdc.string; // : strnlen
+    import ocean.stdc.posix.sys.socket; // : AF_UNIX
 }
 
 unittest

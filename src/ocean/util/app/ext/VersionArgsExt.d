@@ -32,11 +32,11 @@ import ocean.util.config.ConfigParser;
 import ocean.io.Stdout;
 import ocean.core.Array: startsWith;
 
-import tango.transition;
-import tango.util.log.Log;
-import tango.util.log.AppendFile;
-import tango.util.log.LayoutDate;
-import tango.core.Array: sort;
+import ocean.transition;
+import ocean.util.log.Log;
+import ocean.util.log.AppendFile;
+import ocean.util.log.LayoutDate;
+import ocean.core.Array_tango: sort;
 
 
 
@@ -393,7 +393,7 @@ class VersionArgsExt : IApplicationExtension, IArgumentsExtExtension,
 
 version ( UnitTest )
 {
-    import tango.core.Test;
+    import ocean.core.Test;
     import ocean.util.app.ext.ArgumentsExt;
 }
 

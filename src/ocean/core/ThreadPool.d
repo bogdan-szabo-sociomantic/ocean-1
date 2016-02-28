@@ -8,13 +8,13 @@
 
 module ocean.core.ThreadPool;
 
-import tango.core.Thread,
-               tango.core.sync.Atomic,
-               tango.core.sync.Mutex,
-               tango.core.sync.Condition,
-               tango.core.Exception : ThreadPoolException;
+import ocean.core.Thread,
+               ocean.core.sync.Atomic,
+               ocean.core.sync.Mutex,
+               ocean.core.sync.Condition,
+               ocean.core.Exception_tango : ThreadPoolException;
 
-import  tango.stdc.string: memmove;
+import ocean.stdc.string: memmove;
 
 private version = Queued;
 
@@ -295,8 +295,8 @@ private:
 
 debug (ThreadPool)
 {
-    import tango.util.log.Trace;
-    import Integer = tango.text.convert.Integer;
+    import ocean.util.log.Trace;
+    import Integer = ocean.text.convert.Integer_tango;
 
     void main(char[][] args)
     {

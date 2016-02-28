@@ -24,16 +24,16 @@ module ocean.text.json.JsonParserIter;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import tango.text.json.JsonParser;
+import ocean.text.json.JsonParser;
 
 import ocean.core.Enforce;
-import tango.core.Traits;
+import ocean.core.Traits;
 
-import Integer = tango.text.convert.Integer;
+import Integer = ocean.text.convert.Integer_tango;
 
-import Float = tango.text.convert.Float;
+import Float = ocean.text.convert.Float;
 
 version (UnitTest)
 {

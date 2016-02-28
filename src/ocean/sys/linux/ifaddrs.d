@@ -1,6 +1,6 @@
 module ocean.sys.linux.ifaddrs;
 
-import tango.stdc.posix.sys.socket;
+import ocean.stdc.posix.sys.socket;
 
 version (linux)
 {

@@ -14,7 +14,7 @@
 
 module ocean.util.container.more.BitSet;
 
-import tango.core.BitManip;
+import ocean.core.BitManip;
 
 /******************************************************************************
 

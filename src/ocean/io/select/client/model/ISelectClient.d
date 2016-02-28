@@ -29,13 +29,13 @@ module ocean.io.select.client.model.ISelectClient;
 
  ******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.io.select.client.model.ISelectClientInfo;
 
 import ocean.sys.Epoll;
 
-import tango.io.model.IConduit: ISelectable;
+import ocean.io.model.IConduit: ISelectable;
 
 import ocean.time.timeout.model.ITimeoutClient,
        ocean.time.timeout.model.IExpiryRegistration: IExpiryRegistration;
@@ -46,7 +46,7 @@ import ocean.text.util.ClassName;
 
 debug import ocean.io.Stdout;
 
-debug import tango.text.convert.Format;
+debug import ocean.text.convert.Format;
 
 /******************************************************************************
 
@@ -89,12 +89,12 @@ public abstract class ISelectClient : ITimeoutClient, ISelectable, ISelectClient
 
         I/O device instance
 
-        Note: Conforming to the name convention used in tango.io.selector, the
+        Note: Conforming to the name convention used in ocean.io.selector, the
         ISelectable instance is named "conduit" although ISelectable and
         IConduit are distinct from each other. However, in most application
         cases the provided instance will originally implement both ISelectable
-        and IConduit (as, for example, tango.io.device.Device and
-        tango.net.device.Socket).
+        and IConduit (as, for example, ocean.io.device.Device and
+        ocean.net.device.Socket).
 
      **************************************************************************/
 

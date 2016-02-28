@@ -28,9 +28,9 @@ import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
 
 import ocean.io.device.IODevice: IInputDevice;
 
-import tango.stdc.errno: errno, EAGAIN, EWOULDBLOCK, EINTR;
+import ocean.stdc.errno: errno, EAGAIN, EWOULDBLOCK, EINTR;
 
-debug (Raw) import tango.io.Stdout: Stderr;
+debug (Raw) import ocean.io.Stdout_tango: Stderr;
 
 
 /******************************************************************************/

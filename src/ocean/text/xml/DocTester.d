@@ -12,11 +12,11 @@
 
 module ocean.text.xml.DocTester;
 
-import tango.core.Exception;
+import ocean.core.Exception_tango;
 
-import tango.text.xml.Document;
+import ocean.text.xml.Document;
 
-import tango.text.convert.Format;
+import ocean.text.convert.Format;
 
 /*******************************************************************************
 

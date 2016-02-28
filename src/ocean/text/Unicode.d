@@ -28,9 +28,9 @@
 
 module ocean.text.Unicode;
 
-import tango.transition;
-import tango.text.UnicodeData;
-import tango.text.convert.Utf;
+import ocean.transition;
+import ocean.text.UnicodeData;
+import ocean.text.convert.Utf;
 
 
 

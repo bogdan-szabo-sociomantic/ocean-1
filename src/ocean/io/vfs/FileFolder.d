@@ -12,19 +12,19 @@
 
 module ocean.io.vfs.FileFolder;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.io.device.File;
+import ocean.io.device.File;
 
-import Path = tango.io.Path;
+import Path = ocean.io.Path;
 
-import tango.core.Exception;
+import ocean.core.Exception_tango;
 
-public import tango.io.vfs.model.Vfs;
+public import ocean.io.vfs.model.Vfs;
 
-import tango.io.model.IConduit;
+import ocean.io.model.IConduit;
 
-import tango.time.Time : Time;
+import ocean.time.Time : Time;
 
 /*******************************************************************************
 
@@ -791,8 +791,8 @@ debug (FileFolder)
 
 *******************************************************************************/
 
-import tango.io.Stdout;
-import tango.io.device.Array;
+import ocean.io.Stdout_tango;
+import ocean.io.device.Array;
 
 void main()
 {

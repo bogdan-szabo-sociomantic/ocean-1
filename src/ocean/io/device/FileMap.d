@@ -12,12 +12,12 @@
 
 module ocean.io.device.FileMap;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.sys.Common;
+import ocean.sys.Common;
 
-import tango.io.device.File,
-               tango.io.device.Array;
+import ocean.io.device.File,
+               ocean.io.device.Array;
 
 /*******************************************************************************
 
@@ -26,7 +26,7 @@ import tango.io.device.File,
 *******************************************************************************/
 
 version (Posix)
-         import tango.stdc.posix.sys.mman;
+         import ocean.stdc.posix.sys.mman;
 
 
 /*******************************************************************************
@@ -237,7 +237,7 @@ class MappedFile
 
 debug (FileMap)
 {
-        import tango.io.Path;
+        import ocean.io.Path;
 
         void main()
         {

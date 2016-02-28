@@ -20,15 +20,15 @@ import ocean.sys.ErrnoException;
 
 import ocean.core.Traits;
 
-import tango.io.model.IConduit: ISelectable;
+import ocean.io.model.IConduit: ISelectable;
 
-import tango.stdc.posix.time: time_t, timespec, itimerspec, CLOCK_REALTIME;
+import ocean.stdc.posix.time: time_t, timespec, itimerspec, CLOCK_REALTIME;
 
-import tango.stdc.posix.sys.types: ssize_t;
+import ocean.stdc.posix.sys.types: ssize_t;
 
-import tango.stdc.posix.unistd: read, close;
+import ocean.stdc.posix.unistd: read, close;
 
-import tango.stdc.errno: EAGAIN, EWOULDBLOCK, errno;
+import ocean.stdc.errno: EAGAIN, EWOULDBLOCK, errno;
 
 
 

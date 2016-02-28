@@ -15,10 +15,10 @@
 
 module ocean.util.container.Container;
 
-import tango.core.Memory;
+import ocean.core.Memory;
 
-import tango.stdc.stdlib;
-import tango.stdc.string;
+import ocean.stdc.stdlib;
+import ocean.stdc.string;
 
 /*******************************************************************************
 

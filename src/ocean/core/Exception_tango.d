@@ -8,7 +8,7 @@
  */
 module ocean.core.Exception_tango;
 
-import tango.transition;
+import ocean.transition;
 
 version = SocketSpecifics;              // TODO: remove this before v1.0
 
@@ -124,7 +124,7 @@ class SyncException : PlatformException
 
 
 /**
- * The basic exception thrown by the tango.io package. One should try to ensure
+ * The basic exception thrown by the ocean.io package. One should try to ensure
  * that all Tango exceptions related to IO are derived from this one.
  */
 class IOException : PlatformException
@@ -136,7 +136,7 @@ class IOException : PlatformException
 }
 
 /**
- * The basic exception thrown by the tango.io.vfs package.
+ * The basic exception thrown by the ocean.io.vfs package.
  */
 class VfsException : IOException
 {
@@ -147,7 +147,7 @@ class VfsException : IOException
 }
 
 /**
- * The basic exception thrown by the tango.io.cluster package.
+ * The basic exception thrown by the ocean.io.cluster package.
  */
 class ClusterException : IOException
 {

@@ -6,9 +6,9 @@
 
 module ocean.util.cipher.Salsa20;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.util.cipher.Cipher;
+import ocean.util.cipher.Cipher;
 
 /** Implementation of Salsa20 designed by Daniel J. Bernstein. */
 class Salsa20 : StreamCipher

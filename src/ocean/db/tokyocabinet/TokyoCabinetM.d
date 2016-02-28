@@ -25,7 +25,7 @@
 
 module ocean.db.tokyocabinet.TokyoCabinetM;
 
-import tango.transition;
+import ocean.transition;
 
 /*******************************************************************************
 
@@ -46,8 +46,8 @@ import ocean.db.tokyocabinet.c.tcmdb :
            tcmdbout, tcmdbrnum, tcmdbmsiz, tcmdbvsiz,
            tcmdbiterinit, tcmdbiterinit2, tcmdbiternext;
 
-import tango.stdc.stdlib : free;
-import tango.core.Array;
+import ocean.stdc.stdlib : free;
+import ocean.core.Array_tango;
 
 
 /*******************************************************************************
@@ -642,10 +642,10 @@ public class TokyoCabinetM
 version (UnitTest)
 {
     import ocean.core.Test;
-    import tango.core.Memory;
-    import tango.time.StopWatch;
-    import tango.core.Thread;
-    import tango.util.container.HashMap;
+    import ocean.core.Memory;
+    import ocean.time.StopWatch;
+    import ocean.core.Thread;
+    import ocean.util.container.HashMap;
 }
 
 version (UnitTestVerbose) import ocean.io.Stdout : Stderr;
@@ -771,10 +771,10 @@ unittest
 
 debug (OceanPerformanceTest)
 {
-    import tango.core.Memory;
-    import tango.time.StopWatch;
-    import tango.core.Thread;
-    import tango.util.container.HashMap;
+    import ocean.core.Memory;
+    import ocean.time.StopWatch;
+    import ocean.core.Thread;
+    import ocean.util.container.HashMap;
 
     unittest
     {

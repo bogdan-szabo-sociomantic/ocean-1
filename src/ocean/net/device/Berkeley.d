@@ -1,28 +1,28 @@
 module ocean.net.device.Berkeley;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.sys.Common;
+import ocean.sys.Common;
 
-import tango.core.Exception;
+import ocean.core.Exception_tango;
 
-import tango.stdc.string : strlen;
-import tango.stdc.stringz;
+import ocean.stdc.string : strlen;
+import ocean.stdc.stringz;
 
-import tango.stdc.posix.netdb;
-import tango.stdc.posix.sys.socket;
-import tango.stdc.posix.netinet.in_; // : sockaddr_in, sockaddr_in6
+import ocean.stdc.posix.netdb;
+import ocean.stdc.posix.sys.socket;
+import ocean.stdc.posix.netinet.in_; // : sockaddr_in, sockaddr_in6
 
 version (UnitTest)
 {
-    import tango.core.Test;
+    import ocean.core.Test;
 }
 
 /*******************************************************************************
 
 *******************************************************************************/
 
-enum {SOCKET_ERROR = tango.stdc.posix.sys.socket.SOCKET_ERROR}
+enum {SOCKET_ERROR = ocean.stdc.posix.sys.socket.SOCKET_ERROR}
 
 /*******************************************************************************
 
@@ -204,7 +204,7 @@ version(BigEndian)
 }
 else
 {
-        import tango.core.BitManip;
+        import ocean.core.BitManip;
 
         private ushort htons (ushort x)
         {
@@ -224,7 +224,7 @@ else
 
 private extern (C)
 {
-        import tango.stdc.errno;
+        import ocean.stdc.errno;
 
         mixin(Typedef!(int, "socket_t", -1));
 
@@ -1776,7 +1776,7 @@ unittest
 
 public class SocketSet
 {
-        import tango.stdc.config;
+        import ocean.stdc.config;
 
         struct timeval
         {
@@ -1790,7 +1790,7 @@ public class SocketSet
 
         version (Posix)
         {
-                import tango.core.BitManip;
+                import ocean.core.BitManip;
 
                 uint nfdbits;
                 socket_t _maxfd = 0;

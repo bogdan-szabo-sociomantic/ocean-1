@@ -14,7 +14,7 @@
 
 module ocean.util.container.ebtree.nodepool.NodePool;
 
-import tango.transition;
+import ocean.transition;
 
 /*******************************************************************************
 

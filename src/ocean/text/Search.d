@@ -14,9 +14,9 @@
 
 module ocean.text.Search;
 
-import tango.transition;
+import ocean.transition;
 
-import Util = tango.text.Util;
+import Util = ocean.text.Util;
 
 /******************************************************************************
 

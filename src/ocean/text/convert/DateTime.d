@@ -17,21 +17,21 @@ module ocean.text.convert.DateTime;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import tango.stdc.stdio : sscanf;
+import ocean.stdc.stdio : sscanf;
 
-import tango.stdc.posix.sys.stat;
+import ocean.stdc.posix.sys.stat;
 
-import tango.stdc.posix.time;
+import ocean.stdc.posix.time;
 
-import tango.text.Unicode;
+import ocean.text.Unicode;
 
-import tango.text.convert.Format;
+import ocean.text.convert.Format;
 
-import tango.core.Array : contains;
+import ocean.core.Array_tango : contains;
 
-import tango.time.chrono.Gregorian;
+import ocean.time.chrono.Gregorian;
 
 
 

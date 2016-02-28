@@ -15,7 +15,7 @@ module ocean.util.serialize.model.VersionDecoratorMixins;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.core.Enforce,
        ocean.util.container.ConcatBuffer,
@@ -24,8 +24,8 @@ import ocean.core.Enforce,
 import ocean.util.serialize.Version,
        ocean.util.serialize.model.Traits;
 
-import tango.text.convert.Format,
-       tango.stdc.string;
+import ocean.text.convert.Format,
+       ocean.stdc.string;
 
 
 version (UnitTest) import ocean.core.Test;
@@ -44,7 +44,7 @@ version (UnitTest) import ocean.core.Test;
 
 template StoreMethod(Serializer)
 {
-    import tango.transition;
+    import ocean.transition;
 
     /***************************************************************************
 
@@ -217,7 +217,7 @@ template HandleVersionMethod(Deserializer, alias exception_field)
 
 template ConvertMethod(Serializer, Deserializer)
 {
-    import tango.transition;
+    import ocean.transition;
 
     /***************************************************************************
 

@@ -19,7 +19,7 @@ module ocean.util.app.Application;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.util.app.model.ExtensibleClassMixin;
 import ocean.util.app.model.IApplicationExtension;

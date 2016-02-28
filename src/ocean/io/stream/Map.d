@@ -14,14 +14,14 @@
 
 module ocean.io.stream.Map;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.io.stream.Lines,
-               tango.io.stream.Buffered;
+import ocean.io.stream.Lines,
+               ocean.io.stream.Buffered;
 
-import Text = tango.text.Util;
+import Text = ocean.text.Util;
 
-import tango.io.device.Conduit;
+import ocean.io.device.Conduit;
 
 /*******************************************************************************
 
@@ -197,7 +197,7 @@ class MapOutput(T) : OutputFilter
 
 version (UnitTest)
 {
-    import tango.io.device.Array;
+    import ocean.io.device.Array;
 }
 
 unittest

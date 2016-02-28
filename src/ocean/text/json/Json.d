@@ -13,17 +13,17 @@
 
 module ocean.text.json.Json;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.core.Vararg;
+import ocean.core.Vararg;
 
-import tango.io.model.IConduit;
+import ocean.io.model.IConduit;
 
-import tango.text.json.JsonEscape;
+import ocean.text.json.JsonEscape;
 
-import tango.text.json.JsonParser;
+import ocean.text.json.JsonParser;
 
-import Float = tango.text.convert.Float;
+import Float = ocean.text.convert.Float;
 
 /*******************************************************************************
 

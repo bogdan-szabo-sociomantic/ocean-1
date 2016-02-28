@@ -16,13 +16,13 @@
 
 module ocean.io.stream.Utf;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.io.device.Conduit;
+import ocean.io.device.Conduit;
 
-import tango.io.stream.Buffered;
+import ocean.io.stream.Buffered;
 
-import Utf = tango.text.convert.Utf;
+import Utf = ocean.text.convert.Utf;
 
 /*******************************************************************************
 
@@ -228,8 +228,8 @@ class UtfOutput (S, T) : OutputFilter, OutputFilter.Mutator
 
 debug (Utf)
 {
-        import tango.io.Stdout;
-        import tango.io.device.Array;
+        import ocean.io.Stdout_tango;
+        import ocean.io.device.Array;
 
         void main()
         {

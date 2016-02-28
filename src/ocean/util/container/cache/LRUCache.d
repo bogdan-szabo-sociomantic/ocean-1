@@ -198,10 +198,10 @@ module ocean.util.container.cache.LRUCache;
 *******************************************************************************/
 
 import ocean.util.container.cache.PriorityCache;
-import tango.stdc.time: time_t, time;
+import ocean.stdc.time: time_t, time;
 
-import tango.core.Memory;
-import Traits = tango.core.Traits;
+import ocean.core.Memory;
+import Traits = ocean.core.Traits;
 
 /*******************************************************************************
 

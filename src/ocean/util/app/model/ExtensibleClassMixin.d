@@ -76,7 +76,7 @@ template ExtensibleClassMixin ( ExtensionClass )
 
      *******************************************************************************/
 
-    import tango.core.Array : mixin_sort = sort;
+    import ocean.core.Array_tango : mixin_sort = sort;
 
 
     /***************************************************************************

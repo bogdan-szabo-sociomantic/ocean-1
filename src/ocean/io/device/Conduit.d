@@ -12,12 +12,12 @@
 
 module ocean.io.device.Conduit;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.core.Thread,
-               tango.core.Exception;
+import ocean.core.Thread,
+       ocean.core.Exception_tango;
 
-public  import tango.io.model.IConduit;
+public  import ocean.io.model.IConduit;
 
 /*******************************************************************************
 
@@ -28,11 +28,11 @@ public  import tango.io.model.IConduit;
 
         Conduits provide virtualized access to external content, and
         represent things like files or Internet connections. Conduits
-        expose a pair of streams, are modelled by tango.io.model.IConduit,
+        expose a pair of streams, are modelled by ocean.io.model.IConduit,
         and are implemented via classes such as File & SocketConduit.
 
         Additional kinds of conduit are easy to construct: either subclass
-        tango.io.device.Conduit, or implement tango.io.model.IConduit. A
+        ocean.io.device.Conduit, or implement ocean.io.model.IConduit. A
         conduit typically reads and writes via a Buffer in large chunks,
         typically the entire buffer. Alternatively, one can invoke method
         read(dst[]) and/or write(src[]) directly.

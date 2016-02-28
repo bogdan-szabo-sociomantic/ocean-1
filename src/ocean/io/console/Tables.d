@@ -122,7 +122,7 @@ module ocean.io.console.Tables;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.core.Array : copy, appendCopy, concat;
 
@@ -131,9 +131,9 @@ import ocean.text.utf.UtfUtil;
 import ocean.text.util.DigitGrouping;
 import ocean.text.util.MetricPrefix;
 
-import tango.io.stream.Format;
+import ocean.io.stream.Format;
 
-import tango.text.convert.Format;
+import ocean.text.convert.Format;
 
 import ocean.io.Stdout;
 
@@ -1419,7 +1419,7 @@ public class Table
     }
 }
 
-version ( UnitTest ) import tango.io.device.Array : Array;
+version ( UnitTest ) import ocean.io.device.Array : Array;
 
 unittest
 {

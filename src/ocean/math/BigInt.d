@@ -7,9 +7,9 @@
 
 module ocean.math.BigInt;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.math.internal.BiguintCore;
+import ocean.math.internal.BiguintCore;
 
 /** A struct representing an arbitrary precision integer
  *

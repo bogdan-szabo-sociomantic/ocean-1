@@ -5,10 +5,10 @@
         author:         Fawzi Mohamed
 *******************************************************************************/
 module ocean.math.random.ExpSource;
-import Integer = tango.text.convert.Integer;
-import tango.math.Math:exp,log;
-import tango.math.random.Ziggurat;
-import tango.core.Traits:isRealType;
+import Integer = ocean.text.convert.Integer_tango;
+import ocean.math.Math:exp,log;
+import ocean.math.random.Ziggurat;
+import ocean.core.Traits:isRealType;
 
 /// class that returns exponential distributed numbers (f=exp(-x) for x>0, 0 otherwise)
 final class ExpSource(RandG,T){

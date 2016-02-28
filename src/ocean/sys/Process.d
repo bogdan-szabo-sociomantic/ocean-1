@@ -6,26 +6,26 @@
 
 module ocean.sys.Process;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.io.model.IFile;
-import tango.io.Console;
-import tango.sys.Common;
-import tango.sys.Pipe;
-import tango.core.Exception;
-import tango.text.Util;
-import Integer = tango.text.convert.Integer;
+import ocean.io.model.IFile;
+import ocean.io.Console;
+import ocean.sys.Common;
+import ocean.sys.Pipe;
+import ocean.core.Exception_tango;
+import ocean.text.Util;
+import Integer = ocean.text.convert.Integer_tango;
 
-import tango.stdc.stdlib;
-import tango.stdc.string;
-import tango.stdc.stringz;
+import ocean.stdc.stdlib;
+import ocean.stdc.string;
+import ocean.stdc.stringz;
 
 version (Posix)
 {
-    import tango.stdc.errno;
-    import tango.stdc.posix.fcntl;
-    import tango.stdc.posix.unistd;
-    import tango.stdc.posix.sys.wait;
+    import ocean.stdc.errno;
+    import ocean.stdc.posix.fcntl;
+    import ocean.stdc.posix.unistd;
+    import ocean.stdc.posix.sys.wait;
 
     version (darwin)
     {
@@ -49,7 +49,7 @@ version (Posix)
 
 debug (Process)
 {
-    import tango.io.Stdout;
+    import ocean.io.Stdout_tango;
 }
 
 
@@ -1156,7 +1156,7 @@ class Process
         }
         else
         {
-            assert(false, "tango.sys.Process: Unsupported platform");
+            assert(false, "ocean.sys.Process: Unsupported platform");
         }
         return this;
     }
@@ -1303,7 +1303,7 @@ class Process
         }
         else
         {
-            assert(false, "tango.sys.Process: Unsupported platform");
+            assert(false, "ocean.sys.Process: Unsupported platform");
         }
     }
 
@@ -1376,7 +1376,7 @@ class Process
         }
         else
         {
-            assert(false, "tango.sys.Process: Unsupported platform");
+            assert(false, "ocean.sys.Process: Unsupported platform");
         }
     }
 

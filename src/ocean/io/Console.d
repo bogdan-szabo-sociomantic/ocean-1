@@ -14,16 +14,16 @@
 
 module ocean.io.Console;
 
-import tango.transition;
+import ocean.transition;
 
-import  tango.sys.Common;
+import ocean.sys.Common;
 
-import  tango.io.device.Device,
-        tango.io.stream.Buffered;
+import ocean.io.device.Device,
+       ocean.io.stream.Buffered;
 
 version (Posix)
 {
-    import tango.stdc.posix.unistd: isatty;
+    import ocean.stdc.posix.unistd: isatty;
 }
 
 /*******************************************************************************

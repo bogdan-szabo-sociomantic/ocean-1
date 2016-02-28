@@ -27,7 +27,7 @@ module ocean.util.serialize.Version;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 version(UnitTest) import ocean.core.Test;
 
 /*******************************************************************************

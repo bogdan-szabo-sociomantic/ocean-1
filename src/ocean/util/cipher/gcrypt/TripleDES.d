@@ -16,7 +16,7 @@
 module ocean.util.cipher.gcrypt.TripleDES;
 
 import ocean.util.cipher.gcrypt.core.Gcrypt;
-import tango.transition;
+import ocean.transition;
 
 
 /*******************************************************************************
@@ -31,7 +31,7 @@ public alias Gcrypt!(Algorithm.GCRY_CIPHER_3DES, Mode.GCRY_CIPHER_MODE_CFB) Trip
 
 version ( UnitTest )
 {
-    import tango.core.Test;
+    import ocean.core.Test;
 }
 
 /// Usage example

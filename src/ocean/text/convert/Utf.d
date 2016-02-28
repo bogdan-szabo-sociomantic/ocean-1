@@ -50,7 +50,7 @@
 
 module ocean.text.convert.Utf;
 
-import tango.transition;
+import ocean.transition;
 
 public extern (C) void onUnicodeError (cstring msg, size_t idx = 0);
 
@@ -844,7 +844,7 @@ T[] cropRight(T) (T[] s)
 
 debug (Utf)
 {
-    import tango.io.Console;
+    import ocean.io.Console;
 
     void main()
     {

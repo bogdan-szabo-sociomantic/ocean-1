@@ -12,11 +12,11 @@
 
 module ocean.util.log.LayoutChainsaw;
 
-import tango.transition;
+import ocean.transition;
 
-import  tango.core.Thread;
+import ocean.core.Thread;
 
-import  tango.util.log.Log;
+import ocean.util.log.Log;
 
 /*******************************************************************************
 

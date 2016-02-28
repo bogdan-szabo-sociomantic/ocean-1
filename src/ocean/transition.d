@@ -354,11 +354,11 @@ void enableStomping(T)(ref T array)
 
 *******************************************************************************/
 
-static import tango.text.convert.Integer;
+static import ocean.text.convert.Integer_tango;
 
 template Octal(istring literal)
 {
-    const Octal = tango.text.convert.Integer.parse(literal, 8);
+    const Octal = ocean.text.convert.Integer_tango.parse(literal, 8);
 }
 
 unittest
@@ -617,7 +617,7 @@ unittest
     version (D_Version2) { }
     else
     {
-        // built-in sort is deprecated and importing tango.core.Array
+        // built-in sort is deprecated and importing ocean.core.Array
         // introduces module cycle
         auto s_arr = [ S(2), S(3), S(1) ];
         auto c_arr = [ new C(2), new C(3), new C(1) ];

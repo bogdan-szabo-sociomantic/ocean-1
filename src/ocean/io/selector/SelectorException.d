@@ -6,9 +6,9 @@
 
 module ocean.io.selector.SelectorException;
 
-import tango.transition;
+import ocean.transition;
 
-//import tango.core.Exception;
+//import ocean.core.Exception_tango;
 
 
 /**

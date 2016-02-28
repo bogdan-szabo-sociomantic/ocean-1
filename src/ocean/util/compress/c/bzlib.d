@@ -58,7 +58,7 @@ struct bz_stream
     void *opaque;
 }
 
-import tango.stdc.stdio : FILE;
+import ocean.stdc.stdio : FILE;
 
 /*-- Core (low-level) library functions --*/
 

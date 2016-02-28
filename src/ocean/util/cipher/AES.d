@@ -6,9 +6,9 @@
 
 module ocean.util.cipher.AES;
 
-import tango.transition;
-import tango.core.Array;
-import tango.util.cipher.Cipher;
+import ocean.transition;
+import ocean.core.Array_tango;
+import ocean.util.cipher.Cipher;
 
 /**
  * Implementation of the US AES (Rijndael 128) cipher designed by

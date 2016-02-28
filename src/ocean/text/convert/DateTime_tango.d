@@ -24,18 +24,18 @@
 
 module ocean.text.convert.DateTime_tango;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.core.Exception;
+import ocean.core.Exception_tango;
 
-import tango.time.WallClock;
+import ocean.time.WallClock;
 
-import tango.time.chrono.Calendar,
-       tango.time.chrono.Gregorian;
+import ocean.time.chrono.Calendar,
+       ocean.time.chrono.Gregorian;
 
-import Utf = tango.text.convert.Utf;
+import Utf = ocean.text.convert.Utf;
 
-import Integer = tango.text.convert.Integer;
+import Integer = ocean.text.convert.Integer_tango;
 
 /******************************************************************************
 
@@ -43,8 +43,8 @@ import Integer = tango.text.convert.Integer;
 
 ******************************************************************************/
 
-import tango.stdc.stringz;
-import tango.stdc.posix.langinfo;
+import ocean.stdc.stringz;
+import ocean.stdc.posix.langinfo;
 
 /******************************************************************************
 
@@ -956,7 +956,7 @@ private struct Result
 
 debug (DateTime)
 {
-    import tango.io.Stdout;
+    import ocean.io.Stdout_tango;
 
     void main()
     {

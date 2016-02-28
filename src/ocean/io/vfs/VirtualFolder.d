@@ -12,19 +12,19 @@
 
 module ocean.io.vfs.VirtualFolder;
 
-import tango.transition;
+import ocean.transition;
 
 //import std.string;
 
-import tango.core.Exception;
+import ocean.core.Exception_tango;
 
-import tango.io.model.IFile;
+import ocean.io.model.IFile;
 
-import tango.io.vfs.model.Vfs;
+import ocean.io.vfs.model.Vfs;
 
-import tango.io.Path : patternMatch;
+import ocean.io.Path : patternMatch;
 
-import tango.text.Util : head, locatePrior;
+import ocean.text.Util : head, locatePrior;
 
 /*******************************************************************************
 
@@ -591,8 +591,8 @@ debug (VirtualFolder)
 
 *******************************************************************************/
 
-import tango.io.Stdout;
-import tango.io.vfs.FileFolder;
+import ocean.io.Stdout_tango;
+import ocean.io.vfs.FileFolder;
 
 void main()
 {

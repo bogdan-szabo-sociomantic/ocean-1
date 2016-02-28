@@ -14,23 +14,23 @@
 
 module ocean.io.vfs.ZipFolder;
 
-import tango.transition;
+import ocean.transition;
 
-import Path = tango.io.Path;
-import tango.io.device.File : File;
-import tango.io.FilePath : FilePath;
-import tango.io.device.TempFile : TempFile;
-import tango.util.compress.Zip : ZipReader, ZipBlockReader,
+import Path = ocean.io.Path;
+import ocean.io.device.File : File;
+import ocean.io.FilePath_tango : FilePath;
+import ocean.io.device.TempFile : TempFile;
+import ocean.util.compress.Zip : ZipReader, ZipBlockReader,
        ZipWriter, ZipBlockWriter, ZipEntry, ZipEntryInfo, Method;
-import tango.io.model.IConduit : IConduit, InputStream, OutputStream;
-import tango.io.vfs.model.Vfs : VfsFolder, VfsFolderEntry, VfsFile,
+import ocean.io.model.IConduit : IConduit, InputStream, OutputStream;
+import ocean.io.vfs.model.Vfs : VfsFolder, VfsFolderEntry, VfsFile,
        VfsFolders, VfsFiles, VfsFilter, VfsStats, VfsFilterInfo,
        VfsInfo, VfsSync;
-import tango.time.Time : Time;
+import ocean.time.Time : Time;
 
 debug( ZipFolder )
 {
-    import tango.io.Stdout : Stderr;
+    import ocean.io.Stdout_tango : Stderr;
 }
 
 // This disables code that is causing heap corruption in Tango 0.99.3
@@ -1691,7 +1691,7 @@ unittest
 
 // Dependencies
 private:
-import tango.io.device.Conduit : Conduit;
+import ocean.io.device.Conduit : Conduit;
 
 /*******************************************************************************
 
@@ -1707,8 +1707,8 @@ import tango.io.device.Conduit : Conduit;
 
 //module tangox.io.stream.DummyStream;
 
-//import tango.io.device.Conduit : Conduit;
-//import tango.io.model.IConduit : IConduit, InputStream, OutputStream;
+//import ocean.io.device.Conduit : Conduit;
+//import ocean.io.model.IConduit : IConduit, InputStream, OutputStream;
 
 /**
  * The dummy stream classes are used to provide simple, empty stream objects
@@ -1766,8 +1766,8 @@ private deprecated class DummyOutputStream : OutputStream //, IConduit.Seek
 
 //module tangox.io.stream.EventStream;
 
-//import tango.io.device.Conduit : Conduit;
-//import tango.io.model.IConduit : IConduit, InputStream, OutputStream;
+//import ocean.io.device.Conduit : Conduit;
+//import ocean.io.model.IConduit : IConduit, InputStream, OutputStream;
 
 /**
  * The event stream classes are designed to allow you to receive feedback on
@@ -1955,8 +1955,8 @@ private:
 
 //module tangox.io.stream.WrapStream;
 
-//import tango.io.device.Conduit : Conduit;
-//import tango.io.model.IConduit : IConduit, InputStream, OutputStream;
+//import ocean.io.device.Conduit : Conduit;
+//import ocean.io.model.IConduit : IConduit, InputStream, OutputStream;
 
 /**
  * This stream can be used to provide access to another stream.

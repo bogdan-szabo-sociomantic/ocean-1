@@ -72,9 +72,9 @@
 *******************************************************************************/
 module ocean.text.Regex;
 
-import tango.transition;
+import ocean.transition;
 
-debug(TangoRegex) import tango.io.Stdout;
+debug(TangoRegex) import ocean.io.Stdout_tango;
 
 /* *****************************************************************************
     A simple pair
@@ -524,7 +524,7 @@ void quickSort(T)(T[] a, size_t l, size_t r)
     quickSort(a, l, i);
     quickSort(a, i+1, r);
 }
-import tango.math.Math;
+import ocean.math.Math;
 
 /* ************************************************************************************************
     A range of characters
@@ -1195,8 +1195,8 @@ private struct Predicate(char_t)
         return str;
     }
 }
-import Utf = tango.text.convert.Utf;
-import tango.text.convert.Format;
+import Utf = ocean.text.convert.Utf;
+import ocean.text.convert.Format;
 
 /* ************************************************************************************************
 
@@ -2309,7 +2309,7 @@ private:
         frags ~= frag;
     }
 }
-import tango.core.Array;
+import ocean.core.Array_tango;
 
 /* ************************************************************************************************
     Tagged DFA
@@ -3692,7 +3692,7 @@ private:
 
     }
 }
-import tango.text.Util;
+import ocean.text.Util;
 
 /**************************************************************************************************
     Regular expression compiler and interpreter.
@@ -3730,7 +3730,7 @@ class RegExpT(char_t)
             scope tnfa_t tnfa_ = new tnfa_t(pattern_);
         }
         else {
-            scope tnfa_t tnfa_ = new tnfa_t(tango.text.convert.Utf.toString32(pattern_));
+            scope tnfa_t tnfa_ = new tnfa_t(ocean.text.convert.Utf.toString32(pattern_));
         }
         tnfa_.swapMatchingBracketSyntax = swapMBS;
         tnfa_.parse(unanchored);
@@ -3764,8 +3764,8 @@ class RegExpT(char_t)
         Returns:    Instance of RegExpT set up to search input.
         Example:
             ---
-            import tango.io.Stdout;
-            import tango.text.Regex;
+            import ocean.io.Stdout_tango;
+            import ocean.text.Regex;
 
             void main()
             {
@@ -4061,8 +4061,8 @@ class RegExpT(char_t)
         Splits the input at the matches of this regular expression into an array of slices.
         Example:
             ---
-            import tango.io.Stdout;
-            import tango.text.Regex;
+            import ocean.io.Stdout_tango;
+            import ocean.text.Regex;
 
             void main()
             {
@@ -4192,7 +4192,7 @@ class RegExpT(char_t)
     /**********************************************************************************************
         Compiles the regular expression to D code.
 
-        NOTE : Remember to import this module (tango.text.Regex) in the module where you put the
+        NOTE : Remember to import this module (ocean.text.Regex) in the module where you put the
         generated D code.
 
     **********************************************************************************************/
@@ -4449,7 +4449,7 @@ alias RegExpT!(char) Regex;
 
 private alias char[] string;
 
-debug(utf) import tango.stdc.stdio;
+debug(utf) import ocean.stdc.stdio;
 // the following block is stolen from phobos.
 // the copyright notice applies for this block only.
 /*
@@ -4813,6 +4813,6 @@ unittest
 
 debug(RegexTestOnly)
 {
-    import tango.io.Stdout;
+    import ocean.io.Stdout_tango;
     void main() { Stdout("All tests pass").newline(); }
 }

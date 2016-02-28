@@ -5,10 +5,10 @@
         author:         Fawzi Mohamed
 *******************************************************************************/
 module ocean.math.random.Ziggurat;
-import tango.math.Bracket:findRoot;
-import tango.math.Math:abs;
-import tango.math.ErrorFunction:erfc;
-import tango.core.Traits;
+import ocean.math.Bracket:findRoot;
+import ocean.math.Math:abs;
+import ocean.math.ErrorFunction:erfc;
+import ocean.core.Traits;
 
 /// ziggurat method for decreasing distributions.
 /// Marsaglia, Tsang, Journal of Statistical Software, 2000

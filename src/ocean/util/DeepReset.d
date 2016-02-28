@@ -17,7 +17,7 @@ module ocean.util.DeepReset;
 *******************************************************************************/
 
 import ocean.core.Array;
-import tango.core.Traits;
+import ocean.core.Traits;
 version(UnitTest) import ocean.core.Test;
 
 /*******************************************************************************

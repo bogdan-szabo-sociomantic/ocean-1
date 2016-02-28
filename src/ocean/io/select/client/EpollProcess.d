@@ -137,7 +137,7 @@ module ocean.io.select.client.EpollProcess;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.util.container.map.Map;
 
@@ -147,19 +147,19 @@ import ocean.io.select.EpollSelectDispatcher;
 
 import ocean.io.select.client.SignalEvent;
 
-import tango.io.model.IConduit;
+import ocean.io.model.IConduit;
 
-import tango.stdc.posix.sys.wait;
+import ocean.stdc.posix.sys.wait;
 
-import tango.sys.Process;
+import ocean.sys.Process;
 
 debug import ocean.io.Stdout;
 
-import tango.stdc.errno;
+import ocean.stdc.errno;
 
-import tango.util.log.Log;
+import ocean.util.log.Log;
 
-import tango.stdc.posix.signal : SIGCHLD;
+import ocean.stdc.posix.signal : SIGCHLD;
 
 
 

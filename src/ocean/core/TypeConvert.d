@@ -15,10 +15,10 @@ module ocean.core.TypeConvert;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 version ( UnitTest ) import ocean.core.Test;
 
-import tango.core.Tuple;
+import ocean.core.Tuple;
 import ocean.core.Traits;
 
 /*******************************************************************************

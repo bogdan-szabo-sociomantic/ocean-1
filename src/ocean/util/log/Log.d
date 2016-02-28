@@ -12,7 +12,7 @@
 
         Simplified, pedestrian usage:
         ---
-        import tango.util.log.Config;
+        import ocean.util.log.Config_tango;
 
         Log ("hello world");
         Log ("temperature is {} degrees", 75);
@@ -25,7 +25,7 @@
         nature, using dot notation (with '.') to separate each named section.
         For example, a typical name might be something like "mail.send.writer"
         ---
-        import tango.util.log.Log;
+        import ocean.util.log.Log;
 
         auto log = Log.lookup ("mail.send.writer");
 
@@ -70,7 +70,7 @@
             log.warn ("temperature is {} degrees!", complexFunction());
         ---
 
-        tango.log closely follows both the API and the behaviour as documented
+        ocean.log closely follows both the API and the behaviour as documented
         at the official Log4J site, where you'll find a good tutorial. Those
         pages are hosted over
         <A HREF="http://logging.apache.org/log4j/docs/documentation.html">here</A>.
@@ -79,19 +79,19 @@
 
 module ocean.util.log.Log;
 
-import tango.transition;
+import ocean.transition;
 
-import  tango.sys.Common;
+import ocean.sys.Common;
 
-import  tango.time.Clock;
+import ocean.time.Clock;
 
-import  tango.core.Exception;
+import ocean.core.Exception_tango;
 
-import  tango.io.model.IConduit;
+import ocean.io.model.IConduit;
 
-import  tango.text.convert.Format;
+import ocean.text.convert.Format;
 
-import  tango.util.log.model.ILogger;
+import ocean.util.log.model.ILogger;
 
 /*******************************************************************************
 
@@ -101,7 +101,7 @@ import  tango.util.log.model.ILogger;
 
 version (DigitalMars)
         {
-        import tango.core.Vararg;
+        import ocean.core.Vararg;
         alias void* Arg;
         alias va_list ArgList;
 
@@ -255,7 +255,7 @@ public struct Log
                 Return an instance of the named logger. Names should be
                 hierarchical in nature, using dot notation (with '.') to
                 separate each name section. For example, a typical name
-                might be something like "tango.io.Stdout".
+                might be something like "ocean.io.Stdout".
 
                 If the logger does not currently exist, it is created and
                 inserted into the hierarchy. A parent will be attached to
@@ -326,7 +326,7 @@ public struct Log
         nature, using dot notation (with '.') to separate each named section.
         For example, a typical name might be something like "mail.send.writer"
         ---
-        import tango.util.log.Log;format
+        import ocean.util.log.Log;format
 
         auto log = Log.lookup ("mail.send.writer");
 
@@ -383,7 +383,7 @@ public struct Log
         macros are added to the language (used to be handled implicitly
         via lazy delegates, but usage of those turned out to be awkward).
 
-        tango.log closely follows both the API and the behaviour as documented
+        ocean.log closely follows both the API and the behaviour as documented
         at the official Log4J site, where you'll find a good tutorial. Those
         pages are hosted over
         <A HREF="http://logging.apache.org/log4j/docs/documentation.html">here</A>.
@@ -1514,7 +1514,7 @@ public class Appender
 /*******************************************************************************
 
         An appender that does nothing. This is useful for cutting and
-        pasting, and for benchmarking the tango.log environment.
+        pasting, and for benchmarking the ocean.log environment.
 
 *******************************************************************************/
 
@@ -1677,7 +1677,7 @@ public class LayoutTimer : Appender.Layout
 
 debug (Log)
 {
-        import tango.io.Console;
+        import ocean.io.Console;
 
         void main()
         {

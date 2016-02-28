@@ -59,7 +59,7 @@
  */
 module ocean.math.IEEE;
 
-import tango.transition;
+import ocean.transition;
 
 version(TangoNoAsm) {
 
@@ -78,13 +78,13 @@ version (X86_64){
 version (Naked_D_InlineAsm_X86) {
     // Don't include this extra dependency unless we need to.
     version (UnitTest) {
-        static import tango.stdc.math;
+        static import ocean.stdc.math;
     }
 } else {
     // Needed for cos(), sin(), tan() on GNU.
-    static import tango.stdc.math;
+    static import ocean.stdc.math;
 }
-static import tsm = tango.stdc.math;
+static import tsm = ocean.stdc.math;
 
 // Standard Tango NaN payloads.
 // NOTE: These values may change in future Tango releases
@@ -663,7 +663,7 @@ real ldexp(real n, int exp) /* intrinsic */
     }
     else
     {
-        return tango.stdc.math.ldexpl(n, exp);
+        return ocean.stdc.math.ldexpl(n, exp);
     }
 }
 
@@ -721,7 +721,7 @@ int ilogb(real x)
             }
             return e - 0x3FFF;
         } else {
-        return tango.stdc.math.ilogbl(x);
+        return ocean.stdc.math.ilogbl(x);
     }
 }
 
@@ -731,8 +731,8 @@ version (X86)
     const int FP_ILOGBNAN      = -int.max-1;
     const int FP_ILOGBINFINITY = -int.max-1;
 } else {
-    alias tango.stdc.math.FP_ILOGB0   FP_ILOGB0;
-    alias tango.stdc.math.FP_ILOGBNAN FP_ILOGBNAN;
+    alias ocean.stdc.math.FP_ILOGB0   FP_ILOGB0;
+    alias ocean.stdc.math.FP_ILOGBNAN FP_ILOGBNAN;
     const int FP_ILOGBINFINITY = int.max;
 }
 
@@ -773,7 +773,7 @@ real logb(real x)
             fstp ST(0); // drop significand
         }
     } else {
-        return tango.stdc.math.logbl(x);
+        return ocean.stdc.math.logbl(x);
     }
 }
 
@@ -810,7 +810,7 @@ real scalbn(real x, int n)
         }
     } else {
         // NOTE: Not implemented in DMD
-        return tango.stdc.math.scalbnl(x, n);
+        return ocean.stdc.math.scalbnl(x, n);
     }
 }
 
@@ -859,7 +859,7 @@ real fabs(real x) /* intrinsic */
     }
     else
     {
-        return tango.stdc.math.fabsl(x);
+        return ocean.stdc.math.fabsl(x);
     }
 }
 
@@ -897,13 +897,13 @@ creal expi(real y)
     }
     else
     {
-        return tango.stdc.math.cosl(y) + tango.stdc.math.sinl(y)*1i;
+        return ocean.stdc.math.cosl(y) + ocean.stdc.math.sinl(y)*1i;
     }
 }
 
 unittest
 {
-    assert(expi(1.3e5L) == tango.stdc.math.cosl(1.3e5L) + tango.stdc.math.sinl(1.3e5L) * 1i);
+    assert(expi(1.3e5L) == ocean.stdc.math.cosl(1.3e5L) + ocean.stdc.math.sinl(1.3e5L) * 1i);
     assert(expi(0.0L) == 1L + 0.0Li);
 }
 

@@ -12,13 +12,13 @@
 
 module ocean.io.stream.Text;
 
-import tango.io.stream.Lines;
+import ocean.io.stream.Lines;
 
-import tango.io.stream.Format;
+import ocean.io.stream.Format;
 
-import tango.io.stream.Buffered;
+import ocean.io.stream.Buffered;
 
-import tango.io.model.IConduit;
+import ocean.io.model.IConduit;
 
 /*******************************************************************************
 

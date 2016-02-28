@@ -10,10 +10,10 @@
  */
 module ocean.util.uuid.Uuid;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.core.Exception;
-import Integer = tango.text.convert.Integer;
+import ocean.core.Exception_tango;
+import Integer = ocean.text.convert.Integer_tango;
 
 private union UuidData
 {
@@ -177,7 +177,7 @@ struct Uuid
          * Abomination Unto Nuggan.
          *
          * This method is exposed mainly for the convenience methods in
-         * tango.util.uuid.*. You can use this method directly if you prefer.
+         * ocean.util.uuid.*. You can use this method directly if you prefer.
          */
         public static Uuid byName(Digest)(Uuid namespace, char[] name, Digest digest,
                                                                           ubyte uuidVersion)
@@ -303,7 +303,7 @@ struct Uuid
 
 version (TangoTest)
 {
-        import tango.math.random.Kiss;
+        import ocean.math.random.Kiss;
         unittest
         {
                 // Generate them in the correct format
@@ -390,7 +390,7 @@ version (TangoTest)
                 catch (IllegalArgumentException) {}
         }
 
-        import tango.util.digest.Sha1;
+        import ocean.util.digest.Sha1;
         unittest
         {
                 auto namespace = Uuid.parse("15288517-c402-4057-9fc5-05711726df41");
@@ -403,7 +403,7 @@ version (TangoTest)
                 assert (generated == expected, "\nexpected: " ~ expected.toString ~ "\nbut was:  " ~ generated.toString);
         }
 
-        import tango.util.digest.Md5;
+        import ocean.util.digest.Md5;
         unittest
         {
                 auto namespace = Uuid.parse("15288517-c402-4057-9fc5-05711726df41");

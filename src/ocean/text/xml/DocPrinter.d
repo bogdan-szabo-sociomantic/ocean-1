@@ -12,17 +12,17 @@
 
 module ocean.text.xml.DocPrinter;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.io.model.IConduit;
+import ocean.io.model.IConduit;
 
-import tango.text.xml.Document;
+import ocean.text.xml.Document;
 
-import tango.core.Exception : XmlException;
+import ocean.core.Exception_tango : XmlException;
 
 version (UnitTest)
 {
-    import tango.text.xml.Document;
+    import ocean.text.xml.Document;
 }
 
 

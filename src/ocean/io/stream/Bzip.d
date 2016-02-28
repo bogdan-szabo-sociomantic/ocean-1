@@ -12,15 +12,15 @@
 
 module ocean.io.stream.Bzip;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.util.compress.c.bzlib;
+import ocean.util.compress.c.bzlib;
 
-import tango.core.Exception : IOException;
+import ocean.core.Exception_tango : IOException;
 
-import tango.io.device.Conduit : InputFilter, OutputFilter;
+import ocean.io.device.Conduit : InputFilter, OutputFilter;
 
-import tango.io.model.IConduit : InputStream, OutputStream, IConduit;
+import ocean.io.model.IConduit : InputStream, OutputStream, IConduit;
 
 private
 {
@@ -563,7 +563,7 @@ class BzipStillOpenException : IOException
 
 version(UnitTest)
 {
-    import tango.io.device.Array : Array;
+    import ocean.io.device.Array : Array;
 
     unittest
     {

@@ -12,17 +12,17 @@
 
 module ocean.net.Uri;
 
-import tango.transition;
+import ocean.transition;
 
-public  import  tango.net.model.UriView;
+public  import ocean.net.model.UriView;
 
 //public alias Uri UriView;
 
-import  tango.core.Exception;
+import ocean.core.Exception;
 
-import  Integer = tango.text.convert.Integer;
+import  Integer = ocean.text.convert.Integer_tango;
 
-import  tango.stdc.string : memchr;
+import ocean.stdc.string : memchr;
 
 
 /*******************************************************************************
@@ -34,7 +34,7 @@ import  tango.stdc.string : memchr;
         The implementation fails the spec on two counts: it doesn't insist
         on a scheme being present in the Uri, and it doesn't implement the
         "Relative References" support noted in section 5.2. The latter can
-        be found in tango.util.PathUtil instead.
+        be found in ocean.util.PathUtil instead.
 
         Note that IRI support can be implied by assuming each of userinfo,
         path, query, and fragment are UTF-8 encoded

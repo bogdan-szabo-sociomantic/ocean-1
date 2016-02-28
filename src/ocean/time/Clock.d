@@ -12,11 +12,11 @@
 
 module ocean.time.Clock;
 
-public  import  tango.time.Time;
+public  import ocean.time.Time;
 
-import  tango.sys.Common;
+import ocean.sys.Common;
 
-import  tango.core.Exception;
+import ocean.core.Exception_tango;
 
 /******************************************************************************
 

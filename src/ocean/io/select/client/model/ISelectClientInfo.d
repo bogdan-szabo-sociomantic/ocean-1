@@ -20,9 +20,9 @@ module ocean.io.select.client.model.ISelectClientInfo;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import tango.io.model.IConduit: ISelectable;
+import ocean.io.model.IConduit: ISelectable;
 
 import ocean.sys.Epoll;
 

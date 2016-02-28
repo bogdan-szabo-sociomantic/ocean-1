@@ -14,7 +14,7 @@
 
 module ocean.core.ByteSwap;
 
-import tango.core.BitManip;
+import ocean.core.BitManip;
 
 /*******************************************************************************
 

@@ -6,14 +6,14 @@
 
 module ocean.io.selector.AbstractSelector;
 
-import tango.transition;
+import ocean.transition;
 
-public import tango.io.model.IConduit;
-public import tango.io.selector.SelectorException;
+public import ocean.io.model.IConduit;
+public import ocean.io.selector.SelectorException;
 
-import tango.io.selector.model.ISelector;
-import tango.sys.Common;
-import tango.stdc.errno;
+import ocean.io.selector.model.ISelector;
+import ocean.sys.Common;
+import ocean.stdc.errno;
 
 /**
  * Base class for all selectors.
@@ -47,9 +47,9 @@ import tango.stdc.errno;
  *
  * Examples:
  * ---
- * import tango.io.selector.model.ISelector;
- * import tango.net.device.Socket;
- * import tango.io.Stdout;
+ * import ocean.io.selector.model.ISelector;
+ * import ocean.net.device.Socket;
+ * import ocean.io.Stdout_tango;
  *
  * AbstractSelector selector;
  * SocketConduit conduit1;

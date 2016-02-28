@@ -23,7 +23,7 @@ import ocean.util.container.cache.model.ICacheInfo;
 import ocean.util.container.cache.model.containers.TimeToIndex;
 import ocean.util.container.cache.model.containers.KeyToNode;
 
-import tango.stdc.time: time_t, time;
+import ocean.stdc.time: time_t, time;
 
 /******************************************************************************/
 

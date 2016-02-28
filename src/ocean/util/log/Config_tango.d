@@ -12,10 +12,10 @@
 
 deprecated module ocean.util.log.Config_tango;
 
-public import  tango.util.log.Log : Log;
+public import ocean.util.log.Log : Log;
 
-import tango.util.log.LayoutDate,
-       tango.util.log.AppendConsole;
+import ocean.util.log.LayoutDate,
+       ocean.util.log.AppendConsole;
 
 pragma(msg, "Set the root logger in your main file instead of relying on module ctor order");
 

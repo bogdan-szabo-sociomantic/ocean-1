@@ -30,19 +30,19 @@ module ocean.text.xml.Xslt;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.core.Array;
 
 import ocean.text.xml.c.LibXml2,
        ocean.text.xml.c.LibXslt;
 
-import tango.stdc.stdio,
-       tango.stdc.stdlib;
+import ocean.stdc.stdio,
+       ocean.stdc.stdlib;
 
-import tango.stdc.stdarg;
+import ocean.stdc.stdarg;
 
-import tango.core.Exception;
+import ocean.core.Exception_tango;
 
 
 

@@ -29,7 +29,7 @@ import ocean.io.compress.CompressException;
 
 import ocean.core.Enforce: enforce;
 
-import tango.transition;
+import ocean.transition;
 
 /******************************************************************************
 
@@ -261,14 +261,14 @@ version (UnitTest):
 // Uncomment the next line to see UnitTest output
 // version = UnitTestVerbose;
 
-import tango.io.device.File;
-import tango.time.StopWatch;
+import ocean.io.device.File;
+import ocean.time.StopWatch;
 
-debug (GcDisabled) import tango.core.Memory;
+debug (GcDisabled) import ocean.core.Memory;
 
 import ocean.text.util.MetricPrefix;
 
-import tango.stdc.signal: signal, SIGINT;
+import ocean.stdc.signal: signal, SIGINT;
 
 /******************************************************************************
 

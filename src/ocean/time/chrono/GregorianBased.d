@@ -13,11 +13,11 @@
 
 module ocean.time.chrono.GregorianBased;
 
-import tango.core.Exception;
+import ocean.core.Exception_tango;
 
-import tango.time.Time;
+import ocean.time.Time;
 
-import tango.time.chrono.Gregorian;
+import ocean.time.chrono.Gregorian;
 
 
 

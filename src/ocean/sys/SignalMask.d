@@ -13,7 +13,7 @@
     Signals are not queued, so if a signal fires multiple times while masked, it
     will only fire once upon unmasking.
 
-    The list of posix signals is defined in tango.stdc.posix.signal
+    The list of posix signals is defined in ocean.stdc.posix.signal
 
     Build flags:
         -debug=SignalMask: prints debugging information to Stderr
@@ -31,7 +31,7 @@ module ocean.sys.SignalMask;
 
 version ( Posix )
 {
-    import tango.stdc.posix.signal;
+    import ocean.stdc.posix.signal;
 }
 else
 {

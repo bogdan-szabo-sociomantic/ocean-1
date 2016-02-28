@@ -52,7 +52,7 @@
     ---
 
         import ocean.core.SmartEnum;
-        import tango.io.Stdout;
+        import ocean.io.Stdout_tango;
 
         alias SmartEnumValue!(int) Code;
 
@@ -117,14 +117,14 @@ module ocean.core.SmartEnum;
 
  *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 public import ocean.core.Enforce;
 
 import ocean.core.Traits;
 
-import tango.core.Traits;
-import tango.core.Tuple;
+import ocean.core.Traits;
+import ocean.core.Tuple;
 
 version (UnitTest)
 {
@@ -193,7 +193,7 @@ unittest
 
 public template SmartEnumCore ( BaseType )
 {
-    import tango.transition;
+    import ocean.transition;
 
     /***************************************************************************
 
@@ -418,7 +418,7 @@ unittest
 
 /*******************************************************************************
 
-    Wrapper for the ctfe_i2a function (see tango.core.Traits), allowing it to
+    Wrapper for the ctfe_i2a function (see ocean.core.Traits), allowing it to
     also handle (u)byte & (u)short types.
 
 *******************************************************************************/
@@ -842,9 +842,9 @@ unittest
 
 import ocean.core.Enforce;
 
-import tango.core.Array : find;
+import ocean.core.Array_tango : find;
 
-import tango.core.Traits : isAssocArrayType;
+import ocean.core.Traits : isAssocArrayType;
 
 /*******************************************************************************
 

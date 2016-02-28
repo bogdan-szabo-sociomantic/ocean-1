@@ -13,11 +13,11 @@
 
 module ocean.io.stream.Buffered;
 
-import tango.transition;
+import ocean.transition;
 
-public import tango.io.model.IConduit;
+public import ocean.io.model.IConduit;
 
-import tango.io.device.Conduit;
+import ocean.io.device.Conduit;
 
 /******************************************************************************
 

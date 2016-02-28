@@ -13,9 +13,9 @@
 
 module ocean.time.chrono.Hebrew;
 
-import tango.core.Exception;
+import ocean.core.Exception_tango;
 
-import tango.time.chrono.Calendar;
+import ocean.time.chrono.Calendar;
 
 
 

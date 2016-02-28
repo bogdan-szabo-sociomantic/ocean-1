@@ -22,7 +22,7 @@ deprecated module ocean.util.log.Trace;
 
 pragma(msg, "Use Log instead of Trace or set the root logger from your main");
 
-public import tango.util.log.Config;
+public import ocean.util.log.Config_tango;
 
 /*******************************************************************************
 

@@ -40,7 +40,7 @@ import ocean.db.tokyocabinet.c.util.tclist:
            tclistlsearch, tclistbsearch,
            tclistsort,    tclistsortex,    tclistinvert;
 
-import tango.stdc.stdlib: free;
+import ocean.stdc.stdlib: free;
 
 import ocean.core.TypeConvert;
 

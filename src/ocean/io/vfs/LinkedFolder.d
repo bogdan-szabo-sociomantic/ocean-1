@@ -12,13 +12,13 @@
 
 module ocean.io.vfs.LinkedFolder;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.io.vfs.model.Vfs;
+import ocean.io.vfs.model.Vfs;
 
-import tango.core.Exception;
+import ocean.core.Exception_tango;
 
-import tango.io.vfs.VirtualFolder;
+import ocean.io.vfs.VirtualFolder;
 
 /*******************************************************************************
 
@@ -146,8 +146,8 @@ debug (LinkedFolder)
 
 *******************************************************************************/
 
-import tango.io.Stdout;
-import tango.io.vfs.FileFolder;
+import ocean.io.Stdout_tango;
+import ocean.io.vfs.FileFolder;
 
 void main()
 {

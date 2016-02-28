@@ -38,7 +38,7 @@ unittest
     class App : Application
     {
         import ocean.io.select.EpollSelectDispatcher;
-        import tango.transition;
+        import ocean.transition;
 
         private EpollSelectDispatcher epoll;
         private TimerExt timers;
@@ -90,7 +90,7 @@ unittest
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 import ocean.util.app.model.IApplicationExtension;
 
 
@@ -333,7 +333,7 @@ version ( UnitTest )
 {
     import ocean.util.app.Application;
 
-    import tango.core.Test;
+    import ocean.core.Test;
 }
 
 

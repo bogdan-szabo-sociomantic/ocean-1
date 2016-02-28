@@ -12,17 +12,17 @@
 
 module ocean.net.http.HttpParams;
 
-import tango.transition;
+import ocean.transition;
 
-import  tango.time.Time;
+import ocean.time.Time;
 
-import  tango.io.model.IConduit;
+import ocean.io.model.IConduit;
 
-import  tango.net.http.HttpTokens;
+import ocean.net.http.HttpTokens;
 
-import  tango.io.stream.Delimiters;
+import ocean.io.stream.Delimiters;
 
-public  import  tango.net.http.model.HttpParamsView;
+public  import ocean.net.http.model.HttpParamsView;
 
 /******************************************************************************
 

@@ -20,8 +20,8 @@ module ocean.util.log.AppendSysLog;
 
 *******************************************************************************/
 
-import tango.util.log.Log;
-import tango.transition;
+import ocean.util.log.Log;
+import ocean.transition;
 
 /*******************************************************************************
 

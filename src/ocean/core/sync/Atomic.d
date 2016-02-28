@@ -8,7 +8,7 @@
  * For classes atomic access means atomic access to their *address* not their content
  *
  * If you want unique counters or flags to communicate in multithreading settings
- * look at tango.core.sync.Counter that provides them in a better way and handles
+ * look at ocean.core.sync.Counter that provides them in a better way and handles
  * better the absence of atomic ops.
  *
  * Copyright: Copyright (C) 2008-2010 the blip developer group

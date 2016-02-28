@@ -16,9 +16,9 @@ module ocean.text.convert.Hex;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import Integer = ocean.text.convert.Integer;
+import Integer = ocean.text.convert.Integer_tango;
 
 import ocean.core.TypeConvert;
 

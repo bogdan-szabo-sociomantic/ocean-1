@@ -6,9 +6,9 @@
 
 module ocean.io.selector.model.ISelector;
 
-public import tango.time.Time;
+public import ocean.time.Time;
 
-public import tango.io.model.IConduit;
+public import ocean.io.model.IConduit;
 
 /**
  * Events that are used to register a Conduit to a selector and are returned
@@ -164,9 +164,9 @@ interface ISelectionSet
  *
  * Examples:
  * ---
- * import tango.io.selector.model.ISelector;
- * import tango.io.SocketConduit;
- * import tango.io.Stdout;
+ * import ocean.io.selector.model.ISelector;
+ * import ocean.io.SocketConduit;
+ * import ocean.io.Stdout_tango;
  *
  * ISelector selector;
  * SocketConduit conduit1;

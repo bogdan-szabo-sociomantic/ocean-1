@@ -25,7 +25,7 @@
     ---
 
         import ocean.io.Stdout;
-        import tango.io.device.File;
+        import ocean.io.device.File;
 
         scope file = new File("example.csv", File.ReadExisting);
         scope csv = new CSV;
@@ -51,11 +51,11 @@ module ocean.text.csv.CSV;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.util.container.AppendBuffer;
 
-import tango.io.model.IConduit;
+import ocean.io.model.IConduit;
 
 
 
@@ -270,7 +270,7 @@ public class CSV
 
 version ( UnitTest )
 {
-    import tango.io.device.Array;
+    import ocean.io.device.Array;
 }
 
 unittest

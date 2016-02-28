@@ -12,7 +12,7 @@
 
 module ocean.util.compress.Zip;
 
-import tango.transition;
+import ocean.transition;
 
 /*
 
@@ -28,23 +28,23 @@ TODO
 
 */
 
-import tango.core.ByteSwap : ByteSwap;
-import tango.io.device.Array : Array;
-import tango.io.device.File : File;
-import tango.io.FilePath : FilePath, PathView;
-import tango.io.device.FileMap : FileMap;
-import tango.io.stream.Zlib : ZlibInput, ZlibOutput;
-import tango.util.digest.Crc32 : Crc32;
-import tango.io.model.IConduit : IConduit, InputStream, OutputStream;
-import tango.io.stream.Digester : DigestInput;
-import tango.time.Time : Time, TimeSpan;
-import tango.time.WallClock : WallClock;
-import tango.time.chrono.Gregorian : Gregorian;
+import ocean.core.ByteSwap : ByteSwap;
+import ocean.io.device.Array : Array;
+import ocean.io.device.File : File;
+import ocean.io.FilePath_tango : FilePath, PathView;
+import ocean.io.device.FileMap : FileMap;
+import ocean.io.stream.Zlib : ZlibInput, ZlibOutput;
+import ocean.util.digest.Crc32 : Crc32;
+import ocean.io.model.IConduit : IConduit, InputStream, OutputStream;
+import ocean.io.stream.Digester : DigestInput;
+import ocean.time.Time : Time, TimeSpan;
+import ocean.time.WallClock : WallClock;
+import ocean.time.chrono.Gregorian : Gregorian;
 
-import Path = tango.io.Path;
-import Integer = tango.text.convert.Integer;
+import Path = ocean.io.Path;
+import Integer = ocean.text.convert.Integer_tango;
 
-debug(Zip) import tango.io.Stdout : Stderr;
+debug(Zip) import ocean.io.Stdout_tango : Stderr;
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
@@ -2278,7 +2278,7 @@ void timeToDos(Time time, out ushort dostime, out ushort dosdate)
 // Dependencies
 private:
 
-import tango.io.device.Conduit : Conduit;
+import ocean.io.device.Conduit : Conduit;
 
 /*******************************************************************************
 
@@ -2294,8 +2294,8 @@ import tango.io.device.Conduit : Conduit;
 
 //module tangox.io.stream.CounterStream;
 
-//import tango.io.device.Conduit : Conduit;
-//import tango.io.model.IConduit : IConduit, InputStream, OutputStream;
+//import ocean.io.device.Conduit : Conduit;
+//import ocean.io.model.IConduit : IConduit, InputStream, OutputStream;
 
 /**
  * The counter stream classes are used to keep track of how many bytes flow
@@ -2443,8 +2443,8 @@ private:
 
 //module tangox.io.stream.SliceStream;
 
-//import tango.io.device.Conduit : Conduit;
-//import tango.io.model.IConduit : IConduit, InputStream, OutputStream;
+//import ocean.io.device.Conduit : Conduit;
+//import ocean.io.model.IConduit : IConduit, InputStream, OutputStream;
 
 /**
  * This stream can be used to provide stream-based access to a subset of
@@ -2791,8 +2791,8 @@ private:
 
 //module tangox.io.stream.WrapStream;
 
-//import tango.io.device.Conduit : Conduit;
-//import tango.io.model.IConduit : IConduit, InputStream, OutputStream;
+//import ocean.io.device.Conduit : Conduit;
+//import ocean.io.model.IConduit : IConduit, InputStream, OutputStream;
 
 /**
  * This stream can be used to provide access to another stream.

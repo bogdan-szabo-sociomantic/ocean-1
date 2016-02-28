@@ -104,25 +104,25 @@
 
 module ocean.text.locale.Core;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.core.Exception;
+import ocean.core.Exception_tango;
 
-import tango.text.locale.Data;
+import ocean.text.locale.Data;
 
-import tango.time.Time;
+import ocean.time.Time;
 
-import tango.time.chrono.Hijri,
-       tango.time.chrono.Korean,
-       tango.time.chrono.Taiwan,
-       tango.time.chrono.Hebrew,
-       tango.time.chrono.Calendar,
-       tango.time.chrono.Japanese,
-       tango.time.chrono.Gregorian,
-       tango.time.chrono.ThaiBuddhist;
+import ocean.time.chrono.Hijri,
+       ocean.time.chrono.Korean,
+       ocean.time.chrono.Taiwan,
+       ocean.time.chrono.Hebrew,
+       ocean.time.chrono.Calendar,
+       ocean.time.chrono.Japanese,
+       ocean.time.chrono.Gregorian,
+       ocean.time.chrono.ThaiBuddhist;
 
 version (Posix)
-    import tango.text.locale.Posix;
+    import ocean.text.locale.Posix;
 
 
 // Initializes an array.
@@ -166,7 +166,7 @@ public interface IFormatService {
 /**
  * $(ANCHOR _Culture)
  * Provides information about a culture, such as its name, calendar and date and number format patterns.
- * Remarks: tango.text.locale adopts the RFC 1766 standard for culture names in the format &lt;language&gt;"-"&lt;region&gt;.
+ * Remarks: ocean.text.locale adopts the RFC 1766 standard for culture names in the format &lt;language&gt;"-"&lt;region&gt;.
  * &lt;language&gt; is a lower-case two-letter code defined by ISO 639-1. &lt;region&gt; is an upper-case
  * two-letter code defined by ISO 3166. For example, "en-GB" is UK English.
  * $(BR)$(BR)There are three types of culture: invariant, neutral and specific. The invariant culture is not tied to
@@ -176,7 +176,7 @@ public interface IFormatService {
  * $(BR)$(BR)Instances of $(LINK2 #DateTimeFormat, DateTimeFormat) and $(LINK2 #NumberFormat, NumberFormat) cannot be created for neutral cultures.
  * Examples:
  * ---
- * import tango.io.Stdout, tango.text.locale.Core;
+ * import ocean.io.Stdout_tango, ocean.text.locale.Core;
  *
  * void main() {
  *   Culture culture = new Culture("it-IT");
@@ -455,7 +455,7 @@ version (Posix) {
    * Examples:
    * The following examples shows how to change the _current culture.
    * ---
-   * import tango.io.Print, tango.text.locale.Common;
+   * import ocean.io.Print, ocean.text.locale.Common;
    *
    * void main() {
    *   // Displays the name of the current culture.
@@ -574,7 +574,7 @@ version (Posix) {
    * Examples:
    * The following example displays which cultures using Chinese are neutral.
    * ---
-   * import tango.io.Print, tango.text.locale.Common;
+   * import ocean.io.Print, ocean.text.locale.Common;
    *
    * void main() {
    *   foreach (c; Culture.getCultures(CultureTypes.All)) {
@@ -724,7 +724,7 @@ version (Posix) {
  * Examples:
  * The following example displays some of the properties of the Region class:
  * ---
- * import tango.io.Print, tango.text.locale.Common;
+ * import ocean.io.Print, ocean.text.locale.Common;
  *
  * void main() {
  *   Region region = new Region("en-GB");
@@ -896,7 +896,7 @@ public class Region {
  * The following example shows how to retrieve an instance of NumberFormat for a Culture
  * and use it to display number formatting information.
  * ---
- * import tango.io.Print, tango.text.locale.Common;
+ * import ocean.io.Print, ocean.text.locale.Common;
  *
  * void main(istring[] args) {
  *   foreach (c; Culture.getCultures(CultureTypes.Specific)) {
@@ -1088,7 +1088,7 @@ version (Clone)
    * Examples:
    * The following example shows the effect of changing numberDecimalDigits.
    * ---
-   * import tango.io.Print, tango.text.locale.Common;
+   * import ocean.io.Print, ocean.text.locale.Common;
    *
    * void main() {
    *   // Get the NumberFormat from the en-GB culture.
@@ -1136,7 +1136,7 @@ version (Clone)
    * Examples:
    * The following example shows the effect of the different patterns.
    * ---
-   * import tango.io.Print, tango.text.locale.Common;
+   * import ocean.io.Print, ocean.text.locale.Common;
    *
    * void main() {
    *   NumberFormat fmt = new NumberFormat;

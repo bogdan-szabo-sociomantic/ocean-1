@@ -15,9 +15,9 @@ module ocean.core._util.console;
 // D1 has all this in runtime
 version (D_Version2):
 
-import tango.transition;
+import ocean.transition;
 
-import tango.core._util.string;
+import ocean.core._util.string;
 
 /*******************************************************************************
 

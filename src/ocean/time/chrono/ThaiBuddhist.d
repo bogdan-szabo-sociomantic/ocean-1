@@ -13,7 +13,7 @@
 
 module ocean.time.chrono.ThaiBuddhist;
 
-import tango.time.chrono.GregorianBased;
+import ocean.time.chrono.GregorianBased;
 
 
 /**

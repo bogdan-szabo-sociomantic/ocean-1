@@ -24,7 +24,7 @@ module ocean.net.http.message.HttpHeaderParser;
 
  ******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 import ocean.core.Enforce;
 import ocean.text.util.SplitIterator: ChrSplitIterator, ISplitIterator;
 
@@ -784,13 +784,13 @@ class HttpHeaderParser : IHttpHeaderParser
 
 //version = OceanPerformanceTest;
 
-import tango.stdc.time: time;
-import tango.stdc.posix.stdlib: srand48, drand48;
+import ocean.stdc.time: time;
+import ocean.stdc.posix.stdlib: srand48, drand48;
 
 version (OceanPerformanceTest)
 {
-    import tango.io.Stdout;
-    import tango.core.internal.gcInterface: gc_disable, gc_enable;
+    import ocean.io.Stdout_tango;
+    import ocean.core.internal.gcInterface: gc_disable, gc_enable;
 }
 
 unittest

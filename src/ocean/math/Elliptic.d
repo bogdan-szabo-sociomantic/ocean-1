@@ -45,8 +45,8 @@
 
 module ocean.math.Elliptic;
 
-import tango.math.Math;
-import tango.math.IEEE;
+import ocean.math.Math;
+import ocean.math.IEEE;
 
 /* These functions are based on code from:
 Cephes Math Library, Release 2.3:  October, 1995

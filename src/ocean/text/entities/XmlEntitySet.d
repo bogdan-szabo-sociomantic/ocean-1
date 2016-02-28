@@ -23,7 +23,7 @@ import ocean.core.Array;
 
 import ocean.text.entities.model.IEntitySet;
 
-import tango.transition;
+import ocean.transition;
 
 /*******************************************************************************
 

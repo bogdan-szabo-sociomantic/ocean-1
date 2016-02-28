@@ -12,18 +12,18 @@
 
 module ocean.sys.Environment;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.sys.Common;
+import ocean.sys.Common;
 
-import tango.io.Path,
-       tango.io.FilePath;
+import ocean.io.Path,
+       ocean.io.FilePath_tango;
 
-import tango.core.Exception;
+import ocean.core.Exception_tango;
 
-import tango.io.model.IFile;
+import ocean.io.model.IFile;
 
-import Text = tango.text.Util;
+import Text = ocean.text.Util;
 
 /*******************************************************************************
 
@@ -49,8 +49,8 @@ else
     }
 }
 
-import tango.stdc.posix.stdlib;
-import tango.stdc.string;
+import ocean.stdc.posix.stdlib;
+import ocean.stdc.string;
 
 /*******************************************************************************
 
@@ -212,7 +212,7 @@ struct Environment
                         tmp [path.length] = 0;
                         tmp[0..path.length] = path;
 
-                        if (tango.stdc.posix.unistd.chdir (tmp.ptr))
+                        if (ocean.stdc.posix.unistd.chdir (tmp.ptr))
                             exception ("Failed to set current directory");
                 }
 
@@ -226,7 +226,7 @@ struct Environment
                 {
                         char[512] tmp = void;
 
-                        char *s = tango.stdc.posix.unistd.getcwd (tmp.ptr, tmp.length);
+                        char *s = ocean.stdc.posix.unistd.getcwd (tmp.ptr, tmp.length);
                         if (s is null)
                             exception ("Failed to get current directory");
 
@@ -248,7 +248,7 @@ struct Environment
 
 debug (Environment)
 {
-        import tango.io.Console;
+        import ocean.io.Console;
 
 
         void main(istring[] args)

@@ -28,13 +28,13 @@
 
 module ocean.time.ISO8601;
 
-import tango.transition;
+import ocean.transition;
 
-public import tango.time.Time;
-public import tango.time.chrono.Gregorian;
+public import ocean.time.Time;
+public import ocean.time.chrono.Gregorian;
 
-import tango.core.Exception : IllegalArgumentException;
-import tango.math.Math : min;
+import ocean.core.Exception_tango : IllegalArgumentException;
+import ocean.math.Math : min;
 
 private alias Time DT;
 private alias ExtendedDate FullDate;
@@ -887,7 +887,7 @@ size_t parseInt(T)(ref T* p, size_t max, out int i) {
 
 \+ +++++++++++++++++++++++++++++++++++++++ +/
 
-// as documented in tango.time.Time
+// as documented in ocean.time.Time
 bool DTyear(int year) { return year >= -10000 && year <= 9999; }
 
 void addMonths(ref FullDate d, int n) { d.val = Gregorian.generic.addMonths(d.val, n-1); } // -1 due to initial being 1
@@ -910,7 +910,7 @@ int ms    (FullDate d) { return d.val.time.millis;  }
 
 // Unit tests
 
-debug (Tango_ISO8601_Valgrind) import tango.stdc.stdlib : malloc, free;
+debug (Tango_ISO8601_Valgrind) import ocean.stdc.stdlib : malloc, free;
 
 unittest {
     FullDate fd;

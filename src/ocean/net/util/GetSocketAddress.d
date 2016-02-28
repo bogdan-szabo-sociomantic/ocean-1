@@ -29,21 +29,21 @@ module ocean.net.util.GetSocketAddress;
 
  ******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import tango.io.model.IConduit: ISelectable;
+import ocean.io.model.IConduit: ISelectable;
 
-import tango.stdc.posix.sys.socket: getsockname, getpeername, socklen_t, sockaddr;
+import ocean.stdc.posix.sys.socket: getsockname, getpeername, socklen_t, sockaddr;
 
-import tango.stdc.posix.arpa.inet: ntohs, inet_ntop, INET_ADDRSTRLEN, INET6_ADDRSTRLEN;
+import ocean.stdc.posix.arpa.inet: ntohs, inet_ntop, INET_ADDRSTRLEN, INET6_ADDRSTRLEN;
 
-import tango.stdc.posix.netinet.in_: sa_family_t, in_port_t, sockaddr_in, sockaddr_in6, in_addr, in6_addr;
+import ocean.stdc.posix.netinet.in_: sa_family_t, in_port_t, sockaddr_in, sockaddr_in6, in_addr, in6_addr;
 
-import tango.stdc.errno;
+import ocean.stdc.errno;
 
-import consts = tango.sys.linux.consts.socket;
+import consts = ocean.sys.linux.consts.socket;
 
-import tango.stdc.string: strlen;
+import ocean.stdc.string: strlen;
 
 import ocean.sys.ErrnoException;
 
@@ -329,7 +329,7 @@ class GetSocketAddress
 version (UnitTest)
 {
     import ocean.core.Test;
-    import tango.stdc.errno: EBADF;
+    import ocean.stdc.errno: EBADF;
 }
 
 unittest

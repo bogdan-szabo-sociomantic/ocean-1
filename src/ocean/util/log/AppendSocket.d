@@ -12,16 +12,16 @@
 
 module ocean.util.log.AppendSocket;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.util.log.Log;
+import ocean.util.log.Log;
 
-import tango.io.Console;
+import ocean.io.Console;
 
-import tango.io.stream.Buffered;
+import ocean.io.stream.Buffered;
 
-import tango.net.device.Socket,
-       tango.net.InternetAddress;
+import ocean.net.device.Socket,
+       ocean.net.InternetAddress;
 
 /*******************************************************************************
 

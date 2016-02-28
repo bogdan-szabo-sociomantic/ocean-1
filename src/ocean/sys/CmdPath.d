@@ -14,13 +14,13 @@ module ocean.sys.CmdPath;
 
  ******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import tango.sys.Environment;
+import ocean.sys.Environment;
 
-import tango.io.FilePath;
+import ocean.io.FilePath_tango;
 
-import PathUtil = tango.io.Path: normalize;
+import PathUtil = ocean.io.Path: normalize;
 
 ///
 unittest

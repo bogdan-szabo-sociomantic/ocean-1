@@ -1,6 +1,6 @@
 module ocean.util.container.more.HashFile;
 
-import tango.io.device.FileMap : MappedFile;
+import ocean.io.device.FileMap : MappedFile;
 
 /******************************************************************************
 
@@ -295,9 +295,9 @@ debug (HashFile)
 {
         extern(C) int printf (char*, ...);
 
-        import tango.io.Path;
-        import tango.io.Stdout;
-        import tango.text.convert.Integer;
+        import ocean.io.Path;
+        import ocean.io.Stdout_tango;
+        import ocean.text.convert.Integer_tango;
 
         void main()
         {

@@ -12,11 +12,11 @@
 
 module ocean.io.device.Device;
 
-import tango.transition;
+import ocean.transition;
 
-import  tango.sys.Common;
+import ocean.sys.Common;
 
-public  import  tango.io.device.Conduit;
+public  import ocean.io.device.Conduit;
 
 /*******************************************************************************
 

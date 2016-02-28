@@ -12,11 +12,11 @@
 
 module ocean.text.convert.UnicodeBom;
 
-import tango.transition;
+import ocean.transition;
 
-import  tango.core.ByteSwap;
+import ocean.core.ByteSwap;
 
-import  Utf = tango.text.convert.Utf;
+import  Utf = ocean.text.convert.Utf;
 
 private extern (C) void onUnicodeError (cstring msg, size_t idx = 0);
 
@@ -478,7 +478,7 @@ unittest
 
 debug (UnicodeBom)
 {
-    import tango.io.Stdout;
+    import ocean.io.Stdout_tango;
 
     void main()
     {

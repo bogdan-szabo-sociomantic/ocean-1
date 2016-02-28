@@ -15,7 +15,7 @@ module ocean.util.config.ConfigParser;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.core.Array : copy;
 
@@ -24,25 +24,25 @@ import ocean.core.Enforce;
 
 import ocean.io.Stdout;
 
-import tango.core.Array;
+import ocean.core.Array_tango;
 
-import tango.io.stream.TextFile;
+import ocean.io.stream.TextFile;
 
-import tango.io.stream.Format;
+import ocean.io.stream.Format;
 
-import tango.text.convert.Integer: toLong;
+import ocean.text.convert.Integer_tango: toLong;
 
-import tango.text.convert.Float: toFloat;
+import ocean.text.convert.Float: toFloat;
 
-import tango.text.convert.Format;
+import ocean.text.convert.Format;
 
-import tango.text.Util: locate, trim, delimit, lines;
+import ocean.text.Util: locate, trim, delimit, lines;
 
-import tango.text.convert.Utf;
+import ocean.text.convert.Utf;
 
-import tango.core.Exception;
+import ocean.core.Exception_tango;
 
-import tango.core.Traits : DynamicArrayType;
+import ocean.core.Traits : DynamicArrayType;
 
 
 
@@ -1165,7 +1165,7 @@ class ConfigParser
 version ( UnitTest )
 {
     import ocean.core.Test;
-    import tango.core.Memory;
+    import ocean.core.Memory;
 }
 
 unittest

@@ -18,9 +18,9 @@ module ocean.util.container.Slink;
 
 import ocean.core.Enforce;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.util.container.model.IContainer;
+import ocean.util.container.model.IContainer;
 
 /*******************************************************************************
 

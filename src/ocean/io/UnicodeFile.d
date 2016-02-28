@@ -12,9 +12,9 @@
 
 module ocean.io.UnicodeFile;
 
-import tango.io.device.File;
+import ocean.io.device.File;
 
-public  import tango.text.convert.UnicodeBom;
+public  import ocean.text.convert.UnicodeBom;
 
 /*******************************************************************************
 
@@ -232,7 +232,7 @@ class UnicodeFile(T)
 
 debug (UnicodeFile)
 {
-        import tango.io.Stdout;
+        import ocean.io.Stdout_tango;
 
         void main()
         {

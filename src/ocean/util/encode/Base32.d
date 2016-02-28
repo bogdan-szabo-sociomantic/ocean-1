@@ -32,7 +32,7 @@
 
 module ocean.util.encode.Base32;
 
-import tango.transition;
+import ocean.transition;
 
 /*******************************************************************************
 

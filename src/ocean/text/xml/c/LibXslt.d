@@ -20,11 +20,11 @@ module ocean.text.xml.c.LibXslt;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.text.xml.c.LibXml2;
 
-import tango.stdc.stdio;
+import ocean.stdc.stdio;
 
 
 

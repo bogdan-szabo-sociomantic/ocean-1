@@ -1,10 +1,10 @@
 
 module ocean.sys.linux.sched;
 
-import tango.stdc.posix.sys.types: pid_t;
-import tango.stdc.config: c_ulong;
-import tango.stdc.posix.time: timespec;
-import tango.stdc.string: memset;
+import ocean.stdc.posix.sys.types: pid_t;
+import ocean.stdc.config: c_ulong;
+import ocean.stdc.posix.time: timespec;
+import ocean.stdc.string: memset;
 
 extern (C):
 

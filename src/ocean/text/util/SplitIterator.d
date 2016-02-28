@@ -22,25 +22,25 @@ module ocean.text.util.SplitIterator;
 
 ******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.core.Array: concat, copy;
 
-import tango.stdc.string: strlen, memchr, strcspn;
-import tango.stdc.ctype: isspace;
+import ocean.stdc.string: strlen, memchr, strcspn;
+import ocean.stdc.ctype: isspace;
 
-import tango.stdc.posix.sys.types: ssize_t;
+import ocean.stdc.posix.sys.types: ssize_t;
 
-import tango.io.Stdout;
+import ocean.io.Stdout_tango;
 
 /*
- * SearchFruct in tango.text.Search is declared private but that protection
+ * SearchFruct in ocean.text.Search is declared private but that protection
  * attribute is meaningless. Ticket is submitted.
  * @see http://www.dsource.org/projects/tango/ticket/2102
  * @see http://www.digitalmars.com/webnews/newsgroups.php?art_group=digitalmars.D&article_id=87915
  */
 
-import tango.text.Search: SearchFruct, search;
+import ocean.text.Search: SearchFruct, search;
 
 /******************************************************************************
 

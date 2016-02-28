@@ -11,8 +11,8 @@
  */
 module ocean.core.Traits_tango;
 
-import tango.core.Tuple;
-import tango.transition;
+import ocean.core.Tuple;
+import ocean.transition;
 
 /**
  * Evaluates to true if T is char[], wchar[], or dchar[].

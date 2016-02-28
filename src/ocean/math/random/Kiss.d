@@ -20,7 +20,7 @@ module ocean.math.random.Kiss;
 
 version (Posix)
         {
-        import tango.stdc.posix.sys.time;
+        import ocean.stdc.posix.sys.time;
         }
 
 
@@ -213,8 +213,8 @@ struct Kiss
 
 debug (Kiss)
 {
-        import tango.io.Stdout;
-        import tango.time.StopWatch;
+        import ocean.io.Stdout_tango;
+        import ocean.time.StopWatch;
 
         void main()
         {

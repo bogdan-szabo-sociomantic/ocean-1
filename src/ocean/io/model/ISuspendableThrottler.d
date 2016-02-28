@@ -31,7 +31,7 @@ abstract public class ISuspendableThrottler
 {
     import ocean.io.model.ISuspendable;
 
-    import tango.core.Array : contains, remove;
+    import ocean.core.Array_tango : contains, remove;
 
 
     /***************************************************************************

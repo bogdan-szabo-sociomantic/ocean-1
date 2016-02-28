@@ -8,7 +8,7 @@
 
     authors:        Gavin Norman
 
-    More of the kind of thing you'd find in tango.core.Traits...
+    More of the kind of thing you'd find in ocean.core.Traits...
 
 *******************************************************************************/
 
@@ -20,9 +20,9 @@ module ocean.core.Traits;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import tango.core.Tuple: Tuple;
+import ocean.core.Tuple: Tuple;
 
 public import ocean.core.Traits_tango;
 
@@ -783,7 +783,7 @@ unittest
     Evaluates to:
         true if no duplicate types exist in Tuple
 
-    TODO: could be re-phrased in terms of tango.core.Tuple : Unique
+    TODO: could be re-phrased in terms of ocean.core.Tuple : Unique
 
 *******************************************************************************/
 
@@ -817,7 +817,7 @@ unittest
     Evaluates to:
         number of times Type appears in Tuple
 
-    TODO: could be re-phrased in terms of tango.core.Tuple : Unique
+    TODO: could be re-phrased in terms of ocean.core.Tuple : Unique
 
 *******************************************************************************/
 

@@ -9,9 +9,9 @@
  */
 module ocean.core.BitArray;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.core.BitManip;
+import ocean.core.BitManip;
 
 
 /**

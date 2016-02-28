@@ -26,7 +26,7 @@
 
         We encourage the use of "named import" with this module, such as:
         ---
-        import Path = tango.io.Path;
+        import Path = ocean.io.Path;
 
         if (Path.exists ("some/file/path"))
             ...
@@ -54,17 +54,17 @@
 
 module ocean.io.Path;
 
-import tango.transition;
+import ocean.transition;
 
-import  tango.sys.Common;
+import ocean.sys.Common;
 
-public  import  tango.time.Time : Time, TimeSpan;
+public  import ocean.time.Time : Time, TimeSpan;
 
-import  tango.io.model.IFile : FileConst, FileInfo;
+import ocean.io.model.IFile : FileConst, FileInfo;
 
-public  import  tango.core.Exception : IOException, IllegalArgumentException;
+public  import ocean.core.Exception_tango : IOException, IllegalArgumentException;
 
-import tango.stdc.string : memmove;
+import ocean.stdc.string : memmove;
 
 
 /*******************************************************************************
@@ -75,10 +75,10 @@ import tango.stdc.string : memmove;
 
 version (Posix)
         {
-        import tango.stdc.stdio;
-        import tango.stdc.string;
-        import tango.stdc.posix.utime;
-        import tango.stdc.posix.dirent;
+        import ocean.stdc.stdio;
+        import ocean.stdc.string;
+        import ocean.stdc.posix.utime;
+        import ocean.stdc.posix.dirent;
         }
 
 
@@ -436,7 +436,7 @@ package struct FS
 
                 static bool remove (cstring name)
                 {
-                        return tango.stdc.stdio.remove(name.ptr) != -1;
+                        return ocean.stdc.stdio.remove(name.ptr) != -1;
                 }
 
                 /***************************************************************
@@ -447,7 +447,7 @@ package struct FS
 
                 static void rename (cstring src, cstring dst)
                 {
-                        if (tango.stdc.stdio.rename (src.ptr, dst.ptr) is -1)
+                        if (ocean.stdc.stdio.rename (src.ptr, dst.ptr) is -1)
                             exception (src);
                 }
 
@@ -503,13 +503,13 @@ package struct FS
                         mstring          prefix;
                         mstring          sfnbuf;
 
-                        dir = tango.stdc.posix.dirent.opendir (folder.ptr);
+                        dir = ocean.stdc.posix.dirent.opendir (folder.ptr);
                         if (! dir)
                               return ret;
 
                         scope (exit)
                         {
-                            tango.stdc.posix.dirent.closedir (dir);
+                            ocean.stdc.posix.dirent.closedir (dir);
                             delete sfnbuf;
 
                             // only delete when we dupped it
@@ -537,7 +537,7 @@ package struct FS
                               if (pentry is null)
                                   break;
 
-                              auto len = tango.stdc.string.strlen (entry.d_name.ptr);
+                              auto len = ocean.stdc.string.strlen (entry.d_name.ptr);
                               auto str = entry.d_name.ptr [0 .. len];
                               ++len;  // include the null
 
@@ -1778,7 +1778,7 @@ unittest
 
 debug (Path)
 {
-        import tango.io.Stdout;
+        import ocean.io.Stdout_tango;
 
         void main()
         {

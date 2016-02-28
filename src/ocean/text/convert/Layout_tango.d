@@ -26,29 +26,29 @@
 
 module ocean.text.convert.Layout_tango;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.core.Exception;
-import tango.core.RuntimeTraits;
+import ocean.core.Exception_tango;
+import ocean.core.RuntimeTraits;
 
-import Utf = tango.text.convert.Utf;
+import Utf = ocean.text.convert.Utf;
 
-import Float = tango.text.convert.Float,
-       Integer = tango.text.convert.Integer;
+import Float = ocean.text.convert.Float,
+       Integer = ocean.text.convert.Integer_tango;
 
-import tango.io.model.IConduit : OutputStream;
+import ocean.io.model.IConduit : OutputStream;
 
 version(WithVariant)
-    import tango.core.Variant;
+    import ocean.core.Variant;
 
 version(WithExtensions)
 {
-    import tango.text.convert.Extensions;
+    import ocean.text.convert.Extensions;
 }
 else version (WithDateTime)
 {
-    import tango.time.Time;
-    import tango.text.convert.DateTime;
+    import ocean.time.Time;
+    import ocean.text.convert.DateTime_tango;
 }
 
 
@@ -60,7 +60,7 @@ else version (WithDateTime)
 
 version(DigitalMars)
 {
-    import tango.core.Vararg;
+    import ocean.core.Vararg;
     alias void* Arg;
     alias va_list ArgList;
 

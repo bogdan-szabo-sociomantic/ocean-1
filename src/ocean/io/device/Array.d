@@ -13,11 +13,11 @@
 
 module ocean.io.device.Array;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.core.Exception;
+import ocean.core.Exception_tango;
 
-import tango.io.device.Conduit;
+import ocean.io.device.Conduit;
 
 /******************************************************************************
 
@@ -703,7 +703,7 @@ class Array : Conduit, InputBuffer, OutputBuffer, Conduit.Seek
 
 debug (Array)
 {
-        import tango.io.Stdout;
+        import ocean.io.Stdout_tango;
 
         void main()
         {

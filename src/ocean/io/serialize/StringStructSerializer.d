@@ -58,17 +58,17 @@ module ocean.io.serialize.StringStructSerializer;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.core.Array;
 
 import ocean.io.serialize.StructSerializer;
 
-import tango.text.convert.Format;
+import ocean.text.convert.Format;
 
-import tango.text.convert.Layout;
+import ocean.text.convert.Layout_tango;
 
-import tango.core.Traits;
+import ocean.core.Traits;
 
 
 

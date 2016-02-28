@@ -15,7 +15,7 @@ module ocean.io.FileException;
 **************************************************************************/
 
 import ocean.sys.ErrnoException;
-import tango.stdc.errno;
+import ocean.stdc.errno;
 
 /**************************************************************************
 
@@ -26,7 +26,7 @@ import tango.stdc.errno;
 
 class FileException : ErrnoException
 {
-    import tango.stdc.stdio: FILE, ferror, feof, clearerr;
+    import ocean.stdc.stdio: FILE, ferror, feof, clearerr;
 
     /// Make ErrnoException's enforce available
     public alias ErrnoException.enforce enforce;
@@ -93,7 +93,7 @@ class FileException : ErrnoException
 
 version (UnitTest)
 {
-    import tango.stdc.posix.stdio;
+    import ocean.stdc.posix.stdio;
     import ocean.core.Test;
 }
 

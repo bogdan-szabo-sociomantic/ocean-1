@@ -12,7 +12,7 @@
 
 module ocean.net.http.HttpTriplet;
 
-import tango.transition;
+import ocean.transition;
 
 /******************************************************************************
 

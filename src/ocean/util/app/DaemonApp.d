@@ -43,7 +43,7 @@ import ocean.util.app.ext.model.IConfigExtExtension;
 import ocean.util.app.ext.model.ILogExtExtension;
 import ocean.util.app.ext.model.ISignalExtExtension;
 
-import tango.transition;
+import ocean.transition;
 
 /*******************************************************************************
 
@@ -70,7 +70,7 @@ public abstract class DaemonApp : Application,
     import ocean.util.app.ext.ReopenableFilesExt;
     import ocean.util.app.ExitException;
 
-    import tango.util.log.Log;
+    import ocean.util.log.Log;
 
     /***************************************************************************
 
@@ -569,7 +569,7 @@ unittest
 
     class MyApp : DaemonApp
     {
-        import tango.stdc.posix.signal: SIGINT, SIGTERM;
+        import ocean.stdc.posix.signal: SIGINT, SIGTERM;
 
         import ocean.io.select.EpollSelectDispatcher;
 

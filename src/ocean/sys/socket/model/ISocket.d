@@ -18,17 +18,17 @@ module ocean.sys.socket.model.ISocket;
 
  ******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import tango.stdc.posix.sys.socket;
+import ocean.stdc.posix.sys.socket;
 
-import tango.stdc.posix.netinet.in_: AF_INET, AF_INET6, IPPROTO_TCP;
+import ocean.stdc.posix.netinet.in_: AF_INET, AF_INET6, IPPROTO_TCP;
 
-import tango.stdc.posix.unistd: close;
+import ocean.stdc.posix.unistd: close;
 
-import tango.stdc.posix.sys.types: ssize_t;
+import ocean.stdc.posix.sys.types: ssize_t;
 
-import tango.io.device.Conduit: ISelectable;
+import ocean.io.device.Conduit: ISelectable;
 
 import ocean.io.device.IODevice: InputDevice, IOutputDevice;
 
@@ -1263,7 +1263,7 @@ public abstract class ISocket : InputDevice, IOutputDevice
     }
 }
 
-// TODO: Replace with import tango.stdc.posix.sys.socket: accept4
+// TODO: Replace with import ocean.stdc.posix.sys.socket: accept4
 
 extern (C) private int accept4(int sockfd, sockaddr* addr, socklen_t* addrlen,
                                SocketFlags flags = SocketFlags.None);

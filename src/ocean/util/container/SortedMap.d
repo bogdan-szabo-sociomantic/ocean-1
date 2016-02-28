@@ -16,15 +16,15 @@
 
 module ocean.util.container.SortedMap;
 
-public  import  tango.util.container.Container;
+public  import ocean.util.container.Container;
 
-import  tango.util.container.RedBlack;
+import ocean.util.container.RedBlack;
 
-import  tango.util.container.model.IContainer;
+import ocean.util.container.model.IContainer;
 
-import  tango.transition;
+import ocean.transition;
 
-import tango.core.Exception : NoSuchElementException;
+import ocean.core.Exception_tango : NoSuchElementException;
 
 /*******************************************************************************
 
@@ -1033,10 +1033,10 @@ class SortedMap (K, V, alias Reap = Container.reap,
 
 debug (SortedMap)
 {
-        import tango.io.Stdout;
-        import tango.core.Thread;
-        import tango.time.StopWatch;
-        import tango.math.random.Kiss;
+        import ocean.io.Stdout_tango;
+        import ocean.core.Thread;
+        import ocean.time.StopWatch;
+        import ocean.math.random.Kiss;
 
         void main()
         {

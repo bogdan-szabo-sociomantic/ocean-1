@@ -11,18 +11,18 @@
 
 module ocean.util.Convert;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.core.Exception;
-import tango.core.Traits;
-import tango.core.Tuple : Tuple;
+import ocean.core.Exception_tango;
+import ocean.core.Traits;
+import ocean.core.Tuple : Tuple;
 
-import tango.math.Math;
-import tango.text.convert.Utf;
-import tango.text.convert.Float;
-import tango.text.convert.Integer;
+import ocean.math.Math;
+import ocean.text.convert.Utf;
+import ocean.text.convert.Float;
+import ocean.text.convert.Integer_tango;
 
-import Ascii = tango.text.Ascii;
+import Ascii = ocean.text.Ascii;
 
 version( TangoDoc )
 {
@@ -491,13 +491,13 @@ template TN(T)
 template toString_(T)
 {
     static if( is( T == char[] ) )
-        alias tango.text.convert.Utf.toString toString_;
+        alias ocean.text.convert.Utf.toString toString_;
 
     else static if( is( T == wchar[] ) )
-        alias tango.text.convert.Utf.toString16 toString_;
+        alias ocean.text.convert.Utf.toString16 toString_;
 
     else
-        alias tango.text.convert.Utf.toString32 toString_;
+        alias ocean.text.convert.Utf.toString32 toString_;
 }
 
 template UtfNum(T)
@@ -519,7 +519,7 @@ dchar firstCharOf(T)(T s, out size_t used)
 {
     static if( is( T : char[] ) || is( T : wchar[] ) )
     {
-        return tango.text.convert.Utf.decode(s, used);
+        return ocean.text.convert.Utf.decode(s, used);
     }
     else
     {
@@ -738,7 +738,7 @@ D toIntegerFromInteger(D,S)(S value)
 
 D toIntegerFromReal(D,S)(S value)
 {
-    auto v = tango.math.Math.round(value);
+    auto v = ocean.math.Math.round(value);
     if( (cast(real) D.min) <= v && v <= (cast(real) D.max) )
     {
         return cast(D) v;
@@ -772,7 +772,7 @@ D toIntegerFromString(D,S)(S value)
                 s = s[1..$];
 
             uint len;
-            auto result = tango.text.convert.Integer.convert(s, 10, &len);
+            auto result = ocean.text.convert.Integer_tango.convert(s, 10, &len);
 
             if( len < s.length || len == 0 )
                 throwConvError;
@@ -782,7 +782,7 @@ D toIntegerFromString(D,S)(S value)
         else
         {
             uint len;
-            auto result = tango.text.convert.Integer.parse(value, 10, &len);
+            auto result = ocean.text.convert.Integer_tango.parse(value, 10, &len);
 
             if( len < value.length || len == 0 )
                 throwConvError;
@@ -847,7 +847,7 @@ D toReal(D,S)(S value)
         /+
         try
         {
-            return tango.text.convert.Float.toFloat(value);
+            return ocean.text.convert.Float.toFloat(value);
         }
         catch( IllegalArgumentException e )
         {
@@ -859,7 +859,7 @@ D toReal(D,S)(S value)
         mixin convError;
 
         uint len;
-        auto r = tango.text.convert.Float.parse(value, &len);
+        auto r = ocean.text.convert.Float.parse(value, &len);
         if( len < value.length || len == 0 )
             throwConvError;
 
@@ -981,15 +981,15 @@ D toStringFromString(D,S)(S value)
         return cast(D) toStringFromString!(Unqual!(DElem)[])(value.dup);
 
     else static if( is( DElem == char ) )
-        return tango.text.convert.Utf.toString(value);
+        return ocean.text.convert.Utf.toString(value);
 
     else static if( is( DElem == wchar ) )
-        return tango.text.convert.Utf.toString16(value);
+        return ocean.text.convert.Utf.toString16(value);
 
     else
     {
         static assert( is( DElem == dchar ) );
-        return tango.text.convert.Utf.toString32(value);
+        return ocean.text.convert.Utf.toString32(value);
     }
 }
 
@@ -1035,10 +1035,10 @@ D toString(D,S)(S value)
 
     else static if( isIntegerType!(S) )
         // TODO: Make sure this works with ulongs.
-        return cast(D) mixin("tango.text.convert.Integer.toString"~StringNum!(D)~"(value)");
+        return cast(D) mixin("ocean.text.convert.Integer_tango.toString"~StringNum!(D)~"(value)");
 
     else static if( isRealType!(S) )
-        return cast(D) mixin("tango.text.convert.Float.toString"~StringNum!(D)~"(value)");
+        return cast(D) mixin("ocean.text.convert.Float.toString"~StringNum!(D)~"(value)");
 
     else static if( isDynamicArrayType!(S) || isStaticArrayType!(S) )
         mixin unsupported!("array type");

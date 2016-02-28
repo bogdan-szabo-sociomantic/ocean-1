@@ -12,28 +12,28 @@
 
 module ocean.sys.Common;
 
-import tango.transition;
+import ocean.transition;
 
 version (linux)
         {
-        public import tango.sys.linux.linux;
-        alias tango.sys.linux.linux posix;
+        public import ocean.sys.linux.linux;
+        alias ocean.sys.linux.linux posix;
         }
 
 version (darwin)
         {
-        public import tango.sys.darwin.darwin;
-        alias tango.sys.darwin.darwin posix;
+        public import ocean.sys.darwin.darwin;
+        alias ocean.sys.darwin.darwin posix;
         }
 version (freebsd)
         {
-        public import tango.sys.freebsd.freebsd;
-        alias tango.sys.freebsd.freebsd posix;
+        public import ocean.sys.freebsd.freebsd;
+        alias ocean.sys.freebsd.freebsd posix;
         }
 version (solaris)
         {
-        public import tango.sys.solaris.solaris;
-        alias tango.sys.solaris.solaris posix;
+        public import ocean.sys.solaris.solaris;
+        alias ocean.sys.solaris.solaris posix;
         }
 
 /*******************************************************************************
@@ -44,8 +44,8 @@ version (solaris)
 
 version (Posix)
         {
-        import tango.stdc.errno;
-        import tango.stdc.string;
+        import ocean.stdc.errno;
+        import ocean.stdc.string;
         }
 else
    {

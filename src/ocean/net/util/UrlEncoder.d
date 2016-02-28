@@ -20,8 +20,8 @@ module ocean.net.util.UrlEncoder;
 
  **************************************************************************/
 
-import tango.transition;
-import tango.stdc.ctype: isgraph;
+import ocean.transition;
+import ocean.stdc.ctype: isgraph;
 
 
 /******************************************************************************

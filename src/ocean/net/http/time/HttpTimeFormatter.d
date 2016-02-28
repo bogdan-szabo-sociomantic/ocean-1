@@ -22,10 +22,10 @@ module ocean.net.http.time.HttpTimeFormatter;
 
  ******************************************************************************/
 
-import tango.transition;
-import tango.stdc.time:       time_t, tm, time;
-import tango.stdc.posix.time: gmtime_r, localtime_r;
-import tango.stdc.stdlib:     lldiv;
+import ocean.transition;
+import ocean.stdc.time:       time_t, tm, time;
+import ocean.stdc.posix.time: gmtime_r, localtime_r;
+import ocean.stdc.stdlib:     lldiv;
 
 /******************************************************************************/
 

@@ -22,7 +22,7 @@ module ocean.util.container.HashRangeMap;
 import ocean.core.Enforce;
 import ocean.math.Range;
 
-import tango.transition;
+import ocean.transition;
 
 version ( UnitTest )
 {
@@ -577,7 +577,7 @@ unittest
 {
     static struct S
     {
-        import tango.util.Convert;
+        import ocean.util.Convert;
 
         int x;
 
@@ -628,7 +628,7 @@ unittest
 version ( UnitTest )
 {
     import ocean.core.Traits;
-    import tango.core.Traits;
+    import ocean.core.Traits;
 
     private template hasAtomicEquality ( T )
     {

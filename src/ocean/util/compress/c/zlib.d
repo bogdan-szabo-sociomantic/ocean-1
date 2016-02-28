@@ -30,7 +30,7 @@
 
 module ocean.util.compress.c.zlib;
 
-import tango.transition;
+import ocean.transition;
 
 extern (C):
 
@@ -73,11 +73,11 @@ const uint  ZLIB_VERNUM  = 0x1230;
 
 private
 {
-    import tango.stdc.config : c_long, c_ulong;
+    import ocean.stdc.config : c_long, c_ulong;
 
     version( Posix )
     {
-        import tango.stdc.posix.sys.types : z_off_t = off_t;
+        import ocean.stdc.posix.sys.types : z_off_t = off_t;
     }
     else
     {

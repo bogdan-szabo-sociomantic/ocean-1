@@ -12,16 +12,16 @@
 
 module ocean.io.stream.Snoop;
 
-import tango.transition;
+import ocean.transition;
 
-import  tango.io.Console,
-                tango.io.device.Conduit;
+import ocean.io.Console,
+                ocean.io.device.Conduit;
 
-import  tango.text.convert.Format;
+import ocean.text.convert.Format;
 
 version(DigitalMars)
 {
-    import tango.core.Vararg;
+    import ocean.core.Vararg;
 }
 
 private alias void delegate(char[]) Snoop;

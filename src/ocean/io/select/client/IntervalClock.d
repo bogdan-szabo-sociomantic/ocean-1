@@ -52,7 +52,7 @@
           int tm_isdst;         // DST.     [-1/0/1]
         };
 
-        struct DateTime (see tango.time.DateTime)
+        struct DateTime (see ocean.time.DateTime)
 
  ******************************************************************************/
 
@@ -71,13 +71,13 @@ import ocean.time.model.IMicrosecondsClock,
 
 import ocean.core.TypeConvert;
 
-import tango.stdc.stdlib: div;
+import ocean.stdc.stdlib: div;
 
-import tango.stdc.posix.sys.time: timeval, timespec, gettimeofday;
-import tango.stdc.posix.time:     gmtime_r, localtime_r;
-import tango.stdc.time:           gmtime, tm, time_t;
+import ocean.stdc.posix.sys.time: timeval, timespec, gettimeofday;
+import ocean.stdc.posix.time:     gmtime_r, localtime_r;
+import ocean.stdc.time:           gmtime, tm, time_t;
 
-import tango.time.Time;
+import ocean.time.Time;
 
 deprecated("Use core.stdc.time instead")
 public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock

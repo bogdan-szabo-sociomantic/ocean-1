@@ -95,15 +95,15 @@ module ocean.io.serialize.StructSerializer;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.io.serialize.SimpleSerializer;
 
 import ocean.core.Exception;
 
-import tango.io.model.IConduit: IOStream, InputStream, OutputStream;
+import ocean.io.model.IConduit: IOStream, InputStream, OutputStream;
 
-import tango.core.Traits;
+import ocean.core.Traits;
 import ocean.core.Traits;
 
 
@@ -156,7 +156,7 @@ class SerializerException : Exception
 struct StructSerializer ( bool AllowUnions = false )
 {
     import ocean.core.Traits : ContainsDynamicArray, FieldName, FieldType, GetField;
-    import tango.core.Traits : isAssocArrayType;
+    import ocean.core.Traits : isAssocArrayType;
 
     static:
 
@@ -1434,7 +1434,7 @@ version ( UnitTest )
 
     struct TestSerializer
     {
-        import tango.text.convert.Format;
+        import ocean.text.convert.Format;
 
         void open ( ref char[] dst, cstring name )
         {
@@ -1535,11 +1535,11 @@ version (UnitTest)
 
     ***************************************************************************/
 
-    import tango.core.Traits;
-    import tango.stdc.time;
-    import tango.util.Convert : to;
-    import tango.time.StopWatch;
-    import tango.core.Memory;
+    import ocean.core.Traits;
+    import ocean.stdc.time;
+    import ocean.util.Convert : to;
+    import ocean.time.StopWatch;
+    import ocean.core.Memory;
     debug ( OceanPerformanceTest ) import ocean.io.Stdout : Stderr;
 
     /***************************************************************************

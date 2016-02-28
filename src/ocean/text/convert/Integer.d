@@ -11,7 +11,7 @@
 
     A set of functions for converting strings to integer values.
 
-    This module is adapted from tango.text.convert.Integer. The functions have
+    This module is adapted from ocean.text.convert.Integer_tango. The functions have
     been modified so that they do not throw exceptions, instead denoting errors
     via their bool return value. This is more efficient and avoids the tango
     style of always throwing new Exceptions upon error.
@@ -20,9 +20,9 @@
 
 module ocean.text.convert.Integer;
  
-import tango.transition;
+import ocean.transition;
 
-import tango.core.Traits;
+import ocean.core.Traits;
 
 
 /*******************************************************************************

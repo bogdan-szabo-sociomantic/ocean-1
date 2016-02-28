@@ -52,13 +52,13 @@ module ocean.io.serialize.SimpleSerializer;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.core.Enforce: enforce;
 
-import tango.core.Traits;
+import ocean.core.Traits;
 
-import tango.io.model.IConduit: IOStream, InputStream, OutputStream;
+import ocean.io.model.IConduit: IOStream, InputStream, OutputStream;
 
 
 public alias SimpleSerializerT!(true) SimpleSerializerArrays;

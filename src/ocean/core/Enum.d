@@ -131,7 +131,7 @@ module ocean.core.Enum;
 
 ***************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 
 /*******************************************************************************
@@ -369,7 +369,7 @@ public template SuperClassIndex ( size_t i, T ... )
 
 public template EnumBase ( T ... )
 {
-    import tango.transition;
+    import ocean.transition;
 
     alias IEnum.Name Name;
     alias IEnum.Value Value;

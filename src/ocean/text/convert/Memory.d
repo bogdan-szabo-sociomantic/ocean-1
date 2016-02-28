@@ -17,7 +17,7 @@ module ocean.text.convert.Memory;
 
 *******************************************************************************/
 
-import tango.text.convert.Format;
+import ocean.text.convert.Format;
 
 
 

@@ -45,7 +45,7 @@ import ocean.util.container.map.model.Bucket,
 
 import ocean.core.Array: clear, isClearable;
 
-import tango.core.BitManip: bsr;
+import ocean.core.BitManip: bsr;
 
 import ocean.util.container.map.model.BucketElementGCAllocator;
 

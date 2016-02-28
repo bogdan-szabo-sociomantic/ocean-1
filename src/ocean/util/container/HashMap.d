@@ -16,13 +16,13 @@
 
 module ocean.util.container.HashMap;
 
-import tango.util.container.Slink;
+import ocean.util.container.Slink;
 
-public  import tango.util.container.Container;
+public  import ocean.util.container.Container;
 
-import tango.util.container.model.IContainer;
+import ocean.util.container.model.IContainer;
 
-import tango.core.Exception : NoSuchElementException;
+import ocean.core.Exception_tango : NoSuchElementException;
 
 /*******************************************************************************
 
@@ -1128,9 +1128,9 @@ class HashMap (K, V, alias Hash = Container.hash,
 
 debug (HashMap)
 {
-        import tango.io.Stdout;
-        import tango.core.Memory;
-        import tango.time.StopWatch;
+        import ocean.io.Stdout_tango;
+        import ocean.core.Memory;
+        import ocean.time.StopWatch;
 
         void main()
         {

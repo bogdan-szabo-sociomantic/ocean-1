@@ -12,17 +12,17 @@
 
 module ocean.io.stream.Format;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.io.device.Conduit;
+import ocean.io.device.Conduit;
 
-import tango.text.convert.Layout;
+import ocean.text.convert.Layout_tango;
 
 version(DigitalMars)
 {
     version(X86_64) version=DigitalMarsX64;
 
-    import tango.core.Vararg;
+    import ocean.core.Vararg;
 }
 
 /*******************************************************************************
@@ -78,11 +78,11 @@ version(DigitalMars)
         ---
 
         The format() method supports the range of formatting options
-        exposed by tango.text.convert.Layout and extensions thereof;
+        exposed by ocean.text.convert.Layout and extensions thereof;
         including the full I18N extensions where configured in that
         manner. To create a French instance of FormatOutput:
         ---
-        import tango.text.locale.Locale;
+        import ocean.text.locale.Locale;
 
         auto locale = new Locale (Culture.getCulture ("fr-FR"));
         auto print = new FormatOutput!(char) (locale, ...);
@@ -337,7 +337,7 @@ class FormatOutput(T) : OutputFilter
 
 debug (Format)
 {
-        import tango.io.device.Array;
+        import ocean.io.device.Array;
 
         void main()
         {

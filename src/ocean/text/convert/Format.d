@@ -13,7 +13,7 @@
 
 module ocean.text.convert.Format;
 
-import tango.text.convert.Layout;
+import ocean.text.convert.Layout_tango;
 
 /******************************************************************************
 

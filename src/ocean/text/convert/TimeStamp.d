@@ -21,7 +21,7 @@
     recommended, in order to limit namespace pollution:
 
     ---
-        import TimeStamp = tango.text.convert.TimeStamp;
+        import TimeStamp = ocean.text.convert.TimeStamp;
 
         auto t = TimeStamp.parse ("Sun, 06 Nov 1994 08:49:37 GMT");
     ---
@@ -30,17 +30,17 @@
 
 module ocean.text.convert.TimeStamp;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.time.Time;
+import ocean.time.Time;
 
-import tango.core.Exception;
+import ocean.core.Exception_tango;
 
-import Util = tango.text.Util;
+import Util = ocean.text.Util;
 
-import tango.time.chrono.Gregorian;
+import ocean.time.chrono.Gregorian;
 
-import Integer = tango.text.convert.Integer;
+import Integer = ocean.text.convert.Integer_tango;
 
 /******************************************************************************
 

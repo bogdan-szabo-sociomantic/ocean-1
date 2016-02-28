@@ -9,20 +9,20 @@
 module ocean.core.sync.Condition;
 
 
-public import tango.core.Exception : SyncException;
-public import tango.core.sync.Mutex;
+public import ocean.core.Exception_tango : SyncException;
+public import ocean.core.sync.Mutex;
 
 version( Win32 )
 {
-    import tango.core.sync.Semaphore;
-    import tango.sys.win32.UserGdi;
+    import ocean.core.sync.Semaphore;
+    import ocean.sys.win32.UserGdi;
 }
 else version( Posix )
 {
-    import tango.core.sync.Config;
-    import tango.stdc.errno;
-    import tango.stdc.posix.pthread;
-    import tango.stdc.posix.time;
+    import ocean.core.sync.Config;
+    import ocean.stdc.errno;
+    import ocean.stdc.posix.pthread;
+    import ocean.stdc.posix.time;
 }
 
 
@@ -395,9 +395,9 @@ private:
 
 version (UnitTest)
 {
-    import tango.core.Thread;
-    import tango.core.sync.Mutex;
-    import tango.core.sync.Semaphore;
+    import ocean.core.Thread;
+    import ocean.core.sync.Mutex;
+    import ocean.core.sync.Semaphore;
 
 
     void testNotify()

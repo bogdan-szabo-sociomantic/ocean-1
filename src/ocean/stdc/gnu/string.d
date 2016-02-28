@@ -9,7 +9,7 @@ module ocean.stdc.gnu.string;
 version (GLIBC):
 
 
-import tango.stdc.stddef: wchar_t;
+import ocean.stdc.stddef: wchar_t;
 
 
 extern (C):

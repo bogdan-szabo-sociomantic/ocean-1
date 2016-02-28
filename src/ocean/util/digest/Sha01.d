@@ -14,11 +14,11 @@
 
 module ocean.util.digest.Sha01;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.core.ByteSwap;
+import ocean.core.ByteSwap;
 
-import tango.util.digest.MerkleDamgard;
+import ocean.util.digest.MerkleDamgard;
 
 /*******************************************************************************
 

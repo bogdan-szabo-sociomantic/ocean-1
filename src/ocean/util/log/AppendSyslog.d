@@ -12,25 +12,25 @@
 
 module ocean.util.log.AppendSyslog;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.time.Time;
+import ocean.time.Time;
 
-import Path = tango.io.Path, tango.io.device.File, tango.io.FilePath;
+import Path = ocean.io.Path, ocean.io.device.File, ocean.io.FilePath;
 
-import tango.io.model.IFile;
+import ocean.io.model.IFile;
 
-import tango.util.log.Log, tango.util.log.AppendFile;
+import ocean.util.log.Log, ocean.util.log.AppendFile;
 
-import Integer = tango.text.convert.Integer;
+import Integer = ocean.text.convert.Integer_tango;
 
-import tango.text.convert.Format;
+import ocean.text.convert.Format;
 
-import tango.math.Math : max;
+import ocean.math.Math : max;
 
-import tango.sys.Process;
+import ocean.sys.Process;
 
-import tango.io.Stdout;
+import ocean.io.Stdout_tango;
 
 /*******************************************************************************
 

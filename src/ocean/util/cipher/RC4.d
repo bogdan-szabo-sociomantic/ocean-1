@@ -6,9 +6,9 @@
 
 module ocean.util.cipher.RC4;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.util.cipher.Cipher;
+import ocean.util.cipher.Cipher;
 
 /** Implementation of RC4 designed by Ron Rivest of RSA Security. */
 class RC4 : StreamCipher

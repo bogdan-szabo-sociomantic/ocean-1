@@ -15,13 +15,13 @@
 
 module ocean.util.digest.Tiger;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.core.ByteSwap;
+import ocean.core.ByteSwap;
 
-import tango.util.digest.MerkleDamgard;
+import ocean.util.digest.MerkleDamgard;
 
-public  import tango.util.digest.Digest;
+public  import ocean.util.digest.Digest;
 
 /*******************************************************************************
 

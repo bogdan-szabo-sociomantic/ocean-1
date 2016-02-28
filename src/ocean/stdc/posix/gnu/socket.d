@@ -6,7 +6,7 @@
 
 module ocean.stdc.posix.gnu.socket;
 
-import tango.stdc.posix.sys.socket;
+import ocean.stdc.posix.sys.socket;
 
 version (GLIBC):
 

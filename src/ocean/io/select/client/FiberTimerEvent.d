@@ -23,8 +23,8 @@ import ocean.sys.TimerFD;
 
 import ocean.io.select.client.model.IFiberSelectClient;
 
-import tango.transition;
-import tango.stdc.math: modf;
+import ocean.transition;
+import ocean.stdc.math: modf;
 
 
 
@@ -214,7 +214,7 @@ public class FiberTimerEvent : IFiberSelectClient
     {
         private mstring time_buffer;
         import ocean.core.Array : copy;
-        import tango.text.convert.Format;
+        import ocean.text.convert.Format;
 
         public override cstring id ( )
         {

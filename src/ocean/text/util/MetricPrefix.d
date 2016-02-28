@@ -21,7 +21,7 @@ module ocean.text.util.MetricPrefix;
 
 *******************************************************************************/
 
-import tango.stdc.math;
+import ocean.stdc.math;
 
 
 

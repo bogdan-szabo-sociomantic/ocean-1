@@ -22,7 +22,7 @@
     ---
 
         import ocean.io.Stdout;
-        import tango.io.device.File;
+        import ocean.io.device.File;
 
         scope file = new File("example.csv", File.ReadExisting);
         scope csv = new HeadingsCSV;
@@ -57,16 +57,16 @@ module ocean.text.csv.HeadingsCSV;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.text.csv.CSV;
 
 import ocean.util.container.AppendBuffer;
 import ocean.util.container.ConcatBuffer : SliceBuffer;
 
-import tango.core.Array : contains, find;
+import ocean.core.Array_tango : contains, find;
 
-import tango.io.model.IConduit;
+import ocean.io.model.IConduit;
 
 
 
@@ -310,7 +310,7 @@ public class HeadingsCSV
 
 version ( UnitTest )
 {
-    import tango.io.device.Array;
+    import ocean.io.device.Array;
 }
 
 unittest

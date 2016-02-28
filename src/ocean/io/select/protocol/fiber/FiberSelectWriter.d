@@ -22,7 +22,7 @@
 
 module ocean.io.select.protocol.fiber.FiberSelectWriter;
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
 
@@ -30,15 +30,15 @@ import ocean.io.select.client.model.ISelectClient;
 
 import ocean.io.device.IODevice: IOutputDevice;
 
-import tango.stdc.errno: errno, EAGAIN, EWOULDBLOCK, EINTR;
+import ocean.stdc.errno: errno, EAGAIN, EWOULDBLOCK, EINTR;
 
-import tango.stdc.posix.sys.socket: setsockopt;
+import ocean.stdc.posix.sys.socket: setsockopt;
 
-import tango.stdc.posix.netinet.in_: IPPROTO_TCP;
+import ocean.stdc.posix.netinet.in_: IPPROTO_TCP;
 
-import tango.sys.linux.tcp: TCP_CORK;
+import ocean.sys.linux.tcp: TCP_CORK;
 
-debug (Raw) import tango.io.Stdout: Stderr;
+debug (Raw) import ocean.io.Stdout_tango: Stderr;
 
 
 

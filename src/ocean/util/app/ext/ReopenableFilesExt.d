@@ -19,7 +19,7 @@ module ocean.util.app.ext.ReopenableFilesExt;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.util.app.model.IApplication;
 import ocean.util.app.model.IApplicationExtension;
@@ -28,9 +28,9 @@ import ocean.util.app.ext.SignalExt;
 
 import ocean.util.app.ext.model.ISignalExtExtension;
 
-import tango.stdc.posix.signal : SIGHUP;
+import ocean.stdc.posix.signal : SIGHUP;
 
-import tango.io.device.File;
+import ocean.io.device.File;
 
 
 

@@ -641,13 +641,13 @@ version (UnitTest):
 
 import ocean.io.Stdout : Stderr;
 
-import tango.time.StopWatch;
+import ocean.time.StopWatch;
 
 import ocean.text.util.MetricPrefix;
 
-debug (GcDisabled) import tango.core.Memory;
+debug (GcDisabled) import ocean.core.Memory;
 
-import tango.stdc.signal: signal, SIGINT;
+import ocean.stdc.signal: signal, SIGINT;
 
 /******************************************************************************
 

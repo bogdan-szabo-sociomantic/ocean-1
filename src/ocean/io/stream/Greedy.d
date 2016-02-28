@@ -12,9 +12,9 @@
 
 module ocean.io.stream.Greedy;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.io.device.Conduit;
+import ocean.io.device.Conduit;
 
 
 /*******************************************************************************

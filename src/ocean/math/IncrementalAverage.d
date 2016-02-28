@@ -25,7 +25,7 @@ module ocean.math.IncrementalAverage;
 
 public struct IncrementalAverage
 {
-    import tango.math.Math : sqrt;
+    import ocean.math.Math : sqrt;
 
     /***************************************************************************
 
@@ -196,7 +196,7 @@ version (UnitTest)
 {
     import ocean.core.Test : NamedTest;
 
-    import tango.math.IEEE;
+    import ocean.math.IEEE;
 
     // Bit count to avoid deliberate loss of precision.
     // Ensures only 8 bits of precision could be lost.

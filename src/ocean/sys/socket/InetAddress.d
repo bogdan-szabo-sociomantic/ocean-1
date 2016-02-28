@@ -44,20 +44,20 @@ module ocean.sys.socket.InetAddress;
 
  ******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import tango.stdc.posix.sys.socket: sockaddr;
+import ocean.stdc.posix.sys.socket: sockaddr;
 
-import tango.stdc.posix.netinet.in_:
+import ocean.stdc.posix.netinet.in_:
            sockaddr_in,  AF_INET,  INET_ADDRSTRLEN,  INADDR_ANY,
            sockaddr_in6, AF_INET6, INET6_ADDRSTRLEN;
 
 
-import tango.stdc.posix.arpa.inet: inet_ntop, inet_pton, ntohs, htons, htonl;
+import ocean.stdc.posix.arpa.inet: inet_ntop, inet_pton, ntohs, htons, htonl;
 
-import tango.stdc.string: strlen;
+import ocean.stdc.string: strlen;
 
-import tango.stdc.errno: errno, EAFNOSUPPORT;
+import ocean.stdc.errno: errno, EAFNOSUPPORT;
 
 import ocean.core.TypeConvert;
 

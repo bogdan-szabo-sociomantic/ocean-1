@@ -12,11 +12,11 @@
 
 module ocean.io.stream.Patterns;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.text.Regex;
+import ocean.text.Regex;
 
-import tango.io.stream.Iterator;
+import ocean.io.stream.Iterator;
 
 /*******************************************************************************
 
@@ -105,7 +105,7 @@ class Patterns : Iterator!(char)
 
 version (UnitTest)
 {
-    import tango.io.device.Array;
+    import ocean.io.device.Array;
 }
 
 unittest

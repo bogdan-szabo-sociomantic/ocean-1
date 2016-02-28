@@ -6,24 +6,24 @@
 
 module ocean.io.selector.SelectSelector;
 
-public import tango.io.model.IConduit;
-public import tango.io.selector.model.ISelector;
+public import ocean.io.model.IConduit;
+public import ocean.io.selector.model.ISelector;
 
-import tango.io.selector.AbstractSelector;
-import tango.io.selector.SelectorException;
-import tango.sys.Common;
+import ocean.io.selector.AbstractSelector;
+import ocean.io.selector.SelectorException;
+import ocean.sys.Common;
 
-import tango.stdc.errno;
+import ocean.stdc.errno;
 
 debug (selector)
 {
-    import tango.io.Stdout;
-    import tango.text.convert.Integer;
+    import ocean.io.Stdout_tango;
+    import ocean.text.convert.Integer_tango;
 }
 
 version (Posix)
 {
-    import tango.core.BitArray;
+    import ocean.core.BitArray;
 }
 
 
@@ -34,7 +34,7 @@ version (Posix)
  *
  * Examples:
  * ---
- * import tango.io.selector.SelectSelector;
+ * import ocean.io.selector.SelectSelector;
  *
  * Socket socket;
  * ISelector selector = new SelectSelector();
@@ -568,7 +568,7 @@ private class SelectSelectionSet: ISelectionSet
 
 version (Posix)
 {
-    import tango.core.BitManip;
+    import ocean.core.BitManip;
 
     /**
      * Helper class used by the select()-based Selector to store handles.

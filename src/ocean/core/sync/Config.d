@@ -9,13 +9,13 @@
 module ocean.core.sync.Config;
 
 
-public import tango.core.Exception : SyncException;
+public import ocean.core.Exception_tango : SyncException;
 
 
 version( Posix )
 {
-    import tango.stdc.posix.time;
-    import tango.stdc.posix.sys.time;
+    import ocean.stdc.posix.time;
+    import ocean.stdc.posix.sys.time;
 
 
     void getTimespec( ref timespec t )

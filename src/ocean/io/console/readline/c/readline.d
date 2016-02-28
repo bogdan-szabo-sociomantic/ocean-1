@@ -26,7 +26,7 @@ module ocean.io.console.readline.c.readline;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 
 public extern (C)

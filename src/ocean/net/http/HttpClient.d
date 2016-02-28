@@ -18,28 +18,28 @@
 
 module ocean.net.http.HttpClient;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.time.Time;
+import ocean.time.Time;
 
-import tango.net.Uri,
-       tango.net.device.Socket,
-       tango.net.InternetAddress;
+import ocean.net.Uri,
+       ocean.net.device.Socket,
+       ocean.net.InternetAddress;
 
-import tango.io.device.Array;
+import ocean.io.device.Array;
 
-import tango.io.stream.Lines;
-import tango.io.stream.Buffered;
+import ocean.io.stream.Lines;
+import ocean.io.stream.Buffered;
 
-import tango.net.http.HttpConst,
-       tango.net.http.HttpParams,
-       tango.net.http.HttpHeaders,
-       tango.net.http.HttpTriplet,
-       tango.net.http.HttpCookies;
+import ocean.net.http.HttpConst,
+       ocean.net.http.HttpParams,
+       ocean.net.http.HttpHeaders,
+       ocean.net.http.HttpTriplet,
+       ocean.net.http.HttpCookies;
 
-import tango.core.Exception : IOException;
+import ocean.core.Exception_tango : IOException;
 
-import Integer = tango.text.convert.Integer;
+import Integer = ocean.text.convert.Integer_tango;
 
 /*******************************************************************************
 
@@ -785,7 +785,7 @@ private class ResponseLine : HttpTriplet
 
 debug (HttpClient)
 {
-        import tango.io.Stdout;
+        import ocean.io.Stdout_tango;
 
         void main()
         {

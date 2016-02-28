@@ -15,7 +15,7 @@
 
 module ocean.math.internal.BignumNoAsm;
 
-import tango.transition;
+import ocean.transition;
 
 public:
 alias uint BigDigit; // A Bignum is an array of BigDigits.

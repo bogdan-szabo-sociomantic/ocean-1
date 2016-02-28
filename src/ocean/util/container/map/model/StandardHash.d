@@ -13,7 +13,7 @@
 
 module ocean.util.container.map.model.StandardHash;
 
-import tango.transition;
+import ocean.transition;
 
 struct StandardHash
 {

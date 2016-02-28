@@ -9,18 +9,18 @@
 module ocean.core.sync.Barrier;
 
 
-public import tango.core.Exception : SyncException;
-import tango.core.sync.Condition;
-import tango.core.sync.Mutex;
+public import ocean.core.Exception_tango : SyncException;
+import ocean.core.sync.Condition;
+import ocean.core.sync.Mutex;
 
 version( Win32 )
 {
-    import tango.sys.win32.UserGdi;
+    import ocean.sys.win32.UserGdi;
 }
 else version( Posix )
 {
-    import tango.stdc.errno;
-    import tango.stdc.posix.pthread;
+    import ocean.stdc.errno;
+    import ocean.stdc.posix.pthread;
 }
 
 
@@ -112,7 +112,7 @@ private:
 
 version (UnitTest)
 {
-    import tango.core.Thread;
+    import ocean.core.Thread;
 }
 
 unittest

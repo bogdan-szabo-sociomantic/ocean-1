@@ -10,8 +10,8 @@
 
     Standard, global formatters for console output. If you don't need
     formatted output or unicode translation, consider using the module
-    tango.io.Console directly. If you need to format, but not output
-    to console, consider tango.text.convert.Format instead.
+    ocean.io.Console directly. If you need to format, but not output
+    to console, consider ocean.text.convert.Format instead.
 
     Stdout &amp; Stderr expose this style of usage:
     ---
@@ -56,12 +56,12 @@
     ---
 
     The format() method of both Stderr and Stdout support the range
-    of formatting options provided by tango.text.convert.Layout and
+    of formatting options provided by ocean.text.convert.Layout and
     extensions thereof; including the full I18N extensions where it
     has been configured in that manner. To enable a French Stdout,
     do the following:
     ---
-    import tango.text.locale.Locale;
+    import ocean.text.locale.Locale;
 
     Stdout.layout = new Locale (Culture.getCulture ("fr-FR"));
     ---
@@ -87,18 +87,18 @@
     ---
 
     Note that Stdout is *not* intended to be thread-safe. Use either
-    tango.util.log.Trace or the standard logging facilities in order
+    ocean.util.log.Trace or the standard logging facilities in order
     to enable atomic console I/O.
 
 *******************************************************************************/
 
 module ocean.io.Stdout_tango;
 
-import tango.io.Console;
+import ocean.io.Console;
 
-import tango.io.stream.Format;
+import ocean.io.stream.Format;
 
-import tango.text.convert.Layout;
+import ocean.text.convert.Layout_tango;
 
 /*******************************************************************************
 

@@ -26,22 +26,22 @@ module ocean.util.log.InsertConsole;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.io.Terminal;
 
-import tango.io.Console;
+import ocean.io.Console;
 
-import Integer = tango.text.convert.Integer;
+import Integer = ocean.text.convert.Integer_tango;
 
-import tango.io.model.IConduit;
+import ocean.io.model.IConduit;
 
-import tango.util.log.Log;
+import ocean.util.log.Log;
 
-import tango.stdc.posix.signal;
+import ocean.stdc.posix.signal;
 
 
-debug import tango.core.Thread;
+debug import ocean.core.Thread;
 
 
 /*******************************************************************************
@@ -49,7 +49,7 @@ debug import tango.core.Thread;
     An appender for the tango logger which writes the output _above_ the
     current cursor position, breaking the line automatically
 
-    This was copied from tango.util.log.AppendConsole and modified
+    This was copied from ocean.util.log.AppendConsole and modified
 
 *******************************************************************************/
 

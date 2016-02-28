@@ -10,13 +10,13 @@
 
 module ocean.net.util.PKI;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.time.Time;
+import ocean.time.Time;
 
-import tango.stdc.stringz;
+import ocean.stdc.stringz;
 
-import tango.net.util.c.OpenSSL;
+import ocean.net.util.c.OpenSSL;
 
 /*******************************************************************************
 
@@ -1190,7 +1190,7 @@ class Certificate
 version (Test)
 {
     import util.Test;
-    import tango.io.Stdout;
+    import ocean.io.Stdout_tango;
 
     auto t1 = TimeSpan.zero;
     auto t2 = TimeSpan.fromDays(365); // can't set this up in delegate ..??

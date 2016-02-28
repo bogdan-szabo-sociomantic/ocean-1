@@ -15,13 +15,13 @@
 
 module ocean.io.stream.Endian;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.core.ByteSwap;
+import ocean.core.ByteSwap;
 
-import tango.io.device.Conduit;
+import ocean.io.device.Conduit;
 
-import tango.io.stream.Buffered;
+import ocean.io.stream.Buffered;
 
 /*******************************************************************************
 
@@ -145,7 +145,7 @@ class EndianOutput (T) : OutputFilter, OutputFilter.Mutator
 
 version (UnitTest)
 {
-    import tango.io.device.Array;
+    import ocean.io.device.Array;
 }
 
 unittest

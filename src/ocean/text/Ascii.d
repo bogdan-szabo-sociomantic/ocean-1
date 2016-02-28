@@ -15,11 +15,11 @@
 
 module ocean.text.Ascii;
 
-import tango.transition;
+import ocean.transition;
 
 version (Posix)
 {
-    import tango.stdc.string: strncasecmp, memcmp;
+    import ocean.stdc.string: strncasecmp, memcmp;
     private alias strncasecmp memicmp;
 }
 

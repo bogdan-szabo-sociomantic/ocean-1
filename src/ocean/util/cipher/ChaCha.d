@@ -6,10 +6,10 @@
 
 module ocean.util.cipher.ChaCha;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.util.cipher.Cipher;
-import tango.util.cipher.Salsa20;
+import ocean.util.cipher.Cipher;
+import ocean.util.cipher.Salsa20;
 
 /** Implementation of ChaCha designed by Daniel J. Bernstein. */
 class ChaCha : Salsa20

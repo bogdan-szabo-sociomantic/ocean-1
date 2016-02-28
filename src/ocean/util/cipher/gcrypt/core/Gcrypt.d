@@ -27,7 +27,7 @@ module ocean.util.cipher.gcrypt.core.Gcrypt;
 *******************************************************************************/
 
 import ocean.util.cipher.gcrypt.c.gcrypt;
-import tango.transition;
+import ocean.transition;
 
 
 /*******************************************************************************
@@ -57,7 +57,7 @@ public class GcryptException : Exception
 {
     import ocean.core.Exception;
     import ocean.util.cipher.gcrypt.c.gcrypt;
-    import tango.stdc.stringz;
+    import ocean.stdc.stringz;
 
     /***************************************************************************
 
@@ -370,7 +370,7 @@ public class Gcrypt ( Algorithm algorithm, Mode mode )
 
     version ( UnitTest )
     {
-        import tango.core.Test;
+        import ocean.core.Test;
 
         /***********************************************************************
 

@@ -12,13 +12,13 @@
 
 module ocean.text.json.JsonEscape;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.text.json.JsonParser;
+import ocean.text.json.JsonParser;
 
-import Util = tango.text.Util;
+import Util = ocean.text.Util;
 
-import Utf = tango.text.convert.Utf;
+import Utf = ocean.text.convert.Utf;
 
 /******************************************************************************
 
@@ -269,7 +269,7 @@ void escape(T, TC) (T[] src, void delegate(TC[]) emit)
 
 debug (JsonEscape)
 {
-        import tango.io.Stdout;
+        import ocean.io.Stdout_tango;
 
         void main()
         {

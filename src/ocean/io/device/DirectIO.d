@@ -62,15 +62,15 @@ module ocean.io.device.DirectIO;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import tango.io.model.IConduit;
+import ocean.io.model.IConduit;
 
-import tango.io.device.File;
+import ocean.io.device.File;
 
-import tango.core.Exception: IOException;
+import ocean.core.Exception_tango: IOException;
 
-import tango.stdc.posix.fcntl : O_DIRECT; // Linux only
+import ocean.stdc.posix.fcntl : O_DIRECT; // Linux only
 
 
 

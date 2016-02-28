@@ -29,7 +29,7 @@ module ocean.text.entities.model.IEntitySet;
 
 import ocean.text.utf.UtfString : InvalidUnicode, utf_match;
 
-import tango.transition;
+import ocean.transition;
 
 /*******************************************************************************
 

@@ -12,9 +12,9 @@
 
 module ocean.net.http.HttpStack;
 
-import  tango.core.Exception;
+import ocean.core.Exception_tango;
 
-import tango.transition;
+import ocean.transition;
 
 /******************************************************************************
 
@@ -23,11 +23,11 @@ import tango.transition;
 
 ******************************************************************************/
 
-version (Posix) import tango.stdc.string: strncasecmp;
+version (Posix) import ocean.stdc.string: strncasecmp;
 
-import tango.stdc.string: memmove;
-import tango.stdc.stdio;
-import tango.stdc.stdlib;
+import ocean.stdc.string: memmove;
+import ocean.stdc.stdio;
+import ocean.stdc.stdlib;
 
 /******************************************************************************
 

@@ -12,17 +12,17 @@
 
 module ocean.text.locale.Convert;
 
-import tango.transition;
+import ocean.transition;
 
-import  tango.time.WallClock;
+import ocean.time.WallClock;
 
-import  tango.core.Exception;
+import ocean.core.Exception_tango;
 
-import  tango.text.locale.Core;
+import ocean.text.locale.Core;
 
-import  tango.time.chrono.Calendar;
+import ocean.time.chrono.Calendar;
 
-import  Integer = tango.text.convert.Integer;
+import  Integer = ocean.text.convert.Integer_tango;
 
 /******************************************************************************
 
@@ -96,7 +96,7 @@ private struct Result
    * Remarks: See $(LINK2 datetimeformat.html, Time Formatting) for more information about date and time formatting.
    * Examples:
    * ---
-   * import tango.io.Print, tango.text.locale.Core, tango.time.WallClock;
+   * import ocean.io.Print, ocean.text.locale.Core, ocean.time.WallClock;
    *
    * void main() {
    *   Culture culture = Culture.current;

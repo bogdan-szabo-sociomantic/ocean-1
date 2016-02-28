@@ -10,15 +10,15 @@
 
 module ocean.net.device.SSLSocket;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.net.util.PKI;
+import ocean.net.util.PKI;
 
-import tango.net.device.Socket;
+import ocean.net.device.Socket;
 
-import tango.net.device.Berkeley;
+import ocean.net.device.Berkeley;
 
-import tango.net.util.c.OpenSSL;
+import ocean.net.util.c.OpenSSL;
 
 /*******************************************************************************
 
@@ -409,11 +409,11 @@ class SSLServerSocket : ServerSocket
 version(Test)
 {
     import tetra.util.Test;
-    import tango.io.Stdout;
-    import tango.io.device.File;
-    import tango.io.FilePath;
-    import tango.core.Thread;
-    import tango.stdc.stringz;
+    import ocean.io.Stdout_tango;
+    import ocean.io.device.File;
+    import ocean.io.FilePath_tango;
+    import ocean.core.Thread;
+    import ocean.stdc.stringz;
 
     extern (C)
     {

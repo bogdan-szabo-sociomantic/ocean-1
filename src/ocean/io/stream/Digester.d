@@ -12,11 +12,11 @@
 
 module ocean.io.stream.Digester;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.io.device.Conduit;
+import ocean.io.device.Conduit;
 
-import tango.util.digest.Digest;
+import ocean.util.digest.Digest;
 
 /*******************************************************************************
 
@@ -156,10 +156,10 @@ class DigestOutput : OutputFilter, InputFilter.Mutator
 
 debug (DigestStream)
 {
-        import tango.io.Stdout;
-        import tango.io.device.Array;
-        import tango.util.digest.Md5;
-        import tango.io.stream.FileStream;
+        import ocean.io.Stdout_tango;
+        import ocean.io.device.Array;
+        import ocean.util.digest.Md5;
+        import ocean.io.stream.FileStream;
 
         void main()
         {

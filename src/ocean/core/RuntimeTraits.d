@@ -1,5 +1,5 @@
 /**
- * Provides runtime traits, which provide much of the functionality of tango.core.Traits and
+ * Provides runtime traits, which provide much of the functionality of ocean.core.Traits and
  * is-expressions, as well as some functionality that is only available at runtime, using
  * runtime type information.
  *
@@ -9,7 +9,7 @@
  */
 module ocean.core.RuntimeTraits;
 
-import tango.transition;
+import ocean.transition;
 
 /// If the given type represents a typedef, return the actual type.
 TypeInfo realType (TypeInfo type)

@@ -13,9 +13,9 @@
 
 module ocean.text.xml.Document;
 
-import tango.transition;
+import ocean.transition;
 
-package import tango.text.xml.PullParser;
+package import ocean.text.xml.PullParser;
 
 version(Clear)
         extern (C) void* memset(void* s, int c, size_t n);
@@ -2157,8 +2157,8 @@ interface IXmlPrinter(T)
 
 debug (Document)
 {
-        import tango.io.Stdout;
-        import tango.text.xml.DocPrinter;
+        import ocean.io.Stdout_tango;
+        import ocean.text.xml.DocPrinter;
 
         void main()
         {

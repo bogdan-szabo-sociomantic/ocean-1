@@ -12,7 +12,7 @@
 
 module ocean.io.model.IFile;
 
-import tango.transition;
+import ocean.transition;
 
 /*******************************************************************************
 

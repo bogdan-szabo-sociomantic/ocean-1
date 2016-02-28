@@ -19,10 +19,10 @@ Macros:
  *  NAN = $(RED NAN)
  */
 module ocean.math.GammaFunction;
-import tango.transition;
-import tango.math.Math;
-import tango.math.IEEE;
-import tango.math.ErrorFunction;
+import ocean.transition;
+import ocean.math.Math;
+import ocean.math.IEEE;
+import ocean.math.ErrorFunction;
 
 //------------------------------------------------------------------
 

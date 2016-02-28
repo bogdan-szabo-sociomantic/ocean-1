@@ -14,8 +14,8 @@
 
 module ocean.util.container.more.Vector;
 
-import tango.core.Exception : ArrayBoundsException;
-import tango.stdc.string : memmove;
+import ocean.core.Exception_tango : ArrayBoundsException;
+import ocean.stdc.string : memmove;
 
 /******************************************************************************
 
@@ -303,7 +303,7 @@ struct Vector (V, int Size = 0)
 
 debug (Vector)
 {
-        import tango.io.Stdout;
+        import ocean.io.Stdout_tango;
 
         void main()
         {

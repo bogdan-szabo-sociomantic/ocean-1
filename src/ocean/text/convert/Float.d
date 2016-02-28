@@ -15,7 +15,7 @@
     Applying the D "import alias" mechanism to this module is highly
     recommended, in order to limit namespace pollution:
     ---
-    import Float = tango.text.convert.Float;
+    import Float = ocean.text.convert.Float;
 
     auto f = Float.parse ("3.14159");
     ---
@@ -24,10 +24,10 @@
 
 module ocean.text.convert.Float;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.core.Exception;
-static import tsm = tango.stdc.math;
+import ocean.core.Exception_tango;
+static import tsm = ocean.stdc.math;
 
 /******************************************************************************
 
@@ -39,7 +39,7 @@ version = float_internal;
 
 version(float_internal)
 {
-    import tango.math.IEEE;
+    import ocean.math.IEEE;
 }
 
 private alias real NumType;
@@ -498,7 +498,7 @@ version (float_dtoa)
 }
 else
 {
-    import Integer = tango.text.convert.Integer;
+    import Integer = ocean.text.convert.Integer_tango;
 
     /******************************************************************************
 
@@ -886,7 +886,7 @@ unittest
 
 debug (Float)
 {
-    import tango.io.Console;
+    import ocean.io.Console;
 
     void main()
     {

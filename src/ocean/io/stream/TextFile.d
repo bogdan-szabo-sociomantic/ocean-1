@@ -12,11 +12,11 @@
 
 module ocean.io.stream.TextFile;
 
-import tango.transition;
+import ocean.transition;
 
-public  import tango.io.device.File;
+public  import ocean.io.device.File;
 
-import tango.io.stream.Text;
+import ocean.io.stream.Text;
 
 /*******************************************************************************
 
@@ -88,7 +88,7 @@ class TextFileOutput : TextOutput
 
 debug (TextFile)
 {
-        import tango.io.Console;
+        import ocean.io.Console;
 
         void main()
         {
