@@ -1,2 +1,2 @@
-module tango.core.Enforce;
-public import ocean.core.Enforce_tango;
+deprecated module tango.core.Enforce;
+public import ocean.core.Enforce;
