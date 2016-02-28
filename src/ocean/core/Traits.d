@@ -24,11 +24,7 @@ import tango.transition;
 
 import tango.core.Tuple: Tuple;
 
-import tango.core.Traits : isReferenceType, isDynamicArrayType,
-                           isStaticArrayType, isIntegerType, isCharType,
-                           isFloatingPointType, ElementTypeOfArray;
-
-import tango.core.Traits : ReturnTypeOf, ParameterTupleOf;
+public import ocean.core.Traits_tango;
 
 version (UnitTest)
 {
