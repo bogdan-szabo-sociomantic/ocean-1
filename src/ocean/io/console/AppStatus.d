@@ -809,8 +809,7 @@ public class AppStatus
 
     /***************************************************************************
 
-        Calculate the current memory usage of this program using the tango
-        memory module
+        Calculate the current memory usage of this program using the GC stats
 
         Params:
             mem_allocated = the amount of memory currently allocated
@@ -892,7 +891,7 @@ public class AppStatus
     /***************************************************************************
 
         Format the memory usage for the current program to using the
-        tango memory module to calculate current usage (if available).
+        GC stats to calculate current usage (if available).
 
     ***************************************************************************/
 

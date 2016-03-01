@@ -448,7 +448,7 @@ private scope class UnitTestRunner
             scope (exit)
             {
                 // Workarround for:
-                // https://github.com/sociomantic/tango/issues/49
+                // https://github.com/sociomantic/ocean/issues/1039
                 output.flush();
                 output.close();
             }

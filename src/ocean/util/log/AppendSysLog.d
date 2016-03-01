@@ -2,12 +2,6 @@
 
     Log appender which writes to syslog
 
-    (This module includes bindings for C functions and enums which are going to
-    be added to the tango runtime, see
-    https://github.com/sociomantic/tango/pull/239. When tango v1.3.2 is widely
-    used, that module can be imported here instead and the bindings here
-    removed.)
-
     copyright: Copyright (c) 2015 sociomantic labs. All rights reserved
 
 *******************************************************************************/
@@ -26,6 +20,8 @@ import ocean.transition;
 /*******************************************************************************
 
     syslog C functions
+
+    FIXME: use runtime bindings
 
 *******************************************************************************/
 

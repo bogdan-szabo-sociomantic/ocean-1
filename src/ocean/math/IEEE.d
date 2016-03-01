@@ -1866,18 +1866,18 @@ unittest {
       assert (getNaNPayload(nan4) == 0x1_ABCD_EF12_3456);
   }
   double nan5 = nan4;
-  // FIXME: https://github.com/sociomantic/tango/issues/69
+  // FIXME: https://issues.dlang.org/show_bug.cgi?id=13743
   //assert (getNaNPayload(nan5) == 0x1_ABCD_EF12_3456);
   float nan6 = nan4;
-  // FIXME: https://github.com/sociomantic/tango/issues/69
+  // FIXME: https://issues.dlang.org/show_bug.cgi?id=13743
   //assert (getNaNPayload(nan6) == 0x12_3456);
   nan4 = NaN(0xFABCD);
-  // FIXME: https://github.com/sociomantic/tango/issues/69
+  // FIXME: https://issues.dlang.org/show_bug.cgi?id=13743
   //assert (getNaNPayload(nan4) == 0xFABCD);
   nan6 = nan4;
-  // FIXME: https://github.com/sociomantic/tango/issues/69
+  // FIXME: https://issues.dlang.org/show_bug.cgi?id=13743
   //assert (getNaNPayload(nan6) == 0xFABCD);
   nan5 = NaN(0x100_0000_0000_3456);
-  // FIXME: https://github.com/sociomantic/tango/issues/69
+  // FIXME: https://issues.dlang.org/show_bug.cgi?id=13743
   //assert(getNaNPayload(nan5) == 0x0000_0000_3456);
 }

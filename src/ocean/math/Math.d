@@ -2141,8 +2141,6 @@ version(D_InlineAsm_X86)
 
     Integer pow function. Returns the power'th power of base
 
-    Ported from tango, changed to only use integers
-
     Params:
         base  = base number
         power = power

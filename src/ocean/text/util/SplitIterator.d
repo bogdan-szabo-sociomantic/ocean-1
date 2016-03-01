@@ -32,14 +32,6 @@ import ocean.stdc.ctype: isspace;
 import ocean.stdc.posix.sys.types: ssize_t;
 
 import ocean.io.Stdout_tango;
-
-/*
- * SearchFruct in ocean.text.Search is declared private but that protection
- * attribute is meaningless. Ticket is submitted.
- * @see http://www.dsource.org/projects/tango/ticket/2102
- * @see http://www.digitalmars.com/webnews/newsgroups.php?art_group=digitalmars.D&article_id=87915
- */
-
 import ocean.text.Search: SearchFruct, search;
 
 /******************************************************************************

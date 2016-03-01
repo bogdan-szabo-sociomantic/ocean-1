@@ -949,7 +949,7 @@ public abstract class EpollProcess
 
         // We know the process has already exited, as we have explicitly been
         // notified about this by the SIGCHLD signal (handled by the
-        // signalHandler() method of ProcessMonitor, above). However the tango
+        // signalHandler() method of ProcessMonitor, above). However the
         // Process instance contains a flag (running_) which needs to be reset.
         // This can be achieved by calling wait(), which internally calls
         // waitpid() again. In this case waitpid() will return immediately with

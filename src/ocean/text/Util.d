@@ -348,7 +348,6 @@ size_t index(T, U = size_t, TC) (T[] source, TC[] match, U start=0)
 
 unittest
 {
-    // regression https://github.com/sociomantic/tango/issues/173
     char[] url;
     size_t start;
     cstring CSLASHSLASH = "://";
@@ -390,7 +389,6 @@ size_t locate(T, U = size_t)(T[] source, T match, U start=0)
 
 unittest
 {
-    // regression https://github.com/sociomantic/tango/issues/173
     size_t start;
     char[] url;
     start = locate!(typeof(url[0]), typeof(start))(url, '/', start);

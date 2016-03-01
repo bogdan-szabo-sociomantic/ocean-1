@@ -64,7 +64,7 @@ version ( TimeFork )
     External C
 
     // TODO: forced to be public to be used with reflection, must be moved to
-        tango bindings
+        C bindings
 
 *******************************************************************************/
 

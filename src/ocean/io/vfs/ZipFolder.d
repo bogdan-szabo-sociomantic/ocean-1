@@ -1705,8 +1705,6 @@ import ocean.io.device.Conduit : Conduit;
 
 *******************************************************************************/
 
-//module tangox.io.stream.DummyStream;
-
 //import ocean.io.device.Conduit : Conduit;
 //import ocean.io.model.IConduit : IConduit, InputStream, OutputStream;
 
@@ -1763,8 +1761,6 @@ private deprecated class DummyOutputStream : OutputStream //, IConduit.Seek
     author:     Daniel Keep
 
 *******************************************************************************/
-
-//module tangox.io.stream.EventStream;
 
 //import ocean.io.device.Conduit : Conduit;
 //import ocean.io.model.IConduit : IConduit, InputStream, OutputStream;
@@ -1952,8 +1948,6 @@ private:
     author:     Daniel Keep
 
 *******************************************************************************/
-
-//module tangox.io.stream.WrapStream;
 
 //import ocean.io.device.Conduit : Conduit;
 //import ocean.io.model.IConduit : IConduit, InputStream, OutputStream;

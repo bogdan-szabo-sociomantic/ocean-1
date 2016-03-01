@@ -1621,7 +1621,6 @@ private T[] concat_ ( T, TC ) ( T[] dest, TC[][] arrays, size_t start = 0 )
     . The "[2, 3, 5, 7]" array literal is implemented by the _d_arrayliteralTX()
     function of the run-time library which uses gc_malloc() to allocate the
     array buffer.
-    @see ocean.rt.compiler.dmd.rt.lifetime
 
     Template params:
         func = function name for static assertion messages

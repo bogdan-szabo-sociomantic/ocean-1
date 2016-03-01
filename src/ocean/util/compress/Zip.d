@@ -2292,8 +2292,6 @@ import ocean.io.device.Conduit : Conduit;
 
 *******************************************************************************/
 
-//module tangox.io.stream.CounterStream;
-
 //import ocean.io.device.Conduit : Conduit;
 //import ocean.io.model.IConduit : IConduit, InputStream, OutputStream;
 
@@ -2440,8 +2438,6 @@ private:
     author:     Daniel Keep
 
 *******************************************************************************/
-
-//module tangox.io.stream.SliceStream;
 
 //import ocean.io.device.Conduit : Conduit;
 //import ocean.io.model.IConduit : IConduit, InputStream, OutputStream;
@@ -2788,8 +2784,6 @@ private:
     author:     Daniel Keep
 
 *******************************************************************************/
-
-//module tangox.io.stream.WrapStream;
 
 //import ocean.io.device.Conduit : Conduit;
 //import ocean.io.model.IConduit : IConduit, InputStream, OutputStream;

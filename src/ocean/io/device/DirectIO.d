@@ -229,7 +229,7 @@ public class BufferedDirectWriteFile: OutputStream
 
         File to do direct IO writes.
 
-        Actually there is no way to open files with tango specifying custom
+        Actually there is no way to open files with File specifying custom
         flags that is not sub-classing. Bummer!
 
     ***************************************************************************/
@@ -537,7 +537,7 @@ public class BufferedDirectReadFile: InputStream
 
         File to do direct IO reads.
 
-        Actually there is no way to open files with tango specifying custom
+        Actually there is no way to open files with File specifying custom
         flags that is not sub-classing. Bummer!
 
     ***************************************************************************/

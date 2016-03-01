@@ -49,7 +49,7 @@ const TFD_TIMER_ABSTIME = 1,
 
 const CLOCK_MONOTONIC = 1;
 
-// TODO: move into C bindings after merging tango/ocean
+// TODO: move into C bindings
 
 extern (C)
 {

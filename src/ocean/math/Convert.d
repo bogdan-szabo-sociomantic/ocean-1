@@ -6,8 +6,8 @@
 
     authors: Ben Palmer
 
-    Module contains utility functions to convert floats to integer types. The
-    current tango conversion functions eg. ocean.math.Math.rndint or
+    Module contains utility functions to convert floats to integer types.
+    Old conversion functions eg. ocean.math.Math.rndint or
     ocean.math.Math.rndlong currently round x.5 to the nearest even integer. So
     rndint(4.5) == 4 and rndint(5.5) == 6. This is undesired behaviour for some
     situations, so the functions in this module round to the nearest integer. So

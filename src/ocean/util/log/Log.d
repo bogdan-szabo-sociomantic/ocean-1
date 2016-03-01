@@ -197,7 +197,7 @@ public struct Log
 
         static this ()
         {
-                base = new Hierarchy ("tango");
+                base = new Hierarchy ("ocean");
 
                 foreach (p; Pairs)
                          map[p.name] = p.value;
