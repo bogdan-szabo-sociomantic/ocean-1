@@ -3,6 +3,7 @@ Dependencies
 
 Dependency | Version
 -----------|---------
+makd       | v1.3.x
 tango      | v1.3.x
 
 Migration Instructions
@@ -33,11 +34,26 @@ Migration Instructions
 Deprecations
 ============
 
-* `tango.core.Enforce`
- 
-  Moved to `ocean.core.Enforce`, old module is deprecated. To quickly adjust
-  majority of imports run this shell command:
-  `find ./src -type f -name *.d | xargs sed -i 's|/<tango\.core\.Enforce/>|ocean.core.Enforce|g'`
+* `tango.*`
+
+  Tango package has been deprecated. Most of modules have been moved to `ocean`
+  package with no changes. If this would result in a module name clash, then a
+  _tango suffix is added. To quickly adjust majority of imports run this shell
+  script:
+
+  ```Bash
+    # exceptions with _tango suffix first:
+    find ./src -type f -name *.d | xargs sed -i 's|import tango.core.Exception|import ocean.core.Exception_tango|g'
+    find ./src -type f -name *.d | xargs sed -i 's|import tango.core.Array|import ocean.core.Array_tango|g'
+    find ./src -type f -name *.d | xargs sed -i 's|import tango.text.convert.Layout|import ocean.text.convert.Layout_tango|g'
+    find ./src -type f -name *.d | xargs sed -i 's|import tango.text.convert.Integer|import ocean.text.convert.Integer_tango|g'
+    find ./src -type f -name *.d | xargs sed -i 's|import tango.text.convert.DateTime|import ocean.text.convert.DateTime_tango|g'
+    find ./src -type f -name *.d | xargs sed -i 's|import tango.io.Stdout|import ocean.io.Stdout_tango|g'
+    find ./src -type f -name *.d | xargs sed -i 's|import tango.io.FilePath|import ocean.io.FilePath_tango|g'
+    find ./src -type f -name *.d | xargs sed -i 's|import tango.util.log.Config|import ocean.util.log.Config_tango|g'
+    # rest of imports
+    find ./src -type f -name *.d | xargs sed -i 's|import\s\+tango\.\([.a-zA-Z]\+\)|import ocean.\1|g'
+  ```
 
 * `ocean.core.Exception`
 
