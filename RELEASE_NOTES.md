@@ -23,5 +23,11 @@ Deprecations
   `ocean.core.Enforce` is deprecated to avoid cyclic dependencies. Please
   import `ocean.core.Enforce` directly.
 
+* `ocean.text.util.StringReplace`
+
+  This unmaintained and untested module was only used by nautica. It can
+  be replaced by functionality from other array/text util modules which
+  are more up to date.
+
 New Features
 ============
