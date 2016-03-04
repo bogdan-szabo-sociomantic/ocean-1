@@ -96,3 +96,15 @@ New Features
 * `ocean.net.http.HttpException`
 
   Custom enforce method for using multiple strings combined with a status code.
+
+* `ocean.sys.Inotify`
+
+  This new class wraps the inotify linux tool (Linux monitoring filesystem
+  events API), see http://man7.org/linux/man-pages/man7/inotify.7.html
+
+* `ocean.io.select.client.FileSystemEvent`
+
+  This new class makes use of the `ocean.sys.Inotify` implementation to
+  provide a simple and efficient way to monitor files (or directories)
+  asynchronously. The supported events can be found in `ocean.sys.linux.inotify`.
+  See `test.filesystemevent.main` as example of `FileSystemEvent` usage.
