@@ -595,6 +595,7 @@ class NotifyingQueue ( T ) : NotifyingByteQueue
 
             *******************************************************************/
 
+        deprecated("Please use the version of pop() taking a single contiguous buffer")
         T* pop ( ref Contiguous!(T) cont_buffer, ref ubyte[] byte_buffer )
         {
             if ( !this.enabled ) return null;
@@ -611,6 +612,39 @@ class NotifyingQueue ( T ) : NotifyingByteQueue
             byte_buffer.copy(data);
 
             auto void_buffer = cast(void[])byte_buffer;
+
+            Deserializer.deserialize!(T)(void_buffer, cont_buffer);
+
+            return cont_buffer.ptr;
+        }
+
+        /***********************************************************************
+
+            Pops a Request instance from the queue
+
+            Params:
+                cont_buffer = contiguous buffer to deserialize to
+
+            Returns:
+                pointer to the deserialized struct, completely allocated in the
+                given buffer
+
+        ***********************************************************************/
+
+        T* pop ( ref Contiguous!(T) cont_buffer )
+        {
+            if ( !this.enabled ) return null;
+
+            T* instance;
+
+            auto data = super.pop();
+
+            if (data is null)
+            {
+                return null;
+            }
+
+            auto void_buffer = cast(void[]) data;
 
             Deserializer.deserialize!(T)(void_buffer, cont_buffer);
 
@@ -759,22 +793,19 @@ unittest
     queue.push(arr[0]);
     queue.push(arr[1]);
 
-    Contiguous!(S) con_buffer_1;
-    ubyte[] buffer_1;
+    Contiguous!(S) ctg_1;
 
-    auto s0 = queue.pop(con_buffer_1, buffer_1);
+    auto s0 = queue.pop(ctg_1);
 
     test!("==")(s0.value, "foo");
 
-    Contiguous!(S) con_buffer_2;
-    ubyte[] buffer_2;
+    Contiguous!(S) ctg_2;
 
-    auto s1 = queue.pop(con_buffer_2, buffer_2);
+    auto s1 = queue.pop(ctg_2);
 
     test!("==")(s0.value, "foo");  // ensure there was no overwrite
     test!("==")(s1.value, "bar");
 }
-
 
 // Make sure NotifyingQueue template is instantinated & compiled
 unittest
