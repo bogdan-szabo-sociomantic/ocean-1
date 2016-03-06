@@ -595,7 +595,7 @@ class NotifyingQueue ( T ) : NotifyingByteQueue
 
             *******************************************************************/
 
-        T* pop ( ref Contiguous!(T) cont_buffer, ubyte[] byte_buffer )
+        T* pop ( ref Contiguous!(T) cont_buffer, ref ubyte[] byte_buffer )
         {
             if ( !this.enabled ) return null;
 
