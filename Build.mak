@@ -18,7 +18,7 @@ TEST_FILTER_OUT += \
 	$C/src/ocean/text/utf/UtfConvert.d
 
 ifeq ($(DVER),1)
-override DFLAGS += -v2 -v2=-static-arr-params -v2=-volatile
+override DFLAGS := $(filter-out -di,$(DFLAGS)) -v2 -v2=-static-arr-params -v2=-volatile
 endif
 
 override RDMDFLAGS += --extra-file=$C/src/tango/core/Version.d
