@@ -231,7 +231,7 @@ T[] format(T) (T[] dst, NumType x, int decimals=Dec, int e=Exp, bool pad=Pad)
     char[32]  buf = void;
 
     // test exponent to determine mode
-    exp = (x is 0) ? 1 : cast(int) log10l (x < 0 ? -x : x);
+    exp = (x == 0) ? 1 : cast(int) log10l (x < 0 ? -x : x);
     if (exp <= -e || exp >= e)
         mode = 2, ++decimals;
 
@@ -351,7 +351,7 @@ version (float_internal)
         if (isInfinity(value))
             return "inf\0".ptr;
 
-        int exp10 = (value is 0) ? !fflag : cast(int) ceill(log10l(value));
+        int exp10 = (value == 0) ? !fflag : cast(int) ceill(log10l(value));
         if (exp10 < -4931)
             exp10 = -4931;
         value *= powl (10.0, -exp10);
@@ -464,7 +464,7 @@ version (float_dtoa)
         auto e = p + tmp.length;
         foreach (c; src)
         {
-            if (p < e && (c & 0x80) is 0)
+            if (p < e && (c & 0x80) == 0)
                 *p++ = c;
             else
                 break;
@@ -488,7 +488,7 @@ version (float_dtoa)
         auto e = p + tmp.length;
         foreach (c; src)
         {
-            if (p < e && (c & 0x80) is 0)
+            if (p < e && (c & 0x80) == 0)
                 *p++ = c;
             else
                 break;
@@ -534,7 +534,7 @@ else
         p = src.ptr + Integer.trim (src, sign, radix);
 
         // bail out if the string is empty
-        if (src.length is 0 || p > &src[$-1])
+        if (src.length == 0 || p > &src[$-1])
             return NumType.nan;
         c = *p;
 
@@ -669,7 +669,7 @@ else
         {
             if (exp & 1)
                 mult *= power;
-            if ((exp >>= 1) is 0)
+            if ((exp >>= 1) == 0)
                 break;
         }
         return mult;
@@ -769,7 +769,7 @@ TODO: this should be replaced, as it is not sufficiently accurate
             *p++ = '-';
 
         // are we doing +/-exp format?
-        if (e is 0)
+        if (e == 0)
         {
             assert (dst.length > decimals + 7);
 
