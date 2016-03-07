@@ -12,7 +12,8 @@ TEST_FILTER_OUT += \
 	$C/src/ocean/util/app/ConfiguredCliApp.d \
 	$C/src/ocean/util/app/LoggedCliApp.d \
 	$C/src/ocean/util/app/ConfiguredApp.d \
-	$C/src/ocean/util/app/CommandLineApp.d
+	$C/src/ocean/util/app/CommandLineApp.d \
+	$C/src/ocean/io/select/client/IntervalClock.d
 
 ifeq ($(DVER),1)
 override DFLAGS += -v2 -v2=-static-arr-params -v2=-volatile

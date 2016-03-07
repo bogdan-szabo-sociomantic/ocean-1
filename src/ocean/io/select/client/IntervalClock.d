@@ -56,7 +56,7 @@
 
  ******************************************************************************/
 
-module ocean.io.select.client.IntervalClock;
+deprecated module ocean.io.select.client.IntervalClock;
 
 /******************************************************************************
 
@@ -79,6 +79,7 @@ import tango.stdc.time:           gmtime, tm, time_t;
 
 import tango.time.Time;
 
+deprecated("Use core.stdc.time instead")
 public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
 {
     public alias MicrosecondsClock.us us;

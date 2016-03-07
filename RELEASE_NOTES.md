@@ -29,5 +29,12 @@ Deprecations
   be replaced by functionality from other array/text util modules which
   are more up to date.
 
+* `ocean.io.select.client.IntervalClock`
+
+  This module was created long time ago under a false assumption it is
+  more efficient than plain `time()` calls and results in less amount of
+  syscalls. Eventually it was proven to be wrong and recommended action
+  is to get rid of all mentions of `IntervalClock` in favor of plain `time()`.
+
 New Features
 ============
