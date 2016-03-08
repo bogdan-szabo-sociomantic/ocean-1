@@ -36,5 +36,9 @@ Deprecations
   syscalls. Eventually it was proven to be wrong and recommended action
   is to get rid of all mentions of `IntervalClock` in favor of plain `time()`.
 
+* `ocean.text.utf.UtfConvert`
+
+  Completely unused and unmaintained module.
+
 New Features
 ============
