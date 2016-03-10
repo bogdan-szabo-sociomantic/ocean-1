@@ -8,6 +8,28 @@ tango      | v1.3.x
 Migration Instructions
 ======================
 
+* `tango.util.log.AppendSyslog`
+
+  **WARNING:** This module is currently used by all applications which write log
+  files (including stats logs). It handles the automatic rotation of log files.
+  It is, however, buggy and scheduled to be replaced by the system `logrotate`
+  facility. Introducing a workable deprecation path has proven troublesome, so
+  this module is going to be **completely removed** in the upcoming ocean v2.0.0
+  release.
+
+  This appender is used internally in ocean in the `StatsExt` and `LogExt`,
+  which will be adapted to no longer perform any log rotation. These extensions
+  are used by all applications (as far as is known). This means that, if you do
+  nothing before updating to ocean v2.0.0, your log files **will no longer be
+  rotated**.
+
+  All applications which rely on the log rotation facility provided by
+  `AppendSyslog` should be adapted to rely on the system `logrotate` facility to
+  rotate their log files, instead. The most convenient way of doing this is to
+  use the facilities present in `DaemonApp`. See the
+  [v1.26.0 release notes](https://github.com/sociomantic/ocean/releases/tag/v1.26.0)
+  for full instructions on how to use these facilities.
+
 Deprecations
 ============
 
