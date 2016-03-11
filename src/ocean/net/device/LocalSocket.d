@@ -46,7 +46,7 @@ class LocalSocket : Socket
 
         ***********************************************************************/
 
-        this (char[] path)
+        this (cstring path)
         {
                 this (new LocalAddress (path));
         }
@@ -86,7 +86,7 @@ class LocalServerSocket : LocalSocket
 
         ***********************************************************************/
 
-        this (char[] path, int backlog=32, bool reuse=false)
+        this (cstring path, int backlog=32, bool reuse=false)
         {
                 auto addr = new LocalAddress (path);
                 native.addressReuse(reuse).bind(addr).listen(backlog);
@@ -129,7 +129,7 @@ class LocalAddress : Address
         protected
         {
                 sockaddr_un sun;
-                char[] _path;
+                cstring _path;
                 size_t _pathLength;
         }
 
@@ -201,7 +201,7 @@ class LocalAddress : Address
 
         ***********************************************************************/
 
-        final char[] path ()
+        final cstring path ()
         {
                 return _path;
         }
