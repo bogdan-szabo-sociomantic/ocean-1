@@ -25,3 +25,8 @@ New Features
 
  Added a new `isRootedValues()` method which returns whether the queue
  allocated items are added to the gc scan range.
+
+ * `ocean.text.xml.c.LibXslt`
+
+ Add low-level functions to set the LibXslt maximum recursion depth.
+
