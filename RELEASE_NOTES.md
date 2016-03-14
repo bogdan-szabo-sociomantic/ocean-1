@@ -90,6 +90,14 @@ Deprecations
 New Features
 ============
 
+* `ocean.core.Traits`
+
+  New function, `copyClassFields`, which is identical to `copyFields` but
+  doesn't take its arguments using `ref`. This addition is primarily needed
+  as a way to fix `Deprecation: this is not an lvalue` warnings in other
+  libraries that come from using old `copyFields` with class `this` as an
+  argument.
+
 * `ocean.util.log.AppendSysLog`
 
   A new log appender which outputs to the system log
