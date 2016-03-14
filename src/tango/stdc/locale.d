@@ -1,3 +1,2 @@
 module tango.stdc.locale;
-
-public import core.stdc.locale;
+public import ocean.stdc.locale;

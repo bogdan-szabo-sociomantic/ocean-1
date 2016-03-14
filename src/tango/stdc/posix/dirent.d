@@ -1,3 +1,2 @@
 module tango.stdc.posix.dirent;
-
-public import core.sys.posix.dirent;
+public import ocean.stdc.posix.dirent;

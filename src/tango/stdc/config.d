@@ -1,3 +1,2 @@
 module tango.stdc.config;
-
-public import core.stdc.config;
+public import ocean.stdc.config;

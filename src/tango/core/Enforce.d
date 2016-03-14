@@ -1,3 +1,2 @@
-deprecated module tango.core.Enforce;
-pragma(msg, "Import ocean.core.Enforce instead");
-public import ocean.core.Enforce;
+module tango.core.Enforce;
+public import ocean.core.Enforce_tango;

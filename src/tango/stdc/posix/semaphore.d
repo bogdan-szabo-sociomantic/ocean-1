@@ -1,3 +1,2 @@
 module tango.stdc.posix.semaphore;
-
-public import core.sys.posix.semaphore;
+public import ocean.stdc.posix.semaphore;

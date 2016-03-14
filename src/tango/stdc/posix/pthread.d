@@ -1,3 +1,2 @@
 module tango.stdc.posix.pthread;
-
-public import core.sys.posix.pthread;
+public import ocean.stdc.posix.pthread;

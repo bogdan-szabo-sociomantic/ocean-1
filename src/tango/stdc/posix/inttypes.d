@@ -1,3 +1,2 @@
 module tango.stdc.posix.inttypes;
-
-public import core.sys.posix.inttypes;
+public import ocean.stdc.posix.inttypes;

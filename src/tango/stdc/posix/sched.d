@@ -1,3 +1,2 @@
 module tango.stdc.posix.sched;
-
-public import core.sys.posix.sched;
+public import ocean.stdc.posix.sched;

@@ -1,3 +1,2 @@
 module tango.sys.linux.consts.socket;
-
-public import core.sys.posix.sys.socket;
+public import ocean.sys.linux.consts.socket;

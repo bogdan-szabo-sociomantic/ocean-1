@@ -1,3 +1,2 @@
 module tango.stdc.complex;
-
-public import core.stdc.complex;
+public import ocean.stdc.complex;

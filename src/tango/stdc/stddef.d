@@ -1,3 +1,2 @@
 module tango.stdc.stddef;
-
-public import core.stdc.stddef;
+public import ocean.stdc.stddef;

@@ -1,3 +1,2 @@
 module tango.stdc.posix.sys.ipc;
-
-public import core.sys.posix.sys.ipc;
+public import ocean.stdc.posix.sys.ipc;

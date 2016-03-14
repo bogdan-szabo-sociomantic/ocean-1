@@ -1,3 +1,2 @@
 module tango.stdc.posix.ucontext;
-
-public import core.sys.posix.ucontext;
+public import ocean.stdc.posix.ucontext;

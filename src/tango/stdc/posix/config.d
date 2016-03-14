@@ -1,3 +1,2 @@
 module tango.stdc.posix.config;
-
-public import core.sys.posix.config;
+public import ocean.stdc.posix.config;

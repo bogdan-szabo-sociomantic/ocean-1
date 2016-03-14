@@ -1,3 +1,2 @@
 module tango.stdc.posix.stdio;
-
-public import core.sys.posix.stdio;
+public import ocean.stdc.posix.stdio;

@@ -1,3 +1,2 @@
 module tango.stdc.limits;
-
-public import core.stdc.limits;
+public import ocean.stdc.limits;

@@ -6,6 +6,10 @@ TEST_FILTER_OUT += \
 	$C/src/tango/text/Arguments.d \
 	$C/src/tango/util/log/Config.d \
 	$C/src/tango/util/log/Trace.d \
+	$C/src/ocean/core/Enforce_tango.d \
+	$C/src/ocean/text/Arguments_tango.d \
+	$C/src/ocean/util/log/Config_tango.d \
+	$C/src/ocean/util/log/Trace.d \
 	$C/src/ocean/util/app/VersionedLoggedStatsCliApp.d \
 	$C/src/ocean/util/app/VersionedLoggedCliApp.d \
 	$C/src/ocean/util/app/VersionedCliApp.d \

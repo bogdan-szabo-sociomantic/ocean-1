@@ -1,3 +1,2 @@
 module tango.stdc.stdint;
-
-public import core.stdc.stdint;
+public import ocean.stdc.stdint;

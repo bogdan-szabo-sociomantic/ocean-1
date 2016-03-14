@@ -1,3 +1,2 @@
 module tango.stdc.ctype;
-
-public import core.stdc.ctype;
+public import ocean.stdc.ctype;

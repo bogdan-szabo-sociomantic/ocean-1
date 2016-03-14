@@ -39,7 +39,7 @@
 
 *******************************************************************************/
 
-module tango.core.UnitTestRunner;
+module ocean.core.UnitTestRunner;
 
 import tango.transition;
 

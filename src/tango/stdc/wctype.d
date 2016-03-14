@@ -1,3 +1,2 @@
 module tango.stdc.wctype;
-
-public import core.stdc.wctype;
+public import ocean.stdc.wctype;

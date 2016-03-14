@@ -1,3 +1,2 @@
 module tango.stdc.posix.unistd;
-
-public import core.sys.posix.unistd;
+public import ocean.stdc.posix.unistd;

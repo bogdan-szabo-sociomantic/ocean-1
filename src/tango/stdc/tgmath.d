@@ -1,3 +1,2 @@
 module tango.stdc.tgmath;
-
-public import core.stdc.tgmath;
+public import ocean.stdc.tgmath;

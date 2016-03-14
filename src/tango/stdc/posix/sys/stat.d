@@ -1,3 +1,2 @@
 module tango.stdc.posix.sys.stat;
-
-public import core.sys.posix.sys.stat;
+public import ocean.stdc.posix.sys.stat;

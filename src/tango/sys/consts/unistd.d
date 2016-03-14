@@ -1,3 +1,2 @@
 module tango.sys.consts.unistd;
-
-public import core.sys.posix.unistd;
+public import ocean.sys.consts.unistd;

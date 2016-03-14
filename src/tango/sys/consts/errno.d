@@ -1,3 +1,2 @@
 module tango.sys.consts.errno;
-
-public import core.stdc.errno;
+public import ocean.sys.consts.errno;

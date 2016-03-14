@@ -1,3 +1,2 @@
 module tango.stdc.fenv;
-
-public import core.stdc.fenv;
+public import ocean.stdc.fenv;
