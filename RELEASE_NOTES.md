@@ -151,3 +151,11 @@ New Features
   given contiguous struct instance in place, resetting all its array
   pointers to null. This take advantage of `Contiguous` data layout and is
   both very fast and doesn't require new memory buffer.
+
+* `ocean.util.app.DaemonApp`
+
+  The `OptionalSettings` struct has been extended with the field
+  `reopen_signal`, which determines the signal number which is handled by the
+  `ReopenableFilesExt` to reopen all registered files (typically used for log
+  rotation). The default signal is SIGHUP, but may now be configured as the
+  application wishes.

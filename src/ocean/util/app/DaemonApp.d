@@ -181,6 +181,8 @@ public abstract class DaemonApp : Application,
 
     public static struct OptionalSettings
     {
+        import tango.stdc.posix.signal : SIGHUP;
+
         /***********************************************************************
 
             How the program is supposed to be invoked.
@@ -239,6 +241,15 @@ public abstract class DaemonApp : Application,
         ***********************************************************************/
 
         int[] signals = [];
+
+        /***********************************************************************
+
+            Signal to trigger reopening of files which are registered with the
+            ReopenableFilesExt. (Typically used for log rotation.)
+
+        ***********************************************************************/
+
+        int reopen_signal = SIGHUP;
     }
 
     /***************************************************************************
@@ -305,7 +316,8 @@ public abstract class DaemonApp : Application,
         this.registerExtension(this.signal_ext);
 
         // Create and register repoenable files extension
-        this.reopenable_files_ext = new ReopenableFilesExt(this.signal_ext);
+        this.reopenable_files_ext = new ReopenableFilesExt(this.signal_ext,
+            settings.reopen_signal);
         this.registerExtension(this.reopenable_files_ext);
     }
 
