@@ -54,6 +54,11 @@ Deprecations
     # rest of imports
     find ./src -type f -name *.d | xargs sed -i 's|import\s\+tango\.\([.a-zA-Z]\+\)|import ocean.\1|g'
   ```
+* `ocean.text.convert.Layout_tango` `ocean.text.convert.Integer_tango` `ocean.text.convert.DateTime_tango` `ocean.io.Stdout_tango` `ocean.io.FilePath_tango`
+
+  These modules are not yet deprecated but are schedule to in next release.
+  It is recommended to start switching to ocean counter-parts as early
+  as possible if feasible.
 
 * `ocean.core.Exception`
 
