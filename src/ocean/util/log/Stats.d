@@ -749,19 +749,21 @@ public abstract class IStatsLog
 
     public static class Config
     {
-        istring file_name = default_file_name;
-        size_t max_file_size = default_max_file_size;
-        size_t file_count = default_file_count;
-        size_t start_compress = default_start_compress;
+        istring file_name;
+        size_t max_file_size;
+        size_t file_count;
+        size_t start_compress;
 
-        this ( istring file_name, size_t max_file_size, size_t file_count )
+        this ( istring file_name = default_file_name,
+            size_t max_file_size = default_max_file_size,
+            size_t file_count = default_file_count,
+            size_t start_compress = default_start_compress)
         {
             this.file_name = file_name;
             this.max_file_size = max_file_size;
             this.file_count = file_count;
+            this.start_compress = start_compress;
         }
-
-        this(){}
     }
 
     /***************************************************************************
