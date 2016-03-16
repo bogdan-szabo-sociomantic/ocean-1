@@ -11,8 +11,8 @@ Migration Instructions
 `ocean.util.container.queue.NotifyingQueue`
 
   A new overload of the `NotifyingQueue.pop` method has been introduced which
-  takes a `ContigousBuffer!(Struct)` and a `ubyte[]` buffer when
-  `NotifyingQueue` is instantiated with a struct type,
+  takes a `ContigousBuffer!(Struct)` when `NotifyingQueue` is instantiated
+  with a struct type,
 
   For `NotifyingQueue` instantiated with a struct type, the old `pop()`
   method only taking a byte buffer has been deprecated.
