@@ -697,10 +697,44 @@ public void copyFields ( T ) ( ref T dst, ref T src )
     }
 }
 
+///
 unittest
 {
     TestStruct a, b;
     copyFields(a, b);
+}
+
+/*******************************************************************************
+
+    Version of `copyFields` with modified declaration so that it doesn't
+    accept class reference by ref. Doing so with plain `copyFields` caused
+    deprecation warning in D2 otherwise, "Deprecation: this is not an lvalue".
+
+*******************************************************************************/
+
+public void copyClassFields ( T ) ( T dst, T src )
+{
+    static assert (is(T == class));
+
+    foreach ( i, t; typeof(dst.tupleof) )
+    {
+        dst.tupleof[i] = src.tupleof[i];
+    }
+}
+
+///
+unittest
+{
+    static class C
+    {
+        int x;
+
+        void copy ( )
+        {
+            C c;
+            copyClassFields(this, c);
+        }
+    }
 }
 
 /*******************************************************************************
