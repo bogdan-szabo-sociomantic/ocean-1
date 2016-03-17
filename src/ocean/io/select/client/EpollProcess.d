@@ -137,7 +137,7 @@ module ocean.io.select.client.EpollProcess;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.util.container.map.Map;
 
@@ -147,19 +147,19 @@ import ocean.io.select.EpollSelectDispatcher;
 
 import ocean.io.select.client.SignalEvent;
 
-import tango.io.model.IConduit;
+import ocean.io.model.IConduit;
 
-import tango.stdc.posix.sys.wait;
+import ocean.stdc.posix.sys.wait;
 
-import tango.sys.Process;
+import ocean.sys.Process;
 
 debug import ocean.io.Stdout;
 
-import tango.stdc.errno;
+import ocean.stdc.errno;
 
-import tango.util.log.Log;
+import ocean.util.log.Log;
 
-import tango.stdc.posix.signal : SIGCHLD;
+import ocean.stdc.posix.signal : SIGCHLD;
 
 
 
@@ -949,7 +949,7 @@ public abstract class EpollProcess
 
         // We know the process has already exited, as we have explicitly been
         // notified about this by the SIGCHLD signal (handled by the
-        // signalHandler() method of ProcessMonitor, above). However the tango
+        // signalHandler() method of ProcessMonitor, above). However the
         // Process instance contains a flag (running_) which needs to be reset.
         // This can be achieved by calling wait(), which internally calls
         // waitpid() again. In this case waitpid() will return immediately with

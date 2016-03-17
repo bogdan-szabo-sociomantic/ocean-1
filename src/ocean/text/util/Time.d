@@ -13,7 +13,7 @@
     ---
 
         import ocean.text.util.Time;
-        import tango.stdc.time : time_t;
+        import ocean.stdc.time : time_t;
 
         time_t timestamp = 23897129;
         char[20] static_str;
@@ -46,15 +46,15 @@ module ocean.text.util.Time;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.core.Enforce;
 
 import ocean.core.Array : copy;
 
-import tango.stdc.time : gmtime, strftime, time_t, tm;
+import ocean.stdc.time : gmtime, strftime, time_t, tm;
 
-import tango.text.convert.Format;
+import ocean.text.convert.Format;
 
 
 

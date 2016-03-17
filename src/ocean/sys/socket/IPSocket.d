@@ -18,17 +18,17 @@ module ocean.sys.socket.IPSocket;
 
  ******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import tango.stdc.posix.sys.socket;
+import ocean.stdc.posix.sys.socket;
 
-import tango.stdc.posix.netinet.in_: AF_INET, AF_INET6;
+import ocean.stdc.posix.netinet.in_: AF_INET, AF_INET6;
 
-import tango.stdc.posix.unistd: close;
+import ocean.stdc.posix.unistd: close;
 
-import tango.stdc.posix.sys.types: ssize_t;
+import ocean.stdc.posix.sys.types: ssize_t;
 
-import tango.io.device.Conduit: ISelectable;
+import ocean.io.device.Conduit: ISelectable;
 
 import ocean.io.device.IODevice: InputDevice, IOutputDevice;
 
@@ -767,7 +767,7 @@ class IPSocket ( bool IPv6 = false ) : IIPSocket
 
 version (UnitTest)
 {
-    import tango.core.Test;
+    import ocean.core.Test;
 }
 
 unittest

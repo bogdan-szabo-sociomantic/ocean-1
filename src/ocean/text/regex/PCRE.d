@@ -47,15 +47,15 @@ module ocean.text.regex.PCRE;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.core.Array : copy, concat;
 import ocean.text.util.StringC;
 import ocean.text.regex.c.pcre;
 import ocean.core.TypeConvert;
 
-import tango.stdc.stdlib : free;
-import tango.text.convert.Format;
+import ocean.stdc.stdlib : free;
+import ocean.text.convert.Format;
 
 
 

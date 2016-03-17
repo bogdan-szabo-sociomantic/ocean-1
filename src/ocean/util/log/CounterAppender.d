@@ -13,9 +13,9 @@
 
 module ocean.util.log.CounterAppender;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.util.log.Log;
+import ocean.util.log.Log;
 
 /*******************************************************************************
 

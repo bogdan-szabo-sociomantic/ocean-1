@@ -18,7 +18,7 @@ module ocean.net.http.consts.HeaderFieldNames;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 
 /******************************************************************************/

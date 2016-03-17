@@ -62,9 +62,9 @@ import ocean.core.Array;
 
 import ocean.io.serialize.StructSerializer;
 
-import tango.core.Traits;
+import ocean.core.Traits;
 
-import tango.core.Exception;
+import ocean.core.Exception_tango;
 
 import ocean.math.Math : pow;
 
@@ -358,9 +358,9 @@ public class PHPSerializer
 
                 set(m, isSet(y));
 
-                ret += bcd[2] * pow(10, decimal_spot++) +
-                       bcd[1] * pow(10, decimal_spot++) +
-                       bcd[0] * pow(10, decimal_spot++);
+                ret += bcd[2] * pow(10UL, cast(ulong) decimal_spot++) +
+                       bcd[1] * pow(10UL, cast(ulong) decimal_spot++) +
+                       bcd[0] * pow(10UL, cast(ulong) decimal_spot++);
 
             version (UnitTestVerbose) Stdout.formatln("Decoded: {:b}, {}", bcd, bcd);
                 bcd[] = 0;

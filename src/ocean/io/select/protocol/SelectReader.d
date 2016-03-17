@@ -23,8 +23,8 @@ import ocean.io.select.client.model.ISelectClient;
 import ocean.io.device.IODevice;
 import ocean.io.select.protocol.generic.ErrnoIOException;
 
-import tango.sys.linux.consts.errno;
-import tango.stdc.errno;
+import ocean.sys.linux.consts.errno;
+import ocean.stdc.errno;
 
 debug (Raw)         import ocean.io.Stdout : Stderr;
 debug (SelectFiber) import ocean.io.Stdout : Stderr;

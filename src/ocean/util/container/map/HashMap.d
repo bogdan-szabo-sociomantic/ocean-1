@@ -174,8 +174,8 @@ public class HashMap ( V ) : Map!(V, hash_t)
     version ( UnitTest )
     {
         import ocean.core.Test;
-        import tango.core.Traits : isFloatingPointType;
-        import tango.math.IEEE : isNaN;
+        import ocean.core.Traits : isFloatingPointType;
+        import ocean.math.IEEE : isNaN;
     }
 
     unittest

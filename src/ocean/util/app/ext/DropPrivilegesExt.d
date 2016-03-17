@@ -14,14 +14,14 @@ import ocean.util.app.model.IApplicationExtension;
 import ClassFiller = ocean.util.config.ClassFiller;
 import ocean.util.app.ext.model.IConfigExtExtension;
 
-import tango.transition;
-import tango.stdc.posix.unistd : setuid, setgid;
-import tango.stdc.posix.pwd;
-import tango.stdc.string;
-import tango.stdc.stringz;
-import tango.stdc.posix.grp;
-import tango.stdc.posix.unistd;
-import tango.stdc.errno;
+import ocean.transition;
+import ocean.stdc.posix.unistd : setuid, setgid;
+import ocean.stdc.posix.pwd;
+import ocean.stdc.string;
+import ocean.stdc.stringz;
+import ocean.stdc.posix.grp;
+import ocean.stdc.posix.unistd;
+import ocean.stdc.errno;
 
 /*******************************************************************************
 

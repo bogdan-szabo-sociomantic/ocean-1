@@ -15,7 +15,7 @@ module ocean.util.serialize.contiguous.Deserializer;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.util.serialize.contiguous.Contiguous;
 import ocean.util.serialize.model.Traits;
@@ -23,9 +23,9 @@ import ocean.util.serialize.model.Traits;
 import ocean.core.Enforce;
 import ocean.core.Traits;
 
-import tango.text.convert.Format;
+import ocean.text.convert.Format;
 
-debug (DeserializationTrace) import tango.io.Stdout;
+debug (DeserializationTrace) import ocean.io.Stdout_tango;
 
 /*******************************************************************************
 

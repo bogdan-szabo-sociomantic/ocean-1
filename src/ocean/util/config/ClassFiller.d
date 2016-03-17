@@ -121,26 +121,26 @@ module ocean.util.config.ClassFiller;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 public import ocean.util.config.ConfigParser: ConfigException;
 
 import ocean.core.Traits;
 
-import tango.core.Exception, ocean.core.Enforce;
+import ocean.core.Exception_tango, ocean.core.Enforce;
 
-import tango.core.Traits;
+import ocean.core.Traits;
 
 import ocean.util.config.ConfigParser;
 
-import tango.util.Convert;
+import ocean.util.Convert;
 
-import tango.core.Traits : DynamicArrayType, isStringType,
+import ocean.core.Traits : DynamicArrayType, isStringType,
                            isIntegerType, isRealType;
 
 import ocean.io.Stdout;
 
-import tango.text.convert.Format;
+import ocean.text.convert.Format;
 
 version (UnitTest) import ocean.core.Test;
 

@@ -8,7 +8,7 @@
 
 module ocean.util.ReusableException;
 
-import tango.transition;
+import ocean.transition;
 
 /*******************************************************************************
 
@@ -87,8 +87,6 @@ version (UnitTest)
 
 unittest
 {
-    // https://github.com/sociomantic/tango/issues/187
-
     auto ex = new ReusableException;
 
     try

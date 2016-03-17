@@ -12,7 +12,7 @@
 
 module ocean.util.container.pool.model.IFreeList;
 
-import tango.transition;
+import ocean.transition;
 
 /*******************************************************************************
 

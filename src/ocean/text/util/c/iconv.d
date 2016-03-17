@@ -16,7 +16,7 @@
 
 module ocean.text.util.c.iconv;
 
-import tango.transition;
+import ocean.transition;
 
 extern (C)
 {

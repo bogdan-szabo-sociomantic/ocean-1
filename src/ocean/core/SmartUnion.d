@@ -40,8 +40,8 @@
 
 module ocean.core.SmartUnion;
 
-import tango.transition;
-import tango.core.Exception;
+import ocean.transition;
+import ocean.core.Exception_tango;
 import ocean.core.Test;
 import ocean.core.Traits;
 

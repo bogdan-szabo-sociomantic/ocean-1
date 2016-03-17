@@ -14,8 +14,8 @@ module ocean.sys.ErrnoException;
 
 *******************************************************************************/
 
-import tango.transition;
-import tango.stdc.errno;
+import ocean.transition;
+import ocean.stdc.errno;
 
 version (UnitTest)
 {
@@ -30,9 +30,9 @@ version (UnitTest)
 
 public class ErrnoException : Exception
 {
-    import tango.stdc.string;
-    import tango.stdc.stringz;
-    import tango.core.Traits : ReturnTypeOf;
+    import ocean.stdc.string;
+    import ocean.stdc.stringz;
+    import ocean.core.Traits : ReturnTypeOf;
 
     import ocean.core.Exception : ReusableExceptionImplementation;
     import ocean.core.Traits : identifier;
@@ -378,7 +378,7 @@ public class ErrnoException : Exception
 
 public struct Caller ( T )
 {
-    import tango.core.Traits : ParameterTupleOf, isCallableType, ReturnTypeOf;
+    import ocean.core.Traits : ParameterTupleOf, isCallableType, ReturnTypeOf;
 
     static assert (isCallableType!(T));
     static assert (!is(ReturnTypeOf!(T) == void));

@@ -71,8 +71,8 @@ import ocean.io.select.timeout.TimerEventTimeoutManager;
 
 import ocean.time.timeout.model.ITimeoutClient;
 
-import tango.transition;
-debug import tango.text.convert.Format;
+import ocean.transition;
+debug import ocean.text.convert.Format;
 
 
 

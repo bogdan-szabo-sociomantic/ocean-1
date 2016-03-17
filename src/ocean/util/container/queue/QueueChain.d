@@ -38,9 +38,9 @@ import ocean.util.container.queue.model.IQueueInfo;
 import ocean.util.container.queue.FlexibleRingQueue;
 
 
-import tango.io.stream.Buffered,
-       tango.io.device.File,
-       Filesystem = tango.io.Path;
+import ocean.io.stream.Buffered,
+       ocean.io.device.File,
+       Filesystem = ocean.io.Path;
 
 
 

@@ -41,7 +41,7 @@ module ocean.text.util.DigitGrouping;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.core.TypeConvert;
 
@@ -49,9 +49,9 @@ import ocean.core.Array;
 
 import ocean.text.util.MetricPrefix;
 
-import tango.core.Traits;
+import ocean.core.Traits;
 
-import tango.text.convert.Format;
+import ocean.text.convert.Format;
 
 
 

@@ -20,8 +20,8 @@ module ocean.sys.socket.model.IAddressIPSocketInfo;
 
 *******************************************************************************/
 
-import tango.transition;
-import tango.io.device.Conduit: ISelectable;
+import ocean.transition;
+import ocean.io.device.Conduit: ISelectable;
 
 
 

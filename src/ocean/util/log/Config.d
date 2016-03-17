@@ -78,7 +78,7 @@ module ocean.util.log.Config;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.io.Stdout;
 import ocean.core.Array : removePrefix, removeSuffix;
@@ -87,17 +87,17 @@ import ocean.util.config.ConfigParser;
 import ocean.util.log.AppendSysLog;
 import ocean.text.util.StringSearch;
 
-import tango.util.log.Log;
-import tango.util.log.AppendSyslog;
+import ocean.util.log.Log;
+import ocean.util.log.AppendSyslog;
 import ocean.util.log.InsertConsole;
-import tango.util.log.AppendConsole;
+import ocean.util.log.AppendConsole;
 
 // Log layouts
 import ocean.util.log.layout.LayoutMessageOnly;
 import ocean.util.log.layout.LayoutStatsLog;
 import ocean.util.log.layout.LayoutSimple;
-import tango.util.log.LayoutDate;
-import tango.util.log.LayoutChainsaw;
+import ocean.util.log.LayoutDate;
+import ocean.util.log.LayoutChainsaw;
 
 
 /*******************************************************************************

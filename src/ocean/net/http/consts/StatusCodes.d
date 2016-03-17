@@ -20,9 +20,9 @@ module ocean.net.http.consts.StatusCodes;
 
  ******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import tango.net.http.HttpConst: HttpHeader, HttpResponseCode;
+import ocean.net.http.HttpConst: HttpHeader, HttpResponseCode;
 
 /******************************************************************************
 

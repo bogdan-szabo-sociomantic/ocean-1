@@ -23,7 +23,7 @@ module ocean.util.app.CliApp;
 import ocean.util.app.Application : Application;
 import ocean.util.app.ext.model.IArgumentsExtExtension;
 
-import tango.transition;
+import ocean.transition;
 
 /*******************************************************************************
 

@@ -6,11 +6,11 @@
 
 module ocean.util.container.queue.LinkedListQueue;
 
-import tango.transition;
+import ocean.transition;
 
-import tango.util.log.Log;
-import tango.core.Memory;
-import tango.util.container.Container;
+import ocean.util.log.Log;
+import ocean.core.Memory;
+import ocean.util.container.Container;
 import ocean.core.Test;
 import ocean.util.container.queue.model.ITypedQueue;
 import ocean.core.Array;

@@ -9,7 +9,7 @@
 
     authors:        Mathias Baumann
 
-    This was created as an alternative to tango.io.device.Array, whose write()
+    This was created as an alternative to ocean.io.device.Array, whose write()
     function has the unreasonable limitation of always appending instead of
     respecting the current seek position and thus not properly simulating a file
 
@@ -23,9 +23,9 @@ module ocean.io.device.MemoryDevice;
 
 *******************************************************************************/
 
-import tango.transition;
-import tango.io.model.IConduit;
-import tango.stdc.string : memmove;
+import ocean.transition;
+import ocean.io.model.IConduit;
+import ocean.stdc.string : memmove;
 
 /*******************************************************************************
 

@@ -24,11 +24,11 @@ module ocean.net.util.UrlDecoder;
 
  ******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.text.util.SplitIterator: ChrSplitIterator;
 
-import tango.stdc.string: memmove;
+import ocean.stdc.string: memmove;
 
 extern (C) private
 {

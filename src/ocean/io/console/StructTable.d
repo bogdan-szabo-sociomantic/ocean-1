@@ -61,7 +61,7 @@
 
     ---
 
-        import tango.text.convert.Format;
+        import ocean.text.convert.Format;
 
         class TestTable : StructTable!(Test)
         {
@@ -109,13 +109,13 @@ module ocean.io.console.StructTable;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.core.Traits;
 
 import ocean.io.console.Tables;
 
-import tango.text.convert.Format;
+import ocean.text.convert.Format;
 
 
 

@@ -42,7 +42,7 @@ import ocean.text.entities.model.MarkupEntityCodec;
 
 import ocean.text.entities.XmlEntitySet;
 
-import tango.transition;
+import ocean.transition;
 
 /*******************************************************************************
 

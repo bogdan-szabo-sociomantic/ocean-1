@@ -23,7 +23,7 @@ module ocean.net.http.cookie.HttpCookieParser;
 
  ******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 import ocean.net.util.QueryParams: QueryParamSet;
 
 /******************************************************************************/

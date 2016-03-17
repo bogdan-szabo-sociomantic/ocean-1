@@ -19,14 +19,14 @@ module ocean.net.http.time.HttpTimeParser;
 
  ******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import TimeStamp = tango.text.convert.TimeStamp: rfc1123, rfc850, asctime;
+import TimeStamp = ocean.text.convert.TimeStamp: rfc1123, rfc850, asctime;
 
-import tango.time.Time: Date, TimeOfDay;
+import ocean.time.Time: Date, TimeOfDay;
 
-import tango.stdc.time: time_t, tm;
-import tango.stdc.posix.time: timegm;
+import ocean.stdc.time: time_t, tm;
+import ocean.stdc.posix.time: timegm;
 
 /******************************************************************************
 

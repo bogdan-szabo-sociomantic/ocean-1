@@ -6,7 +6,7 @@
 
     authors:        Gavin Norman
 
-    File device, derived from tango.io.device.File and providing a callback
+    File device, derived from ocean.io.device.File and providing a callback
     which is invoked whenever data is transmitted (read or written). The
     callback notifies the user how many bytes were transmitted, as well as the
     total number of bytes transmitted since the file was opened.
@@ -16,7 +16,7 @@
     ---
 
         import ocean.io.device.ProgressFile;
-        import tango.io.Stdout;
+        import ocean.io.Stdout_tango;
 
         // Delegate called when data is read/written
         void progress ( size_t bytes, ulong total_bytes )
@@ -42,9 +42,9 @@ module ocean.io.device.ProgressFile;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import tango.io.device.File;
+import ocean.io.device.File;
 
 
 
@@ -93,7 +93,7 @@ class ProgressFile : File
         Create a File without opening a path.
 
         Note that File is unbuffered by default - wrap an instance
-        within tango.io.stream.Buffered for buffered I/O.
+        within ocean.io.stream.Buffered for buffered I/O.
 
         Params:
             progress_dg = delegate to notify of progress
@@ -116,7 +116,7 @@ class ProgressFile : File
         Create a File with the provided path and style.
 
         Note that File is unbuffered by default - wrap an instance
-        within tango.io.stream.Buffered for buffered I/O.
+        within ocean.io.stream.Buffered for buffered I/O.
 
         Params:
             progress_dg = delegate to notify of progress

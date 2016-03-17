@@ -24,9 +24,9 @@ module ocean.sys.CpuAffinity;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import tango.stdc.posix.sys.types : pid_t;
+import ocean.stdc.posix.sys.types : pid_t;
 
 
 
@@ -65,7 +65,7 @@ private extern ( C )
 public struct CpuAffinity
 {
     import ocean.sys.ErrnoException;
-    import tango.stdc.errno: EINVAL;
+    import ocean.stdc.errno: EINVAL;
 
 static:
 

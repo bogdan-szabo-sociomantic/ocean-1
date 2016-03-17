@@ -15,7 +15,7 @@
     ---
 
         import ocean.util.cipher.HMAC;
-        import tango.util.digest.Sha1;
+        import ocean.util.digest.Sha1;
 
         auto sha = new Sha1;
         auto hmac = new HMAC(sha);
@@ -44,7 +44,7 @@ module ocean.util.cipher.HMAC;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.core.Exception;
 
@@ -52,7 +52,7 @@ import ocean.util.cipher.misc.ByteConverter;
 
 import ocean.util.cipher.misc.Bitwise;
 
-import tango.util.digest.MerkleDamgard;
+import ocean.util.digest.MerkleDamgard;
 
 
 
@@ -317,7 +317,7 @@ public class HMAC
 
 version (UnitTest)
 {
-    import tango.util.digest.Sha1;
+    import ocean.util.digest.Sha1;
 }
 
 unittest

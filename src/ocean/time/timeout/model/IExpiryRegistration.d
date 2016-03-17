@@ -28,7 +28,7 @@ module ocean.time.timeout.model.IExpiryRegistration;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 import ocean.time.timeout.model.ITimeoutClient;
 
 /*******************************************************************************

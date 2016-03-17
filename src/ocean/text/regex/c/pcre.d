@@ -39,7 +39,7 @@ module ocean.text.regex.c.pcre;
  * -----------------------------------------------------------------------------
  */
 
-import tango.transition;
+import ocean.transition;
 
 extern (C):
 

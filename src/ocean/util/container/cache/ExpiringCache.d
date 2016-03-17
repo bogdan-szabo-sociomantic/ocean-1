@@ -16,13 +16,13 @@
 
 module ocean.util.container.cache.ExpiringCache;
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.util.container.cache.model.IExpiringCacheInfo;
 
 import ocean.util.container.cache.Cache;
 
-import tango.stdc.time: time_t;
+import ocean.stdc.time: time_t;
 
 /*******************************************************************************
 
@@ -386,8 +386,8 @@ class ExpiringCache ( size_t ValueSize = 0 ) : Cache!(ValueSize, true),
 
 /******************************************************************************/
 
-import tango.stdc.posix.stdlib: srand48, mrand48, drand48;
-import tango.stdc.time: time;
+import ocean.stdc.posix.stdlib: srand48, mrand48, drand48;
+import ocean.stdc.time: time;
 
 extern (C) int getpid();
 

@@ -18,7 +18,7 @@ module ocean.util.app.ext.model.IArgumentsExtExtension;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 public import ocean.util.app.model.IApplication;
 public import ocean.text.Arguments : Arguments;

@@ -39,11 +39,11 @@ module ocean.text.utf.UtfUtil;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import tango.core.Exception: onUnicodeError;
+import ocean.core.Exception_tango: onUnicodeError;
 
-import tango.stdc.string: memrchr;
+import ocean.stdc.string: memrchr;
 
 import ocean.core.Array: append, copy;
 

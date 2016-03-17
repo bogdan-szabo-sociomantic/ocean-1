@@ -23,7 +23,7 @@ module ocean.net.http.cookie.HttpCookieGenerator;
 
  ******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.net.util.ParamSet;
 
@@ -31,7 +31,7 @@ import ocean.net.http.consts.CookieAttributeNames;
 
 import ocean.net.http.time.HttpTimeFormatter;
 
-import tango.stdc.time: time_t;
+import ocean.stdc.time: time_t;
 
 /******************************************************************************/
 

@@ -32,9 +32,9 @@ import ocean.sys.socket.AddressIPSocket;
 
 import ocean.io.device.IODevice: IInputDevice, IOutputDevice;
 
-import tango.text.convert.Format;
+import ocean.text.convert.Format;
 
-import tango.io.model.IConduit: ISelectable;
+import ocean.io.model.IConduit: ISelectable;
 
 debug ( ConnectionHandler ) import ocean.io.Stdout : Stderr;
 

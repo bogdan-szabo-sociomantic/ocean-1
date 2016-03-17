@@ -16,10 +16,10 @@ module ocean.util.serialize.contiguous.MultiVersionDecorator;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import tango.stdc.string : memmove;
-import tango.math.Math;
+import ocean.stdc.string : memmove;
+import ocean.math.Math;
 
 import ocean.core.Enforce,
        ocean.util.container.ConcatBuffer,

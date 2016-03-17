@@ -56,7 +56,7 @@ module ocean.util.container.ebtree.EBTree64;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.util.container.ebtree.model.IEBTree,
        ocean.util.container.ebtree.model.Node,

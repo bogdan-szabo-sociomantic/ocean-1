@@ -103,16 +103,16 @@ import ocean.sys.SignalMask;
 
 import ocean.core.Traits;
 
-import tango.io.model.IConduit;
+import ocean.io.model.IConduit;
 
-import tango.stdc.posix.signal;
-import tango.stdc.posix.unistd : read, close;
+import ocean.stdc.posix.signal;
+import ocean.stdc.posix.unistd : read, close;
 
-import tango.stdc.errno : EAGAIN, EWOULDBLOCK, errno;
+import ocean.stdc.errno : EAGAIN, EWOULDBLOCK, errno;
 
-import tango.sys.linux.consts.fcntl : O_NONBLOCK;
+import ocean.sys.linux.consts.fcntl : O_NONBLOCK;
 
-import tango.core.Array : contains;
+import ocean.core.Array_tango : contains;
 
 debug import ocean.io.Stdout;
 

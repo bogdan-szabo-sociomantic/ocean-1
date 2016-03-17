@@ -26,18 +26,18 @@ import ocean.core.Enforce;
 import ocean.core.Test;
 import ocean.sys.socket.UnixSocket;
 
-import tango.transition;
-import tango.stdc.posix.sys.socket;
-import tango.stdc.posix.sys.wait;
-import tango.stdc.posix.unistd;
-import tango.stdc.posix.stdlib : mkdtemp;
-import tango.stdc.stdio;
-import tango.math.Math;
-import tango.core.Thread;
-import tango.core.Time;
-import tango.net.device.LocalSocket;
-import tango.stdc.string;
-import tango.stdc.errno;
+import ocean.transition;
+import ocean.stdc.posix.sys.socket;
+import ocean.stdc.posix.sys.wait;
+import ocean.stdc.posix.unistd;
+import ocean.stdc.posix.stdlib : mkdtemp;
+import ocean.stdc.stdio;
+import ocean.math.Math;
+import ocean.core.Thread;
+import ocean.core.Time;
+import ocean.net.device.LocalSocket;
+import ocean.stdc.string;
+import ocean.stdc.errno;
 
 import ocean.text.util.StringC;
 

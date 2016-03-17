@@ -74,7 +74,7 @@ module ocean.util.log.PeriodicTrace;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.core.TypeConvert;
 
@@ -82,11 +82,11 @@ import ocean.util.log.StaticTrace;
 
 import ocean.io.Stdout;
 
-import tango.stdc.stdarg;
+import ocean.stdc.stdarg;
 
-import tango.text.convert.Layout;
+import ocean.text.convert.Layout_tango;
 
-import tango.time.StopWatch;
+import ocean.time.StopWatch;
 
 
 

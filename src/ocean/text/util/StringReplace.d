@@ -40,7 +40,7 @@
 
  ******************************************************************************/
 
-module ocean.text.util.StringReplace;
+deprecated module ocean.text.util.StringReplace;
 
 /******************************************************************************
 
@@ -50,7 +50,7 @@ module ocean.text.util.StringReplace;
 
 import ocean.text.util.StringSearch;
 
-import tango.text.convert.Format;
+import ocean.text.convert.Format;
 
 /******************************************************************************
 

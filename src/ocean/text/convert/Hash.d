@@ -27,7 +27,7 @@ module ocean.text.convert.Hash;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import Integer = ocean.text.convert.Integer;
 

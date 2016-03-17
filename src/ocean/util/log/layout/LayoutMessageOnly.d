@@ -21,9 +21,9 @@ module ocean.util.log.layout.LayoutMessageOnly;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import  tango.util.log.Log;
+import ocean.util.log.Log;
 
 
 

@@ -21,10 +21,10 @@ module  ocean.io.digest.Fnv1;
 
 *******************************************************************************/
 
-import tango.transition;
-import tango.util.digest.Digest;
+import ocean.transition;
+import ocean.util.digest.Digest;
 
-import tango.core.ByteSwap;
+import ocean.core.ByteSwap;
 
 
 /******************************************************************************

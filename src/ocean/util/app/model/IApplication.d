@@ -20,7 +20,7 @@ module ocean.util.app.model.IApplication;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.util.app.model.IApplicationExtension;
 

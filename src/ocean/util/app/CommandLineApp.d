@@ -25,7 +25,7 @@ public import ocean.text.Arguments : Arguments;
 import ocean.util.app.ext.ArgumentsExt;
 import ocean.util.app.ext.model.IArgumentsExtExtension;
 
-import tango.transition;
+import ocean.transition;
 
 
 /*******************************************************************************
@@ -51,7 +51,7 @@ import tango.transition;
 
     import ocean.util.app.CommandLineApp;
     import ocean.io.Stdout;
-    import tango.text.convert.Integer;
+    import ocean.text.convert.Integer_tango;
 
     class Returner : CommandLineApp
     {

@@ -43,7 +43,7 @@ import ocean.util.app.ext.model.IConfigExtExtension;
 import ocean.util.app.ext.model.ILogExtExtension;
 import ocean.util.app.ext.model.ISignalExtExtension;
 
-import tango.transition;
+import ocean.transition;
 
 /*******************************************************************************
 
@@ -70,7 +70,7 @@ public abstract class DaemonApp : Application,
     import ocean.util.app.ext.ReopenableFilesExt;
     import ocean.util.app.ExitException;
 
-    import tango.util.log.Log;
+    import ocean.util.log.Log;
 
     /***************************************************************************
 
@@ -181,6 +181,8 @@ public abstract class DaemonApp : Application,
 
     public static struct OptionalSettings
     {
+        import tango.stdc.posix.signal : SIGHUP;
+
         /***********************************************************************
 
             How the program is supposed to be invoked.
@@ -239,6 +241,15 @@ public abstract class DaemonApp : Application,
         ***********************************************************************/
 
         int[] signals = [];
+
+        /***********************************************************************
+
+            Signal to trigger reopening of files which are registered with the
+            ReopenableFilesExt. (Typically used for log rotation.)
+
+        ***********************************************************************/
+
+        int reopen_signal = SIGHUP;
     }
 
     /***************************************************************************
@@ -305,7 +316,8 @@ public abstract class DaemonApp : Application,
         this.registerExtension(this.signal_ext);
 
         // Create and register repoenable files extension
-        this.reopenable_files_ext = new ReopenableFilesExt(this.signal_ext);
+        this.reopenable_files_ext = new ReopenableFilesExt(this.signal_ext,
+            settings.reopen_signal);
         this.registerExtension(this.reopenable_files_ext);
     }
 
@@ -557,7 +569,7 @@ unittest
 
     class MyApp : DaemonApp
     {
-        import tango.stdc.posix.signal: SIGINT, SIGTERM;
+        import ocean.stdc.posix.signal: SIGINT, SIGTERM;
 
         import ocean.io.select.EpollSelectDispatcher;
 

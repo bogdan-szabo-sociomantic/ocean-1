@@ -42,10 +42,10 @@ module ocean.text.util.StringC;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import  tango.stdc.string: strlen, wcslen;
-import  tango.stdc.stddef: wchar_t;
+import ocean.stdc.string: strlen, wcslen;
+import ocean.stdc.stddef: wchar_t;
 
 
 class StringC

@@ -32,8 +32,8 @@ import ocean.util.container.pool.model.IResettable;
 
 import ocean.sys.Epoll : epoll_event_t;
 
-import tango.net.device.Socket : Socket;
-import tango.text.convert.Format;
+import ocean.net.device.Socket : Socket;
+import ocean.text.convert.Format;
 
 debug ( ConnectionHandler ) import ocean.io.Stdout : Stderr;
 

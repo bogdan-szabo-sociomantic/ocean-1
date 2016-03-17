@@ -27,7 +27,7 @@ import ocean.util.app.CommandLineApp;
 import ocean.util.app.ext.model.IConfigExtExtension;
 import ocean.util.app.ext.ConfigExt;
 
-import tango.transition;
+import ocean.transition;
 
 
 /*******************************************************************************
@@ -54,7 +54,7 @@ import tango.transition;
 
     import ocean.util.app.ConfiguredCliApp;
     import ocean.io.Stdout;
-    import tango.text.convert.Integer;
+    import ocean.text.convert.Integer_tango;
 
     class Returner : ConfiguredCliApp
     {

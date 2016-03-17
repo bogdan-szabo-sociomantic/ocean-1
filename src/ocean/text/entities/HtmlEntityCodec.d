@@ -42,10 +42,6 @@ import ocean.text.entities.model.MarkupEntityCodec;
 
 import ocean.text.entities.HtmlEntitySet;
 
-import ocean.text.util.StringReplace;
-
-
-
 /*******************************************************************************
 
     Class to en/decode html entities.
@@ -53,4 +49,3 @@ import ocean.text.util.StringReplace;
 *******************************************************************************/
 
 public alias MarkupEntityCodec!(HtmlEntitySet) HtmlEntityCodec;
-

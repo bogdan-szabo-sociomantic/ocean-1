@@ -8,7 +8,7 @@
 
 module ocean.util.cipher.misc.ByteConverter;
 
-import tango.transition;
+import ocean.transition;
 
 version ( UnitTest )
 {

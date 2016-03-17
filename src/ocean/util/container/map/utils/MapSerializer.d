@@ -29,7 +29,7 @@ module ocean.util.container.map.utils.MapSerializer;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.io.digest.Fnv1,
        ocean.io.serialize.SimpleSerializer,
@@ -39,13 +39,13 @@ import ocean.io.digest.Fnv1,
 import ocean.core.Array : copy;
 import ocean.core.Exception;
 
-import tango.core.Exception    : IOException;
-import tango.io.model.IConduit : IOStream;
+import ocean.core.Exception_tango    : IOException;
+import ocean.io.model.IConduit : IOStream;
 
-import tango.core.Traits,
-       tango.core.Tuple,
-       tango.io.stream.Buffered,
-       tango.io.device.File;
+import ocean.core.Traits,
+       ocean.core.Tuple,
+       ocean.io.stream.Buffered,
+       ocean.io.device.File;
 
 import ocean.util.serialize.contiguous.MultiVersionDecorator,
        ocean.util.serialize.contiguous.Serializer,
@@ -1138,7 +1138,7 @@ version ( UnitTest )
            ocean.util.container.map.Map,
            ocean.util.container.map.HashMap;
 
-    import tango.core.Traits;
+    import ocean.core.Traits;
 
     /***************************************************************************
 

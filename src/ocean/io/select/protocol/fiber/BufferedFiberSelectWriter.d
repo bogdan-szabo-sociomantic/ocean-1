@@ -12,7 +12,7 @@
 
 module ocean.io.select.protocol.fiber.BufferedFiberSelectWriter;
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.io.select.protocol.fiber.FiberSelectWriter;
 

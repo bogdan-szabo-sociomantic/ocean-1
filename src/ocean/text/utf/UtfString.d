@@ -64,9 +64,9 @@ module ocean.text.utf.UtfString;
 
 *******************************************************************************/
 
-import Utf = tango.text.convert.Utf;
+import Utf = ocean.text.convert.Utf;
 
-import tango.transition;
+import ocean.transition;
 
 
 /*******************************************************************************

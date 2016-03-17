@@ -44,7 +44,7 @@
 
 module ocean.text.utf.c.glib_unicode;
 
-import tango.transition;
+import ocean.transition;
 
 enum GUnicodeType
 {

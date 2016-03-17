@@ -55,9 +55,9 @@ module ocean.core.MessageFiber;
 
  ******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import tango.core.Thread : Fiber;
+import ocean.core.Thread : Fiber;
 
 import ocean.core.Array: copy;
 
@@ -67,16 +67,16 @@ import ocean.io.digest.Fnv1;
 
 debug ( MessageFiber )
 {
-    import tango.io.Stdout;
+    import ocean.io.Stdout_tango;
     debug = MessageFiberToken;
 }
 
 debug ( MessageFiberDump )
 {
-    import tango.time.Clock;
-    import tango.core.Array;
-    import tango.core.Memory;
-    import tango.io.Stdout;
+    import ocean.time.Clock;
+    import ocean.core.Array_tango;
+    import ocean.core.Memory;
+    import ocean.io.Stdout_tango;
     debug = MessageFiberToken;
 }
 

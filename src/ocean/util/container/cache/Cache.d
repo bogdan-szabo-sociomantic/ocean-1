@@ -204,18 +204,18 @@ module ocean.util.container.cache.Cache;
 import ocean.util.container.cache.model.ICache;
 import ocean.util.container.cache.model.ITrackCreateTimesCache;
 import ocean.util.container.cache.model.Value;
-import tango.stdc.time: time_t;
+import ocean.stdc.time: time_t;
 import ocean.core.Test;
 
-import tango.core.Memory;
+import ocean.core.Memory;
 
 debug import ocean.io.Stdout;
 
 debug (CacheTimes)
 {
     import ocean.core.Array: concat;
-    import tango.stdc.stdio: FILE, fopen, fclose, fprintf, perror;
-    import tango.stdc.posix.time: ctime_r;
+    import ocean.stdc.stdio: FILE, fopen, fclose, fprintf, perror;
+    import ocean.stdc.posix.time: ctime_r;
 }
 
 
@@ -1043,10 +1043,10 @@ class Cache ( T, bool TrackCreateTimes = false ) : Cache!(T.sizeof, TrackCreateT
 
 version (UnitTest)
 {
-    import tango.stdc.posix.stdlib: srand48, mrand48, drand48;
-    import tango.stdc.posix.unistd: getpid;
-    import tango.stdc.time: time;
-    import tango.io.Stdout;
+    import ocean.stdc.posix.stdlib: srand48, mrand48, drand48;
+    import ocean.stdc.posix.unistd: getpid;
+    import ocean.stdc.time: time;
+    import ocean.io.Stdout_tango;
     import ocean.core.Array: shuffle;
 }
 
@@ -1471,11 +1471,11 @@ unittest
 
 debug ( OceanPerformanceTest )
 {
-    import tango.core.Memory;
+    import ocean.core.Memory;
 
-    import tango.math.random.Random;
+    import ocean.math.random.Random;
 
-    import tango.time.StopWatch;
+    import ocean.time.StopWatch;
 
     import ocean.io.Stdout : Stderr;
 

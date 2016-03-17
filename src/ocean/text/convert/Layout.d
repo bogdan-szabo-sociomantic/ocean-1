@@ -6,11 +6,11 @@
 
     authors:        Gavin Norman
 
-    Layout class (wrapping tango.text.convert.Layout) with a single static
+    Layout class (wrapping ocean.text.convert.Layout_tango) with a single static
     method to write a formatted string into a provided buffer.
 
     Note: This module exists because a method with this behaviour does not exist
-    in tango's Layout -- the closest being the sprint() method, which writes to
+    in original Layout -- the closest being the sprint() method, which writes to
     an output buffer, but which will not exceed the passed buffer's length.
 
     Usage example:
@@ -39,13 +39,13 @@ module ocean.text.convert.Layout;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.core.Array : append;
 
 import ocean.util.container.AppendBuffer;
 
-import TangoLayout = tango.text.convert.Layout;
+import TangoLayout = ocean.text.convert.Layout_tango;
 
 
 /*******************************************************************************
@@ -67,7 +67,7 @@ version (DigitalMarsX86_64)
      * the vaArg template, which is instantiated in other modules as well.
      */
 
-    public import tango.core.Vararg: va_arg, va_list,
+    public import ocean.core.Vararg: va_arg, va_list,
                                // implicitly referenced by the compiler... YEAH!
                                      __va_argsave_t;
 }
@@ -385,7 +385,7 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
 
     Calls dg with _arguments and _argptr, calling va_start()/va_end() if
     required for the current platform and compiler. dg must use va_arg() from
-    tango.core.Vararg to iterate over argptr.
+    ocean.core.Vararg to iterate over argptr.
 
     dg must comply to
 

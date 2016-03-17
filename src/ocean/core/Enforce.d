@@ -15,8 +15,8 @@ module ocean.core.Enforce;
 
 *******************************************************************************/
 
-import tango.transition;
-import tango.text.convert.Format;
+import ocean.transition;
+import ocean.text.convert.Format;
 
 
 /******************************************************************************

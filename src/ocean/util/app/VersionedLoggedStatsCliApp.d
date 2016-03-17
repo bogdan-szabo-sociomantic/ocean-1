@@ -25,7 +25,7 @@ public import ocean.util.app.Application : Application;
 public import ocean.util.config.ConfigParser : ConfigParser;
 public import ocean.text.Arguments : Arguments;
 
-import tango.transition;
+import ocean.transition;
 import ocean.util.app.VersionedLoggedCliApp;
 import ocean.util.app.ext.VersionArgsExt;
 import ocean.util.app.ext.StatsExt;

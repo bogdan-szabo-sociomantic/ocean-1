@@ -53,13 +53,13 @@ import ocean.util.container.AppendBuffer;
 import ocean.util.container.map.Map,
        ocean.util.container.map.model.StandardHash;
 
-import tango.transition;
+import ocean.transition;
 
 debug
 {
-    import tango.io.Stdout;
-    import tango.stdc.time: time_t, ctime;
-    import tango.stdc.string: strlen;
+    import ocean.io.Stdout_tango;
+    import ocean.stdc.time: time_t, ctime;
+    import ocean.stdc.string: strlen;
 }
 
 /*******************************************************************************

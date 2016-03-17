@@ -24,9 +24,9 @@ module ocean.util.container.MallocArray;
 
 *******************************************************************************/
 
-import tango.core.Exception; // onOutOfMemoryError;
-import tango.stdc.stdlib; // malloc, free, realloc;
-import tango.stdc.string; // memmove;
+import ocean.core.Exception_tango; // onOutOfMemoryError;
+import ocean.stdc.stdlib; // malloc, free, realloc;
+import ocean.stdc.string; // memmove;
 
 
 /*******************************************************************************
@@ -138,20 +138,20 @@ version (UnitTest)
         test!("==")(t[0], T.init);
 
         t.resize(2);
-        test!("!=")(t, null);
+        test!("!=")(t, (T[]).init);
         test!("==")(t.length, 2);
         // Test whether the expanded array part was inited.
         test!("==")(t[1], T.init);
 
         t.resize(0);
-        test!("==")(t, null);
+        test!("==")(t, (T[]).init);
 
         t = allocate!(T)(100);
-        test!("!=")(t, null);
+        test!("!=")(t, (T[]).init);
         test!("==")(t.length, 100);
 
         t.deallocate();
-        test!("==")(t, null);
+        test!("==")(t, (T[]).init);
 
         t.resize(1);
         test!("==")(t.length, 1);

@@ -18,10 +18,10 @@ module ocean.sys.socket.UnixSocket;
 import ocean.core.Enforce;
 import ocean.sys.socket.model.ISocket;
 
-import tango.net.device.LocalSocket;
-import tango.stdc.posix.sys.socket;
-import tango.stdc.posix.sys.socket;
-import tango.stdc.posix.unistd;
+import ocean.net.device.LocalSocket;
+import ocean.stdc.posix.sys.socket;
+import ocean.stdc.posix.sys.socket;
+import ocean.stdc.posix.unistd;
 
 
 /*******************************************************************************

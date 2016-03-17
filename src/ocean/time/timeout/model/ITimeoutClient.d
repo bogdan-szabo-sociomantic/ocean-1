@@ -19,7 +19,7 @@ module ocean.time.timeout.model.ITimeoutClient;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 
 /******************************************************************************/

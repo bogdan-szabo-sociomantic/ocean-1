@@ -22,12 +22,12 @@ module ocean.time.timeout.model.ExpiryRegistrationBase;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.time.timeout.model.IExpiryRegistration,
        ocean.time.timeout.model.ITimeoutClient;
 
-debug import tango.io.Stdout;
+debug import ocean.io.Stdout_tango;
 
 /*******************************************************************************
 

@@ -26,7 +26,7 @@ module ocean.net.http.consts.CookieAttributeNames;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 
 /******************************************************************************/

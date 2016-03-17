@@ -11,7 +11,7 @@
 module ocean.util.app.ext.VersionInfo;
 
 
-import tango.transition;
+import ocean.transition;
 
 
 /*******************************************************************************

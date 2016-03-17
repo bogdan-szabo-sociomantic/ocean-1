@@ -29,8 +29,8 @@ import ocean.util.serialize.contiguous.Deserializer,
        ocean.util.serialize.contiguous.Contiguous,
        ocean.util.serialize.contiguous.model.LoadCopyMixin;
 
-import tango.text.convert.Format,
-       tango.stdc.string : memmove;
+import ocean.text.convert.Format,
+       ocean.stdc.string : memmove;
 
 /*******************************************************************************
 
@@ -134,8 +134,8 @@ version(UnitTest):
 
 import ocean.core.Test;
 
-import tango.core.Array,
-       tango.core.Memory;
+import ocean.core.Array_tango,
+       ocean.core.Memory;
 
 /*******************************************************************************
 

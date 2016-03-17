@@ -14,22 +14,22 @@ module ocean.sys.GetIfAddrs;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import tango.stdc.errno;
-import tango.stdc.string;
-import tango.stdc.posix.arpa.inet;
-import tango.stdc.posix.netinet.in_: sockaddr_in, sockaddr_in6;
-import tango.stdc.posix.sys.socket;
-import tango.sys.linux.ifaddrs;
-import tango.sys.linux.consts.socket: AF_INET, AF_INET6;
+import ocean.stdc.errno;
+import ocean.stdc.string;
+import ocean.stdc.posix.arpa.inet;
+import ocean.stdc.posix.netinet.in_: sockaddr_in, sockaddr_in6;
+import ocean.stdc.posix.sys.socket;
+import ocean.sys.linux.ifaddrs;
+import ocean.sys.linux.consts.socket: AF_INET, AF_INET6;
 
 import ocean.core.Test;
 import ocean.core.TypeConvert;
 import ocean.sys.ErrnoException;
 import ocean.text.util.StringC;
 
-debug import tango.io.Stdout;
+debug import ocean.io.Stdout_tango;
 
 
 /*******************************************************************************

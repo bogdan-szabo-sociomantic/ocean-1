@@ -28,7 +28,7 @@ module ocean.db.tokyocabinet.util.TokyoCabinetCursor;
 
  ******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.core.Enforce: enforce;
 import ocean.core.TypeConvert;

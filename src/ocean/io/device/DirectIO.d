@@ -62,15 +62,15 @@ module ocean.io.device.DirectIO;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import tango.io.model.IConduit;
+import ocean.io.model.IConduit;
 
-import tango.io.device.File;
+import ocean.io.device.File;
 
-import tango.core.Exception: IOException;
+import ocean.core.Exception_tango: IOException;
 
-import tango.stdc.posix.fcntl : O_DIRECT; // Linux only
+import ocean.stdc.posix.fcntl : O_DIRECT; // Linux only
 
 
 
@@ -229,7 +229,7 @@ public class BufferedDirectWriteFile: OutputStream
 
         File to do direct IO writes.
 
-        Actually there is no way to open files with tango specifying custom
+        Actually there is no way to open files with File specifying custom
         flags that is not sub-classing. Bummer!
 
     ***************************************************************************/
@@ -537,7 +537,7 @@ public class BufferedDirectReadFile: InputStream
 
         File to do direct IO reads.
 
-        Actually there is no way to open files with tango specifying custom
+        Actually there is no way to open files with File specifying custom
         flags that is not sub-classing. Bummer!
 
     ***************************************************************************/

@@ -23,19 +23,19 @@ module ocean.util.log.StaticTrace;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.core.TypeConvert;
 
 import ocean.io.Terminal;
 
-import tango.text.convert.Layout;
+import ocean.text.convert.Layout_tango;
 
-import tango.text.Search;
+import ocean.text.Search;
 
-import tango.io.model.IConduit;
+import ocean.io.model.IConduit;
 
-import tango.io.Console;
+import ocean.io.Console;
 
 /*******************************************************************************
 
@@ -45,21 +45,21 @@ import tango.io.Console;
 
 version (GNU)
 {
-    import tango.core.Vararg;
+    import ocean.core.Vararg;
 
     alias void* Arg;
     alias va_list ArgList;
 }
 else version (LDC)
 {
-    import tango.core.Vararg;
+    import ocean.core.Vararg;
 
     alias void* Arg;
     alias va_list ArgList;
 }
 else version (DigitalMars)
 {
-    import tango.core.Vararg;
+    import ocean.core.Vararg;
 
     alias void* Arg;
     alias va_list ArgList;

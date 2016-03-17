@@ -38,11 +38,11 @@ module ocean.text.util.StringEncode;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.text.util.c.iconv;
 
-import tango.stdc.errno;
+import ocean.stdc.errno;
 
 /******************************************************************************
 

@@ -93,7 +93,7 @@ module ocean.io.console.AppStatus;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.io.Terminal;
 
@@ -113,19 +113,21 @@ import ocean.util.log.InsertConsole;
 
 import ocean.util.log.layout.LayoutMessageOnly;
 
-import tango.stdc.math: lroundf;
+import ocean.stdc.math: lroundf;
 
-import tango.core.Memory;
+import ocean.core.Memory;
 
-import tango.stdc.stdlib: div;
+import ocean.stdc.stdarg;
 
-import tango.stdc.time: clock_t, clock, tm, time_t;
+import ocean.stdc.stdlib: div;
 
-import tango.text.convert.Format;
+import ocean.stdc.time: clock_t, clock, tm, time_t;
 
-import tango.util.log.Log;
+import ocean.text.convert.Format;
 
-import tango.io.Console;
+import ocean.util.log.Log;
+
+import ocean.io.Console;
 
 
 
@@ -807,8 +809,7 @@ public class AppStatus
 
     /***************************************************************************
 
-        Calculate the current memory usage of this program using the tango
-        memory module
+        Calculate the current memory usage of this program using the GC stats
 
         Params:
             mem_allocated = the amount of memory currently allocated
@@ -890,7 +891,7 @@ public class AppStatus
     /***************************************************************************
 
         Format the memory usage for the current program to using the
-        tango memory module to calculate current usage (if available).
+        GC stats to calculate current usage (if available).
 
     ***************************************************************************/
 

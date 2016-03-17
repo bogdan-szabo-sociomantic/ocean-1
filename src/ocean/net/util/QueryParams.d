@@ -26,7 +26,7 @@ module ocean.net.util.QueryParams;
 
  ******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.net.util.ParamSet;
 

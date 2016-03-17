@@ -17,7 +17,7 @@
 
     ---
 
-        import tango.io.select.EpollSelector;
+        import ocean.io.select.EpollSelector;
         import ocean.io.select.SelectDispatcher;
 
         import ocean.net.server.SelectListener;
@@ -64,7 +64,7 @@ module ocean.net.server.SelectListener;
 
  ******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.io.select.client.model.ISelectClient;
 import ocean.net.server.connection.IConnectionHandler;
@@ -73,22 +73,22 @@ import ocean.net.server.connpool.ISelectListenerPoolInfo;
 
 import ocean.util.container.pool.model.IPoolInfo;
 
-import tango.text.convert.Format;
+import ocean.text.convert.Format;
 
-import tango.net.device.Socket,
-       tango.net.device.Berkeley: IPv4Address;
+import ocean.net.device.Socket,
+       ocean.net.device.Berkeley: IPv4Address;
 
-import tango.stdc.posix.sys.socket: accept, SOL_SOCKET, SO_ERROR, SO_REUSEADDR;
+import ocean.stdc.posix.sys.socket: accept, SOL_SOCKET, SO_ERROR, SO_REUSEADDR;
 
-import tango.stdc.posix.unistd:     close;
-import tango.stdc.errno:            errno;
+import ocean.stdc.posix.unistd:     close;
+import ocean.stdc.errno:            errno;
 
 import ocean.sys.socket.AddressIPSocket;
 
 import ocean.io.select.protocol.generic.ErrnoIOException: SocketError;
 
 
-import tango.util.log.Log;
+import ocean.util.log.Log;
 
 /*******************************************************************************
 

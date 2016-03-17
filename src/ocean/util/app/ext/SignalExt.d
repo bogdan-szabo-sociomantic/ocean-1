@@ -20,7 +20,7 @@
         import ocean.util.app.Application;
         import ocean.util.app.ext.SignalExt;
         import ocean.io.select.EpollSelectDispatcher;
-        import tango.stdc.posix.signal : SIGINT, SIGTERM;
+        import ocean.stdc.posix.signal : SIGINT, SIGTERM;
 
         // Example application class which does two things:
         // 1. Owns an instance of SignalExtension and registers some signals
@@ -89,7 +89,7 @@ module ocean.util.app.ext.SignalExt;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.util.app.model.IApplicationExtension;
 import ocean.util.app.model.ExtensibleClassMixin;

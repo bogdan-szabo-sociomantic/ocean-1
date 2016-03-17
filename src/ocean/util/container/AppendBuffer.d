@@ -25,11 +25,11 @@ module ocean.util.container.AppendBuffer;
 
  ******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import tango.stdc.stdlib: malloc, realloc, free;
+import ocean.stdc.stdlib: malloc, realloc, free;
 
-import tango.core.Exception: onOutOfMemoryError;
+import ocean.core.Exception_tango: onOutOfMemoryError;
 
 import ocean.core.Traits;
 
@@ -725,7 +725,7 @@ private abstract class AppendBufferImpl: IAppendBufferBase
         references. (The GC determines whether a block of memory possibly
         contains pointers or not at the point where it is newed, not based on
         the type it is assigned to. See _d_newarrayT() and _d_newarrayiT() in
-        tango.core.rt.compiler.dmd.rt.lifetime, lines 232 and 285,
+        ocean.core.rt.compiler.dmd.rt.lifetime, lines 232 and 285,
         "BlkAttr.NO_SCAN".)
 
         @see http://thecybershadow.net/d/Memory_Management_in_the_D_Programming_Language.pdf

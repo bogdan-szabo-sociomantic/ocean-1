@@ -43,15 +43,15 @@ import ocean.io.select.client.TimerEvent;
 
 import ocean.io.select.client.model.ISelectClient;
 
-import tango.stdc.posix.time: time_t, timespec;
+import ocean.stdc.posix.time: time_t, timespec;
 
 debug
 {
-    import tango.stdc.time: ctime;
-    import tango.io.Stdout;
+    import ocean.stdc.time: ctime;
+    import ocean.io.Stdout_tango;
 }
 
-import tango.util.log.Log;
+import ocean.util.log.Log;
 
 /*******************************************************************************
 

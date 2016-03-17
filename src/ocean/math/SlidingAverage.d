@@ -202,7 +202,7 @@ public class SlidingAverage ( T )
 
 version (UnitTest)
 {
-    import tango.util.Convert: to;
+    import ocean.util.Convert: to;
 
     /*******************************************************************************
 
@@ -287,7 +287,7 @@ unittest
     import ocean.io.select.EpollSelectDispatcher;
     import ocean.io.select.client.TimerEvent;
 
-    import tango.io.Stdout;
+    import ocean.io.Stdout_tango;
 
     void main ()
     {

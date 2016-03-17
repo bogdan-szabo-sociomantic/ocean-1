@@ -18,8 +18,8 @@ module ocean.sys.Epoll;
 
  *****************************************************************************/
 
-import tango.transition;
-import tango.stdc.posix.unistd: close;
+import ocean.transition;
+import ocean.stdc.posix.unistd: close;
 
 /*****************************************************************************
 

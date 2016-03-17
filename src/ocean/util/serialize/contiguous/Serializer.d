@@ -15,7 +15,7 @@ module ocean.util.serialize.contiguous.Serializer;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.util.serialize.model.Traits;
 import ocean.util.serialize.contiguous.Contiguous;
@@ -24,7 +24,7 @@ import ocean.core.Traits : ContainsDynamicArray;
 
 import ocean.core.Test;
 
-debug(SerializationTrace) import tango.io.Stdout;
+debug(SerializationTrace) import ocean.io.Stdout_tango;
 
 /******************************************************************************
 

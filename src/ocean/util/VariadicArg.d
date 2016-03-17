@@ -67,7 +67,7 @@ version (DigitalMars) version (X86_64):
 
 *******************************************************************************/
 
-public  import tango.stdc.stdarg: __va_argsave_t, __va_list, va_list;
+public  import ocean.stdc.stdarg: __va_argsave_t, __va_list, va_list;
 
 /*******************************************************************************
 
@@ -440,7 +440,7 @@ scope class TypeInfoVaList : IVaList
 
     Variadic arguments list base class for x86-64 DMD.
 
-    Resembles tango.stdc.stdarg which unfortunately does not allow skipping
+    Resembles ocean.stdc.stdarg which unfortunately does not allow skipping
     arguments and popping an argument from the list without providing a buffer
     to copy the argument data to.
 

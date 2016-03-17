@@ -256,7 +256,7 @@
 module ocean.util.container.ebtree.c.ebtree;
 
 
-import tango.transition;
+import ocean.transition;
 
 
 /* This is the same as an eb_node pointer, except that the lower bit embeds

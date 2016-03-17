@@ -23,7 +23,7 @@ import ocean.io.select.EpollSelectDispatcher,
 
 import ocean.core.Test;
 
-import tango.stdc.posix.time;
+import ocean.stdc.posix.time;
 
 /******************************************************************************
 

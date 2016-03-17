@@ -18,11 +18,11 @@ module ocean.text.util.EscapeChars;
 
  ******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 import ocean.core.Array: concat;
 
-import tango.stdc.string: strcspn, memmove, memcpy, memchr, strlen;
+import ocean.stdc.string: strcspn, memmove, memcpy, memchr, strlen;
 
 /******************************************************************************/
 

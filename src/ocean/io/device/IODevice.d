@@ -23,12 +23,12 @@ module ocean.io.device.IODevice;
 
  ******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
-import tango.io.model.IConduit: ISelectable;
+import ocean.io.model.IConduit: ISelectable;
 
-import tango.stdc.posix.unistd: read, write;
-import tango.stdc.posix.sys.types: ssize_t;
+import ocean.stdc.posix.unistd: read, write;
+import ocean.stdc.posix.sys.types: ssize_t;
 
 /******************************************************************************
 

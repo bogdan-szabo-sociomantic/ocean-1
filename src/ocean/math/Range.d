@@ -20,11 +20,11 @@ module ocean.math.Range;
 
 *******************************************************************************/
 
-import tango.transition;
+import ocean.transition;
 
 version ( UnitTest )
 {
-    import tango.text.convert.Format;
+    import ocean.text.convert.Format;
     import ocean.core.Test;
 }
 
@@ -38,8 +38,8 @@ version ( UnitTest )
 
 public struct Range ( T )
 {
-    import tango.core.Traits : isUnsignedIntegerType;
-    import tango.core.Array;
+    import ocean.core.Traits : isUnsignedIntegerType;
+    import ocean.core.Array_tango;
 
     static assert(isUnsignedIntegerType!(T),
         "Range only works with unsigned integer types");
@@ -52,7 +52,7 @@ public struct Range ( T )
 
     ***************************************************************************/
 
-    import tango.transition: TypeofThis, assumeUnique;
+    import ocean.transition: TypeofThis, assumeUnique;
     mixin TypeofThis!();
 
     /***************************************************************************

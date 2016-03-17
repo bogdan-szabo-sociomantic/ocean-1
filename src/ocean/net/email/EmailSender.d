@@ -22,17 +22,17 @@ module ocean.net.email.EmailSender;
 
 import ocean.core.Array : append;
 
-import tango.transition;
-import tango.io.Stdout;
-import tango.sys.Process;
-import tango.core.Exception : ProcessException;
+import ocean.transition;
+import ocean.io.Stdout_tango;
+import ocean.sys.Process;
+import ocean.core.Exception_tango : ProcessException;
 
 
 class EmailSender
 {
     /***************************************************************************
 
-        tango process
+        Spawned process
 
     ***************************************************************************/
 
