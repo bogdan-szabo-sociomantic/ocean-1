@@ -108,3 +108,9 @@ New Features
   provide a simple and efficient way to monitor files (or directories)
   asynchronously. The supported events can be found in `ocean.sys.linux.inotify`.
   See `test.filesystemevent.main` as example of `FileSystemEvent` usage.
+
+* `ocean.core.MessageFiber`
+
+  An exception message may now be passed to `resume()`, which is then returned
+  (not thrown for compatibility reasons) by the waiting `suspend()` call.
+  Previously this was disallowed.

@@ -502,7 +502,8 @@ class MessageFiber
 
         Returns:
             the message passed to the resume() call which made this call resume.
-            It has always an active member, by default num but never exc.
+            Its active member may be exc; for compatibility reasons this method
+            does not throw in this case in contrast to resume().
 
         Throws:
             KilledException if the fiber is killed.
@@ -522,10 +523,7 @@ class MessageFiber
     out (_msg_out)
     {
         auto msg_out = cast(Unqual!(typeof(_msg_out))) _msg_out;
-
-        auto a = msg_out.active;
-        assert (a);
-        assert (a != a.exc);
+        assert(msg_out.active);
     }
     body
     {
@@ -577,7 +575,8 @@ class MessageFiber
 
         Returns:
             the message passed to the resume() call which made this call resume.
-            It has always an active member, by default num but never exc.
+            Its active member may be exc; for compatibility reasons this method
+            does not throw in this case in contrast to resume().
 
         Throws:
             KilledException if the fiber is killed.
@@ -600,7 +599,8 @@ class MessageFiber
 
     /**************************************************************************
 
-        Resumes the fiber coroutine and waits until it is suspended or killed.
+        Resumes the fiber coroutine and waits until it is suspended or
+        terminates.
 
         Params:
             token = token expected to have been passed to suspend()
@@ -608,8 +608,7 @@ class MessageFiber
                          to not pass anything. Must be the same reference
                          that was used in the suspend call, or else a
                          ResumeException will be thrown inside the fiber.
-            msg = message to be returned by the next suspend() call. It has
-                  always an active member, by default num but never exc.
+            msg = message to be returned by the next suspend() call.
 
         Returns:
             The message passed to the suspend() call which made this call
