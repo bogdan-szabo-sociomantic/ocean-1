@@ -1,2 +1,2 @@
-module tango.math.Elliptic;
+deprecated module tango.math.Elliptic;
 public import ocean.math.Elliptic;

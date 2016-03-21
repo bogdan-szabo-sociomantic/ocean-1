@@ -1,2 +1,2 @@
-module tango.core.ByteSwap;
+deprecated module tango.core.ByteSwap;
 public import ocean.core.ByteSwap;

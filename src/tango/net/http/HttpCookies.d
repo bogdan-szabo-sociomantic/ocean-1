@@ -1,2 +1,2 @@
-module tango.net.http.HttpCookies;
+deprecated module tango.net.http.HttpCookies;
 public import ocean.net.http.HttpCookies;

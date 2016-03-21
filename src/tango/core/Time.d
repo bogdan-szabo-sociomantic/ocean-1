@@ -1,2 +1,2 @@
-module tango.core.Time;
+deprecated module tango.core.Time;
 public import ocean.core.Time;

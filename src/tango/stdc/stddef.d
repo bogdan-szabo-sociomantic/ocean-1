@@ -1,2 +1,2 @@
-module tango.stdc.stddef;
+deprecated module tango.stdc.stddef;
 public import ocean.stdc.stddef;

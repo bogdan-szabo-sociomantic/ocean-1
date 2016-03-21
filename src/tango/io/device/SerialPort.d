@@ -1,2 +1,2 @@
-module tango.io.device.SerialPort;
+deprecated module tango.io.device.SerialPort;
 public import ocean.io.device.SerialPort;

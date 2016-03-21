@@ -1,2 +1,2 @@
-module tango.core.Signal;
+deprecated module tango.core.Signal;
 public import ocean.core.Signal;

@@ -1,2 +1,2 @@
-module tango.stdc.posix.sys.uio;
+deprecated module tango.stdc.posix.sys.uio;
 public import ocean.stdc.posix.sys.uio;

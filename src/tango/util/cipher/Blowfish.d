@@ -1,2 +1,2 @@
-module tango.util.cipher.Blowfish;
+deprecated module tango.util.cipher.Blowfish;
 public import ocean.util.cipher.Blowfish;

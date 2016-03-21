@@ -1,2 +1,2 @@
-module tango.sys.Process;
+deprecated module tango.sys.Process;
 public import ocean.sys.Process;

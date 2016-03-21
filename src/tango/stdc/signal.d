@@ -1,2 +1,2 @@
-module tango.stdc.signal;
+deprecated module tango.stdc.signal;
 public import ocean.stdc.signal;

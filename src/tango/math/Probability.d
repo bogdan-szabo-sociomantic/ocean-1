@@ -1,2 +1,2 @@
-module tango.math.Probability;
+deprecated module tango.math.Probability;
 public import ocean.math.Probability;

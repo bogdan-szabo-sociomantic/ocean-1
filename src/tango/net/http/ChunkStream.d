@@ -1,2 +1,2 @@
-module tango.net.http.ChunkStream;
+deprecated module tango.net.http.ChunkStream;
 public import ocean.net.http.ChunkStream;

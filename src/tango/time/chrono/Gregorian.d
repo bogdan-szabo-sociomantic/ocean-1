@@ -1,2 +1,2 @@
-module tango.time.chrono.Gregorian;
+deprecated module tango.time.chrono.Gregorian;
 public import ocean.time.chrono.Gregorian;

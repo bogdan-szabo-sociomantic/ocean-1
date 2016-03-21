@@ -1,2 +1,2 @@
-module tango.math.Bessel;
+deprecated module tango.math.Bessel;
 public import ocean.math.Bessel;

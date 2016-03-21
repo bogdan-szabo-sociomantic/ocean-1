@@ -1,2 +1,2 @@
-module tango.sys.HomeFolder;
+deprecated module tango.sys.HomeFolder;
 public import ocean.sys.HomeFolder;

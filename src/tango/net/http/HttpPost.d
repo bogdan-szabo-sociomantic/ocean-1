@@ -1,2 +1,2 @@
-module tango.net.http.HttpPost;
+deprecated module tango.net.http.HttpPost;
 public import ocean.net.http.HttpPost;

@@ -1,2 +1,2 @@
-module tango.net.device.Socket;
+deprecated module tango.net.device.Socket;
 public import ocean.net.device.Socket;

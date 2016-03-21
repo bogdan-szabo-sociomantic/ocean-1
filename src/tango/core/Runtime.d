@@ -1,2 +1,2 @@
-module tango.core.Runtime;
+deprecated module tango.core.Runtime;
 public import ocean.core.Runtime;

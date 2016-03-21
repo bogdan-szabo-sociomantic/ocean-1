@@ -1,2 +1,2 @@
-module tango.util.log.Log;
+deprecated module tango.util.log.Log;
 public import ocean.util.log.Log;

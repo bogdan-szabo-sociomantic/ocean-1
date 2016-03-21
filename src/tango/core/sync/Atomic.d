@@ -1,2 +1,2 @@
-module tango.core.sync.Atomic;
+deprecated module tango.core.sync.Atomic;
 public import ocean.core.sync.Atomic;

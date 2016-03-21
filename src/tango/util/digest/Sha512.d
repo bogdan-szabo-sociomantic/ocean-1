@@ -1,2 +1,2 @@
-module tango.util.digest.Sha512;
+deprecated module tango.util.digest.Sha512;
 public import ocean.util.digest.Sha512;

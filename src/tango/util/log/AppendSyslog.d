@@ -1,2 +1,2 @@
-module tango.util.log.AppendSyslog;
+deprecated module tango.util.log.AppendSyslog;
 public import ocean.util.log.AppendSyslog;

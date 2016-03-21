@@ -1,2 +1,2 @@
-module tango.stdc.posix.arpa.inet;
+deprecated module tango.stdc.posix.arpa.inet;
 public import ocean.stdc.posix.arpa.inet;

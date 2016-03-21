@@ -1,2 +1,2 @@
-module tango.math.BigInt;
+deprecated module tango.math.BigInt;
 public import ocean.math.BigInt;

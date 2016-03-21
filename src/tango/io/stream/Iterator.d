@@ -1,2 +1,2 @@
-module tango.io.stream.Iterator;
+deprecated module tango.io.stream.Iterator;
 public import ocean.io.stream.Iterator;

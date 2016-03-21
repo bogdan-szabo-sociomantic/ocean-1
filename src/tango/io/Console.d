@@ -1,2 +1,2 @@
-module tango.io.Console;
+deprecated module tango.io.Console;
 public import ocean.io.Console;

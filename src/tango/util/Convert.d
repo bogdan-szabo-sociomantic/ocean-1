@@ -1,2 +1,2 @@
-module tango.util.Convert;
+deprecated module tango.util.Convert;
 public import ocean.util.Convert;

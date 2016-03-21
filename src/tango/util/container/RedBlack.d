@@ -1,2 +1,2 @@
-module tango.util.container.RedBlack;
+deprecated module tango.util.container.RedBlack;
 public import ocean.util.container.RedBlack;

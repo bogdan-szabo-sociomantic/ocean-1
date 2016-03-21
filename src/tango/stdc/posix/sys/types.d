@@ -1,2 +1,2 @@
-module tango.stdc.posix.sys.types;
+deprecated module tango.stdc.posix.sys.types;
 public import ocean.stdc.posix.sys.types;

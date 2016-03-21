@@ -1,2 +1,2 @@
-module tango.io.device.Device;
+deprecated module tango.io.device.Device;
 public import ocean.io.device.Device;

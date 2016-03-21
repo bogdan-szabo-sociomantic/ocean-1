@@ -1,2 +1,2 @@
-module tango.sys.linux.termios;
+deprecated module tango.sys.linux.termios;
 public import ocean.sys.linux.termios;

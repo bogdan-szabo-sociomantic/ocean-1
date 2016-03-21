@@ -1,2 +1,2 @@
-module tango.io.stream.Delimiters;
+deprecated module tango.io.stream.Delimiters;
 public import ocean.io.stream.Delimiters;

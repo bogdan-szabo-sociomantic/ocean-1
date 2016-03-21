@@ -1,2 +1,2 @@
-module tango.math.IEEE;
+deprecated module tango.math.IEEE;
 public import ocean.math.IEEE;

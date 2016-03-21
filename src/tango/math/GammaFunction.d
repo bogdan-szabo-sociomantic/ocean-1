@@ -1,2 +1,2 @@
-module tango.math.GammaFunction;
+deprecated module tango.math.GammaFunction;
 public import ocean.math.GammaFunction;

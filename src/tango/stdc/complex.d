@@ -1,2 +1,2 @@
-module tango.stdc.complex;
+deprecated module tango.stdc.complex;
 public import ocean.stdc.complex;

@@ -1,2 +1,2 @@
-module tango.text.Text;
+deprecated module tango.text.Text;
 public import ocean.text.Text;

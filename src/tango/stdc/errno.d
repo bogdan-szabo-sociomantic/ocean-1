@@ -1,2 +1,2 @@
-module tango.stdc.errno;
+deprecated module tango.stdc.errno;
 public import ocean.stdc.errno;

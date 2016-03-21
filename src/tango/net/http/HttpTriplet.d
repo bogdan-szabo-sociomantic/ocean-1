@@ -1,2 +1,2 @@
-module tango.net.http.HttpTriplet;
+deprecated module tango.net.http.HttpTriplet;
 public import ocean.net.http.HttpTriplet;

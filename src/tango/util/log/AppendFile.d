@@ -1,2 +1,2 @@
-module tango.util.log.AppendFile;
+deprecated module tango.util.log.AppendFile;
 public import ocean.util.log.AppendFile;

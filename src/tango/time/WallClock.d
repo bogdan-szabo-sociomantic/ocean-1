@@ -1,2 +1,2 @@
-module tango.time.WallClock;
+deprecated module tango.time.WallClock;
 public import ocean.time.WallClock;

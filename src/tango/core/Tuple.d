@@ -1,2 +1,2 @@
-module tango.core.Tuple;
+deprecated module tango.core.Tuple;
 public import ocean.core.Tuple;

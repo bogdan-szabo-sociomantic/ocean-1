@@ -1,2 +1,2 @@
-module tango.stdc.posix.grp;
+deprecated module tango.stdc.posix.grp;
 public import ocean.stdc.posix.grp;

@@ -1,2 +1,2 @@
-module tango.io.stream.Utf;
+deprecated module tango.io.stream.Utf;
 public import ocean.io.stream.Utf;

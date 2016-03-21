@@ -1,2 +1,2 @@
-module tango.util.digest.Tiger;
+deprecated module tango.util.digest.Tiger;
 public import ocean.util.digest.Tiger;

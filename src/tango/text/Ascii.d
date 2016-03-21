@@ -1,2 +1,2 @@
-module tango.text.Ascii;
+deprecated module tango.text.Ascii;
 public import ocean.text.Ascii;

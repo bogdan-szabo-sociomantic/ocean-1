@@ -1,2 +1,2 @@
-module tango.sys.linux.linux;
+deprecated module tango.sys.linux.linux;
 public import ocean.sys.linux.linux;

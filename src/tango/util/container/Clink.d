@@ -1,2 +1,2 @@
-module tango.util.container.Clink;
+deprecated module tango.util.container.Clink;
 public import ocean.util.container.Clink;

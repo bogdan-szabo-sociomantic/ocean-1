@@ -1,2 +1,2 @@
-module tango.core.ThreadPool;
+deprecated module tango.core.ThreadPool;
 public import ocean.core.ThreadPool;

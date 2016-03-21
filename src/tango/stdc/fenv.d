@@ -1,2 +1,2 @@
-module tango.stdc.fenv;
+deprecated module tango.stdc.fenv;
 public import ocean.stdc.fenv;

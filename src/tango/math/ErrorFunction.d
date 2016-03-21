@@ -1,2 +1,2 @@
-module tango.math.ErrorFunction;
+deprecated module tango.math.ErrorFunction;
 public import ocean.math.ErrorFunction;

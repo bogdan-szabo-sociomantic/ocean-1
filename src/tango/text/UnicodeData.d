@@ -1,2 +1,2 @@
-module tango.text.UnicodeData;
+deprecated module tango.text.UnicodeData;
 public import ocean.text.UnicodeData;

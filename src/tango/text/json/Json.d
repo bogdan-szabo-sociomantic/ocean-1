@@ -1,2 +1,2 @@
-module tango.text.json.Json;
+deprecated module tango.text.json.Json;
 public import ocean.text.json.Json;

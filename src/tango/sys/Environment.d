@@ -1,2 +1,2 @@
-module tango.sys.Environment;
+deprecated module tango.sys.Environment;
 public import ocean.sys.Environment;

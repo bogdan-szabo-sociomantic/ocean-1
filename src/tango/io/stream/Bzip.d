@@ -1,2 +1,2 @@
-module tango.io.stream.Bzip;
+deprecated module tango.io.stream.Bzip;
 public import ocean.io.stream.Bzip;

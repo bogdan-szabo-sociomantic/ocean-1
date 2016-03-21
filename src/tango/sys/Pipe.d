@@ -1,2 +1,2 @@
-module tango.sys.Pipe;
+deprecated module tango.sys.Pipe;
 public import ocean.sys.Pipe;

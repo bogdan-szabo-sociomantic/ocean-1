@@ -1,2 +1,2 @@
-module tango.stdc.stringz;
+deprecated module tango.stdc.stringz;
 public import ocean.stdc.stringz;

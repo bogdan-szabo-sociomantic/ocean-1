@@ -1,2 +1,2 @@
-module tango.io.Path;
+deprecated module tango.io.Path;
 public import ocean.io.Path;

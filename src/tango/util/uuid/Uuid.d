@@ -1,2 +1,2 @@
-module tango.util.uuid.Uuid;
+deprecated module tango.util.uuid.Uuid;
 public import ocean.util.uuid.Uuid;

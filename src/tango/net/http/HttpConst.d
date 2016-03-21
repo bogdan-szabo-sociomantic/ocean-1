@@ -1,2 +1,2 @@
-module tango.net.http.HttpConst;
+deprecated module tango.net.http.HttpConst;
 public import ocean.net.http.HttpConst;

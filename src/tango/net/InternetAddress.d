@@ -1,2 +1,2 @@
-module tango.net.InternetAddress;
+deprecated module tango.net.InternetAddress;
 public import ocean.net.InternetAddress;

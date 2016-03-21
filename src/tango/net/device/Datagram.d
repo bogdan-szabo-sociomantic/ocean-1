@@ -1,2 +1,2 @@
-module tango.net.device.Datagram;
+deprecated module tango.net.device.Datagram;
 public import ocean.net.device.Datagram;

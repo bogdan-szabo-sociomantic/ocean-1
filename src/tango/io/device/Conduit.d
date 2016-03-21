@@ -1,2 +1,2 @@
-module tango.io.device.Conduit;
+deprecated module tango.io.device.Conduit;
 public import ocean.io.device.Conduit;

@@ -1,2 +1,2 @@
-module tango.io.selector.AbstractSelector;
+deprecated module tango.io.selector.AbstractSelector;
 public import ocean.io.selector.AbstractSelector;

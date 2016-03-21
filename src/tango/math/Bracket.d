@@ -1,2 +1,2 @@
-module tango.math.Bracket;
+deprecated module tango.math.Bracket;
 public import ocean.math.Bracket;

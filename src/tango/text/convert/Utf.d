@@ -1,2 +1,2 @@
-module tango.text.convert.Utf;
+deprecated module tango.text.convert.Utf;
 public import ocean.text.convert.Utf;

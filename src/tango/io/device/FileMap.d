@@ -1,2 +1,2 @@
-module tango.io.device.FileMap;
+deprecated module tango.io.device.FileMap;
 public import ocean.io.device.FileMap;

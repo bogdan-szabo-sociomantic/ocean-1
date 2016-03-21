@@ -1,2 +1,2 @@
-module tango.sys.Common;
+deprecated module tango.sys.Common;
 public import ocean.sys.Common;

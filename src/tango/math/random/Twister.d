@@ -1,2 +1,2 @@
-module tango.math.random.Twister;
+deprecated module tango.math.random.Twister;
 public import ocean.math.random.Twister;

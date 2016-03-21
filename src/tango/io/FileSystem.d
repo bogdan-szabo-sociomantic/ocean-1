@@ -1,2 +1,2 @@
-module tango.io.FileSystem;
+deprecated module tango.io.FileSystem;
 public import ocean.io.FileSystem;

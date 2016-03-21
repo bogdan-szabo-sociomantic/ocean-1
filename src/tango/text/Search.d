@@ -1,2 +1,2 @@
-module tango.text.Search;
+deprecated module tango.text.Search;
 public import ocean.text.Search;

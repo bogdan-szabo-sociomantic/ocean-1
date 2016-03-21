@@ -1,2 +1,2 @@
-module tango.core.RuntimeTraits;
+deprecated module tango.core.RuntimeTraits;
 public import ocean.core.RuntimeTraits;

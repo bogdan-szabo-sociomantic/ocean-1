@@ -1,2 +1,2 @@
-module tango.text.locale.Core;
+deprecated module tango.text.locale.Core;
 public import ocean.text.locale.Core;

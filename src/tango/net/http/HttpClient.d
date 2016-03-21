@@ -1,2 +1,2 @@
-module tango.net.http.HttpClient;
+deprecated module tango.net.http.HttpClient;
 public import ocean.net.http.HttpClient;

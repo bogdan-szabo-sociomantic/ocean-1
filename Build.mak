@@ -2,10 +2,7 @@ override DFLAGS += -w
 
 # Remove deprecated modules from testing:
 TEST_FILTER_OUT += \
-	$C/src/tango/core/Enforce.d \
-	$C/src/tango/text/Arguments.d \
-	$C/src/tango/util/log/Config.d \
-	$C/src/tango/util/log/Trace.d \
+	$(shell find $C/src/tango) \
 	$C/src/ocean/core/Enforce_tango.d \
 	$C/src/ocean/text/Arguments_tango.d \
 	$C/src/ocean/util/log/Config_tango.d \

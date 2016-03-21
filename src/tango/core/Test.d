@@ -1,2 +1,2 @@
-module tango.core.Test;
+deprecated module tango.core.Test;
 public import ocean.core.Test;
