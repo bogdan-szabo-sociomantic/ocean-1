@@ -127,7 +127,7 @@ public class ErrnoException : Exception
         }
         catch (ErrnoException e)
         {
-            test!("==")(e.toString(),
+            test!("==")(getMsg(e),
                         "FUNCTION: Too many open files (extra)"[]);
             test!("==")(e.errorNumber(), EMFILE);
         }
@@ -207,7 +207,7 @@ public class ErrnoException : Exception
         }
         catch (ErrnoException e)
         {
-            test!("==")(e.toString(), "func: Too many open files"[]);
+            test!("==")(getMsg(e), "func: Too many open files"[]);
             test!("==")(e.line, __LINE__ - 6);
         }
     }
@@ -254,7 +254,7 @@ public class ErrnoException : Exception
         }
         catch (ErrnoException e)
         {
-            test!("==")(e.toString(), "func: Too many open files"[]);
+            test!("==")(getMsg(e), "func: Too many open files"[]);
             test!("==")(e.failedFunctionName(), "func"[]);
             test!("==")(e.line, __LINE__ - 7);
         }
@@ -286,7 +286,7 @@ public class ErrnoException : Exception
         .errno = ENOTBLK;
         auto e = new ErrnoException;
         test!("==")(
-            e.useGlobalErrno("func").append(" str1").append(" str2").toString(),
+            getMsg(e.useGlobalErrno("func").append(" str1").append(" str2")),
             "func: Block device required str1 str2"[]
         );
         test!("==")(.errno, ENOTBLK);
@@ -329,7 +329,7 @@ public class ErrnoException : Exception
     {
         auto e = new ErrnoException;
         e.set(0);
-        test!("==")(e.toString(), "Expected non-zero errno after failure"[]);
+        test!("==")(getMsg(e), "Expected non-zero errno after failure"[]);
     }
 
     /**************************************************************************
@@ -360,7 +360,7 @@ public class ErrnoException : Exception
     {
         auto e = new ErrnoException;
         e.set(ENOTBLK).addMessage("msg");
-        test!("==")(e.toString(), "Block device required (msg)"[]);
+        test!("==")(getMsg(e), "Block device required (msg)"[]);
     }
 
     deprecated ("Will eventually clash with Throwable.message. 'Use addMessage' instead.")

@@ -271,7 +271,7 @@ unittest
     auto e = new SomeReusableException(100);
 
     e.set("message");
-    assert (e.toString() == "message");
+    assert (getMsg(e) == "message");
     auto old_ptr = e.reused_msg.ptr;
 
     try
@@ -280,14 +280,14 @@ unittest
         assert (false);
     }
     catch (SomeReusableException) { }
-    assert (e.toString() == "immutable");
+    assert (getMsg(e) == "immutable");
 
     try
     {
         e.enforce(false, "longer message");
     }
     catch (SomeReusableException) { }
-    assert (e.toString() == "longer message");
+    assert (getMsg(e) == "longer message");
     assert (old_ptr is e.reused_msg.ptr);
 
     try
@@ -295,7 +295,7 @@ unittest
         e.badName("NAME", 42);
     }
     catch (SomeReusableException) { }
-    assert (e.toString() == "Wrong name (NAME) 0x2A 42");
+    assert (getMsg(e) == "Wrong name (NAME) 0x2A 42");
     assert (old_ptr is e.reused_msg.ptr);
 }
 

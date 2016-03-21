@@ -309,7 +309,7 @@ class Application : IApplication
         }
         else
         {
-            Stderr.red.format("{}", e.toString()).default_colour.newline;
+            Stderr.red.format("{}", getMsg(e)).default_colour.newline;
         }
     }
 

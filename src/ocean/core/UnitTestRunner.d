@@ -631,17 +631,17 @@ private scope class UnitTestRunner
         }
         catch (TestException e)
         {
-            err = format(err, "{}:{}: test error: {}", e.file, e.line, e.toString());
+            err = format(err, "{}:{}: test error: {}", e.file, e.line, getMsg(e));
             return Result.Fail;
         }
         catch (AssertException e)
         {
-            err = format(err, "{}:{}: assert error: {}", e.file, e.line, e.toString());
+            err = format(err, "{}:{}: assert error: {}", e.file, e.line, getMsg(e));
         }
         catch (Exception e)
         {
             err = format(err, "{}:{}: unexpected exception {}: {}",
-                    e.file, e.line, e.classinfo.name, e.toString());
+                    e.file, e.line, e.classinfo.name, getMsg(e));
         }
         catch
         {

@@ -275,7 +275,7 @@ unittest
     }
     catch (TestException e)
     {
-        assert(e.toString() == "[name] unit test has failed");
+        assert(getMsg(e) == "[name] unit test has failed");
     }
 
     try
@@ -285,7 +285,7 @@ unittest
     }
     catch (TestException e)
     {
-        assert(e.toString() == "[name] expression '2 > 3' evaluates to false");
+        assert(getMsg(e) == "[name] expression '2 > 3' evaluates to false");
     }
 }
 
