@@ -211,11 +211,11 @@ class NamedTest : TestException
 
     /***************************************************************************
 
-      toString that also uses this.name if present
+      message that also uses this.name if present
 
-     ***************************************************************************/
+    ****************************************************************************/
 
-    public override istring toString()
+    public override cstring message ( ) /* d1to2fix_inject: const */
     {
         if (this.name.length)
         {
@@ -225,6 +225,12 @@ class NamedTest : TestException
         {
             return Format("{}", this.msg);
         }
+    }
+
+    deprecated ("use NamedTest.message() instead")
+    public override istring toString()
+    {
+        return idup(this.message());
     }
 
     /**************************************************************************

@@ -178,38 +178,16 @@ public template ReusableExceptionImplementation()
             throw this.set(msg, file, line);
     }
 
-    version (D_Version2)
+    /**************************************************************************
+
+        Returns:
+            currently active exception message
+
+    ***************************************************************************/
+
+    public override cstring message ( ) /* d1to2fix_inject: const */
     {
-        /**********************************************************************
-
-            Params:
-                sink = delegate that will be called with parts of currently
-                    active exception message
-
-        ***********************************************************************/
-
-        mixin(`
-        public override void toString(scope void delegate(in char[]) sink) const
-        {
-            sink(this.msg is null ? this.reused_msg : this.msg);
-        }
-
-        alias toString = super.toString;
-        `);
-    }
-    else
-    {
-        /**********************************************************************
-
-            Returns:
-                currently active exception message
-
-        **********************************************************************/
-
-        public override istring toString()
-        {
-            return this.msg is null ? this.reused_msg : this.msg;
-        }
+        return this.msg is null ? this.reused_msg : this.msg;
     }
 
     /**************************************************************************
