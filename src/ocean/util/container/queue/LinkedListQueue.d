@@ -415,6 +415,18 @@ public class LinkedListQueue ( T, alias gc_tracking_policy = GCTrackingPolicy.re
         return old_count - this.count;
     }
 
+    /**************************************************************************
+
+        Returns:
+            true if the elements of this class are tracked by the GC, false
+            otherwise.
+
+    ***************************************************************************/
+
+    public static bool isRootedValues ()
+    {
+        return typeof(this).root_values;
+    }
 
     /**************************************************************************
 

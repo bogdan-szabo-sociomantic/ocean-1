@@ -20,3 +20,8 @@ New Features
 
  Added a new optional `gc_tracking_policy` template parameter which allows
  defining the gc scanning policy for the items allocated in the queue.
+
+ * `ocean.util.container.queue.LinkedListQueue`
+
+ Added a new `isRootedValues()` method which returns whether the queue
+ allocated items are added to the gc scan range.
