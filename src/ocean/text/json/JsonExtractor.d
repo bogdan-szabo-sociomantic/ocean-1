@@ -990,7 +990,7 @@ struct JsonExtractor
         }
         catch (JsonException e)
         {
-            t.test!("==")(e.msg, "type mismatch"[]);
+            t.test!("==")(getMsg(e), "type mismatch"[]);
         }
 
         bool fun (uint i, Type type, cstring value)

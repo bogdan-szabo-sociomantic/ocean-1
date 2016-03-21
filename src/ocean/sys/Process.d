@@ -1757,7 +1757,7 @@ unittest
     }
     catch (ProcessException e)
     {
-        assert(false, e.msg);
+        assert(false, getMsg(e));
     }
 }
 

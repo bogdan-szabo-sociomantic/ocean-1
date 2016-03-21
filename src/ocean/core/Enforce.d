@@ -100,7 +100,7 @@ unittest
     }
     catch (Exception e)
     {
-        assert(e.msg == "enforcement has failed");
+        assert(getMsg(e) == "enforcement has failed");
         assert(e.line == __LINE__ - 6);
     }
 
@@ -111,7 +111,7 @@ unittest
     }
     catch (Exception e)
     {
-        assert(e.msg == "custom message");
+        assert(getMsg(e) == "custom message");
         assert(e.line == __LINE__ - 6);
     }
 }
@@ -121,7 +121,7 @@ unittest
     Enforces that given expression evaluates to boolean `true` after
     implicit conversion.
 
-    NB! When present 'msg' is used instead of existing 'e.msg'
+    NB! When present 'msg' is used instead of existing 'getMsg(e)'
 
     In D2 we will be able to call this via UFCS:
         exception.enforce(1 == 1);
@@ -203,7 +203,7 @@ unittest
     }
     catch (MyException e)
     {
-        assert(e.msg == "enforcement has failed");
+        assert(getMsg(e) == "enforcement has failed");
         assert(e.line == __LINE__ - 6);
     }
 
@@ -214,7 +214,7 @@ unittest
     }
     catch (MyException e)
     {
-        assert(e.msg == "custom message");
+        assert(getMsg(e) == "custom message");
         assert(e.line == __LINE__ - 6);
     }
 
@@ -226,7 +226,7 @@ unittest
     catch (MyException e)
     {
         // preserved from previous enforcement
-        assert(e.msg == "custom message");
+        assert(getMsg(e) == "custom message");
         assert(e.line == __LINE__ - 7);
     }
 
@@ -354,7 +354,7 @@ unittest
     }
     catch (Exception e)
     {
-        assert(e.msg == "expression '2 == 3' evaluates to false");
+        assert(getMsg(e) == "expression '2 == 3' evaluates to false");
         assert(e.line == __LINE__ - 6);
     }
 
@@ -365,7 +365,7 @@ unittest
     }
     catch (Exception e)
     {
-        assert(e.msg == "expression '3 > 4' evaluates to false");
+        assert(getMsg(e) == "expression '3 > 4' evaluates to false");
         assert(e.line == __LINE__ - 6);
     }
 
@@ -377,7 +377,7 @@ unittest
     catch (Exception e)
     {
         assert(e.line == __LINE__ - 5);
-        assert(e.msg == "expression '0 !is 0' evaluates to false");
+        assert(getMsg(e) == "expression '0 !is 0' evaluates to false");
     }
 
     // Check that enforce won't try to modify the exception reference
@@ -459,7 +459,7 @@ unittest
     }
     catch (MyException e)
     {
-        assert(e.msg == "expression '2 == 3' evaluates to false");
+        assert(getMsg(e) == "expression '2 == 3' evaluates to false");
         assert(e.line == __LINE__ - 6);
     }
 
@@ -471,7 +471,7 @@ unittest
     catch (MyException e)
     {
         assert(e.line == __LINE__ - 5);
-        assert(e.msg == "expression '2b is 2a' evaluates to false");
+        assert(getMsg(e) == "expression '2b is 2a' evaluates to false");
     }
 
     // call enforce() with condition "2 == 2" and verify it doesn't evaluate its
@@ -549,7 +549,7 @@ unittest
     catch (Exception e)
     {
         assert (e.next is next_e);
-        assert (e.msg == "2");
+        assert (getMsg(e) == "2");
         assert (e.next.msg == "1");
     }
 }

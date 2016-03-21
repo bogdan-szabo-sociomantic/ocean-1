@@ -82,7 +82,7 @@ unittest
     }
     catch (TestException e)
     {
-        assert(e.msg == "unit test has failed");
+        assert(getMsg(e) == "unit test has failed");
         assert(e.line == __LINE__ - 6);
     }
 
@@ -93,7 +93,7 @@ unittest
     }
     catch (TestException e)
     {
-        assert(e.msg == "expression '2 == 3' evaluates to false");
+        assert(getMsg(e) == "expression '2 == 3' evaluates to false");
         assert(e.line == __LINE__ - 6);
     }
 }

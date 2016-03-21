@@ -2321,7 +2321,7 @@ else
         }
         catch( Exception e )
         {
-            assert(e.msg == "Zero-length arrays are not supported");
+            assert(getMsg(e) == "Zero-length arrays are not supported");
         }
 
         /* FIXME_IN_D2: Replace the following with named tests so that we can

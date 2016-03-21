@@ -457,7 +457,7 @@ private scope class UnitTestRunner
         catch (Exception e)
         {
             Stderr.formatln("{}: error: writing XML file '{}': {} [{}:{}]",
-                    this.prog, this.xml_file, e.msg, e.file, e.line);
+                    this.prog, this.xml_file, getMsg(e), e.file, e.line);
             return false;
         }
         catch
