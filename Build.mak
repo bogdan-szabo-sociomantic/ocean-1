@@ -17,7 +17,6 @@ TEST_FILTER_OUT += \
 	$C/src/ocean/util/app/LoggedCliApp.d \
 	$C/src/ocean/util/app/ConfiguredApp.d \
 	$C/src/ocean/util/app/CommandLineApp.d \
-	$C/src/ocean/io/select/client/IntervalClock.d \
 	$C/src/ocean/text/util/StringReplace.d \
 	$C/src/ocean/text/utf/UtfConvert.d
 

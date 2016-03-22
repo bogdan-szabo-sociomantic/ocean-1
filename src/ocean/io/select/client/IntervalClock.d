@@ -56,7 +56,7 @@
 
  ******************************************************************************/
 
-deprecated module ocean.io.select.client.IntervalClock;
+module ocean.io.select.client.IntervalClock;
 
 /******************************************************************************
 
@@ -79,7 +79,6 @@ import ocean.stdc.time:           gmtime, tm, time_t;
 
 import ocean.time.Time;
 
-deprecated("Use core.stdc.time instead")
 public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
 {
     public alias MicrosecondsClock.us us;
