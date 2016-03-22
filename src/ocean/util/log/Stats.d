@@ -528,6 +528,7 @@ public class StatsLog : IStatsLog
 
     ***************************************************************************/
 
+    deprecated("Use the constructor which accepts a Config instance")
     public this ( size_t file_count = default_file_count,
         size_t max_file_size = default_max_file_size,
         istring file_name = default_file_name, istring name = "Stats" )
@@ -550,6 +551,7 @@ public class StatsLog : IStatsLog
 
     ***************************************************************************/
 
+    deprecated("Use the constructor which accepts a Config instance")
     public this ( istring file_name, istring name = "Stats" )
     {
         this(default_file_count, default_max_file_size, file_name, name);

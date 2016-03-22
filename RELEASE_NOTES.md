@@ -13,6 +13,22 @@ Migration Instructions
 Deprecations
 ============
 
+* `ocean.util.log.Stats`
+
+  The `StatsLog` constructors which do not require a `Config` instance have been
+  deprecated. Usage can trivially be replaced by constructing a `Config`
+  instance, as follows:
+
+  ```D
+    new StatsLog(file_count, max_file_size, file_name, name);
+    // -->
+    new StatsLog(new StatsLog.Config(file_name, max_file_size, file_count), name);
+
+    new StatsLog(file_name, name);
+    // -->
+    new StatsLog(new StatsLog.Config(file_name), name);
+  ```
+
 New Features
 ============
 
