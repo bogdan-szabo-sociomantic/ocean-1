@@ -13,7 +13,7 @@ Migration Instructions
 Deprecations
 ============
 
-* `ocean.util.log.Stats`
+* `ocean.util.log.Stats : StatsLog`
 
   The `StatsLog` constructors which do not require a `Config` instance have been
   deprecated. Usage can trivially be replaced by constructing a `Config`
@@ -28,6 +28,11 @@ Deprecations
     // -->
     new StatsLog(new StatsLog.Config(file_name), name);
   ```
+
+* `ocean.util.log.Stats : IStatsLog`
+
+  This class has been deprecated. All usage should be replaced by directly using
+  `Statslog` instead.
 
 New Features
 ============

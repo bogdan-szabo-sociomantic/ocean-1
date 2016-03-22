@@ -86,7 +86,7 @@ class StatsExt : IConfigExtExtension
     public override void processConfig ( IApplication app, ConfigParser config )
     {
         this.stats_log = this.newStatsLog(app,
-            ClassFiller.fill!(IStatsLog.Config)("STATS", config));
+            ClassFiller.fill!(StatsLog.Config)("STATS", config));
     }
 
 
@@ -105,6 +105,35 @@ class StatsExt : IConfigExtExtension
 
     ***************************************************************************/
 
+    static public StatsLog newStatsLog ( IApplication app,
+        StatsLog.Config stats_config )
+    {
+        Appender newAppender ( istring file, Appender.Layout layout )
+        {
+            auto reopenable_files_ext =
+                (cast(Application)app).getExtension!(ReopenableFilesExt);
+
+            if ( reopenable_files_ext )
+            {
+                auto stream = new File(file, File.WriteAppending);
+                reopenable_files_ext.register(stream);
+
+                return new AppendStream(stream, true, layout);
+            }
+            else
+            {
+                auto file_count = castFrom!(size_t).to!(uint)(stats_config.file_count);
+                return new AppendSyslog(file, file_count,
+                    stats_config.max_file_size, "gzip {}", "gz",
+                    stats_config.start_compress, layout);
+            }
+        }
+
+        return new StatsLog(stats_config, &newAppender);
+    }
+
+    /// ditto
+    deprecated("Replace IStatsLog.Config with StatsLog.Config")
     static public StatsLog newStatsLog ( IApplication app,
         IStatsLog.Config stats_config )
     {

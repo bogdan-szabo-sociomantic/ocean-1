@@ -56,7 +56,7 @@ public abstract class DaemonApp : Application,
         ISignalExtExtension
 {
     import ocean.util.config.ConfigParser : ConfigParser;
-    import ocean.util.log.Stats : IStatsLog;
+    import ocean.util.log.Stats;
     import ocean.io.select.EpollSelectDispatcher;
     import ocean.text.Arguments : Arguments;
 
@@ -333,7 +333,7 @@ public abstract class DaemonApp : Application,
 
     public void startEventHandling ( )
     {
-        this.timer_ext.register(&this.statsTimer, IStatsLog.default_period);
+        this.timer_ext.register(&this.statsTimer, StatsLog.default_period);
         this.epoll.register(this.signal_ext.event);
     }
 

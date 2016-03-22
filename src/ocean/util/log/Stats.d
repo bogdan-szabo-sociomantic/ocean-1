@@ -466,8 +466,65 @@ public abstract class IPeriodicStatsLog
 
 *******************************************************************************/
 
-public class StatsLog : IStatsLog
+public class StatsLog
 {
+    /***************************************************************************
+
+        Stats log config class
+
+    ***************************************************************************/
+
+    public static class Config
+    {
+        public istring file_name;
+        public size_t max_file_size;
+        public size_t file_count;
+        public size_t start_compress;
+
+        public this ( istring file_name = default_file_name,
+            size_t max_file_size = default_max_file_size,
+            size_t file_count = default_file_count,
+            size_t start_compress = default_start_compress)
+        {
+            this.file_name = file_name;
+            this.max_file_size = max_file_size;
+            this.file_count = file_count;
+            this.start_compress = start_compress;
+        }
+    }
+
+
+    /***************************************************************************
+
+        Stats log default settings (used in ctor)
+
+    ***************************************************************************/
+
+    public const time_t default_period = 30; // 30 seconds
+    public const default_file_count = 10;
+    public const default_max_file_size = 10 * 1024 * 1024; // 10Mb
+    public const istring default_file_name = "log/stats.log";
+    public const size_t default_start_compress = 4;
+
+
+    /***************************************************************************
+
+        Logger instance
+
+    ***************************************************************************/
+
+    protected Logger logger;
+
+
+    /***************************************************************************
+
+        Message formatter
+
+    ***************************************************************************/
+
+    protected StringLayout!() layout;
+
+
     /***************************************************************************
 
         Whether to add a separator or not
@@ -475,6 +532,7 @@ public class StatsLog : IStatsLog
     ***************************************************************************/
 
     private bool add_separator = false;
+
 
     /***************************************************************************
 
@@ -489,7 +547,26 @@ public class StatsLog : IStatsLog
 
     public this ( Config config, istring name = "Stats" )
     {
-        super(config, name);
+        Appender newAppender ( istring file, Appender.Layout layout )
+        {
+            return new AppendSyslog(file,
+                castFrom!(size_t).to!(int)(config.file_count),
+                config.max_file_size, "gzip {}", "gz",
+                config.start_compress, layout);
+        }
+
+        this(config, &newAppender, name);
+    }
+
+
+    /// ditto
+    deprecated("Replace IStatsLog.Config with StatsLog.Config")
+    public this ( IStatsLog.Config config_, istring name = "Stats" )
+    {
+        auto config = new Config(config_.file_name, config_.max_file_size,
+            config_.file_count, config_.start_compress);
+
+        this(config, name);
     }
 
 
@@ -510,7 +587,30 @@ public class StatsLog : IStatsLog
         Appender delegate ( istring file, Appender.Layout layout ) new_appender,
         istring name = "Stats" )
     {
-        super(config, new_appender, name);
+        this.logger = Log.lookup(name);
+        this.logger.clear();
+        this.logger.additive(false);
+
+        this.logger.add(new_appender(config.file_name, new LayoutStatsLog));
+
+        // Explcitly set the logger to output all levels, to avoid the situation
+        // where the root logger is configured to not output level 'info'.
+        this.logger.level = this.logger.Level.Trace;
+
+        this.layout = new StringLayout!();
+    }
+
+
+    /// ditto
+    deprecated("Replace IStatsLog.Config with StatsLog.Config")
+    public this ( IStatsLog.Config config_,
+        Appender delegate ( istring file, Appender.Layout layout ) new_appender,
+        istring name = "Stats" )
+    {
+        auto config = new Config(config_.file_name, config_.max_file_size,
+            config_.file_count, config_.start_compress);
+
+        this(config, new_appender, name);
     }
 
 
@@ -533,7 +633,7 @@ public class StatsLog : IStatsLog
         size_t max_file_size = default_max_file_size,
         istring file_name = default_file_name, istring name = "Stats" )
     {
-        super(new Config(file_name, max_file_size, file_count), name);
+        this(new Config(file_name, max_file_size, file_count), name);
     }
 
 
@@ -677,6 +777,56 @@ public class StatsLog : IStatsLog
             this.add_separator = true;
         }
     }
+
+
+    /***************************************************************************
+
+        Writes the specified name:value pair to the layout.
+
+        Template Params:
+            category = The category of the structure, such as 'channels',
+                       'users'... Can be null (see 'instance' parameter).
+            V        = type of value. Assumed to be handled by Layout
+
+        Params:
+            value_name = name of the value we log in that category.
+                         If a category is a structure, a value_name
+                         is the name of a field. This value should not
+                         be null.
+            value    = value of stats log entry
+            instance = name of the object in a given category.
+                       For example, if the category is 'channels', then a name
+                       name would be a channel name, like 'campaign_metadata'.
+                       This value should be null if category is null,
+                       and non-null otherwise.
+
+    ***************************************************************************/
+
+    private void formatValue (istring category, V)
+        (cstring value_name, V value, cstring instance = null)
+    in
+    {
+        assert(value_name !is null);
+        static if (category.length)
+        {
+            assert(instance !is null);
+        }
+        else
+        {
+            assert(instance is null);
+        }
+    }
+    body
+    {
+        static if (category.length)
+        {
+            this.layout(category, '/', instance, '/', value_name, ':', value);
+        }
+        else
+        {
+            this.layout(value_name, ':', value);
+        }
+    }
 }
 
 /// Usage example for StatsLog in a simple application
@@ -734,6 +884,7 @@ unittest
 }
 
 
+
 /*******************************************************************************
 
     Templateless stats log base class. Contains no abstract methods, but
@@ -741,6 +892,7 @@ unittest
 
 *******************************************************************************/
 
+deprecated("Use the StatsLog class instead")
 public abstract class IStatsLog
 {
     /***************************************************************************
@@ -903,3 +1055,4 @@ public abstract class IStatsLog
         }
     }
 }
+

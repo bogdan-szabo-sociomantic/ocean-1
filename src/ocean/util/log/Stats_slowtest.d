@@ -33,10 +33,10 @@ unittest
 
     scope temp_file = new TempFile;
 
-    auto logger = new MyStatsLog(new IStatsLog.Config(
+    auto logger = new MyStatsLog(new StatsLog.Config(
         temp_file.toString(),
-        IStatsLog.default_max_file_size,
-        IStatsLog.default_file_count));
+        StatsLog.default_max_file_size,
+        StatsLog.default_file_count));
 
     auto stats = new Stats();
     stats.x = 10;
@@ -53,10 +53,10 @@ unittest
     {
         this ()
         {
-            super(new IStatsLog.Config(
+            super(new StatsLog.Config(
                       temp_file.toString(),
-                      IStatsLog.default_max_file_size,
-                      IStatsLog.default_file_count));
+                      StatsLog.default_max_file_size,
+                      StatsLog.default_file_count));
         }
 
         void test()
