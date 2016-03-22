@@ -181,7 +181,7 @@ public abstract class DaemonApp : Application,
 
     public static struct OptionalSettings
     {
-        import tango.stdc.posix.signal : SIGHUP;
+        import ocean.stdc.posix.signal : SIGHUP;
 
         /***********************************************************************
 
