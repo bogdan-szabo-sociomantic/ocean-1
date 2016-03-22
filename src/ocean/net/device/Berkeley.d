@@ -1341,9 +1341,7 @@ public class IPv4Address : Address
         static uint parse(istring addr)
         {
                 char[64] tmp;
-
-                synchronized (IPv4Address.classinfo)
-                              return ntohl(inet_addr(toStringz(addr, tmp)));
+                return ntohl(inet_addr(toStringz(addr, tmp)));
         }
 }
 
@@ -1703,14 +1701,11 @@ public class NetHost
         {
                 char[1024] tmp;
 
-                synchronized (NetHost.classinfo)
-                             {
-                             auto he = gethostbyname(toStringz(name, tmp));
-                             if(!he)
-                                return false;
-                             validHostent(he);
-                             populate(he);
-                             }
+                auto he = gethostbyname(toStringz(name, tmp));
+                if(!he)
+                   return false;
+                validHostent(he);
+                populate(he);
                 return true;
         }
 
@@ -1721,14 +1716,11 @@ public class NetHost
         bool getHostByAddr(uint addr)
         {
                 uint x = htonl(addr);
-                synchronized (NetHost.classinfo)
-                             {
-                             auto he = gethostbyaddr(&x, 4, cast(int)AddressFamily.INET);
-                             if(!he)
-                                 return false;
-                             validHostent(he);
-                             populate(he);
-                             }
+                auto he = gethostbyaddr(&x, 4, cast(int)AddressFamily.INET);
+                if(!he)
+                    return false;
+                validHostent(he);
+                populate(he);
                 return true;
         }
 
@@ -1741,15 +1733,12 @@ public class NetHost
         {
                 char[64] tmp;
 
-                synchronized (NetHost.classinfo)
-                             {
-                             uint x = inet_addr(toStringz(addr, tmp));
-                             auto he = gethostbyaddr(&x, 4, cast(int)AddressFamily.INET);
-                             if(!he)
-                                 return false;
-                             validHostent(he);
-                             populate(he);
-                             }
+                uint x = inet_addr(toStringz(addr, tmp));
+                auto he = gethostbyaddr(&x, 4, cast(int)AddressFamily.INET);
+                if(!he)
+                    return false;
+                validHostent(he);
+                populate(he);
                 return true;
         }
 }

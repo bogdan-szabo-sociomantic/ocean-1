@@ -174,7 +174,6 @@ import ocean.transition;
 import ocean.math.random.engines.URandom;
 import ocean.math.random.engines.KissCmwc;
 import ocean.math.random.engines.ArraySource;
-import ocean.math.random.engines.Sync;
 import ocean.math.random.engines.Twister;
 import ocean.math.random.NormalSource;
 import ocean.math.random.ExpSource;
@@ -280,7 +279,7 @@ final class RandomG(SourceT=DefaultEngine)
         return uniformR2!(uint)(from,to);
     }
     /// ditto
-    static RandomG!(Sync!(DefaultEngine)) instance(){
+    static RandomG!(DefaultEngine) instance(){
         return rand;
     }
     //-------- Utility functions to quickly get a uniformly distributed random number -----------
@@ -891,9 +890,7 @@ final class RandomG(SourceT=DefaultEngine)
     /// returns another (mostly indipendent, depending on seed size) random generator
     RandG spawn(RandG=RandomG)(){
         RandG res=new RandG(false);
-        synchronized(this){
-            res.seed(&uniform!(uint));
-        }
+        res.seed(&uniform!(uint));
         return res;
     }
 
@@ -1232,7 +1229,7 @@ final class RandomG(SourceT=DefaultEngine)
 /// you can safely expect a new instance of this to be indipendent from all the others
 alias RandomG!() Random;
 /// default threadsafe random number generator type
-alias RandomG!(Sync!(DefaultEngine)) RandomSync;
+alias RandomG!(DefaultEngine) RandomSync;
 
 /// shared locked (threadsafe) random number generator
 /// initialized with urandom if available, with time otherwise
@@ -1456,5 +1453,4 @@ unittest {
     testRandSource!(KissCmwc_default)();
     testRandSource!(Twister)();
     testRandSource!(DefaultEngine)();
-    testRandSource!(Sync!(DefaultEngine))();
 }
