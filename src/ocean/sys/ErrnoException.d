@@ -362,9 +362,6 @@ public class ErrnoException : Exception
         e.set(ENOTBLK).addMessage("msg");
         test!("==")(getMsg(e), "Block device required (msg)"[]);
     }
-
-    deprecated ("Will eventually clash with Throwable.message. 'Use addMessage' instead.")
-    public alias addMessage message;
 }
 
 /*******************************************************************************

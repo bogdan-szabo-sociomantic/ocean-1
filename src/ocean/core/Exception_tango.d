@@ -69,15 +69,6 @@ public import core.exception;
 
 import core.thread;
 alias core.thread.ThreadException ThreadException;
-static if (__VERSION__ < 2067)
-{
-    alias core.thread.FiberException FiberException;
-}
-else
-{
-    deprecated ("There is no more FiberException in 2.067")
-    alias Exception FiberException;
-}
 
 // Tango backwards compatibility aliases
 public alias AssertError AssertException;

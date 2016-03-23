@@ -26,15 +26,6 @@ import ocean.transition;
 import ocean.core.Traits,
        ocean.core.Traits;
 
-/*******************************************************************************
-
-    Deprecated alias for structConvert
-
-*******************************************************************************/
-
-deprecated("Use structConvert instead")
-alias structConvert structCopy;
-
 /***************************************************************************
 
     Copies members of the same name from <From> to <To>.

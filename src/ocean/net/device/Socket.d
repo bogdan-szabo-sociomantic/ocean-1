@@ -38,17 +38,6 @@ class Socket : Conduit, ISelectable
         private Berkeley  berkeley;             // wrap a berkeley socket
 
 
-        /// see super.timeout(int)
-        deprecated void setTimeout (double t)
-        {
-                timeout = cast(uint) (t * 1000);
-        }
-
-        deprecated bool hadTimeout ()
-        {
-                return false;
-        }
-
         /***********************************************************************
 
                 Create a streaming Internet socket

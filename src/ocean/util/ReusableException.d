@@ -35,48 +35,6 @@ class ReusableException : Exception
     ***************************************************************************/
 
     this ( ) { super(null); }
-
-    /***************************************************************************
-
-        Throws this instance if ok is false, 0 or null.
-
-        Params:
-            ok   = condition to enforce
-            msg  = exception message
-            file = source code file
-            line = source code line
-
-        Throws:
-            this instance if ok is false, 0 or null.
-
-    ***************************************************************************/
-
-    deprecated("Use ReusableException.enforce instead")
-    public void assertEx ( T ) ( T ok, cstring msg, istring file, long line )
-    {
-        this.enforce!(T)(ok, msg, file, line);
-    }
-
-    /***************************************************************************
-
-        Sets exception information for this instance.
-
-        Params:
-            msg  = exception message
-            file = source code file
-            line = source code line
-
-        Returns:
-            this instance
-
-    ***************************************************************************/
-
-    deprecated("Use ReusableException.set instead")
-    public typeof (this) opCall ( lazy cstring msg, istring file = __FILE__,
-        long line = __LINE__ )
-    {
-        return this.set(msg, file, line);
-    }
 }
 
 version (UnitTest)

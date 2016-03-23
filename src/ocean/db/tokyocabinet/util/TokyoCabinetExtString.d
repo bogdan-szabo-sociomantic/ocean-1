@@ -116,23 +116,6 @@ class TokyoCabinetExtString
 
     ***************************************************************************/
 
-    deprecated ("Use TokyoCabinetExtString.toMString instead")
-    public override istring toString ( )
-    {
-        // NB: violates immutable, must not be used in D2 code!
-        // exists only for smooth deprecation path
-        return cast(istring) this.toMString();
-    }
-
-    /**************************************************************************
-
-        Returns the string content of this instance
-
-        Returns:
-            string content of this instance
-
-    ***************************************************************************/
-
     public mstring toMString ( )
     {
         return (cast (char*) tcxstrptr(this.xstr))[0 .. this.getLength()];

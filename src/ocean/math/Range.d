@@ -601,50 +601,6 @@ public struct Range ( T )
         test!("!=")(This(0, 1), This(1, 2));
     }
 
-
-    /***************************************************************************
-
-        Checks whether the union of the specified ranges covers exactly the same
-        range as this instance, with no gaps.
-
-        Note that the passed list of ranges is sorted by this method. Empty
-        ranges in the list are ignored.
-
-        Params:
-            sub_ranges = list of ranges to union and compare against this
-                instance
-
-        Returns:
-            true if the union of sub_ranges covers exactly the same range as
-            this instance
-
-    ***************************************************************************/
-
-    deprecated ("use isTessellatedBy instead")
-    public equals_t opEquals ( This[] sub_ranges )
-    {
-        if ( sub_ranges.length == 0 ) return false;
-
-        sort(sub_ranges);
-
-        // sort() moves empty ranges to the start of the list. Slice them off.
-        while ( sub_ranges[0].is_empty )
-        {
-            sub_ranges = sub_ranges[1..$];
-        }
-
-        if ( sub_ranges[0].min_ != this.min_ ) return false;
-        if ( sub_ranges[$-1].max_ != this.max_ ) return false;
-
-        for ( size_t i = 1; i < sub_ranges.length; i++ )
-        {
-            if ( sub_ranges[i].min_ != sub_ranges[i - 1].max_ + 1 ) return false;
-        }
-
-        return true;
-    }
-
-
     /***************************************************************************
 
         Compares this instance with rhs. An empty range is considered to be <
@@ -761,65 +717,6 @@ public struct Range ( T )
         test(!This(5, 10).isSubsetOf(This(15, 20)));
     }
 
-
-    /***************************************************************************
-
-        Determines whether this non empty instance is a proper subset of the
-        specified range. All values in this range must be within the other range
-        and not extend to either the start or end of this range.
-
-        Note: From mathematical POV this condition is more strict than
-        "proper subset", because in math [3, 15] is a proper subset of [3, 16]
-
-        Note: For practical reasons, this isn't conforming strictly to
-        the mathematical definition, where an empty set is considered to be
-        a subset of any set.
-
-        Params:
-            other = instance to compare with this
-
-        Returns:
-            true if this range is a proper subset of the other range
-
-    ***************************************************************************/
-
-    deprecated ("similar but not equal behaviour you can find in isSubsetOf")
-    public bool subsetOf ( This other )
-    {
-        if ( this.is_empty || other.is_empty ) return false;
-
-        return this.min_ > other.min_ && this.max_ < other.max_;
-    }
-
-    deprecated
-    unittest
-    {
-        // empty
-        test(!This.init.subsetOf(This(0, 10)));
-        test(!This(0, 10).subsetOf(This.init));
-
-        // subset
-        test(This(1, 9).subsetOf(This(0, 10)));
-
-        // equal
-        test(!This(0, 10).subsetOf(This(0, 10)));
-
-        // ends touch, inside
-        test(!This(0, 9).subsetOf(This(0, 10)));
-        test(!This(1, 10).subsetOf(This(0, 10)));
-
-        // ends touch, outside
-        test(!This(0, 5).subsetOf(This(5, 10)));
-        test(!This(10, 15).subsetOf(This(5, 10)));
-
-        // superset
-        test(!This(0, 10).subsetOf(This(1, 9)));
-
-        // no overlap
-        test(!This(5, 10).subsetOf(This(15, 20)));
-    }
-
-
     /***************************************************************************
 
         Determines whether this instance is a superset of the non-empty
@@ -872,64 +769,6 @@ public struct Range ( T )
         // no overlap
         test(!This(5, 10).isSupersetOf(This(15, 20)));
     }
-
-
-    /***************************************************************************
-
-        Determines whether this instance is a proper superset of the specified
-        non empty range. All values in the other range must be within this range
-        and not extend to either the start or end of this range.
-
-        Note: From mathematical POV this condition is more strict than
-        "proper superset", because in math [3, 16] is a proper
-        superset of [3, 15].
-
-        Note: For practical reasons, this isn't conforming strictly to
-        the mathematical definition, where an empty set is considered to be
-        a subset of any set.
-
-        Params:
-            other = instance to compare with this
-
-        Returns:
-            true if this range is a proper superset of the other range
-
-    ***************************************************************************/
-
-    deprecated ("similar but not equal behaviour you can find in isSupersetOf")
-    public bool supersetOf ( This other )
-    {
-        return other.subsetOf(*this);
-    }
-
-    deprecated
-    unittest
-    {
-        // empty
-        test(!This.init.supersetOf(This(0, 10)));
-        test(!This(0, 10).supersetOf(This.init));
-
-        // superset
-        test(This(0, 10).supersetOf(This(1, 9)));
-
-        // equal
-        test(!This(0, 10).supersetOf(This(0, 10)));
-
-        // ends touch, inside
-        test(!This(0, 10).supersetOf(This(0, 9)));
-        test(!This(0, 10).supersetOf(This(1, 10)));
-
-        // ends touch, outside
-        test(!This(5, 10).supersetOf(This(0, 5)));
-        test(!This(5, 10).supersetOf(This(10, 15)));
-
-        // subset
-        test(!This(1, 9).supersetOf(This(0, 10)));
-
-        // no overlap
-        test(!This(5, 10).supersetOf(This(15, 20)));
-    }
-
 
     /***************************************************************************
 

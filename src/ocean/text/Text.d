@@ -367,20 +367,6 @@ class Text(T) : TextView!(T)
 
     /***********************************************************************
 
-      Selection span
-
-      deprecated: use point() instead
-
-     ***********************************************************************/
-
-    deprecated public struct Span
-    {
-        size_t begin,                  /// index of selection point
-               length;                 /// length of selection
-    }
-
-    /***********************************************************************
-
       Create an empty Text with the specified available
       space
 
@@ -503,22 +489,6 @@ class Text(T) : TextView!(T)
 
     /***********************************************************************
 
-      Return the index and length of the current selection
-
-      deprecated: use point() instead
-
-     ***********************************************************************/
-
-    deprecated final Span span ()
-    {
-        Span s;
-        s.begin = selectPoint;
-        s.length = selectLength;
-        return s;
-    }
-
-    /***********************************************************************
-
       Return the current selection point
 
      ***********************************************************************/
@@ -571,118 +541,6 @@ class Text(T) : TextView!(T)
     Search!(T) search (ref T match)
     {
         return search ((&match)[0..1]);
-    }
-
-    /***********************************************************************
-
-      Find and select the next occurrence of a BMP code point
-      in a string. Returns true if found, false otherwise
-
-      deprecated: use search() instead
-
-     ***********************************************************************/
-
-    deprecated final bool select (T c)
-    {
-        auto s = slice();
-        auto x = Util.locate (s, c, selectPoint);
-        if (x < s.length)
-        {
-            select (x, 1);
-            return true;
-        }
-        return false;
-    }
-
-    /***********************************************************************
-
-      Find and select the next substring occurrence.  Returns
-      true if found, false otherwise
-
-      deprecated: use search() instead
-
-     ***********************************************************************/
-
-    deprecated final bool select (TextViewT other)
-    {
-        return select (other.slice);
-    }
-
-    /***********************************************************************
-
-      Find and select the next substring occurrence. Returns
-      true if found, false otherwise
-
-      deprecated: use search() instead
-
-     ***********************************************************************/
-
-    deprecated final bool select (T[] chars)
-    {
-        auto s = slice();
-        auto x = Util.locatePattern (s, chars, selectPoint);
-        if (x < s.length)
-        {
-            select (x, chars.length);
-            return true;
-        }
-        return false;
-    }
-
-    /***********************************************************************
-
-      Find and select a prior occurrence of a BMP code point
-      in a string. Returns true if found, false otherwise
-
-      deprecated: use search() instead
-
-     ***********************************************************************/
-
-    deprecated final bool selectPrior (T c)
-    {
-        auto s = slice();
-        auto x = Util.locatePrior (s, c, selectPoint);
-        if (x < s.length)
-        {
-            select (x, 1);
-            return true;
-        }
-        return false;
-    }
-
-    /***********************************************************************
-
-      Find and select a prior substring occurrence. Returns
-      true if found, false otherwise
-
-      deprecated: use search() instead
-
-     ***********************************************************************/
-
-    deprecated final bool selectPrior (TextViewT other)
-    {
-        return selectPrior (other.slice);
-    }
-
-    /***********************************************************************
-
-      Find and select a prior substring occurrence. Returns
-      true if found, false otherwise
-
-      deprecated: use search() instead
-
-     ***********************************************************************/
-
-    deprecated final bool selectPrior (T[] chars)
-    {
-        auto s = slice();
-        auto x = Util.locatePatternPrior (s, chars, selectPoint);
-        if (x < s.length)
-        {
-            select (x, chars.length);
-            return true;
-        }
-        return false;
     }
 
     /***********************************************************************
@@ -748,47 +606,6 @@ class Text(T) : TextView!(T)
         auto point = selectPoint + selectLength;
         expand (point, count);
         return set (chr, point, count);
-    }
-
-    /***********************************************************************
-
-      Append an integer to this Text
-
-      deprecated: use format() instead
-
-     ***********************************************************************/
-
-    deprecated final Text append (int v, T[] fmt = null)
-    {
-        return append (cast(long) v, fmt);
-    }
-
-    /***********************************************************************
-
-      Append a long to this Text
-
-      deprecated: use format() instead
-
-     ***********************************************************************/
-
-    deprecated final Text append (long v, T[] fmt = null)
-    {
-        T[64] tmp = void;
-        return append (Integer.format(tmp, v, fmt));
-    }
-
-    /***********************************************************************
-
-      Append a double to this Text
-
-      deprecated: use format() instead
-
-     ***********************************************************************/
-
-    deprecated final Text append (double v, uint decimals=2, int e=10)
-    {
-        T[64] tmp = void;
-        return append (Float.format(tmp, v, decimals, e));
     }
 
     /***********************************************************************

@@ -57,7 +57,6 @@ version (UnitTest)
     import ocean.util.app.DaemonApp;
 }
 
-
 /*******************************************************************************
 
     Transmit the values of an aggregate to be used within graphite.

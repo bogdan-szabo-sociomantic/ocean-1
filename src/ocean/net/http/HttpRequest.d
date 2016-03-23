@@ -300,30 +300,6 @@ class HttpRequest : HttpHeader
 
     /**************************************************************************
 
-        Overriding wrapper.
-
-     **************************************************************************/
-
-    deprecated("Use getUnsigned instead")
-    bool getUint ( T = uint ) ( cstring key, ref T n, out bool is_set )
-    {
-        return super.getUnsigned!(T)(key, n, is_set);
-    }
-
-    /**************************************************************************
-
-        Overriding wrapper.
-
-     **************************************************************************/
-
-    deprecated("Use getUnsigned instead")
-    bool getUint ( T = uint ) ( cstring key, ref T n )
-    {
-        return super.getUnsigned!(T)(key, n);
-    }
-
-    /**************************************************************************
-
         Parses content which is expected to be either the start of a HTTP
         message or a HTTP message fragment that continues the content passed on
         the last call to this method.

@@ -403,68 +403,6 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
         }
     }
 
-
-    /***************************************************************************
-
-        Writes the queue's state and contents to the given output stream.
-
-        Data written by this method are accepted by deserialize() only. Use a
-        queue with the same capacity.
-
-        Params:
-            stream = output to write to
-
-        Returns:
-            number of bytes written
-
-    ***************************************************************************/
-
-    deprecated("replaced with save()")
-    public size_t serialize ( OutputStream stream )
-    {
-        size_t bytes;
-
-        bytes += SimpleSerializer.write(stream, this.gap);
-        bytes += SimpleSerializer.write(stream, this.write_to);
-        bytes += SimpleSerializer.write(stream, this.read_from);
-        bytes += SimpleSerializer.write(stream, this.items);
-        bytes += SimpleSerializer.write(stream, this.data);
-
-        return bytes;
-    }
-
-
-    /***************************************************************************
-
-        Reads the queue's state and contents from the given input stream.
-        Warning: Does not validate the input data. Invalid input data or data
-        written with a different queue capacity can cause queue corruption and
-        other serious trouble.
-
-        Accepts only data written by serialize() with the same queue capacity.
-
-        Params:
-            stream = input to read from
-
-        Returns:
-            number of bytes read
-
-    ***************************************************************************/
-
-    deprecated("replaced with load()")
-    public size_t deserialize ( InputStream stream )
-    {
-        size_t bytes;
-
-        bytes += SimpleSerializer.read(stream, this.gap);
-        bytes += SimpleSerializer.read(stream, this.write_to);
-        bytes += SimpleSerializer.read(stream, this.read_from);
-        bytes += SimpleSerializer.read(stream, this.items);
-        bytes += SimpleSerializer.read(stream, this.data);
-
-        return bytes;
-    }
-
     /***************************************************************************
 
         Writes the queue's state and contents to the given output stream in the

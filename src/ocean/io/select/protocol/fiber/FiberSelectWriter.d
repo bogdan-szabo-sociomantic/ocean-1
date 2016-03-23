@@ -258,26 +258,6 @@ class FiberSelectWriter : IFiberSelectProtocol
 
     /**************************************************************************
 
-        Sends all pending data immediately if the TCP_CORK feature is currently
-        enabled.
-
-        Returns:
-            true on success (but throws on failure)
-
-        Throws:
-            IOError on I/O error.
-
-     **************************************************************************/
-
-    deprecated("Please use flush() instead")
-    public bool corkFlush ( )
-    {
-        this.flush();
-        return true;
-    }
-
-    /**************************************************************************
-
         Sends all pending data immediately.
         May be overridden by a subclass; calls corkFlush() by default.
 

@@ -376,53 +376,6 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
         }
     }
 
-
-    /***************************************************************************
-
-        Puts an item into the cache. If the cache is full, the oldest item is
-        replaced with the new item. (In the case where several items are equally
-        old, the choice of which one to be replaced is made arbitrarily.)
-
-        This method is deprecated because for values of variable length it
-        always overwrites the value array instance, thus providing no way of
-        reusing allocated value array buffers and provoking a memory leak
-        condition in this case.
-
-        Params:
-            key = item key
-            value = data to store in cache
-
-        Returns:
-            true if a record was updated / overwritten, false if either a new
-            record was added or time is earlier than the last put() so that the
-            record was discarded.
-
-    ***************************************************************************/
-
-    static if (is_dynamic) deprecated public bool putRaw ( hash_t key, void[] value )
-    {
-        return this.putRaw(key, Value(value));
-    }
-
-    deprecated public bool putRaw ( hash_t key, Value value_in )
-    {
-        bool existed;
-
-        time_t access_time;
-
-        with (*this.getOrAdd(key, existed, access_time))
-        {
-            setValue(value_in);
-
-            static if ( TrackCreateTimes )
-            {
-                create_time = access_time;
-            }
-        }
-
-        return existed;
-    }
-
     /***************************************************************************
 
         Creates an item in the cache and sets its create time. If the cache is

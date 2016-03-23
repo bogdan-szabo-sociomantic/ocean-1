@@ -59,12 +59,6 @@ class IconvException : Exception
         super(msg, file, line);
     }
 
-    deprecated("Use plain constructor/throw instead")
-    static void opCall ( Args ... ) ( Args args )
-    {
-        throw new IconvException(args);
-    }
-
     /**************************************************************************
 
         Invalid Multibyte Sequence

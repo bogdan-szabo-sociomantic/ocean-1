@@ -256,32 +256,6 @@ class ExpiringCache ( size_t ValueSize = 0 ) : Cache!(ValueSize, true),
 
     /***************************************************************************
 
-        Please use num_expired() and ICacheInfo.num_lookups()/num_misses()/
-        resetStats() instead.
-
-        Obtains the statistics counters for getRaw()/exists() calls, caches
-        misses and expired elements.
-
-        Params:
-            reset = set to true to reset the counters to zero.
-
-        Returns:
-            statistics counters.
-
-    ***************************************************************************/
-
-    deprecated public GetExpiredStats get_remove_stats ( bool reset = false )
-    {
-        scope (success) if (reset)
-        {
-            this.resetStats();
-        }
-
-        return GetExpiredStats(this.n_lookups, this.n_misses, this.n_expired);
-    }
-
-    /***************************************************************************
-
         Gets an item from the cache or optionally creates it if not already
         existing. If the item was found in the cache, its access time is
         updated, otherwise its create time is set. If the item was found but was

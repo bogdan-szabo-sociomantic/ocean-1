@@ -25,5 +25,9 @@ Migration Instructions
 Deprecations
 ============
 
+* `ocean.*`
+
+  All symbols deprecated in ocean v1.x.x have been completely removed
+
 New Features
 ============

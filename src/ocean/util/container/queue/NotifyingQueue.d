@@ -586,43 +586,6 @@ class NotifyingQueue ( T ) : NotifyingByteQueue
             Pops a Request instance from the queue
 
             Params:
-                cont_buffer = contiguous buffer
-                byte_buffer = byte buffer
-
-            Returns:
-                pointer to the deserialized struct, completely allocated in the
-                given buffer
-
-            *******************************************************************/
-
-        deprecated("Please use the version of pop() taking a single contiguous buffer")
-        T* pop ( ref Contiguous!(T) cont_buffer, ref ubyte[] byte_buffer )
-        {
-            if ( !this.enabled ) return null;
-
-            T* instance;
-
-            auto data = super.pop();
-
-            if (data is null)
-            {
-                return null;
-            }
-
-            byte_buffer.copy(data);
-
-            auto void_buffer = cast(void[])byte_buffer;
-
-            Deserializer.deserialize!(T)(void_buffer, cont_buffer);
-
-            return cont_buffer.ptr;
-        }
-
-        /***********************************************************************
-
-            Pops a Request instance from the queue
-
-            Params:
                 cont_buffer = contiguous buffer to deserialize to
 
             Returns:
@@ -649,40 +612,6 @@ class NotifyingQueue ( T ) : NotifyingByteQueue
             Deserializer.deserialize!(T)(void_buffer, cont_buffer);
 
             return cont_buffer.ptr;
-        }
-
-        /***********************************************************************
-
-            Pops a Request instance from the queue
-
-            Params:
-                buffer = deserialisation buffer to use
-
-            Returns:
-                pointer to the deserialized struct, completely allocated in the
-                given buffer
-
-        ***********************************************************************/
-
-        deprecated("Please use the version of pop() taking a contiguous buffer")
-        T* pop ( ref ubyte[] buffer )
-        {
-            if ( !this.enabled ) return null;
-
-            T* instance;
-
-            auto data = super.pop();
-
-            if (data is null)
-            {
-                return null;
-            }
-
-            buffer.copy(data);
-
-            StructSerializer!(true).loadSlice (instance, buffer);
-
-            return instance;
         }
     }
     else
@@ -753,32 +682,6 @@ unittest
 
     test!("==")(*str_0, "foo");  // ensure there was no overwrite
     test!("==")(*str_1, "bar");
-}
-
-/// deprecated NotifyingQueue.pop() with a struct
-deprecated unittest
-{
-    struct S { char[] value; }
-
-    S[2] arr = [S("foo".dup), S("bar".dup)];
-
-    auto queue = new NotifyingQueue!(S)(1024);
-
-    queue.push(arr[0]);
-    queue.push(arr[1]);
-
-    ubyte[] buffer_1;
-
-    auto s0 = queue.pop(buffer_1);
-
-    test!("==")(s0.value, "foo");
-
-    ubyte[] buffer_2;
-
-    auto s1 = queue.pop(buffer_2);
-
-    test!("==")(s0.value, "foo");  // ensure there was no overwrite
-    test!("==")(s1.value, "bar");
 }
 
 /// NotifyingQueue with a struct

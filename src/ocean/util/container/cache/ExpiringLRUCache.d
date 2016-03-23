@@ -264,32 +264,6 @@ class ExpiringLRUCache(T = void[]) : LRUCache!(T, true), IExpiringCacheInfo
 
     /***************************************************************************
 
-        Please use num_expired() and ICacheInfo.num_lookups()/num_misses()/
-        resetStats() instead.
-
-        Obtains the statistics counters for getAndRefreshValue()/exists() calls,
-        caches misses and expired elements.
-
-        Params:
-            reset = set to true to reset the counters to zero.
-
-        Returns:
-            statistics counters.
-
-    ***************************************************************************/
-
-    deprecated public GetExpiredStats get_remove_stats ( bool reset = false )
-    {
-        scope (success) if (reset)
-        {
-            this.resetStats();
-        }
-
-        return GetExpiredStats(this.num_lookups, this.num_misses, this.num_expired);
-    }
-
-    /***************************************************************************
-
         Gets an item from the cache or optionally creates it if not already
         existing. If the item was found in the cache, its access time is
         updated, otherwise its create time is set. If the item was found but was

@@ -1708,48 +1708,6 @@ import ocean.io.device.Conduit : Conduit;
 //import ocean.io.device.Conduit : Conduit;
 //import ocean.io.model.IConduit : IConduit, InputStream, OutputStream;
 
-/**
- * The dummy stream classes are used to provide simple, empty stream objects
- * where one is required, but none is available.
- *
- * Note that, currently, these classes return 'null' for the underlying
- * conduit, which will likely break code which expects streams to have an
- * underlying conduit.
- */
-private deprecated class DummyInputStream : InputStream // IConduit.Seek
-{
-    //alias IConduit.Seek.Anchor Anchor;
-
-    override InputStream input() {return null;}
-    override IConduit conduit() { return null; }
-    override void close() {}
-    override size_t read(void[] dst) { return IConduit.Eof; }
-    override InputStream flush() { return this; }
-    override void[] load(size_t max=-1)
-    {
-        return Conduit.load(this, max);
-    }
-    override long seek(long offset, Anchor anchor = cast(Anchor)0) { return 0; }
-}
-
-/// ditto
-private deprecated class DummyOutputStream : OutputStream //, IConduit.Seek
-{
-    //alias IConduit.Seek.Anchor Anchor;
-
-    override OutputStream output() {return null;}
-    override IConduit conduit() { return null; }
-    override void close() {}
-    override size_t write(Const!(void)[] src) { return IConduit.Eof; }
-    override OutputStream copy(InputStream src, size_t max=-1)
-    {
-        Conduit.transfer(src, this, max);
-        return this;
-    }
-    override OutputStream flush() { return this; }
-    override long seek(long offset, Anchor anchor = cast(Anchor)0) { return 0; }
-}
-
 /*******************************************************************************
 
     copyright:  Copyright © 2007 Daniel Keep.  All rights reserved.

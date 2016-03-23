@@ -50,70 +50,6 @@ struct FileSystem
 {
         /***********************************************************************
 
-                Convert the provided path to an absolute path, using the
-                current working directory where prefix is not provided.
-                If the given path is already an absolute path, return it
-                intact.
-
-                Returns the provided path, adjusted as necessary
-
-                deprecated: See FilePath.absolute().
-
-        ***********************************************************************/
-
-        deprecated static FilePath toAbsolute (FilePath target, char[] prefix=null)
-        {
-                if (! target.isAbsolute)
-                   {
-                   if (prefix is null)
-                       prefix = getDirectory;
-
-                   target.prepend (target.padded(prefix));
-                   }
-                return target;
-        }
-
-        /***********************************************************************
-
-                Convert the provided path to an absolute path, using the
-                current working directory where prefix is not provided.
-                If the given path is already an absolute path, return it
-                intact.
-
-                Returns the provided path, adjusted as necessary
-
-                deprecated: See FilePath.absolute().
-
-        ***********************************************************************/
-
-        deprecated static istring toAbsolute (char[] path, char[] prefix=null)
-        {
-                scope target = new FilePath (path);
-                return toAbsolute (target, prefix).toString;
-        }
-
-        /***********************************************************************
-
-                Compare to paths for absolute equality. The given prefix
-                is prepended to the paths where they are not already in
-                absolute format (start with a '/'). Where prefix is not
-                provided, the current working directory will be used
-
-                Returns true if the paths are equivalent, false otherwise
-
-                deprecated: See FilePath.equals().
-
-        ***********************************************************************/
-
-        deprecated static bool equals (char[] path1, char[] path2, char[] prefix=null)
-        {
-                scope p1 = new FilePath (path1);
-                scope p2 = new FilePath (path2);
-                return (toAbsolute(p1, prefix) == toAbsolute(p2, prefix)) is 0;
-        }
-
-        /***********************************************************************
-
         ***********************************************************************/
 
         private static void exception (istring msg)
@@ -127,45 +63,6 @@ struct FileSystem
 
         version (Posix)
         {
-                /***************************************************************
-
-                        Set the current working directory.
-
-                        deprecated: See Environment.cwd().
-
-                ***************************************************************/
-
-                deprecated static void setDirectory (char[] path)
-                {
-                        char[512] tmp = void;
-                        tmp [path.length] = 0;
-                        tmp[0..path.length] = path;
-
-                        if (ocean.stdc.posix.unistd.chdir (tmp.ptr))
-                            exception ("Failed to set current directory");
-                }
-
-                /***************************************************************
-
-                        Return the current working directory.
-
-                        deprecated: See Environment.cwd().
-
-                ***************************************************************/
-
-                deprecated static char[] getDirectory ()
-                {
-                        char[512] tmp = void;
-
-                        char *s = ocean.stdc.posix.unistd.getcwd (tmp.ptr, tmp.length);
-                        if (s is null)
-                            exception ("Failed to get current directory");
-
-                        auto path = s[0 .. strlen(s)+1].dup;
-                        path[$-1] = '/';
-                        return path;
-                }
-
                 /***************************************************************
 
                         List the set of root devices.

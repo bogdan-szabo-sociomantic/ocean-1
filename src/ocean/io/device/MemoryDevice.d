@@ -76,9 +76,16 @@ class MemoryDevice : IConduit
         return data;
     }
 
-    deprecated("Use peek") override istring toString ( )
+    /***************************************************************************
+
+        Returns:
+            Name of this IConduit
+
+    ***************************************************************************/
+
+    override istring toString ( )
     {
-        return idup(cast(mstring) data);
+        return MemoryDevice.stringof;
     }
 
     /***************************************************************************

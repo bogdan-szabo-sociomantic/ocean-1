@@ -135,23 +135,6 @@ class CachingStructLoader ( S )
 
     /**************************************************************************
 
-        DEPRECATED: don't call `got` delegate from child class if value is empty
-        instead of setting this field to "false". Call delegate with
-        default-initialized struct data if it was set to "true".
-
-        Flag to determine whether empty values returned by the value getter
-        delegate passed to load() are added to the cache or not.
-
-        It is supposed to be set in derivative cache classes depending on
-        desired behaviour.
-
-    ***************************************************************************/
-
-    deprecated
-    protected bool add_empty_values = true;
-
-    /**************************************************************************
-
         Info interface for the cache instance is exposed to the public.
 
     ***************************************************************************/

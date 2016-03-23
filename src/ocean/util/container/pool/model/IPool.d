@@ -590,9 +590,6 @@ public abstract class IPool : IPoolInfo, ILimitable
         this.items.length = this.items.length - remove;
         enableStomping(this.items);
     }
-
-    deprecated("Use the class defined at module scope instead")
-    public alias .LimitExceededException LimitExceededException;
 }
 
 /*******************************************************************************

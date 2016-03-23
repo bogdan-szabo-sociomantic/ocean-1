@@ -1063,7 +1063,7 @@ version ( UnitTest )
             {
                 this.pool.get(this.newItem());
             }
-            catch ( IPool.LimitExceededException e )
+            catch ( LimitExceededException e )
             {
                 get_prevented = true;
             }

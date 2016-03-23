@@ -1985,27 +1985,6 @@ package {
     }
 }
 
-deprecated {
-private enum : int { MANTDIG_2 = real.mant_dig/2 } // Compiler workaround
-
-/** Floating point "approximate equality".
- *
- * Return true if x is equal to y, to within the specified precision
- * If roundoffbits is not specified, a reasonable default is used.
- */
-bool feq(int precision = MANTDIG_2, XReal=real, YReal=real)(XReal x, YReal y)
-{
-    static assert(is( XReal: real) && is(YReal : real));
-    return ocean.math.IEEE.feqrel(x, y) >= precision;
-}
-
-unittest{
-    assert(!feq(1.0,2.0));
-    real y = 58.0000000001;
-    assert(feq!(20)(58, y));
-}
-}
-
 /*
  * Rounding (returning real)
  */

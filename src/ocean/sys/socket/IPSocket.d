@@ -38,16 +38,6 @@ import ocean.core.TypeConvert;
 
 import ocean.sys.socket.model.ISocket;
 
-deprecated("MSG_NOSIGNAL deprecated, please use the one in "
-        "ocean.sys.socket.model.ISocket instead")
-public alias ocean.sys.socket.model.ISocket.MSG_NOSIGNAL MSG_NOSIGNAL;
-
-deprecated("SocketFlags deprecated, please use the one in "
-        "ocean.sys.socket.model.ISocket instead")
-public alias ocean.sys.socket.model.ISocket.SocketFlags SocketFlags;
-
-
-
 /******************************************************************************
 
     TCP option codes supported by getsockopt()/setsockopt()

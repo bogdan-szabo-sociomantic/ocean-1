@@ -645,21 +645,6 @@ version (Filter)
 
                 /***************************************************************
 
-                        Return the last child, which may be null
-
-                        Deprecated: exposes too much implementation detail.
-                                    Please file a ticket if you really need
-                                    this functionality
-
-                ***************************************************************/
-
-                deprecated Node childTail ()
-                {
-                        return lastChild;
-                }
-
-                /***************************************************************
-
                         Return the prior sibling, which may be null
 
                 ***************************************************************/
@@ -859,33 +844,6 @@ version(discrete)
                 {
                         Visitor v = {firstAttr};
                         return v;
-                }
-
-                /***************************************************************
-
-                        Returns whether there are attributes present or not
-
-                        Deprecated: use node.attributes.exist instead
-
-                ***************************************************************/
-
-                deprecated bool hasAttributes ()
-                {
-                        return firstAttr !is null;
-                }
-
-                /***************************************************************
-
-                        Returns whether there are children present or nor
-
-                        Deprecated: use node.child or node.children.exist
-                        instead
-
-                ***************************************************************/
-
-                deprecated bool hasChildren ()
-                {
-                        return firstChild !is null;
                 }
 
                 /***************************************************************

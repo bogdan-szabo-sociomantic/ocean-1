@@ -24,13 +24,6 @@ import ocean.transition;
 
 static import ocean.core.Enforce;
 
-deprecated ("Import ocean.core.Enforce instead")
-alias ocean.core.Enforce.enforce enforce;
-deprecated ("Import ocean.core.Enforce instead")
-alias ocean.core.Enforce.enforceImpl enforceImpl;
-deprecated ("Import ocean.core.Enforce instead")
-alias ocean.core.Enforce.throwChained throwChained;
-
 version (UnitTest)
 {
     import ocean.core.Test;
