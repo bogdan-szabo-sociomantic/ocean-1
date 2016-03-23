@@ -691,7 +691,7 @@ class PriorityCache(T) : ICacheInfo
 
     /***************************************************************************
 
-        Return the priority if an item.
+        Return the priority of an item.
 
         Params:
             node = node to lookup
@@ -708,7 +708,7 @@ class PriorityCache(T) : ICacheInfo
 
     /***************************************************************************
 
-        Return the priority if an item.
+        Return the index of an item.
 
         Params:
             node = node to lookup
