@@ -47,6 +47,10 @@ Deprecations
 New Features
 ============
 
+* `ocean.util.container.cache.PriorityCache`
+
+  Added a an opApplyReverse() method.
+
 * `ocean.sys.Process`
 
   D2 only. Now can use pre-existing `istring[] arguments` array directly without

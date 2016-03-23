@@ -474,6 +474,43 @@ class PriorityCache(T) : ICacheInfo
         return ret;
     }
 
+    /***************************************************************************
+
+        A foreach-iterator for iterating over the items in the tree.
+
+        The items are passed in a ascending order of priority (lowest priority
+        first followed by higher priority).
+
+        Parmas:
+            dg = the foreach delegate
+
+        Returns:
+            If dg returns a nonzero value then the method return that value,
+            returns zero otherwise
+
+    ***************************************************************************/
+
+    public int opApplyReverse ( ForeachDg dg )
+    {
+        int ret = 0;
+
+        scope iterator = this.time_to_index.new Iterator;
+
+        foreach (ref node; iterator)
+        {
+            auto node_item_index = this.getNodeIndex(node);
+            CacheItem* cache_item =  &this.items[node_item_index];
+
+            auto key = cache_item.key; // Copy it so it can't be changed by ref
+            auto priority = this.getNodePriority(node);
+            ret = dg(key, cache_item.value, priority);
+            if (ret)
+                break;
+        }
+
+        return ret;
+    }
+
 
     /***************************************************************************
 
@@ -1068,6 +1105,22 @@ unittest
         auto int_ptr = test_cache.get(i);
         t.test(int_ptr, "item unexpectedly null");
         t.test!("==")(*int_ptr, i + NEW_VALUE, "Unexpected item value");
+    }
+
+    foreach_reverse (key, ref item, ulong priority; test_cache)
+    {
+        t.test!("==")(key, counter, "Unexpected key");
+        t.test!("==")(priority, counter + PRIORITY, "Unexpected item priority");
+        item = counter - NEW_VALUE;
+        counter++;
+    }
+
+    // Confirm that the new assigned values weren't lost
+    for (int i = 0; i < NUM_OF_ITEMS; i++)
+    {
+        auto int_ptr = test_cache.get(i);
+        t.test(int_ptr, "item unexpectedly null");
+        t.test!("==")(*int_ptr, i - NEW_VALUE, "Unexpected item value");
     }
 }
 
