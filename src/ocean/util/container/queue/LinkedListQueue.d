@@ -36,10 +36,13 @@ public import ocean.util.container.queue.model.ITypedQueue: push, pop;
     Template params:
 
         T = Type of values stored in the linked list queue
+        gc_tracking_policy = defines the GC tracking policy for T (see
+            GCTrackingPolicy struct below)
 
 *******************************************************************************/
 
-public class LinkedListQueue ( T ) : ITypedQueue!( T )
+public class LinkedListQueue ( T, alias gc_tracking_policy = GCTrackingPolicy.refTypesOnly ) :
+    ITypedQueue!( T )
 {
     /**************************************************************************
 
@@ -60,20 +63,17 @@ public class LinkedListQueue ( T ) : ITypedQueue!( T )
 
     protected static bool root_values;
 
-
     /**************************************************************************
 
         Static constructor.
 
-        Checks whether the values in the queue (of Type T) are in GC memory,
-        and sets 'root_values' accordingly.
+        Sets 'root_values' according to the gc_tracking_policy.
 
     ***************************************************************************/
 
     public static this ( )
     {
-        // Checking for TypeInfo.flags()
-        root_values = ( typeid(T).flags() & 1 )  == 1;
+        typeof(this).root_values = gc_tracking_policy!(T);
     }
 
 
@@ -415,6 +415,18 @@ public class LinkedListQueue ( T ) : ITypedQueue!( T )
         return old_count - this.count;
     }
 
+    /**************************************************************************
+
+        Returns:
+            true if the elements of this class are tracked by the GC, false
+            otherwise.
+
+    ***************************************************************************/
+
+    public static bool isRootedValues ()
+    {
+        return typeof(this).root_values;
+    }
 
     /**************************************************************************
 
@@ -460,6 +472,73 @@ public class LinkedListQueue ( T ) : ITypedQueue!( T )
     }
 }
 
+/******************************************************************************
+
+    A wrapper around common used policies for adding data allocated by the
+    LinkedListQueue to the GC scan range.
+
+*******************************************************************************/
+
+public struct GCTrackingPolicy
+{
+    /**************************************************************************
+
+        Checks T parameter and decides accordingly whether T items allocated
+        by the LinkedListQueue will be added to the GC scan range.
+
+        Allocated T elements will be added to the GC scan range only if T is
+        (or contains) reference types (e.g a class, an array or a pointer).
+        Otherwise allocated T elements won't be added to the GC scan range.
+
+        Template params:
+            T = the type to be used
+
+        Returns:
+            true  T contains reference items, returns false otherwise.
+
+    ***************************************************************************/
+
+    static bool refTypesOnly (T) ()
+    {
+        return (typeid(T).flags() & 1) == 1;
+    }
+
+    /**************************************************************************
+
+        Disable addition of allocated items to the GC scan range regardless of
+        the used type.
+
+        Template params:
+            T = the type to be used
+
+        Returns:
+            false regardless of the used type
+
+    ***************************************************************************/
+
+    static bool never (T) ()
+    {
+        return false;
+    }
+
+    /**************************************************************************
+
+        Enable addition of allocated items to the GC scan range regardless of
+        the used type.
+
+        Template params:
+            T = the type to be used
+
+        Returns:
+            true regardless of the used type
+
+    ***************************************************************************/
+
+    static bool always (T) ()
+    {
+        return true;
+    }
+}
 
 /******************************************************************************
 
@@ -475,18 +554,28 @@ unittest
 
     // int
     test((new LinkedListQueue!(int)).root_values == false, "'int' should not be added as GC root");
+    test((new LinkedListQueue!(int, GCTrackingPolicy.refTypesOnly)).root_values == false, "'int' should not be added as GC root (2)");
 
     // empty struct
     test((new LinkedListQueue!(emptyStruct)).root_values == false, "An empty struct should not be added as GC root");
+    test((new LinkedListQueue!(emptyStruct, GCTrackingPolicy.refTypesOnly)).root_values == false, "An empty struct should not be added as GC root (2)");
 
     // struct that points to GC memory
     test((new LinkedListQueue!(someStruct)).root_values, "A struct containing an array should be added as GC root!");
+    test((new LinkedListQueue!(someStruct, GCTrackingPolicy.refTypesOnly)).root_values, "A struct containing an array should be added as GC root (2)!");
 
     // pointer to struct
     test((new LinkedListQueue!(emptyStruct*)).root_values, "A pointer to a struct should be added as GC root!");
+    test((new LinkedListQueue!(emptyStruct*, GCTrackingPolicy.refTypesOnly)).root_values, "A pointer to a struct should be added as GC root (2)!");
 
     // class
     test((new LinkedListQueue!(someClass)).root_values, "A class should be added as GC root!");
+    test((new LinkedListQueue!(someClass, GCTrackingPolicy.refTypesOnly)).root_values, "A class should be added as GC root (2)!");
+
+    // Test forcing a GC policy
+    test((new LinkedListQueue!(someClass, GCTrackingPolicy.never)).root_values == false, "GC scanning should be forcefully disabled for class!");
+    test((new LinkedListQueue!(int, GCTrackingPolicy.always)).root_values, "GC scanning should be forcefully enabled for ints!");
+    test((new LinkedListQueue!(emptyStruct, GCTrackingPolicy.always)).root_values, "GC scanning should be forcefully enabled for empty struct!");
 }
 
 
