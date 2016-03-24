@@ -416,6 +416,58 @@ class PriorityCache(T) : ICacheInfo
 
     /***************************************************************************
 
+        Returns the item with highest priority.
+
+        Params:
+            key = set to the key of highest priority item
+            priority = set to the priority of the highest priority item
+
+        Returns:
+            returns a pointer to the highest priority item or null if the cache
+            is empty
+
+    ***************************************************************************/
+
+    public T* getHighestPriorityItem ( out hash_t key, out ulong priority )
+    {
+        if ( !this.length )
+            return null;
+
+        auto highest_node = this.time_to_index.last;
+        priority = this.getNodePriority(*highest_node);
+        auto item = &this.items[this.getNodeIndex(*highest_node)];
+        key = item.key;
+        return &item.value;
+    }
+
+    /***************************************************************************
+
+        Returns the item with lowest priority.
+
+        Params:
+            key = set to the key of lowest priority item
+            priority = set to the priority of the lowest priority item
+
+        Returns:
+            returns a pointer to the lowest priority item or null if the cache
+            is empty
+
+    ***************************************************************************/
+
+    public T* getLowestPriorityItem ( out hash_t key, out ulong priority )
+    {
+        if ( !this.length )
+            return null;
+
+        auto lowest_node = this.time_to_index.first;
+        priority = this.getNodePriority(*lowest_node);
+        auto item = &this.items[this.getNodeIndex(*lowest_node)];
+        key = item.key;
+        return &item.value;
+    }
+
+    /***************************************************************************
+
         The signature for the delegate to be used in a foreach loop:
 
             foreach(hash_t key, ref T item, ulong item_priority; cache)
@@ -1037,6 +1089,44 @@ unittest
     {
         t.test(test_cache.remove(j), "Removing non-existing item");
     }
+}
+
+// Test getting highest and lowest items
+unittest
+{
+    auto t = new NamedTest("Retrieving highest and lowest priority items");
+
+    const NUM_OF_ITEMS = 150;
+
+    auto test_cache = new PriorityCache!(int)(NUM_OF_ITEMS);
+
+    const PRIORITY = 10;
+    const VALUE = 50;
+
+    bool existed;
+    hash_t key;
+    ulong priority;
+
+    // Test that nothing is returned when cache is empty
+    t.test!("==")(test_cache.getLowestPriorityItem(key, priority), null);
+    t.test!("==")(test_cache.getHighestPriorityItem(key, priority), null);
+
+    // Populate the cache with some items
+    for (int i = 0; i < NUM_OF_ITEMS; i++)
+    {
+        auto int_ptr = test_cache.getOrCreate(i, i + PRIORITY, existed);
+        *int_ptr = i + VALUE;
+    }
+
+    // Test the cache after items has been added to it
+    t.test!("==")(*test_cache.getLowestPriorityItem(key, priority), VALUE);
+    t.test!("==")(key, 0);
+    t.test!("==")(priority, PRIORITY);
+
+    t.test!("==")(*test_cache.getHighestPriorityItem(key, priority),
+                  NUM_OF_ITEMS - 1 + VALUE);
+    t.test!("==")(key, NUM_OF_ITEMS - 1);
+    t.test!("==")(priority, NUM_OF_ITEMS - 1 + PRIORITY);
 }
 
 // Test clearing

@@ -49,6 +49,11 @@ New Features
 
 * `ocean.util.container.cache.PriorityCache`
 
+  Added `getHighestPriorityItem()` and `getLowestPriorityItem()` to retrieve
+  the items with the highest and the lowest priorities.
+
+* `ocean.util.container.cache.PriorityCache`
+
   Added a an opApplyReverse() method.
 
 * `ocean.sys.Process`
