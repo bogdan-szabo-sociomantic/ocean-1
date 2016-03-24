@@ -85,8 +85,29 @@ class StatsExt : IConfigExtExtension
 
     public override void processConfig ( IApplication app, ConfigParser config )
     {
-        auto stats_config = ClassFiller.fill!(IStatsLog.Config)("STATS", config);
+        this.stats_log = this.newStatsLog(app,
+            ClassFiller.fill!(IStatsLog.Config)("STATS", config));
+    }
 
+
+    /***************************************************************************
+
+        Creates a new stats log instance according to the provided config
+        settings. If the reopenable files extension exists, the log file is
+        registered with it.
+
+        Params:
+            app = the application instance
+            stats_config = stats log configuration instance
+
+        Returns:
+            new, configured StatsLog instance
+
+    ***************************************************************************/
+
+    static public StatsLog newStatsLog ( IApplication app,
+        IStatsLog.Config stats_config )
+    {
         Appender newAppender ( istring file, Appender.Layout layout )
         {
             auto reopenable_files_ext =
@@ -108,7 +129,7 @@ class StatsExt : IConfigExtExtension
             }
         }
 
-        this.stats_log = new StatsLog(stats_config, &newAppender);
+        return new StatsLog(stats_config, &newAppender);
     }
 
 
