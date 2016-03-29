@@ -741,14 +741,18 @@ public class StatsLog
         are not iterated over.
 
         Template params:
-            category = The type of object we log. You should use a single type
-                       per category.
+            category = the type or category of the object, such as 'channels',
+                       'users'... May be null (see the 'instance' parameter).
+            T = the type of the aggregate containing the fields to log
 
         Params:
             values = aggregate containing values to write to the log. Passed as
                      ref purely to avoid making a copy -- the aggregate is not
                      modified.
-            instance = The name of the instance of the category, or null if none
+            instance = the name of the instance of the category, or null if
+                none. For example, if the category is 'companies', then the name
+                of an instance may be "google". This value should be null if
+                category is null, and non-null otherwise.
 
     ***************************************************************************/
 
@@ -756,6 +760,8 @@ public class StatsLog
     {
         foreach ( i, value; values.tupleof )
         {
+            auto value_name = FieldName!(i, T);
+
             static if (is(typeof(value) : long))
                 long fmtd_value = value;
             else static if (is(typeof(value) : double))
@@ -773,58 +779,20 @@ public class StatsLog
             {
                 this.layout(' ');
             }
-            this.formatValue!(category)(FieldName!(i, T), fmtd_value, instance);
+
+            static if (category.length)
+            {
+                assert(instance.length);
+                this.layout(category, '/', instance, '/', value_name, ':',
+                    fmtd_value);
+            }
+            else
+            {
+                assert(!instance.length);
+                this.layout(value_name, ':', fmtd_value);
+            }
+
             this.add_separator = true;
-        }
-    }
-
-
-    /***************************************************************************
-
-        Writes the specified name:value pair to the layout.
-
-        Template Params:
-            category = The category of the structure, such as 'channels',
-                       'users'... Can be null (see 'instance' parameter).
-            V        = type of value. Assumed to be handled by Layout
-
-        Params:
-            value_name = name of the value we log in that category.
-                         If a category is a structure, a value_name
-                         is the name of a field. This value should not
-                         be null.
-            value    = value of stats log entry
-            instance = name of the object in a given category.
-                       For example, if the category is 'channels', then a name
-                       name would be a channel name, like 'campaign_metadata'.
-                       This value should be null if category is null,
-                       and non-null otherwise.
-
-    ***************************************************************************/
-
-    private void formatValue (istring category, V)
-        (cstring value_name, V value, cstring instance = null)
-    in
-    {
-        assert(value_name !is null);
-        static if (category.length)
-        {
-            assert(instance !is null);
-        }
-        else
-        {
-            assert(instance is null);
-        }
-    }
-    body
-    {
-        static if (category.length)
-        {
-            this.layout(category, '/', instance, '/', value_name, ':', value);
-        }
-        else
-        {
-            this.layout(value_name, ':', value);
         }
     }
 }
