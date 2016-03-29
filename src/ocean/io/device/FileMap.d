@@ -46,7 +46,7 @@ class FileMap : Array
 
         ***********************************************************************/
 
-        this (char[] path, File.Style style = File.ReadWriteOpen)
+        this (cstring path, File.Style style = File.ReadWriteOpen)
         {
                 file = new MappedFile (path, style);
                 super (file.map);
@@ -99,7 +99,7 @@ class MappedFile
 
         ***********************************************************************/
 
-        this (char[] path, File.Style style = File.ReadWriteOpen)
+        this (cstring path, File.Style style = File.ReadWriteOpen)
         {
                 host = new File (path, style);
         }
@@ -230,27 +230,17 @@ class MappedFile
         }
 }
 
-
-/*******************************************************************************
-
-*******************************************************************************/
-
-debug (FileMap)
+///
+unittest
 {
-        import ocean.io.Path;
+    void example ( )
+    {
+        auto file = new MappedFile ("foo.map");
+        auto heap = file.resize (1_000_000);
+        file.close();
 
-        void main()
-        {
-                auto file = new MappedFile ("foo.map");
-                auto heap = file.resize (1_000_000);
-
-                auto file1 = new MappedFile ("foo1.map");
-                auto heap1 = file1.resize (1_000_000);
-
-                file.close;
-                remove ("foo.map");
-
-                file1.close;
-                remove ("foo1.map");
-        }
+        auto file1 = new MappedFile ("foo1.map");
+        auto heap1 = file1.resize (1_000_000);
+        file1.close();
+    }
 }
