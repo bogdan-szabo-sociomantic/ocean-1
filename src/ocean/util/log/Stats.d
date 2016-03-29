@@ -684,7 +684,7 @@ public class StatsLog
         the aggregate will be output as
         <category>/<instance>/<member name>:<member value>.
 
-        Template params:
+        Template_Params:
             category = The name of the category this object belongs to.
 
         Params:
@@ -740,7 +740,7 @@ public class StatsLog
         Note: When the aggregate is a class, the members of the super class
         are not iterated over.
 
-        Template params:
+        Template_Params:
             category = the type or category of the object, such as 'channels',
                        'users'... May be null (see the 'instance' parameter).
             T = the type of the aggregate containing the fields to log
@@ -978,7 +978,7 @@ public abstract class IStatsLog
 
         Writes the specified name:value pair to the layout.
 
-        Template Params:
+        Template_Params:
             category = The category of the structure, such as 'channels',
                        'users'... Can be null (see 'instance' parameter).
             V        = type of value. Assumed to be handled by Layout
