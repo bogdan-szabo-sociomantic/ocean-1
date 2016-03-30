@@ -35,6 +35,9 @@ import ocean.stdc.posix.time: time_t, timespec, itimerspec;
     TimerEvent class, calls the provided delegate when the timer fires and is
     handled in epoll.
 
+    Usage example:
+        See documented unittest after class
+
 *******************************************************************************/
 
 class TimerEvent : ITimerEvent
@@ -116,6 +119,32 @@ class TimerEvent : ITimerEvent
         this.handler = handler;
     }
 }
+
+version ( UnitTest )
+{
+    import ocean.io.select.EpollSelectDispatcher;
+}
+
+/// TimerEvent usage example
+unittest
+{
+    // Delegate which will be called each time the timer fires and is handled in
+    // epoll
+    bool my_timer_dg ( )
+    {
+        return true; // to keep timer registered (false to unregister)
+    }
+
+    auto epoll = new EpollSelectDispatcher;
+    auto timer = new TimerEvent(&my_timer_dg);
+    timer.set(1, 0, 1, 0); // repeating timer, fires every 1s
+    epoll.register(timer);
+
+    // TODO: epoll.eventLoop();
+    // (The timer event may fire but will not be handled until the event loop is
+    // running.)
+}
+
 
 /*******************************************************************************
 
