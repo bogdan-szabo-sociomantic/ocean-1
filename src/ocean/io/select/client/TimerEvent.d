@@ -30,6 +30,13 @@ import ocean.io.model.IConduit: ISelectable;
 
 import ocean.stdc.posix.time: time_t, timespec, itimerspec;
 
+/*******************************************************************************
+
+    TimerEvent class, calls the provided delegate when the timer fires and is
+    handled in epoll.
+
+*******************************************************************************/
+
 class TimerEvent : ITimerEvent
 {
     /***************************************************************************
@@ -112,7 +119,7 @@ class TimerEvent : ITimerEvent
 
 /*******************************************************************************
 
-    TimerEvent class
+    ITimerEvent base class with abstract handle method.
 
 *******************************************************************************/
 
