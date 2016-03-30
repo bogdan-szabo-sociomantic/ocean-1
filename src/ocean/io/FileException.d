@@ -14,6 +14,8 @@ module ocean.io.FileException;
 
 **************************************************************************/
 
+import ocean.transition;
+
 import ocean.sys.ErrnoException;
 import ocean.stdc.errno;
 
@@ -111,7 +113,7 @@ unittest
     catch (FileException e)
     {
         test!("==")(
-            e.toString(),
+            getMsg(e),
             "Bad file descriptor (failed operation on '<42>')"[]
         );
         test!("==")(e.line, __LINE__ - 9);

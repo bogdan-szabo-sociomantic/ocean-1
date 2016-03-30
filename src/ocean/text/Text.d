@@ -1115,7 +1115,7 @@ class Text(T) : TextView!(T)
                 return Util.jhash (cast(ubyte*) content.ptr, contentLength * T.sizeof);    }
             catch (Exception e)
             {
-                throw new Error(e.msg, e.file, e.line, e);
+                throw new Error(idup(getMsg(e)), e.file, e.line, e);
             }
         }
         ");

@@ -178,38 +178,16 @@ public template ReusableExceptionImplementation()
             throw this.set(msg, file, line);
     }
 
-    version (D_Version2)
+    /**************************************************************************
+
+        Returns:
+            currently active exception message
+
+    ***************************************************************************/
+
+    public override cstring message ( ) /* d1to2fix_inject: const */
     {
-        /**********************************************************************
-
-            Params:
-                sink = delegate that will be called with parts of currently
-                    active exception message
-
-        ***********************************************************************/
-
-        mixin(`
-        public override void toString(scope void delegate(in char[]) sink) const
-        {
-            sink(this.msg is null ? this.reused_msg : this.msg);
-        }
-
-        alias toString = super.toString;
-        `);
-    }
-    else
-    {
-        /**********************************************************************
-
-            Returns:
-                currently active exception message
-
-        **********************************************************************/
-
-        public override istring toString()
-        {
-            return this.msg is null ? this.reused_msg : this.msg;
-        }
+        return this.msg is null ? this.reused_msg : this.msg;
     }
 
     /**************************************************************************
@@ -271,7 +249,7 @@ unittest
     auto e = new SomeReusableException(100);
 
     e.set("message");
-    assert (e.toString() == "message");
+    assert (getMsg(e) == "message");
     auto old_ptr = e.reused_msg.ptr;
 
     try
@@ -280,14 +258,14 @@ unittest
         assert (false);
     }
     catch (SomeReusableException) { }
-    assert (e.toString() == "immutable");
+    assert (getMsg(e) == "immutable");
 
     try
     {
         e.enforce(false, "longer message");
     }
     catch (SomeReusableException) { }
-    assert (e.toString() == "longer message");
+    assert (getMsg(e) == "longer message");
     assert (old_ptr is e.reused_msg.ptr);
 
     try
@@ -295,7 +273,7 @@ unittest
         e.badName("NAME", 42);
     }
     catch (SomeReusableException) { }
-    assert (e.toString() == "Wrong name (NAME) 0x2A 42");
+    assert (getMsg(e) == "Wrong name (NAME) 0x2A 42");
     assert (old_ptr is e.reused_msg.ptr);
 }
 
@@ -356,7 +334,7 @@ unittest
     }
     catch (CardBoardException e)
     {
-        test!("==")(e.msg, "Transmogrification failed"[]);
+        test!("==")(getMsg(e), "Transmogrification failed"[]);
         test!("==")(e.file, __FILE__[]);
         test!("==")(e.line, __LINE__ - 9);
     }

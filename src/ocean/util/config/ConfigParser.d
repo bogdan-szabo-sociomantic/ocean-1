@@ -1286,7 +1286,7 @@ bool_arr = true
     }
     catch ( IllegalArgumentException e )
     {
-        test!("==")(e.msg, "Config.toBool :: invalid boolean value"[]);
+        test!("==")(getMsg(e), "Config.toBool :: invalid boolean value"[]);
     }
 
     // Manually set a property (new category).

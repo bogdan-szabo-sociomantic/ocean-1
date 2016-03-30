@@ -82,7 +82,7 @@ unittest
     }
     catch (TestException e)
     {
-        assert(e.msg == "unit test has failed");
+        assert(getMsg(e) == "unit test has failed");
         assert(e.line == __LINE__ - 6);
     }
 
@@ -93,7 +93,7 @@ unittest
     }
     catch (TestException e)
     {
-        assert(e.msg == "expression '2 == 3' evaluates to false");
+        assert(getMsg(e) == "expression '2 == 3' evaluates to false");
         assert(e.line == __LINE__ - 6);
     }
 }
@@ -211,11 +211,11 @@ class NamedTest : TestException
 
     /***************************************************************************
 
-      toString that also uses this.name if present
+      message that also uses this.name if present
 
-     ***************************************************************************/
+    ****************************************************************************/
 
-    public override istring toString()
+    public override cstring message ( ) /* d1to2fix_inject: const */
     {
         if (this.name.length)
         {
@@ -225,6 +225,12 @@ class NamedTest : TestException
         {
             return Format("{}", this.msg);
         }
+    }
+
+    deprecated ("use NamedTest.message() instead")
+    public override istring toString()
+    {
+        return idup(this.message());
     }
 
     /**************************************************************************
@@ -275,7 +281,7 @@ unittest
     }
     catch (TestException e)
     {
-        assert(e.toString() == "[name] unit test has failed");
+        assert(getMsg(e) == "[name] unit test has failed");
     }
 
     try
@@ -285,7 +291,7 @@ unittest
     }
     catch (TestException e)
     {
-        assert(e.toString() == "[name] expression '2 > 3' evaluates to false");
+        assert(getMsg(e) == "[name] expression '2 > 3' evaluates to false");
     }
 }
 

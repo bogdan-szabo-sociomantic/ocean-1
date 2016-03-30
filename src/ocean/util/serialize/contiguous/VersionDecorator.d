@@ -16,6 +16,8 @@ module ocean.util.serialize.contiguous.VersionDecorator;
 
 *******************************************************************************/
 
+import ocean.transition;
+
 import ocean.core.Enforce,
        ocean.util.container.ConcatBuffer,
        ocean.core.StructConverter : structConvert;
@@ -583,7 +585,7 @@ Dst testConv(Src, Dst)(Src src)
             e.classinfo.name,
             e.file,
             e.line,
-            e.toString()
+            getMsg(e)
         );
         test.file = __FILE__;
         test.line = __LINE__;
@@ -641,7 +643,7 @@ Dst testConvMemory(Src, Dst)(Src src)
                 e.classinfo.name,
                 e.file,
                 e.line,
-                e.toString()
+                getMsg(e)
                 );
             test.file = __FILE__;
             test.line = __LINE__;

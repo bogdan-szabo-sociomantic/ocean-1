@@ -4,7 +4,8 @@
   author:      Juan Jose Comellas $(EMAIL juanjo@comellas.com.ar)
 *******************************************************************************/
 
-module ocean.io.selector.model.ISelector;
+deprecated module ocean.io.selector.model.ISelector;
+pragma(msg, "Use ocean.io.select, instead");
 
 public import ocean.time.Time;
 

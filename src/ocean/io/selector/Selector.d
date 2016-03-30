@@ -86,7 +86,7 @@
  * }
  * catch (SelectorException e)
  * {
- *     Stdout.format("Exception caught: {0}", e.toString()).newline();
+ *     Stdout.format("Exception caught: {0}", getMsg(e)).newline();
  * }
  * ---
  *
@@ -120,7 +120,8 @@
  * }
  * ---
  */
-module ocean.io.selector.Selector;
+deprecated module ocean.io.selector.Selector;
+pragma(msg, "Use ocean.io.select, instead");
 
 version (linux)
 {

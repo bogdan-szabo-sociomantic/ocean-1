@@ -158,7 +158,7 @@ public class AppendSyslog: Filer
         }
         catch ( Exception e )
         {
-            Stderr.formatln("Failed to write logline: {}", e.msg);
+            Stderr.formatln("Failed to write logline: {}", getMsg(e));
         }
     }
 

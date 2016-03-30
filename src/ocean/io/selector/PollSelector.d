@@ -4,7 +4,8 @@
   author:      Juan Jose Comellas $(EMAIL juanjo@comellas.com.ar)
 *******************************************************************************/
 
-module ocean.io.selector.PollSelector;
+deprecated module ocean.io.selector.PollSelector;
+pragma(msg, "Use ocean.io.select, instead");
 
 version (Posix)
 {
@@ -234,7 +235,7 @@ version (Posix)
                 {
                     debug (selector)
                         Stdout.formatln("--- Exception inside PollSelector.unregister(handle={0}): {1}",
-                                      cast(int) conduit.fileHandle(), e.toString());
+                                      cast(int) conduit.fileHandle(), getMsg(e));
 
                     throw new UnregisteredConduitException(__FILE__, __LINE__);
                 }

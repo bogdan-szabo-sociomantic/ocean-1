@@ -322,7 +322,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
             debug ( ISelectClient )
             {
                 Stderr.formatln("{} :: Error during register: '{}' @{}:{}",
-                    client, e.toString(), e.file, e.line).flush();
+                    client, getMsg(e), e.file, e.line).flush();
             }
             throw e;
         }
@@ -388,7 +388,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
             debug ( ISelectClient )
             {
                 Stderr.formatln("{} :: Error during unregister: '{}' @{}:{}",
-                    client, e.toString(), e.file, e.line).flush();
+                    client, getMsg(e), e.file, e.line).flush();
             }
             throw e;
         }
@@ -485,7 +485,7 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
             debug ( ISelectClient )
             {
                 Stderr.formatln("Error during changeClient: '{}' @{}:{}",
-                    e.toString(), e.file, e.line).flush();
+                    getMsg(e), e.file, e.line).flush();
             }
             throw e;
         }

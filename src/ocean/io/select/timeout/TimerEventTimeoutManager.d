@@ -37,6 +37,8 @@ module ocean.io.select.timeout.TimerEventTimeoutManager;
 
 *******************************************************************************/
 
+import ocean.transition;
+
 import ocean.time.timeout.TimeoutManager;
 
 import ocean.io.select.client.TimerEvent;
@@ -114,7 +116,7 @@ class TimerEventTimeoutManager : TimeoutManager
             catch ( Exception e )
             {
                 log.error("Exception caught in TimerEventTimeoutManager event handler: {} @ {}:{}",
-                    e.msg, e.file, e.line);
+                    getMsg(e), e.file, e.line);
                 throw e;
             }
             return true;
