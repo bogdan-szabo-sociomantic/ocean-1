@@ -43,21 +43,38 @@ module ocean.util.log.Stats;
 *******************************************************************************/
 
 import ocean.transition;
+import ocean.core.Enforce;
+import ocean.core.Exception_tango;
 import ocean.core.Traits : FieldName;
 import ocean.core.TypeConvert;
 import ocean.io.select.EpollSelectDispatcher;
 import ocean.io.select.client.TimerEvent;
+import ocean.net.collectd.Collectd;
 import ocean.stdc.time : time_t;
+import ocean.sys.ErrnoException;
 import ocean.text.convert.Layout: StringLayout;
 import ocean.util.log.layout.LayoutStatsLog;
 import ocean.util.log.Log;
 import ocean.util.log.AppendSyslog;
+
 
 version (UnitTest)
 {
     import ocean.util.app.DaemonApp;
 }
 
+
+/*******************************************************************************
+
+    Module logger
+
+*******************************************************************************/
+
+private Logger log;
+static this ()
+{
+    log = Log.lookup("ocean.util.log.Stats");
+}
 
 /*******************************************************************************
 
@@ -577,7 +594,7 @@ public class StatsLog
 
         ***********************************************************************/
 
-        public istring interval;
+        public ulong interval;
 
 
         /***********************************************************************
@@ -708,6 +725,16 @@ public class StatsLog
     public this ( Config config,
         Appender delegate ( istring file, Appender.Layout layout ) new_appender,
         istring name = "Stats" )
+    in
+    {
+        if (config.socket_path.length)
+        {
+            assert(config.hostname.length);
+            assert(config.app_name.length);
+            assert(config.default_type.length);
+        }
+    }
+    body
     {
         this.logger = Log.lookup(name);
         this.logger.clear();
@@ -720,6 +747,18 @@ public class StatsLog
         this.logger.level = this.logger.Level.Trace;
 
         this.layout = new StringLayout!();
+
+        if (config.socket_path.length)
+        {
+            // Will throw if it can't connect to the socket
+            this.collectd = new Collectd(config.socket_path);
+
+            this.identifier.host = config.hostname;
+            this.identifier.plugin = config.app_name;
+            this.identifier.plugin_instance = config.app_instance;
+            this.identifier.type = config.default_type;
+            this.options.interval = config.interval;
+        }
     }
 
 
@@ -795,7 +834,8 @@ public class StatsLog
         static assert (is(T == struct) || is(T == class),
                        "Parameter to add must be a struct or a class");
         this.format!(null)(values, istring.init);
-
+        if (this.collectd !is null)
+            this.sendToCollectd!(null)(values, istring.init);
         return this;
     }
 
@@ -827,6 +867,8 @@ public class StatsLog
     body
     {
         this.format!(category)(values, instance);
+        if (this.collectd !is null)
+            this.sendToCollectd!(category)(values, instance);
         return this;
     }
 
@@ -915,6 +957,91 @@ public class StatsLog
             this.add_separator = true;
         }
     }
+
+
+    /***************************************************************************
+
+        Send the content of the struct to Collectd
+
+        This will format and send data to the Collectd daemon.
+        If any error happen, they will be reported by a log message but won't
+        be propagated up, so applications that have trouble logging won't
+        fail.
+
+        Note:
+        As with `format`, when the aggregate is a class, the members of
+        the super class are not iterated over.
+
+        Params:
+            category = the type or category of the object, such as 'channels',
+                       'users'... May be null (see the 'instance' parameter).
+            T = the type of the aggregate containing the fields to log
+
+            values = aggregate containing values to write to the log. Passed as
+                     ref purely to avoid making a copy -- the aggregate is not
+                     modified.
+            instance = the name of the instance of the category, or null if
+                none. For example, if the category is 'companies', then the name
+                of an instance may be "google". This value should be null if
+                category is null, and non-null otherwise.
+
+    ***************************************************************************/
+
+    private void sendToCollectd (istring category, T) (ref T values,
+                                                       cstring instance)
+    in
+    {
+        assert(this.collectd !is null);
+        static if (!category.length)
+            assert(!instance.length);
+    }
+    body
+    {
+        // It's a value type (struct), do a copy
+        auto id = this.identifier;
+        static if (category.length)
+        {
+            id.type = category;
+            id.type_instance = instance;
+        }
+
+        // putval returns null on success, a failure reason else
+        try
+            this.collectd.putval!(T)(id, values, this.options);
+        catch (CollectdException e)
+            log.error("Sending stats to Collectd failed: {}", e);
+        catch (ErrnoException e)
+            log.error("I/O error while sending stats: {}", e);
+    }
+
+
+    /***************************************************************************
+
+        Collectd instance
+
+    ***************************************************************************/
+
+    protected Collectd collectd;
+
+
+    /***************************************************************************
+
+        Default identifier when doing `add`.
+
+    ***************************************************************************/
+
+    protected Identifier identifier;
+
+
+    /***************************************************************************
+
+        Default set options to send
+
+        Currently it's only `interval=30`.
+
+    ***************************************************************************/
+
+    protected Collectd.PutvalOptions options;
 }
 
 /// Usage example for StatsLog in a simple application
