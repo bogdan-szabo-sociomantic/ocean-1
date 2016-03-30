@@ -236,11 +236,6 @@ class Process
      *            also be empty.
      *            Note: The class will use only slices, .dup when necessary.
      *
-     * Examples:
-     * ---
-     * auto p = new Process("myprogram", "first argument", "second", "third");
-     * auto p = new Process("myprogram \"first argument\" second third");
-     * ---
      */
     public this(cstring[] args ...)
     {
@@ -248,6 +243,16 @@ class Process
             _args = splitArgs(args[0]);
         else
             _args = args;
+    }
+
+    ///
+    unittest
+    {
+        void example ( )
+        {
+            auto p1 = new Process("myprogram", "first argument", "second", "third");
+            auto p2 = new Process("myprogram \"first argument\" second third");
+        }
     }
 
     /**
@@ -262,17 +267,21 @@ class Process
      *            parameters should be embedded in quotes.  The arguments can
      *            also be empty.
      *            Note: The class will use only slices, .dup when necessary.
-     *
-     * Examples:
-     * ---
-     * auto p = new Process(true, "myprogram", "first argument", "second", "third");
-     * auto p = new Process(true, "myprogram \"first argument\" second third");
-     * ---
      */
     public this(bool copyEnv, cstring[] args ...)
     {
         _copyEnv = copyEnv;
         this(args);
+    }
+
+    ///
+    unittest
+    {
+        void example ( )
+        {
+            auto p1 = new Process(true, "myprogram", "first argument", "second", "third");
+            auto p2 = new Process(true, "myprogram \"first argument\" second third");
+        }
     }
 
     /**
@@ -284,18 +293,6 @@ class Process
      *            Note: The class will use only slices, .dup when necessary.
      * env      = associative array of strings with the process' environment
      *            variables; the variable name must be the key of each entry.
-     *
-     * Examples:
-     * ---
-     * char[] command = "myprogram \"first argument\" second third";
-     * char[][char[]] env;
-     *
-     * // Environment variables
-     * env["MYVAR1"] = "first";
-     * env["MYVAR2"] = "second";
-     *
-     * auto p = new Process(command, env)
-     * ---
      */
     public this(cstring command, istring[istring] env)
     in
@@ -308,6 +305,22 @@ class Process
         _env = env;
     }
 
+    ///
+    unittest
+    {
+        void example ( )
+        {
+            cstring command = "myprogram \"first argument\" second third";
+            istring[istring] env;
+
+            // Environment variables
+            env["MYVAR1"] = "first";
+            env["MYVAR2"] = "second";
+
+            auto p = new Process(command, env);
+        }
+    }
+
     /**
      * Constructor.
      *
@@ -318,25 +331,6 @@ class Process
      *            Note: The class will use only slices, .dup when necessary.
      * env      = associative array of strings with the process' environment
      *            variables; the variable name must be the key of each entry.
-     *
-     * Examples:
-     * ---
-     * char[][] args;
-     * char[][char[]] env;
-     *
-     * // Process name
-     * args ~= "myprogram";
-     * // Process arguments
-     * args ~= "first argument";
-     * args ~= "second";
-     * args ~= "third";
-     *
-     * // Environment variables
-     * env["MYVAR1"] = "first";
-     * env["MYVAR2"] = "second";
-     *
-     * auto p = new Process(args, env)
-     * ---
      */
     public this(cstring[] args, istring[istring] env)
     in
@@ -348,6 +342,29 @@ class Process
     {
         _args = args;
         _env = env;
+    }
+
+    ///
+    unittest
+    {
+        void example ( )
+        {
+             istring[] args;
+             istring[istring] env;
+
+             // Process name
+             args ~= "myprogram";
+             // Process arguments
+             args ~= "first argument";
+             args ~= "second";
+             args ~= "third";
+
+             // Environment variables
+             env["MYVAR1"] = "first";
+             env["MYVAR2"] = "second";
+
+             auto p = new Process(args, env);
+        }
     }
 
     /**
@@ -414,15 +431,20 @@ class Process
      * executable.
      *
      * Returns: the arguments that were set.
-     *
-     * Examples:
-     * ---
-     * p.args("myprogram", "first", "second argument", "third");
-     * ---
      */
     public cstring[] args(cstring progname, cstring[] args ...)
     {
         return _args = progname ~ args;
+    }
+
+    ///
+    unittest
+    {
+        void example ( )
+        {
+            Process p;
+            p.args("myprogram", "first", "second argument", "third");
+        }
     }
 
     /**
@@ -434,15 +456,21 @@ class Process
      *
      * Returns: the arguments that were set.
      *
-     * Examples:
-     * ---
-     * p.args(["myprogram", "first", "second argument", "third"]);
-     * ---
      */
 
     public void argsWithCommand(cstring[] args)
     {
         _args = args;
+    }
+
+    ///
+    unittest
+    {
+        void example ( )
+        {
+            Process p;
+            p.argsWithCommand(["myprogram", "first", "second argument", "third"]);
+        }
     }
 
     /**
@@ -454,15 +482,21 @@ class Process
      *
      * Returns: a reference to this for chaining
      *
-     * Examples:
-     * ---
-     * p.setArgs("myprogram", "first", "second argument", "third").execute();
-     * ---
      */
     public Process setArgs(cstring progname, cstring[] args ...)
     {
         this.args(progname, args);
         return this;
+    }
+
+    ///
+    unittest
+    {
+        void example ( )
+        {
+            Process p;
+            p.setArgs("myprogram", "first", "second argument", "third").execute();
+        }
     }
 
     /**
@@ -548,21 +582,25 @@ class Process
      *        used for each entry.
      *
      * Returns: A reference to this process object
-     * Examples:
-     * ---
-     * char[][char[]] env;
-     *
-     * env["MYVAR1"] = "first";
-     * env["MYVAR2"] = "second";
-     *
-     * p.setEnv(env).execute();
-     * ---
      */
     public Process setEnv(istring[istring] env)
     {
         _copyEnv = false;
         _env = env;
         return this;
+    }
+
+    ///
+    unittest
+    {
+        void example ( )
+        {
+            Process p;
+            istring[istring] env;
+            env["MYVAR1"] = "first";
+            env["MYVAR2"] = "second";
+            p.setEnv(env).execute();
+        }
     }
 
     /**
