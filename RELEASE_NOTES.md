@@ -13,7 +13,7 @@ Migration Instructions
 Deprecations
 ============
 
- * `tango.*`
+* `tango.*`
 
   All tango modules are now marked deprecated. Their ocean replacements have
   been introduced in ocean release v1.28, check its migration notes for details
@@ -47,27 +47,27 @@ Deprecations
 New Features
 ============
 
- * `ocean.util.container.queue.LinkedListQueue`
+* `ocean.util.container.queue.LinkedListQueue`
 
- Added a new optional `gc_tracking_policy` template parameter which allows
- defining the gc scanning policy for the items allocated in the queue.
+  Added a new optional `gc_tracking_policy` template parameter which allows
+  defining the gc scanning policy for the items allocated in the queue.
 
- * `ocean.util.container.queue.LinkedListQueue`
+* `ocean.util.container.queue.LinkedListQueue`
 
- Added a new `isRootedValues()` method which returns whether the queue
- allocated items are added to the gc scan range.
+  Added a new `isRootedValues()` method which returns whether the queue
+  allocated items are added to the gc scan range.
 
- * `ocean.text.xml.c.LibXslt`
+* `ocean.text.xml.c.LibXslt`
 
- Add low-level functions to set the LibXslt maximum recursion depth.
+  Add low-level functions to set the LibXslt maximum recursion depth.
 
- * `ocean.util.app.ext.StatsExt`
+* `ocean.util.app.ext.StatsExt`
 
- A new method, `newStatsLog()` has been added. This method allows the user to
- create `StatsLog` instances in addition to the one which is created
- automatically by the `StatsExt` and stored in its `stats_log` member. The new
- stats logger is configured according to the default settings and will be
- registered with the application's `ReopenableFilesExt`, if present, for log
- rotation. (The ability to create multiple stats loggers is desired by some
- applications, so this method has been added to enable them to easily create
- properly configured instances.)
+  A new method, `newStatsLog()` has been added. This method allows the user to
+  create `StatsLog` instances in addition to the one which is created
+  automatically by the `StatsExt` and stored in its `stats_log` member. The new
+  stats logger is configured according to the default settings and will be
+  registered with the application's `ReopenableFilesExt`, if present, for log
+  rotation. (The ability to create multiple stats loggers is desired by some
+  applications, so this method has been added to enable them to easily create
+  properly configured instances.)
