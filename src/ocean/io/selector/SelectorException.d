@@ -4,7 +4,8 @@
   author:      Juan Jose Comellas $(EMAIL juanjo@comellas.com.ar)
 *******************************************************************************/
 
-module ocean.io.selector.SelectorException;
+deprecated module ocean.io.selector.SelectorException;
+pragma(msg, "Use ocean.io.select, instead");
 
 import ocean.transition;
 

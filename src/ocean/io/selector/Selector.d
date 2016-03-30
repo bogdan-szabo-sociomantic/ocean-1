@@ -120,7 +120,8 @@
  * }
  * ---
  */
-module ocean.io.selector.Selector;
+deprecated module ocean.io.selector.Selector;
+pragma(msg, "Use ocean.io.select, instead");
 
 version (linux)
 {

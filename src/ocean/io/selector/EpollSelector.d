@@ -4,7 +4,8 @@
   author:      Juan Jose Comellas $(EMAIL juanjo@comellas.com.ar)
 *******************************************************************************/
 
-module ocean.io.selector.EpollSelector;
+deprecated module ocean.io.selector.EpollSelector;
+pragma(msg, "Use ocean.io.select, instead");
 
 
 version (linux)

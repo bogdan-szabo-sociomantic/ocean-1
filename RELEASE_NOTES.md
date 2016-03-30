@@ -34,6 +34,10 @@ Deprecations
   This class has been deprecated. All usage should be replaced by directly using
   `Statslog` instead.
 
+* `ocean.io.selector`
+
+  This whole package has been deprecated. It is unused.
+
 New Features
 ============
 
