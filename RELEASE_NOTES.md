@@ -9,6 +9,13 @@ tango      | v1.3.x
 Migration Instructions
 ======================
 
+* `ocean.text.Ascii`
+
+  `toLower` and `toUpper` functions have been changed to expect a buffer 
+  array as a second argument (it will be expanded if necessary). Previously
+  it required a pre-allocated slice of necessary size. As a side effect,
+  any code that uses static array as second argument will stop compiling and
+  will need to be adjusted to use copy + in-place overload of these functions.
 
 Deprecations
 ============
