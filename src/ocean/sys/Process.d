@@ -171,9 +171,9 @@ class Process
         /**
          * Returns a string with a description of the process execution result.
          */
-        public char[] toString()
+        public istring toString()
         {
-            char[] str;
+            cstring str;
 
             switch (reason)
             {
@@ -202,7 +202,8 @@ class Process
                     str = format("Unknown process result ", reason);
                     break;
             }
-            return str;
+
+            return assumeUnique(str);
         }
     }
 
