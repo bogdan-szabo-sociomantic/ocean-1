@@ -746,7 +746,7 @@ public abstract class EpollProcess
 
     ***************************************************************************/
 
-    public void start ( cstring[] args_with_command,
+    public void start ( Const!(mstring)[] args_with_command,
                         ProcessMonitor process_monitor = null )
     {
         assert(this.state == State.None); // TODO: error notification?

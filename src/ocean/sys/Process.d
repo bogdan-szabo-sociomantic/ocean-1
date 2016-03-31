@@ -8,6 +8,7 @@ module ocean.sys.Process;
 
 import ocean.transition;
 
+import ocean.core.Array : copy;
 import ocean.io.model.IFile;
 import ocean.io.Console;
 import ocean.sys.Common;
@@ -238,12 +239,12 @@ class Process
      *            Note: The class will use only slices, .dup when necessary.
      *
      */
-    public this(cstring[] args ...)
+    public this(Const!(mstring)[] args ...)
     {
         if(args.length == 1)
             _args = splitArgs(args[0]);
         else
-            _args = args;
+            _args.copy(args);
     }
 
     ///
@@ -269,7 +270,7 @@ class Process
      *            also be empty.
      *            Note: The class will use only slices, .dup when necessary.
      */
-    public this(bool copyEnv, cstring[] args ...)
+    public this(bool copyEnv, Const!(mstring)[] args ...)
     {
         _copyEnv = copyEnv;
         this(args);
@@ -333,7 +334,7 @@ class Process
      * env      = associative array of strings with the process' environment
      *            variables; the variable name must be the key of each entry.
      */
-    public this(cstring[] args, istring[istring] env)
+    public this(Const!(mstring)[] args, istring[istring] env)
     in
     {
         assert(args.length > 0);
@@ -341,7 +342,7 @@ class Process
     }
     body
     {
-        _args = args;
+        _args.copy(args);
         _env = env;
     }
 
@@ -433,9 +434,9 @@ class Process
      *
      * Returns: the arguments that were set.
      */
-    public cstring[] args(cstring progname, cstring[] args ...)
+    public cstring[] args(cstring progname, Const!(mstring)[] args ...)
     {
-        return _args = progname ~ args;
+        return _args.copy(progname ~ args);
     }
 
     ///
@@ -459,9 +460,9 @@ class Process
      *
      */
 
-    public void argsWithCommand(cstring[] args)
+    public void argsWithCommand(Const!(mstring)[] args)
     {
-        _args = args;
+        _args.copy(args);
     }
 
     ///
@@ -484,7 +485,7 @@ class Process
      * Returns: a reference to this for chaining
      *
      */
-    public Process setArgs(cstring progname, cstring[] args ...)
+    public Process setArgs(cstring progname, Const!(mstring)[] args ...)
     {
         this.args(progname, args);
         return this;
@@ -1807,4 +1808,12 @@ unittest
     mstring s = "xxxx".dup;
     p.argsWithCommand([ s, "aaa", "bbb"]);
     p.programName("huh");
+}
+
+// check non-literals arguments
+unittest
+{
+    istring[] args = [ "aaa", "bbb" ];
+    auto p = new Process(args);
+    p.argsWithCommand(args);
 }

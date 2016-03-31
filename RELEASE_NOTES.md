@@ -47,6 +47,11 @@ Deprecations
 New Features
 ============
 
+* `ocean.sys.Process`
+
+  D2 only. Now can use pre-existing `istring[] arguments` array directly without
+  having developer to re-create it as `cstring[] arguments` array manually. 
+
 * `ocean.util.container.queue.LinkedListQueue`
 
   Added a new optional `gc_tracking_policy` template parameter which allows
