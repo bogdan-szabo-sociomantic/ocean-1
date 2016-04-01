@@ -862,7 +862,9 @@ unittest
 
 bool startsWith ( TC1, TC2 ) ( TC1[] arr, TC2[] prefix )
 {
-    return (arr.length >= prefix.length) && (arr[0..prefix.length] == prefix[]);
+    if (arr.length < prefix.length)
+        return false;
+    return arr[0..prefix.length] == prefix[];
 }
 
 unittest
@@ -898,7 +900,9 @@ unittest
 
 bool endsWith ( TC1, TC2 ) ( TC1[] arr, TC2[] suffix )
 {
-    return (arr.length >= suffix.length) && (arr[$ - suffix.length .. $] == suffix[]);
+    if (arr.length < suffix.length)
+        return false;
+    return arr[$ - suffix.length .. $] == suffix[];
 }
 
 unittest
