@@ -727,7 +727,7 @@ unittest
 
         void copy ( )
         {
-            C c;
+            C c = new C;
             copyClassFields(this, c);
         }
     }
