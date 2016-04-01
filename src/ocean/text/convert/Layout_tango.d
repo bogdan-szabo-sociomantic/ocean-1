@@ -862,7 +862,7 @@ class Layout(T)
                 toString.funcptr = cast(istring function())s.xtoString;
                 return Utf.fromString8 (toString(), result);
             }
-            
+
             // else default
         }
 
@@ -1283,6 +1283,11 @@ unittest
 
     struct S2 { }
     assert ( Formatter("{}", S2.init) == "{unhandled argument type}" );
+
+    // Time struct
+    // Should result in something similar to "01/01/70 00:00:00" but it's
+    // dependent on the system locale so we just make sure that it's handled
+    assert( Formatter( "{}", Time.epoch1970 ) != "{unhandled argument type}");
 
     assert ( Formatter("{}", [ "aa", "bb" ] ) == `[aa, bb]` );
     assert ( Formatter("{}", "aa"w) == "aa" );
