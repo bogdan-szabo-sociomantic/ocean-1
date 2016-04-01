@@ -928,9 +928,13 @@ class PriorityCache(T) : ICacheInfo
     }
 }
 
+version (UnitTest) import ocean.core.Test;
+
 // Test documentation example
 unittest
 {
+    auto t = new NamedTest("Documentation example");
+
     const NUM_ITEM = 10;
     auto cache = new PriorityCache!(char[])(NUM_ITEM);
 
@@ -943,7 +947,7 @@ unittest
     {
         *item = "ABC".dup;
     }
-    assert(item_existed_before is false);
+    t.test!("==")(item_existed_before, false);
 
     ulong no_effect_priority = 70;
     item = cache.getOrCreate(key, no_effect_priority, item_existed_before);
@@ -952,27 +956,29 @@ unittest
     {
         *item = "DEF".dup;
     }
-    assert(item_existed_before is true);
+    t.test!("==")(item_existed_before, true);
 
     ulong retrieved_priority;
     item = cache.getPriority(key, retrieved_priority);
-    assert(item !is null);
-    assert(*item == "DEF");
-    assert(retrieved_priority == priority); // Not no_effect_priority
+    t.test!("!is")(item, null);
+    t.test!("==")(*item, "DEF");
+    t.test!("==")(retrieved_priority, priority); // Not no_effect_priority
 
 
     auto new_priority = 10;
     item = cache.getUpdateOrCreate(key, new_priority, item_existed_before);
 
     cache.getPriority(key, retrieved_priority);
-    assert(item_existed_before is true);
-    assert(item !is null);
-    assert(retrieved_priority == new_priority);
+    t.test!("==")(item_existed_before, true);
+    t.test!("!is")(item, null);
+    t.test!("==")(retrieved_priority, new_priority);
 }
 
 // Test adding and removing
 unittest
 {
+    auto t = new NamedTest("Adding and removing items to the cache");
+
     const NUM_OF_ITEMS = 150;
 
     auto test_cache = new PriorityCache!(int)(NUM_OF_ITEMS);
@@ -984,21 +990,23 @@ unittest
     {
         bool existed;
         auto int_ptr = test_cache.getOrCreate(i, i + PRIORITY, existed);
-        assert(int_ptr !is null, "unexpectedly item was not created");
-        assert(existed is false, "item previously existed");
+        t.test!("!is")(int_ptr, null, "unexpectedly item was not created");
+        t.test!("==")(existed, false, "item previously existed");
         *int_ptr = i + VALUE;
     }
 
 
     foreach(j, value; test_cache.items)
     {
-        assert(test_cache.remove(j), "Removing non-existing item");
+        t.test(test_cache.remove(j), "Removing non-existing item");
     }
 }
 
 // Test clearing
 unittest
 {
+    auto t = new NamedTest("Clearing the cache");
+
     const NUM_OF_ITEMS = 150;
 
     auto test_cache = new PriorityCache!(int)(NUM_OF_ITEMS);
@@ -1021,13 +1029,15 @@ unittest
     for (int i = 0; i < NUM_OF_ITEMS; i++)
     {
         auto is_removed = test_cache.remove(i + INDEX);
-        assert(!is_removed, "Should fail removing non-existing item");
+        t.test(!is_removed, "Should fail removing non-existing item");
     }
 }
 
 // Test opApply
 unittest
 {
+    auto t = new NamedTest("opApply foreach loops");
+
     const NUM_OF_ITEMS = 150;
 
     auto test_cache = new PriorityCache!(int)(NUM_OF_ITEMS);
@@ -1047,8 +1057,8 @@ unittest
     foreach (key, ref item, ulong priority; test_cache)
     {
         counter--;
-        assert(key == counter, "Unexpected key");
-        assert(priority == counter + PRIORITY, "Unexpected item priority");
+        t.test!("==")(key, counter, "Unexpected key");
+        t.test!("==")(priority, counter + PRIORITY, "Unexpected item priority");
         item = counter + NEW_VALUE;
     }
 
@@ -1056,8 +1066,8 @@ unittest
     for (int i = 0; i < NUM_OF_ITEMS; i++)
     {
         auto int_ptr = test_cache.get(i);
-        assert(int_ptr, "item unexpectedly null");
-        assert(*int_ptr == i + NEW_VALUE, "Unexpected item value");
+        t.test(int_ptr, "item unexpectedly null");
+        t.test!("==")(*int_ptr, i + NEW_VALUE, "Unexpected item value");
     }
 }
 
@@ -1065,6 +1075,8 @@ unittest
 // Test dropped items are correctly reported
 unittest
 {
+    auto t = new NamedTest("Dropped items are correctly reported");
+
     const CACHE_SIZE = 10;
     const ITEMS_INSERTED = 150;
 
@@ -1079,7 +1091,7 @@ unittest
 
         protected override void itemDropped (hash_t key, ref uint value)
         {
-            assert(key == value, "Wrong key/value are reported");
+            t.test!("==")(key, value, "Wrong key/value are reported");
             items_removed_count++;
         }
     }
@@ -1092,14 +1104,16 @@ unittest
         *int_ptr = i;
     }
 
-    assert(items_removed_count == ITEMS_INSERTED - CACHE_SIZE,
-           "Not all dropped items were reported");
+    t.test!("==")(items_removed_count, ITEMS_INSERTED - CACHE_SIZE,
+                  "Not all dropped items were reported");
 }
 
 
 // Test dropped items are passed by ref
 unittest
 {
+    auto t = new NamedTest("Dropped items are passed by ref to notifier");
+
     const CACHE_SIZE = 10;
     bool item_dropped = false;
 
@@ -1123,6 +1137,6 @@ unittest
     *new_value = 50;
     test_cache.remove(20);
 
-    assert(item_dropped, "Item was not dropped");
-    assert(*new_value == 10, "Item was not dropped by ref");
+    t.test(item_dropped, "Item was not dropped");
+    t.test!("==")(*new_value, 10, "Item was not dropped by ref");
 }
