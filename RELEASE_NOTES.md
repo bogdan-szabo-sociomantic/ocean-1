@@ -85,3 +85,7 @@ New Features
   rotation. (The ability to create multiple stats loggers is desired by some
   applications, so this method has been added to enable them to easily create
   properly configured instances.)
+
+* `ocean.net.http.HttpException`
+
+  Custom enforce method for using multiple strings combined with a status code.

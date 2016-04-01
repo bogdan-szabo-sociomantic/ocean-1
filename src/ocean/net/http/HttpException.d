@@ -63,6 +63,73 @@ class HttpException : HttpServerException
     {
         return StatusPhrases[this.status];
     }
+
+    /***************************************************************************
+
+        Custom enforce for using an HTTP status code together with a set of
+        messages that should be appended.
+
+        Template_Params:
+            file = The filename
+            line = The line number
+            T = Types of messages to append
+
+        Params:
+            ok = The condition to enforce
+            code = The status code
+            messages = The messages
+
+    ***************************************************************************/
+
+    public void enforce ( istring file = __FILE__, long line = __LINE__, T ... )
+                        ( bool ok, HttpResponseCode code, T messages )
+    {
+        if ( !ok )
+        {
+            this.set(code, file, line);
+
+            foreach ( msg; messages )
+            {
+                this.append(" ");
+                this.append(msg);
+            }
+
+            throw this;
+        }
+    }
+
+    version ( UnitTest )
+    {
+        import ocean.core.Test;
+    }
+
+    unittest
+    {
+        auto e = new HttpException();
+
+        e.enforce(true, StatusCode.OK);
+
+        try
+        {
+            e.enforce(false, StatusCode.OK, "Invalid resource");
+        }
+        catch
+        {
+            test!("==")(e.status, StatusCode.OK);
+            test!("==")(e.message(), "Ok Invalid resource");
+        }
+
+        try
+        {
+            auto path = "/path/with/errors";
+            e.enforce(false, StatusCode.NotFound, "Unable to locate URI path:", path);
+        }
+        catch
+        {
+            test!("==")(e.status, StatusCode.NotFound);
+            test!("==")(e.message(), "Not Found Unable to locate URI path: /path/with/errors");
+        }
+    }
 }
 
 
