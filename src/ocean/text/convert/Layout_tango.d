@@ -31,6 +31,9 @@ import ocean.transition;
 import ocean.core.Exception_tango;
 import ocean.core.RuntimeTraits;
 
+import ocean.time.Time;
+import ocean.text.convert.DateTime_tango;
+
 import Utf = ocean.text.convert.Utf;
 
 import Float = ocean.text.convert.Float,
@@ -44,11 +47,6 @@ version(WithVariant)
 version(WithExtensions)
 {
     import ocean.text.convert.Extensions;
-}
-else version (WithDateTime)
-{
-    import ocean.time.Time;
-    import ocean.text.convert.DateTime_tango;
 }
 
 
@@ -887,19 +885,16 @@ class Layout(T)
         }
         else
         {
-            version (WithDateTime)
+            if (tinfo is typeid(Time))
             {
-                if (tinfo is typeid(Time))
+                static if (is (T == char))
+                    return dateTime.format(result, *cast(Time*) p, format);
+                else
                 {
-                    static if (is (T == char))
-                        return dateTime.format(result, *cast(Time*) p, format);
-                    else
-                    {
-                        // TODO: this needs to be cleaned up
-                        char[128] tmp0 = void;
-                        char[128] tmp1 = void;
-                        return Utf.fromString8(dateTime.format(tmp0, *cast(Time*) p, Utf.toString(format, tmp1)), result);
-                    }
+                    // TODO: this needs to be cleaned up
+                    char[128] tmp0 = void;
+                    char[128] tmp1 = void;
+                    return Utf.fromString8(dateTime.format(tmp0, *cast(Time*) p, Utf.toString(format, tmp1)), result);
                 }
             }
         }
