@@ -141,7 +141,7 @@ unittest
 
     Params:
         dest = reference to the destination array
-        array = array to copy; null has the same effect as an empty array
+        src = array to copy; null has the same effect as an empty array
 
     Returns:
         dest
@@ -182,7 +182,7 @@ unittest
 
     Params:
         dest  = reference to the destination array
-        array = array to copy; null has the same effect as an empty array
+        src = array to copy; null has the same effect as an empty array
 
     Returns:
         slice to copied elements in dest
@@ -245,7 +245,7 @@ unittest
 
     Params:
         dest = reference to the destination array list
-        array = array to copy
+        src = array to copy
 
     Returns:
         dest
@@ -328,7 +328,7 @@ unittest
         T = type of array element
 
     Params:
-        src = source array to search
+        source = source array to search
         match = pattern to match in source array
         replacement = pattern to replace matched sub-arrays
         result = receives array with replaced patterns
@@ -418,7 +418,7 @@ unittest
         T = type of array element
 
     Params:
-        src = source array to search
+        source = source array to search
         match = pattern to remove from source array
         result = receives array with removed patterns
 
@@ -1093,7 +1093,7 @@ unittest
 
     Params:
         length  = array length
-        exclude = returns true if array)[index] matches the exclusion
+        exclude = returns true if (array)[index] matches the exclusion
                   criterium
         swap    = swaps array[i] and array[j]
 

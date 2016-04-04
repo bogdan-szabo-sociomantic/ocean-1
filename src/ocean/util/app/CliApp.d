@@ -154,7 +154,6 @@ abstract class CliApp : Application, IArgumentsExtExtension
 
         Params:
             args = parsed command line arguments
-            config = parser instance with the parsed configuration
 
         Returns:
             status code to return to the OS

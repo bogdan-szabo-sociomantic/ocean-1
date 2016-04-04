@@ -1381,23 +1381,30 @@ unittest
         is equal
         ::1
         is analogue IPv4 127.0.0.1
+        ---
 
+        ---
         0000:0000:0000:0000:0000:0000:0000:0000
         is equal
         ::
         is analogue IPv4 0.0.0.0
+        ---
 
+        ---
         2001:cdba:0000:0000:0000:0000:3257:9652
         is equal
         2001:cdba::3257:9652
+        ---
 
         IPv4 address can be submitted through IPv6 as ::ffff:xx.xx.xx.xx,
         where xx.xx.xx.xx 32-bit IPv4 addresses.
 
+        ---
         ::ffff:51b0:ec6d
         is equal
         ::ffff:81.176.236.109
         is analogue IPv4 81.176.236.109
+        ---
 
         The URL for the IPv6 address will be of the form:
         http://[2001:cdba:0000:0000:0000:0000:3257:9652]/
@@ -1405,34 +1412,46 @@ unittest
         If needed to specify a port, it will be listed after the
         closing square bracket followed by a colon.
 
+        ---
         http://[2001:cdba:0000:0000:0000:0000:3257:9652]:8080/
         address: "2001:cdba:0000:0000:0000:0000:3257:9652"
         port: 8080
+        ---
 
         IPv6Address can be used as well as IPv4Address.
 
+        ---
         scope addr = new IPv6Address(8080);
         address: "::"
         port: 8080
+        ---
 
+        ---
         scope addr_2 = new IPv6Address("::1", 8081);
         address: "::1"
         port: 8081
+        ---
 
+        ---
         scope addr_3 = new IPv6Address("::1");
         address: "::1"
         port: PORT_ANY
+        ---
 
         Also in the IPv6Address constructor can specify the service name
         or port as string
 
+        ---
         scope addr_3 = new IPv6Address("::", "ssh");
         address: "::"
         port: 22 (ssh service port)
+        ---
 
+        ---
         scope addr_4 = new IPv6Address("::", "8080");
         address: "::"
         port: 8080
+        ---
 
 *******************************************************************************/
 

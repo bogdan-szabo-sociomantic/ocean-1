@@ -442,7 +442,7 @@ struct TimeSpan
          * represents seconds as a double.  This allows both whole and
          * fractional seconds to be passed in.
          *
-         * Params: value = The interval to convert in seconds.
+         * Params: sec = The interval to convert in seconds.
          * Returns: A TimeSpan representing the given interval.
          */
         static TimeSpan fromInterval(double sec)
@@ -521,7 +521,7 @@ struct Time
 
                 Determines whether two Time values are equal.
 
-                Params:  value = A Time _value.
+                Params:  t = A Time _value.
                 Returns: true if both instances are equal; otherwise, false
 
         **********************************************************************/

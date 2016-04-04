@@ -59,7 +59,7 @@ class IOWarning : ErrnoException
         Constructor
 
         Params:
-            client =  Select client hosting the I/O device
+            conduit =  Select client hosting the I/O device
 
      **************************************************************************/
 

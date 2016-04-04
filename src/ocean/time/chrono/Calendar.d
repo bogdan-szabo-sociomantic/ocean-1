@@ -135,7 +135,7 @@ public abstract class Calendar
         /**
         * Returns a Time value for the given Date, in the current era
         * Params:
-        *   date = a representation of the Date
+        *   d = a representation of the Date
         * Returns: The Time set to the specified date.
         */
         Time toTime (Date d)
@@ -344,7 +344,7 @@ public abstract class Calendar
         /**
         * When overridden, indicates whether the specified _year in the specified _era is a leap _year.
         * Params: year = An integer representing the _year.
-        * Params: era = An integer representing the _era.
+        *         era = An integer representing the _era.
         * Returns: true is the specified _year is a leap _year; otherwise, false.
         */
         abstract bool isLeapYear(uint year, uint era);
@@ -384,10 +384,10 @@ public abstract class Calendar
          * era boundaries.  Derived classes may support this.
          *
          * Params: t = A time to add the months to
-         * Params: nMonths = The number of months to add.  This can be
-         * negative.
-         * Params: truncateDay = Round the day down to the maximum day of the
-         * target month if necessary.
+         *         nMonths = The number of months to add.  This can be
+         *                   negative.
+         *         truncateDay = Round the day down to the maximum day of the
+         *                       target month if necessary.
          *
          * Returns: A Time that represents the provided time with the number
          * of months added.
@@ -474,7 +474,7 @@ public abstract class Calendar
          * era boundaries.  Derived classes may support this.
          *
          * Params: t = A time to add the years to
-         * Params: nYears = The number of years to add.  This can be negative.
+         *         nYears = The number of years to add.  This can be negative.
          *
          * Returns: A Time that represents the provided time with the number
          * of years added.

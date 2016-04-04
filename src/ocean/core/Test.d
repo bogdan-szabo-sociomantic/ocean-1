@@ -303,6 +303,8 @@ unittest
 
     Params:
         expr = any expression, wrapped in void-returning delegate if necessary
+        file = file where test is invoked
+        line = line where test is invoked
 
     Throws:
         TestException if unexpected allocation happens

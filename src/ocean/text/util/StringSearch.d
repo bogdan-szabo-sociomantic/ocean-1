@@ -359,6 +359,7 @@ struct StringSearch ( bool wide_char = false )
      * Params:
      *      str     = string to scan
      *      pattern = search pattern
+     *      start   = start location to start searching
      *
      * Returns:
      *      If found, the index of the first occurrence, or the length of "str"
@@ -537,7 +538,7 @@ struct StringSearch ( bool wide_char = false )
          but allows overlapping ranges.
 
          Params:
-             string  = string to process
+             str     = string to process
              dst_pos = destination start position (index)
              src_pos = source start position (index)
              length  = number of array elements to shift
@@ -601,7 +602,7 @@ struct StringSearch ( bool wide_char = false )
         Adds a '\0' terminator to "str" if not present.
 
         Params:
-             string = string to '\0'-terminate
+             str = string to '\0'-terminate
 
         Returns:
              true if the string did not have a '\0'-terminator and therefore was
@@ -909,6 +910,7 @@ struct StringSearch ( bool wide_char = false )
         to prevent producing empty slices.
 
         Params:
+             slices   = resulting slices buffer
              str      = input string
              delim    = delimiter character
              n        = maximum number of slices; set to 0 to indicate no limit
@@ -969,6 +971,7 @@ struct StringSearch ( bool wide_char = false )
              slices   = array to put the resulting slices
              str      = input string
              delim    = delimiter character
+             n = maximum number of slices; set to 0 to indicate no limit
 
         Returns:
              the resulting slices
@@ -991,7 +994,7 @@ struct StringSearch ( bool wide_char = false )
         Params:
              slices   = destination array of slices
              str      = input string
-             delim    = delimiter character
+             delims   = delimiter character
              n        = maximum number of slices; set to 0 to indicate no limit
              collapse = set to true to collapse consecutive occurrences to
                         prevent producing empty "slices"
@@ -1015,8 +1018,8 @@ struct StringSearch ( bool wide_char = false )
         Params:
              str      = input string
              delim    = delimiter character
-             collapse = set to true to collapse consecutive occurrences to
-                        prevent producing empty "slices"
+             slices   = destination array of slices
+             n        = maximum number of slices; set to 0 to indicate no limit
 
         Returns:
              the resulting slices

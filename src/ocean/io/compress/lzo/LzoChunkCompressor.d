@@ -112,7 +112,7 @@ class LzoChunkCompressor
             Tells whether the provided data is an lzo start chunk.
 
             Params:
-                source = data to check
+                array = data to check
 
             Returns:
                 true if data is an lzo start chunk
@@ -198,7 +198,7 @@ class LzoChunkCompressor
             Tells whether the provided data is an lzo start chunk.
 
             Params:
-                source = data to check
+                array = data to check
 
             Returns:
                 true if data is an lzo start chunk

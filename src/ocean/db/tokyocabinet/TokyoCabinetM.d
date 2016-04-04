@@ -240,7 +240,7 @@ public class TokyoCabinetM
 
         Params:
             key   = record key
-            value = record value output
+            value_dg = record value output handler
 
         Returns:
             true on success or false if record not existing

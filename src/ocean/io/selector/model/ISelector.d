@@ -148,7 +148,7 @@ interface ISelectionSet
  * ISelector implementation you choose to use, so you cannot make any
  * assumptions regarding what results from the call to select() (i.e. you
  * may receive more or less events per call to select() than what was passed
- * in the 'maxEvents' argument. The amount of conduits that the selector can
+ * in the 'maxEvents' argument). The amount of conduits that the selector can
  * manage will be incremented dynamically if necessary.
  *
  * To add or modify conduit registrations in the selector, use the register()

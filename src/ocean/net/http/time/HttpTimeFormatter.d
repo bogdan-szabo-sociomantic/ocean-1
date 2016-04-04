@@ -114,7 +114,6 @@ struct HttpTimeFormatter
         Params:
             dst      = destination string
             t        = UNIX time value to be formatted as HTTP date/time string
-            is_local = true: t is
 
         Returns:
             slice to valid result data in dst, starting at dst[0]

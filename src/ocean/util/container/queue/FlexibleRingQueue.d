@@ -475,7 +475,7 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
         - Next n bytes: Queue data
 
         Params:
-            stream = output to write to
+            output = output stream to write to
 
         Returns:
             number of bytes written to output.
@@ -518,14 +518,14 @@ class FlexibleByteRingQueue : IRingQueue!(IByteQueue)
 
             // Save the populated queue in queue_save_data.
 
-            queue.save((void[] meta, void[] head, void[] tail)
+            queue.save(void[] meta, void[] head, void[] tail)
             {
                 queue_save_data = meta ~ head ~ tail;
             }
 
             // Restore queue from queue_save_data.
 
-            queue.load((void[] meta, void[] data)
+            queue.load(void[] meta, void[] data)
             {
                 // It is safe to assume meta.length is the same as in the
                 // queue.save() callback delegate.

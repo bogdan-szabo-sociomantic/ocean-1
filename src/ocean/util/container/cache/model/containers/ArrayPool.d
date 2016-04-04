@@ -99,6 +99,7 @@ class GenericArrayPool
 
         Params:
             n = maximum number of elements in mapping
+            element_size = size of a single element
 
     ***********************************************************************/
 

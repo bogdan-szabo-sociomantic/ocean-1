@@ -91,7 +91,6 @@ abstract class IFiberSelectClient : IAdvancedSelectClient
         Constructor
 
         Params:
-            conduit = I/O device instance
             fiber   = fiber to resume on finalize() or kill on error()
 
      **************************************************************************/
@@ -141,7 +140,7 @@ abstract class IFiberSelectClient : IAdvancedSelectClient
         handle() or an error event is reported; kills the fiber.
 
         Params:
-            exception = Exception thrown by handle()
+            e = Exception thrown by handle()
             event     = Selector event while exception was caught
 
      **************************************************************************/

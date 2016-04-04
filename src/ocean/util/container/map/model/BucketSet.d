@@ -199,7 +199,7 @@ public abstract class IBucketSet
         load factor of at least load_factor with the current number of elements.
 
         Params:
-            exp2 = exponent of 2 of the new number of buckets
+            load_factor = factor of n / number of buckets
 
         Returns:
             this instance.
@@ -343,6 +343,7 @@ public abstract class BucketSet ( size_t V, K = hash_t ) : IBucketSet
         power or 2.
 
         Params:
+            allocator = allocator to use to allocate with
             n = expected number of elements in bucket set
             load_factor = ratio of n to the number of buckets. The desired
                 (approximate) number of elements per bucket. For example, 0.5

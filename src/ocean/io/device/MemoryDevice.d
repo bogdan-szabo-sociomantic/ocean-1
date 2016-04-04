@@ -224,7 +224,7 @@ class MemoryDevice : IConduit
     /***************************************************************************
 
         Params:
-            Amount of bytes to return
+            max = maximum amount of bytes to return
 
         Returns:
             slice to the internal buffer up to max bytes (-1 means infinite,

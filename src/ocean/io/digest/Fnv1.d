@@ -92,7 +92,7 @@ public alias Fnv1Generic!(true,  ulong) Fnv1a64;
 
     Convenience aliases for 32 bit (T = uint) or 64 bit (T = ulong) hashes are
     defined below. They have to appear after this template definition because
-    DMD can currently (v1.075) not handle forward aliases in this case. >:-(
+    DMD can currently (v1.075) not handle forward aliases in this case.
 
     Template params:
         T = Type of hash to use, should be `uint` or `ulong`, or any alias

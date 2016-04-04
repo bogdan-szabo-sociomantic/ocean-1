@@ -261,7 +261,7 @@ template MapExtension ( K, V )
     This means that structs used with this function should have the const
     member StructVersion as well as an alias to the old version (if one exists)
     called "StructPrevious" (this is identical to the requirements for vesioned
-    struct in the StructDumper/Loader.
+    struct in the StructDumper/Loader).
 
     Additionally, a validation using the struct hash is done too, to exclude
     potential human errors while setting up the version info.
@@ -421,7 +421,7 @@ class MapSerializer
         Evaluates to the fnv1 hash of the types that make up the struct.
         If S is no struct, mangled name of the type is used.
 
-        Params:
+        Template_Params:
             S = struct containing key & value
 
     ***************************************************************************/
@@ -1245,7 +1245,7 @@ version ( UnitTest )
 
         The value structs should offer only a compare function.
 
-        Template Params:
+        Template_Params:
             K = type of the key to write
             V = type of the value to write
             KNew = type of the key to read, automatic conversion will happen
@@ -1253,10 +1253,6 @@ version ( UnitTest )
             custom_dump = optional, custom code to use for dumping the data.
                           The code is expected to define a variable
                           "header_size" containing the size of the header
-
-        Params:
-            t = reference to the current unittest instance
-            iterations = amount of elements to put in the map
 
     ***************************************************************************/
 

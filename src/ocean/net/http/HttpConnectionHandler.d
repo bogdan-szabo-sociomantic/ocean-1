@@ -141,6 +141,9 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
             finalizer         = called when the connection is shut down
                                 (optional, may be null)
             supported_methods = list of supported HTTP methods
+            stack_size        = fiber stack size, use
+                                HttpConnectionHandler.default_stack_size for the
+                                default value
 
      **************************************************************************/
 
@@ -273,20 +276,13 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
 
     /**************************************************************************
 
-        Tells the request message body length.
+        Handles the request.
 
         Params:
-            e = HTTP server exception e which was thrown while parsing the
-                request message or from handleRequest()
+            response_msg_body = body of the response body
 
         Returns:
-            true if the connection may stay persistent or false if it must be
-            closed after the response has been sent.
-
-        Throws:
-            HttpException (use the http_exception member) with status set to the
-            appropriate status code to abort request processing and immediately
-            send the response.
+            HTTP status code
 
      **************************************************************************/
 

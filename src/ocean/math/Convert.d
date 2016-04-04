@@ -1,27 +1,27 @@
 /*******************************************************************************
 
-    copyright: Copyright (c) 2013 sociomantic labs. All rights reserved
-
-    version: 22/11/2013: Initial release
-
-    authors: Ben Palmer
-
     Module contains utility functions to convert floats to integer types.
     Old conversion functions eg. ocean.math.Math.rndint or
     ocean.math.Math.rndlong currently round x.5 to the nearest even integer. So
-    rndint(4.5) == 4 and rndint(5.5) == 6. This is undesired behaviour for some
+    `rndint(4.5) == 4` and `rndint(5.5) == 6`. This is undesired behaviour for some
     situations, so the functions in this module round to the nearest integer. So
-    floatToInt(4.5, output) sets output == 5 and floatToInt(5.5, output) sets
+    `floatToInt(4.5, output)` sets `output == 5` and `floatToInt(5.5, output)` sets
     output == 6 (this is round to nearest integer away from zero rounding see
-    http://man7.org/linux/man-pages/man3/lround.3.html for details on the
+    `http://man7.org/linux/man-pages/man3/lround.3.html` for details on the
     stdc lround, lroundf, llround, and llroundf functions).
 
     To check for errors the functions feclearexcept and fetestexcept are used.
     The feclearexcept(FE_ALL_EXCEPT) method is called before calling the
     mathematical function and after the mathematical function has been called
     the fetestexcept method is called to check for errors that occured in the
-    mathematical function (for more details in these functions see
-    http://man7.org/linux/man-pages/man7/math_error.7.html).
+    mathematical function $(LPAREN)for more details in these functions see
+    http://man7.org/linux/man-pages/man7/math_error.7.html$(RPAREN).
+
+    copyright: Copyright (c) 2013 sociomantic labs. All rights reserved
+
+    version: 22/11/2013 Initial release
+
+    authors: Ben Palmer
 
 *******************************************************************************/
 

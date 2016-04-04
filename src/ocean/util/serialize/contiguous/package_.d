@@ -88,13 +88,15 @@
 
     Typical code pattern for a cache:
 
-    1) Define a ``Cache`` of ``Contiguous!(S)`` elements.
-    2) When receiving data from DHT do
-    ``version_decorator.loadCopy!(S)(dht_data, cache_element)``
-    3) Use ``contiguous.Util.copy(cache_element, contiguous_instance)`` for
-    copying the struct instance if needed
-    4) Use ``contiguous_instance.ptr`` to work with deserialized data as if
-    it was ``S*``
+    $(OL
+        $(LI Define a ``Cache`` of ``Contiguous!(S)`` elements.)
+        $(LI When receiving data from DHT do
+        ``version_decorator.loadCopy!(S)(dht_data, cache_element)``)
+        $(LI Use ``contiguous.Util.copy(cache_element, contiguous_instance)`` for
+        copying the struct instance if needed)
+        $(LI Use ``contiguous_instance.ptr`` to work with deserialized data as if
+        it was ``S*``)
+    )
 
     It is likely that you will need to change the code to use strongly-typed
     ``Contiguous!(S)`` persistent buffer instead of raw ``void[]`` buffer.
@@ -230,6 +232,7 @@ S defaultS()
 
     Params:
         checked = S instance to check for equality
+        t = test to check
 
 ******************************************************************************/
 

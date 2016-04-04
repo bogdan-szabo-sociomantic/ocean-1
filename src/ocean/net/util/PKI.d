@@ -169,7 +169,7 @@ class SSLCtx
 
     /*******************************************************************************
 
-        Assigns a PrivateKey (public/private keypair to the SSLCtx.
+        Assigns a PrivateKey (public/private keypair) to the SSLCtx.
 
         This is required for SSL.
 
@@ -1010,7 +1010,7 @@ class Certificate
         organization = the organization the subject belongs to
         cn = the cn of the subject. For websites, this should be the website url
         or a wildcard version of it (ie: *.dsource.org)
-        organizationUnit = the optional orgnizationalUnit of the subject
+        organizationalUnit = the optional orgnizationalUnit of the subject
         email = the optional email address of the subject
 
     *******************************************************************************/

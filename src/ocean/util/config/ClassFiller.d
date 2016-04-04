@@ -774,8 +774,6 @@ body
     Params:
         group     = the group/section of the variable
         reference = the instance to fill. If null it will be created
-        loose     = whether to throw when configuration keys exist
-                    that aren't used(false) or to output a warning(true)
         config    = instance of the source to use
 
     Returns:
@@ -936,19 +934,6 @@ body
 {
     return ClassIterator!(T, Source)(config, root);
 }
-
-/*******************************************************************************
-
-    Converts property to T
-
-    Params:
-        property = value to convert
-        config = instance of the source to use
-
-    Returns:
-        property converted to T
-
-*******************************************************************************/
 
 protected void readFields ( T, Source )
                           ( cstring group, T reference, Source config )

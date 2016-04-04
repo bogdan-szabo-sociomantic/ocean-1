@@ -104,7 +104,7 @@ class ZlibInput : InputFilter
         this filter with a conduit, the idiom to use is:
 
         ---
-        auto input = new ZlibInput(myConduit.input));
+        auto input = new ZlibInput(myConduit.input);
         input.read(myContent);
         ---
 

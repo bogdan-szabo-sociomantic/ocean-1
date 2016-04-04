@@ -484,7 +484,7 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
         This method is overridden simply in order to add an iteration assert.
 
         Params:
-            item = item to put back
+            item_in = item to put back
 
     ***************************************************************************/
 

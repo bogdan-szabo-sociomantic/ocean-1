@@ -145,8 +145,8 @@ abstract class IIPSocket : ISocket
                                 tion-based  byte  streams.   An out-of-band data
                                 transmission mechanism may be supported.
 
-                SOCK_DGRAM      Supports datagrams  (connectionless,  unreliable
-                                messages of a fixed maximum length).
+                SOCK_DGRAM      Supports datagrams - connectionless,  unreliable
+                                messages of a fixed maximum length.
 
                 SOCK_SEQPACKET  Provides  a sequenced, reliable, two-way connec‐
                                 tion-based data transmission path for  datagrams
@@ -176,8 +176,8 @@ abstract class IIPSocket : ISocket
                                 may be useful.
 
             protocol = desired protocol or 0 to use the default protocol for the
-                specified type (e.g. TCP for type = SOCK_STREAM or UDP for
-                type = SOCK_DGRAM).
+                specified type (e.g. TCP for `type == SOCK_STREAM` or UDP for
+                `type == SOCK_DGRAM`).
 
                 The protocol specifies a particular protocol to be used with the
                 socket.   Normally  only  a  single protocol exists to support a

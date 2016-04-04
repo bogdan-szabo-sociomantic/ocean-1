@@ -90,6 +90,8 @@ private struct Result
 
    * Converts the value of this instance to its equivalent string representation using the specified _format and culture-specific formatting information.
    * Params:
+   *   output = output buffer
+   *   dateTime = dateTime to format
    *   format = A _format string.
    *   formatService = An IFormatService that provides culture-specific formatting information.
    * Returns: A string representation of the value of this instance as specified by format and formatService.

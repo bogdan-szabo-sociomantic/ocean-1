@@ -205,8 +205,6 @@ class PriorityCache(T) : ICacheInfo
         Params:
             max_items = maximum number of items in the cache, set once, cannot
                 be changed
-            is_priority = flags whether the items are stored according to
-                priority or according to access time
 
     ***************************************************************************/
 
@@ -227,7 +225,7 @@ class PriorityCache(T) : ICacheInfo
 
         Params:
             key = the item key
-            track_get_miss = flags whether not finding the item should count as
+            track_misses = flags whether not finding the item should count as
                 a cache miss
 
         Returns:
@@ -262,7 +260,7 @@ class PriorityCache(T) : ICacheInfo
                 item already exists
             existed = will be assigned to true if the item already existed and
                 wasn't created
-            track_get_miss = flags whether not finding the item should count as
+            tracK_get_miss = flags whether not finding the item should count as
                 a cache miss
 
         Returns:
@@ -294,7 +292,7 @@ class PriorityCache(T) : ICacheInfo
                 to the new item
             existed = will be assigned to true if the item already existed and
                 wasn't created
-            track_get_miss = flags whether not finding the item should count as
+            tracK_get_miss = flags whether not finding the item should count as
                 a cache miss
 
         Returns:
@@ -328,6 +326,8 @@ class PriorityCache(T) : ICacheInfo
         Params:
             key = item's key
             new_priority = node's new priority
+            tracK_get_miss = flags whether not finding the item should count as
+                a cache miss
 
         Returns:
             A pointer to the item that was updated or null if the key didn't

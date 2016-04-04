@@ -74,7 +74,7 @@ real normalDistributionCompl(real a)
  * For small arguments 0 < p < exp(-2), the program computes
  * z = sqrt( -2 log(p) );  then the approximation is
  * x = z - log(z)/z  - (1/z) P(1/z) / Q(1/z) .
- * For larger arguments,  x/sqrt(2 pi) = w + w^3 R(w^2)/S(w^2)) ,
+ * For larger arguments,  x/sqrt(2 pi) = w + w^3 R(w^2)/S(w^2) ,
  * where w = p - 0.5 .
  */
 real normalDistributionInv(real p)

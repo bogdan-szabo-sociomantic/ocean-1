@@ -360,9 +360,9 @@ struct TokyoCabinetIterator ( TCDB, alias tcdbforeach )
             Invokes tchdbforeach() with the provided D 'foreach' delegate.
 
             Params:
-                db:     TokyoCabinet database reference
-                dg:     D 'foreach' opApply() delegate
-                result: return value of dg output
+                db =     TokyoCabinet database reference
+                dg =     D 'foreach' opApply() delegate
+                result = return value of dg output
 
             Returns:
                 true on success or false on error. Halting iteration because
@@ -384,9 +384,9 @@ struct TokyoCabinetIterator ( TCDB, alias tcdbforeach )
             Invokes tchdbforeach() with the provided D 'foreach' delegate.
 
             Params:
-                db:     TokyoCabinet database reference
-                dg:     D 'foreach' opApply() delegate
-                result: return value of dg output
+                db =     TokyoCabinet database reference
+                dg =     D 'foreach' opApply() delegate
+                result = return value of dg output
 
             Returns:
                 true on success or false on error. Halting iteration because

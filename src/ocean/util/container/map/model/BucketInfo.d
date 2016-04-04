@@ -479,7 +479,7 @@ class BucketInfo
         Obtains the number of elements in the bucket specified by bucket_index.
 
         Params:
-            bucker_index = bucket index
+            bucket_index = bucket index
 
         Returns:
             the number of elements in the bucket specified by bucket_index.

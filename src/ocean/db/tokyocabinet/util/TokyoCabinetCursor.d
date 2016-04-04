@@ -267,7 +267,6 @@ class TokyoCabinetCursor
 
         Params:
             key = record key output
-            val = record value output
 
         Returns:
             this instance

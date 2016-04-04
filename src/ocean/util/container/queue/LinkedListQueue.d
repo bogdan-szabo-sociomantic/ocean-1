@@ -108,7 +108,7 @@ public class LinkedListQueue ( T, alias gc_tracking_policy = GCTrackingPolicy.re
             Finds a QueueItem which contains the given value
 
             Params:
-                element = value to find
+                find_value = value to find
 
             Returns:
                 pointer to the first QueueItem which contains the value, null if
@@ -449,9 +449,6 @@ public class LinkedListQueue ( T, alias gc_tracking_policy = GCTrackingPolicy.re
     /**************************************************************************
 
         Allocate an item. Called upon item addition to queue.
-
-        Params:
-            to_add = value to add to queue
 
         Returns:
             pointer to newly allocated item

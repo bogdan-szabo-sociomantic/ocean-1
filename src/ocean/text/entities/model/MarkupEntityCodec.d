@@ -575,17 +575,19 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
         Parses content to see if it's an encoded entity string. The criteria
         are:
 
-         a) length of "entity" is at least 3,
-         b) character 0 is '&',
-         c) a ';' between characters 1 and 16,
-         d) no white space character or '&' before the first ';'.
-         e) first ';' is after character 2
+        $(OL
+         $(LI length of "entity" is at least 3)
+         $(LI character 0 is '&')
+         $(LI a ';' between characters 1 and 16)
+         $(LI no white space character or '&' before the first ';')
+         $(LI first ';' is after character 2)
+         )
 
         If "entity" complies with all of these, slice from the '&' to the ';' is
         returned, otherwise null.
 
         Params:
-             entity = HTML entity string to parse
+             text = HTML entity string to parse
 
         Returns:
              The entity if parsing was successfull or null on failure.

@@ -301,14 +301,6 @@ unittest
     Checks whether str is a hex string (contains only valid hex digits),
     optionally with radix specifier ("0x").
 
-    Params:
-        str = string to check
-        allow_radix = if true, the radix specified "0x" is allowed at the start
-            of str
-
-    Returns:
-        true if str is a hex string
-
 *******************************************************************************/
 
 deprecated("Use ocean.text.convert.Hex.isHex instead.")
@@ -319,12 +311,6 @@ deprecated("Use ocean.text.convert.Hex.isHex instead.")
 
     Converts any characters in the range A..F in a hex string to lower case
     (a..f).
-
-    Params:
-        str = string to convert
-
-    Returns:
-        converted string (characters modified in-place)
 
 *******************************************************************************/
 

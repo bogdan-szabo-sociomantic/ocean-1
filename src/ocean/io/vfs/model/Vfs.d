@@ -186,9 +186,9 @@ interface VfsHost : VfsFolder
         root.file("myCopiedFile").copy(source);
         ---
 
-        The principal benefits of these approaches are twofold: 1) it
+        The principal benefits of these approaches are twofold: 1. it
         turns out to be notably more efficient in terms of traversal, and
-        2) there's no casting required, since there is a clean separation
+        2. there's no casting required, since there is a clean separation
         between files and folders.
 
         See VfsFile for more information on file handling.

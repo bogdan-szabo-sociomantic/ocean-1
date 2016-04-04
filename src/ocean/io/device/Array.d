@@ -430,7 +430,6 @@ class Array : Conduit, InputBuffer, OutputBuffer, Conduit.Seek
 
                 Params:
                 src = The content to _append.
-                length = The number of bytes in src.
 
                 Returns:
                 A chaining reference if all content was written.

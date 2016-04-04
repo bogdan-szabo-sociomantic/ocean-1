@@ -7,7 +7,7 @@
     $(UL
       $(LI  shared generator for quick usage available through the "rand" object
             ---
-            int i=rand.uniformR(10); // a random number from [0;10)
+            int i=rand.uniformR(10); // a random number from [0;10$(RPAREN)
             ---
       )
       $(LI  simple Random (non threadsafe) and RandomSync (threadsafe) types to
@@ -105,8 +105,8 @@
       $(LI  several distributions available "out of the box"
       )
       )
-      Quality:
-      $(UL
+    Quality:
+    $(UL
       $(LI  the default Source combines two surces that pass all statistical tests
             (KISS+CMWC)
             (P. L'Ecuyer and R. Simard, ACM Transactions on Mathematical Software (2007),
@@ -118,7 +118,7 @@
             Using a method that initializes the full mantissa was shown to improve the
             quality of subsequntly derived normal distribued numbers
             (Thomas et al. Gaussian random number generators. Acm Comput Surv (2007)
-            vol. 39 (4) pp. 11))
+            vol. 39 (4) pp. 11)
       )
       $(LI  Ziggurat method, a very fast and accurate method was used for both Normal and
             exp distributed numbers.
@@ -429,7 +429,7 @@ final class RandomG(SourceT=DefaultEngine)
         } else static assert(0,T.stringof~" unsupported type for uniform distribution");
     }
 
-    /// uniform distribution on the range [0;to) for integer types, and on
+    /// uniform distribution on the range [0;to$(RPAREN) for integer types, and on
     /// the (0;to) range for floating point types. Same caveat as uniform(T) apply
     T uniformR(T,bool boundCheck=true)(T to)
     in { assert(to>0,"empty range");}
@@ -470,7 +470,7 @@ final class RandomG(SourceT=DefaultEngine)
     }
     /// uniform distribution on the range (-to;to) for integer types, and on
     /// the (-to;0)(0;to) range for floating point types if boundCheck is true.
-    /// If boundCheck=false the range changes to [-to;0)u(0;to] with a slightly
+    /// If boundCheck=false the range changes to [-to;0$(RPAREN)u$(LPAREN)0;to] with a slightly
     /// lower propability at the bounds for floating point numbers.
     /// excludeZero controls if 0 is excluded or not (by default float exclude it,
     /// ints no). Please note that the probability of 0 in floats is very small due
@@ -651,7 +651,7 @@ final class RandomG(SourceT=DefaultEngine)
             }
         } else static assert(0,T.stringof~" unsupported type for uniformRSymm distribution");
     }
-    /// uniform distribution [from;to) for integers, and (from;to) for floating point numbers.
+    /// uniform distribution [from;to$(RPAREN) for integers, and (from;) for floating point numbers.
     /// if boundCheck is false the bounds are included in the floating point number distribution.
     /// the range for int and long is limited to only half the possible range
     /// (it could be worked around using long aritmethic for int, and doing a carry by hand for long,
@@ -685,8 +685,15 @@ final class RandomG(SourceT=DefaultEngine)
         assert(arr.length>0,"array has to be non empty");
         return arr[uniformR(arr.length)];
     }
-    /// randomizes the given array and returns it (for some types this is potentially
-    /// more efficient, both from the use of random numbers and speedwise)
+
+    /**************************************************************************
+
+        Randomizes the given array and returns it (for some types this is
+        potentially more efficient, both from the use of random numbers
+        and speedwise)
+
+    *************************************************************************/
+
     U randomizeUniform(U,bool boundCheck)(ref U a){
         static if (is(U S:S[])){
             alias BaseTypeOfArrays!(U) T;
@@ -726,8 +733,14 @@ final class RandomG(SourceT=DefaultEngine)
         return a;
     }
 
-    /// randomizes the given array and returns it (for some types this is potentially
-    /// more efficient, both from the use of random numbers and speedwise)
+    /**************************************************************************
+
+        Randomizes the given array and returns it (for some types this is
+        potentially more efficient, both from the use of random numbers
+        and speedwise)
+
+    *************************************************************************/
+
     U randomizeUniformR(U,V,bool boundCheck=true)(ref U a,V to)
     in { assert((cast(BaseTypeOfArrays!(U))to)>0,"empty range");}
     body {
@@ -777,8 +790,15 @@ final class RandomG(SourceT=DefaultEngine)
         }
         return a;
     }
-    /// randomizes the given variable and returns it (for some types this is potentially
-    /// more efficient, both from the use of random numbers and speedwise)
+
+    /**************************************************************************
+
+        Randomizes the given array and returns it (for some types this is
+        potentially more efficient, both from the use of random numbers
+        and speedwise)
+
+    *************************************************************************/
+
     U randomizeUniformR2(U,V,W,bool boundCheck=true)(ref U a,V from, W to)
     in {
         alias BaseTypeOfArrays!(U) T;
@@ -922,7 +942,7 @@ final class RandomG(SourceT=DefaultEngine)
         }
     }
 
-    /// uniform distribution on the subrange [0;to) for integers, (0;to) for floats
+    /// uniform distribution on the subrange [0;to$(RPAREN) for integers, (0;to) for floats
     struct UniformRDistribution(T,bool boundCheck){
         T to;
         RandomG r;
@@ -1127,11 +1147,11 @@ final class RandomG(SourceT=DefaultEngine)
     UniformDistribution!(T,false) uniformBoundsD(T)(){
         return UniformDistribution!(T,false).create(this);
     }
-    /// uniform distribution [0;to) for ints, (0:to) for reals
+    /// uniform distribution [0;to$(RPAREN) for ints, (0:to) for reals
     UniformRDistribution!(T,true) uniformRD(T)(T to){
         return UniformRDistribution!(T,true).create(this,to);
     }
-    /// uniform distribution [0;to) for ints, [0:to] for reals
+    /// uniform distribution [0;to$(RPAREN) for ints, [0:to] for reals
     UniformRDistribution!(T,false) uniformRBoundsD(T)(T to){
         return UniformRDistribution!(T,false).create(this,to);
     }
@@ -1139,15 +1159,15 @@ final class RandomG(SourceT=DefaultEngine)
     UniformRSymmDistribution!(T,true,isFloat!(T)) uniformRSymmD(T)(T to){
         return UniformRSymmDistribution!(T,true,isFloat!(T)).create(this,to);
     }
-    /// uniform distribution (-to;to) for ints and [-to;0)u(0;to] for reals
+    /// uniform distribution (-to;to) for ints and [-to;0$(RPAREN)u$(LPAREN)0;to] for reals
     UniformRSymmDistribution!(T,false,isFloat!(T)) uniformRSymmBoundsD(T)(T to){
         return UniformRSymmDistribution!(T,false,isFloat!(T)).create(this,to);
     }
-    /// uniform distribution [from;to) for ints and (from;to) for reals
+    /// uniform distribution [from;to$(RPAREN) for ints and (from;to) for reals
     UniformR2Distribution!(T,true) uniformR2D(T)(T from, T to){
         return UniformR2Distribution!(T,true).create(this,from,to);
     }
-    /// uniform distribution [from;to) for ints and [from;to] for reals
+    /// uniform distribution [from;to$(RPAREN) for ints and [from;to] for reals
     UniformR2Distribution!(T,false) uniformR2BoundsD(T)(T from, T to){
         return UniformR2Distribution!(T,false).create(this,from,to);
     }

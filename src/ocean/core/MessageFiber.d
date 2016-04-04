@@ -358,7 +358,7 @@ class MessageFiber
         Constructor
 
         Params:
-            routine = fiber coroutine
+            coroutine = fiber coroutine
             sz      = fiber stack size
 
      **************************************************************************/

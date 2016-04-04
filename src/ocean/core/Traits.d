@@ -54,7 +54,7 @@ version (UnitTest)
     This function does not check for this case.
 
     Params:
-        string = string to check
+        str = string to check
 
     Returns:
         true if the string is a D 1.0 keyword

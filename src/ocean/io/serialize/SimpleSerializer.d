@@ -361,7 +361,6 @@ static:
         Params:
             stream = stream to read from / write to
             data = pointer to data buffer
-            bytes = length of data in bytes
 
         Returns:
             number of bytes transmitted

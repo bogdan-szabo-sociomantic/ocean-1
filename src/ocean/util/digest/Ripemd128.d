@@ -139,7 +139,7 @@ final class Ripemd128 : MerkleDamgard
         	Pads the cipher data
 
         	Params:
-        	data = a slice of the cipher buffer to fill with padding
+        	at = a slice of the cipher buffer to fill with padding
 
         	Remarks:
         	Fills the passed buffer slice with the appropriate padding for
@@ -159,7 +159,7 @@ final class Ripemd128 : MerkleDamgard
         	Performs the length padding
 
         	Params:
-        	data   = the slice of the cipher buffer to fill with padding
+        	at   = the slice of the cipher buffer to fill with padding
         	length = the length of the data which has been ciphered
 
         	Remarks:
@@ -180,7 +180,7 @@ final class Ripemd128 : MerkleDamgard
         	Performs the cipher on a block of data
 
         	Params:
-        	data = the block of data to cipher
+        	input = the block of data to cipher
 
         	Remarks:
         	The actual cipher algorithm is carried out by this method on

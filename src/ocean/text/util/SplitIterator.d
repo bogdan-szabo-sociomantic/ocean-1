@@ -78,7 +78,7 @@ class StrSplitIterator : ISplitIterator
         is stored somewhere in order to reuse the search index.
 
         Params:
-            delim = delimiter string
+            sf_in = delimiter string
 
      **************************************************************************/
 

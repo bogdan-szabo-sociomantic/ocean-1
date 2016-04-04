@@ -80,7 +80,7 @@
         }
         else
         {
-            // not found :(
+            // not found
         }
 
     ---
@@ -381,6 +381,7 @@ class LRUCache(T, bool TrackCreateTimes = false) : PriorityCache!(ValueT!(T, Tra
 
         Params:
             key         = key to lookup
+            access_time = access time of the element
             existed     = true:  the item already existed,
                           false: the item was created
 
@@ -423,6 +424,7 @@ class LRUCache(T, bool TrackCreateTimes = false) : PriorityCache!(ValueT!(T, Tra
 
         Params:
             key         = key to lookup
+            access_time = access time of the element
             existed     = true:  the item already existed,
                           false: the item was created
 
@@ -489,6 +491,7 @@ class LRUCache(T, bool TrackCreateTimes = false) : PriorityCache!(ValueT!(T, Tra
 
         Params:
             key = key to lookup
+            access_time = access time of the element
 
         Returns:
             pointer to item value, may be null if key not found
@@ -517,6 +520,7 @@ class LRUCache(T, bool TrackCreateTimes = false) : PriorityCache!(ValueT!(T, Tra
 
         Params:
             key = key to lookup
+            access_time = access time of the element
 
         Returns:
             pointer to item value, may be null if key not found

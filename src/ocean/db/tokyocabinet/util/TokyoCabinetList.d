@@ -357,7 +357,7 @@ class TokyoCabinetList
         Looks up item using liner search
 
         Params:
-            item to lookup
+            item = item to lookup
 
         Returns:
             item if found or null otherwise
@@ -379,7 +379,7 @@ class TokyoCabinetList
         Looks up item using binary search
 
         Params:
-            item to lookup
+            item = item to lookup
 
         Returns:
             item if found or null otherwise

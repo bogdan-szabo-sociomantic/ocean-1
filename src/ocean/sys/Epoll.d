@@ -564,34 +564,36 @@ struct Epoll
         return epoll_ctl(this.fd, op, fd, &event);
     }
 
-    /**************************************************************************
-
-        Calls epoll_ctl() using the current epoll file descriptor to modify the
-        registration of fd for events with data as user data.
-
-        Creates the epoll_event_t instance passed to epoll_ctl() from events and
-        data where the type of data must match one of the epoll_data_t members.
-
-        The current epoll file descriptor should have been sucessfully obtained
-        by create() or epoll_create1() and not already been closed, otherwise
-        epoll_ctl() will fail so that this method returns -1.
-
-        Params:
-            op     = epoll_ctl opcode
-            fd     = file descriptor to register for events
-            events = events to register fd for
-            data   = user data; the member of the data field of the created
-                     epoll_data_t instance that matches the type is set to it
-
-        Returns:
-            0 on success or -1 on error. On error errno is set appropriately.
-
-     **************************************************************************/
-
     template ctlT ( size_t i = 0 )
     {
         static if (i < epoll_event_t.data.tupleof.length)
         {
+
+
+            /**************************************************************************
+
+                Calls epoll_ctl() using the current epoll file descriptor to modify the
+                registration of fd for events with data as user data.
+
+                Creates the epoll_event_t instance passed to epoll_ctl() from events and
+                data where the type of data must match one of the epoll_data_t members.
+
+                The current epoll file descriptor should have been sucessfully obtained
+                by create() or epoll_create1() and not already been closed, otherwise
+                epoll_ctl() will fail so that this method returns -1.
+
+                Params:
+                    op     = epoll_ctl opcode
+                    fd     = file descriptor to register for events
+                    events = events to register fd for
+                    data   = user data; the member of the data field of the created
+                             epoll_data_t instance that matches the type is set to it
+
+                Returns:
+                    0 on success or -1 on error. On error errno is set appropriately.
+
+            **************************************************************************/
+
             int ctl ( CtlOp op, int fd, Event events, typeof (epoll_event_t.data.tupleof[i]) data )
             {
                 epoll_event_t event;

@@ -57,6 +57,8 @@ class DeserializationException : Exception
         Params:
             len  = length of a dynamic array to deserialize
             max  = allowed maximum dynamic array length
+            file = file where size limit is enforced
+            line = line where size limit is enforced
 
         Throws:
             this instance if len is not at most max.
@@ -84,6 +86,8 @@ class DeserializationException : Exception
         Params:
             len      = provided number of data bytes
             required = required number of data bytes
+            file = file where size limit is enforced
+            line = line where size limit is enforced
 
         Throws:
             this instance if len is not at most max.

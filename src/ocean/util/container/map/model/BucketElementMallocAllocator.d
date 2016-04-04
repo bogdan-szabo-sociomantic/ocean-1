@@ -20,8 +20,6 @@
         element if there is another reference to the GC allocated items
         elsewhere.
 
-    ---------
-
     The following is a more detailed explanation about what's safe to store
     without GC tracking and what's unsafe.
 
@@ -35,6 +33,7 @@
         For example, consider that what you are storing in the map is the
         following :
 
+        ---
             struct S
             {
                 statuc class C
@@ -59,7 +58,7 @@
                     return s;
                 }
              }
-
+        ---
 
         This reference items doesn't have to be added to the GC scan list if
         it has another reference in the GC (e.g when another reference exists
@@ -67,6 +66,7 @@
 
         For example:
 
+        ---
             struct GCTrackedObject
             {
                 int[] arr;
@@ -93,7 +93,7 @@
                 // TODO: Recycle the struct and object again to their pools
                 // again when this S struct item is removed from malloc map.
             }
-
+        ---
 
 *******************************************************************************/
 

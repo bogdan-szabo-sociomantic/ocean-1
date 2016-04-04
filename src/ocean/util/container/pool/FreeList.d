@@ -125,7 +125,7 @@ public class FreeList ( T ) : IFreeList!(ItemType_!(T))
                 items are available in the free list
 
         Returns:
-            new item (either popped from free list
+            new item
 
     ***************************************************************************/
 

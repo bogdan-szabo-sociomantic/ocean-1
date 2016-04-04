@@ -22,6 +22,7 @@ public class SelectorException: Exception
      * Construct a selector exception with the provided text string
      *
      * Params:
+     * msg      = exception message
      * file     = Name of the source file where the exception was thrown; you
      *            would normally use __FILE__ for this parameter.
      * line     = Line number of the source file where the exception was

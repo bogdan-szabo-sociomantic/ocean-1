@@ -283,6 +283,7 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
             Sets the i-th element in content.
 
             Params:
+                val = value to set
                 i = element index
 
             Returns:
@@ -336,7 +337,9 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
             Copies chunk to the content, setting the content length to chunk.length.
 
             Params:
-                chunk = chunk to copy to the content
+                element = chunk to copy to the content
+                start = start of the slice
+                end = end of the slice
 
             Returns:
                 slice to chunk in the content
@@ -454,6 +457,8 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
 
         Params:
             chunk = chunk to copy to the content
+            start = start of the slice
+            end = end of the slice
 
         Returns:
             slice to chunk in the content
@@ -560,9 +565,6 @@ public class AppendBuffer ( T, Base: AppendBufferImpl ): Base, IAppendBufferRead
 
         Cuts the last n elements from the current content. If n is greater than
         the current content length, all elements in the content are cut.
-
-        Params:
-            n = number of elements to cut from content, if available
 
         Returns:
             last n elements cut from the current content, if n is at most the

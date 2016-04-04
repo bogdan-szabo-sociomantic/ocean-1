@@ -543,8 +543,8 @@ abstract class IAdvancedSelectClient : ISelectClient
         super.handle().
 
         Params:
-            exception: Exception thrown by handle()
-            event:     Selector event while exception was caught
+            exception = Exception thrown by handle()
+            event     = Selector event while exception was caught
 
      **************************************************************************/
 

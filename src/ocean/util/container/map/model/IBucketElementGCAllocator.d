@@ -108,7 +108,7 @@ class IBucketElementGCAllocator: IAllocator
             Pushes an object on the stack.
 
             Params:
-                object = object to push
+                element = object to push
                 n      = number of parked objects before object is pushed
                          (guaranteed to be less than max_length)
 

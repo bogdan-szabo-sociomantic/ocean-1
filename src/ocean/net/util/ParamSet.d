@@ -482,7 +482,7 @@ class ParamSet
         Adds an entry for key.
 
         Params:
-            key = parameter key to add
+            keys = parameter key to add
 
      **************************************************************************/
 
@@ -676,7 +676,7 @@ class ParamSet
 
         Params:
             src = source string
-            n   = result output
+            x   = result output
 
         Returns:
             slice of src starting with the first character that is not a decimal

@@ -274,7 +274,7 @@ class HttpCookieGenerator : ParamSet
         Renders the HTTP response Cookie header line field value.
 
         Params:
-            appendContent: callback delegate that will be invoked repeatedly
+            appendContent = callback delegate that will be invoked repeatedly
             to concatenate the Cookie header line field value.
 
      **************************************************************************/

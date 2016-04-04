@@ -263,10 +263,7 @@ struct StructSerializer ( bool AllowUnions = false )
         Params:
             s     = struct instance (pointer)
             data  = input buffer to read serialized data from
-            slice = optional. If true, will set dynamical arrays to
-                    slices of the provided buffer.
-                    Warning: Do not serialize a struct into the same buffer
-                             it was deserialized from.
+
         Throws:
             Exception if data is too short
 
@@ -347,6 +344,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
         Params:
             data  = input buffer of serialized struct data to reference to
+            n = number of bytes used from data
 
         Returns:
             struct instance pointer output
@@ -411,7 +409,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
         Params:
             s    = struct instance (pointer)
-            send = sending callback delegate
+            receive = receiving callback delegate
 
         Returns:
             number of bytes written
@@ -556,7 +554,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
         Unfortunately, as some of these methods are templates, it's not
         possible to make an interface for it. But the compiler will let you know
-        whether a given serializer object is suitable or not ;)
+        whether a given serializer object is suitable or not
 
         See ocean.io.serialize.JsonStructSerializer for an example.
 
@@ -602,7 +600,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
         Unfortunately, as some of these methods are templates, it's not
         possible to make an interface for it. But the compiler will let you know
-        whether a given deserializer object is suitable or not ;)
+        whether a given deserializer object is suitable or not
 
         See ocean.io.serialize.JsonStructDeserializer for an example.
 
@@ -628,7 +626,6 @@ struct StructSerializer ( bool AllowUnions = false )
 
         Params:
             s       = struct instance (pointer)
-            receive = receiving callback delegate
 
         Returns:
             byte length of all array fields of s
@@ -771,8 +768,6 @@ struct StructSerializer ( bool AllowUnions = false )
         Params:
             s        = struct instance (pointer)
             transmit = sending/receiving callback delegate
-            slice    = if true, a slice assignment
-                       instead of a copy will be done
 
         Returns:
             passes through return value of transmit
@@ -830,9 +825,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
         Params:
             array    = array to send serialized data of (pointer)
-            transmit = sending/receiving callback delegate
-            slice    = if true, a slice assignment
-                       instead of a copy will be done
+            transmit_dg = sending/receiving callback delegate
 
         Returns:
             passes through return value of send
@@ -948,7 +941,7 @@ struct StructSerializer ( bool AllowUnions = false )
         reflecting the byte length, followed by the array content data.
 
         Params:
-            s    = pointer to struct instance to set arrays to slice data
+            array = destination to write array to
             data = array data to slice
 
         Returns:

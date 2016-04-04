@@ -58,8 +58,7 @@ public class FilePath : ocean.io.FilePath_tango.FilePath
         Create a new name for a file (also known as -hard-linking)
 
         Params:
-            src_path = FilePath with the file name to be renamed
-            dst_path = FilePath with the new file name
+            dst = FilePath with the new file name
 
         Returns:
             this.path set to the new destination location if it was moved,

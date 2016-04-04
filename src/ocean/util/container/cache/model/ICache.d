@@ -341,7 +341,7 @@ abstract class ICache : ICacheInfo
 
 
         Params:
-            node        = time-to-index tree node
+            key         = time-to-index tree key
             access_time = access time
 
         Returns:
@@ -400,7 +400,7 @@ abstract class ICache : ICacheInfo
 
         Params:
             key  = cache element key
-            time = cache element creation time
+            access_time = cache element creation time
 
         Returns:
             the index of the cache item that corresponds to the newly registered

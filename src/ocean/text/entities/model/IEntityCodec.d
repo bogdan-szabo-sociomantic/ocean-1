@@ -185,6 +185,7 @@ public abstract class IEntityCodec ( E : IEntitySet )
 
         Params:
             text = string to convert
+            output = buffer to write the output to
 
         Returns:
             converted string
@@ -224,6 +225,7 @@ public abstract class IEntityCodec ( E : IEntitySet )
 
         Params:
             c = character to convert
+            output = buffer to write the output to
 
         Returns:
             converted character
@@ -246,6 +248,7 @@ public abstract class IEntityCodec ( E : IEntitySet )
 
         Params:
             text = string to convert
+            output = buffer to write the output to
 
         Returns:
             converted string
