@@ -48,7 +48,7 @@ import ocean.transition;
 
     Template to determine the internal item type of a free list.
 
-    Template params:
+    Template_Params:
         T = item type to be stored in free list
 
 *******************************************************************************/
@@ -72,7 +72,7 @@ private template ItemType_ ( T )
 
     Free list class template.
 
-    Template params:
+    Template_Params:
         T = item type to be stored in free list
 
 *******************************************************************************/

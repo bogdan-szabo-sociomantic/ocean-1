@@ -35,7 +35,7 @@ private struct _Dummy
             destination buffer for serialization)
      )
 
-    Template Params:
+    Template_Params:
         T = type to check
 
 *******************************************************************************/
@@ -90,7 +90,7 @@ version(UnitTest)
             buffer needed to store deserialized struct instance)
      )
 
-    Template Params:
+    Template_Params:
         T = type to check
 
 *******************************************************************************/
@@ -158,7 +158,7 @@ version(UnitTest)
             signatures)
      )
 
-    Template Params:
+    Template_Params:
         T = type to check
 
 *******************************************************************************/
@@ -228,7 +228,7 @@ version(UnitTest)
     implementations like Decorator. Because return type may depend on input struct
     type such relation can't be expressed via trivial typeof one-liner
 
-    Template Params:
+    Template_Params:
         D = Deserializer type
         S = deserialized struct type
 

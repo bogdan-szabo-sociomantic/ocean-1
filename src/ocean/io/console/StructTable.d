@@ -126,7 +126,7 @@ import ocean.text.convert.Format;
     Note: as this class formats and copies the string for each field in each
     row, it is generally not advisable to instantiate it as scope.
 
-    Template params:
+    Template_Params:
         S = type whose fields specify the columns of the table
 
 *******************************************************************************/
@@ -257,7 +257,7 @@ public class StructTable ( S )
         Default field formatting method template. Simply uses Layout to generate
         a string for a field.
 
-        Template params:
+        Template_Params:
             T = type of field in S
 
         Params:

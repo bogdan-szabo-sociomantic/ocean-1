@@ -820,7 +820,7 @@ class ConfigParser
         Actually performs parsing of the lines of a config file or a string.
         Each line to be parsed is obtained via an iterator.
 
-        Template Params:
+        Template_Params:
             I = type of the iterator that will supply lines to be parsed
 
         Params:

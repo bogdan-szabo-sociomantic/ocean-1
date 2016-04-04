@@ -72,7 +72,7 @@ version (UnitTest)
     Wrapper around a StatsLog to periodically writes values of an aggregate
     to a logger using a timer event registered with epoll.
 
-    Template Params:
+    Template_Params:
         T = an aggregate which contains the values that should be written to the
             file, the tuple of the aggregate's members is iterated and each
             printed

@@ -102,7 +102,7 @@ import ocean.core.Array: copyExtend;
 
     Template to determine the internal item type of a free list.
 
-    Template params:
+    Template_Params:
         T = item type to be stored in free list
 
 *******************************************************************************/
@@ -134,7 +134,7 @@ private template ItemType_ ( T )
     base class has no in contract, it would always pass, making any in contracts
     added here irrelevant.
 
-    Template params:
+    Template_Params:
         T = type stored in pool (must be a struct or a class)
 
 *******************************************************************************/
@@ -953,7 +953,7 @@ version ( UnitTest )
         Derived from the free list tester (as an IAggregatePool is an
         IFreeList).
 
-        Template params:
+        Template_Params:
             T = type of item stored in pool
 
     ***************************************************************************/

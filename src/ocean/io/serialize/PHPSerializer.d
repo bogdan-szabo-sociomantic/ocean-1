@@ -81,7 +81,7 @@ public class PHPSerializer
 
         Convenience method to serialize a struct.
 
-        Template params:
+        Template_Params:
             T = type of struct to serialize
 
         Params:
@@ -139,7 +139,7 @@ public class PHPSerializer
         Note: the main method to use from the outside is the first serialize()
         method above. This method is for the use of the StructSerializer.
 
-        Template params:
+        Template_Params:
             T = type of item
 
         Params:
@@ -447,7 +447,7 @@ public class PHPSerializer
         than uint.max can't be used.
         This is done because php doesn't support ulongs (only longs)
 
-        Template params:
+        Template_Params:
             T = base type of array
 
         Params:
@@ -472,7 +472,7 @@ public class PHPSerializer
         than uint.max can't be used.
         This is done because php doesn't support ulongs (only longs)
 
-        Template params:
+        Template_Params:
             T = base type of array
 
         Params:
@@ -496,7 +496,7 @@ public class PHPSerializer
 
         Called before a struct array is serialized.
 
-        Template params:
+        Template_Params:
             T = base type of array
 
         Params:
@@ -516,7 +516,7 @@ public class PHPSerializer
 
         Called after a struct array is serialized.
 
-        Template params:
+        Template_Params:
             T = base type of array
 
         Params:

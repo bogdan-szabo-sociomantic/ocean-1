@@ -137,7 +137,7 @@ class VersionDecorator
 
         You can override this method to change version converting logic.
 
-        Template Params:
+        Template_Params:
             S = final struct version to get
 
         Params:

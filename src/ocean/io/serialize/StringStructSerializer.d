@@ -76,7 +76,7 @@ import ocean.core.Traits;
 
     String struct serializer
 
-    Template params:
+    Template_Params:
         Char = character type of output string
 
 *******************************************************************************/
@@ -137,7 +137,7 @@ public class StringStructSerializer ( Char )
 
         Convenience method to serialize a struct.
 
-        Template params:
+        Template_Params:
             T = type of struct to serialize
 
         Params:
@@ -193,7 +193,7 @@ public class StringStructSerializer ( Char )
         Note: the main method to use from the outside is the first serialize()
         method above. This method is for the use of the StructSerializer.
 
-        Template params:
+        Template_Params:
             T = type of item
 
         Params:
@@ -258,7 +258,7 @@ public class StringStructSerializer ( Char )
 
         Appends a named array to the output string
 
-        Template params:
+        Template_Params:
             T = base type of array
 
         Params:
@@ -278,7 +278,7 @@ public class StringStructSerializer ( Char )
 
         Called before a struct array is serialized.
 
-        Template params:
+        Template_Params:
             T = base type of array
 
         Params:
@@ -299,7 +299,7 @@ public class StringStructSerializer ( Char )
 
         Called after a struct array is serialized.
 
-        Template params:
+        Template_Params:
             T = base type of array
 
         Params:

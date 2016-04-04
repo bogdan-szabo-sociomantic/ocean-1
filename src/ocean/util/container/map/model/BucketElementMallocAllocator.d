@@ -123,7 +123,7 @@ import ocean.transition;
     This tracking of the objects can be explicitly disabled through passing
     the appropriate flag to the class constructor.
 
-    Template params:
+    Template_Params:
         Bucket = the bucket-element type
 
 *******************************************************************************/
@@ -334,7 +334,7 @@ public class BucketElementMallocAllocator (Bucket) : IAllocator
     Returns a new instance of type BucketElementMallocAllocator suitable to be
     used with the Map passed as template parameter.
 
-    Template params:
+    Template_Params:
         Map = the map to create the allocator according to
 
     Params:

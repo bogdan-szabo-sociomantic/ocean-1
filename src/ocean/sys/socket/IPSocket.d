@@ -269,7 +269,7 @@ abstract class IIPSocket : ISocket
 
     IP socket class, contains the IPv4/6 address specific parts.
 
-    Template params:
+    Template_Params:
         IPv6 = true: use IPv6, false: use IPv4
 
  ******************************************************************************/

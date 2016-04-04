@@ -32,7 +32,7 @@ import ocean.stdc.string: strlen;
     IP socket class, memorises the address most recently passed to bind() or
     connect() or obtained by accept().
 
-    Template params:
+    Template_Params:
         IPv6 = true: use IPv6, false: use IPv4
 
  ******************************************************************************/

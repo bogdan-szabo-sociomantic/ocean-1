@@ -177,7 +177,7 @@ unittest
 
     Checks (non-transitively) if type is mutable
 
-    Template Params:
+    Template_Params:
         T = any plain type
 
 *******************************************************************************/
@@ -349,7 +349,7 @@ void enableStomping(T)(ref T array)
     some cases preserving octal notation is really important for readability and
     those can't be simply replace with decimal/hex ones.
 
-    Template Params:
+    Template_Params:
         literal = octal number literal as string
 
 *******************************************************************************/
@@ -461,7 +461,7 @@ unittest
     make its meaning more obvious. This is a trivial template wrapper that
     unifies the naming.
 
-    Template Params:
+    Template_Params:
         T = any floating point type
 
     Return:

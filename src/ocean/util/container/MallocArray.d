@@ -34,7 +34,7 @@ import ocean.stdc.string; // memmove;
     Allocate an array of the given type and length whose buffer is allocated by
     malloc().
 
-    Template params:
+    Template_Params:
         Item = the type of items making up the array
 
     Params:
@@ -69,7 +69,7 @@ public Item[] allocate (Item) (size_t num_elements)
     It's also safe to specify the new_length of an array to be 0, the array
     would be deallocated.
 
-    Template params:
+    Template_Params:
         Item = the type of items making up the array
 
     Params:
@@ -106,7 +106,7 @@ public void resize (Item) (ref Item[] arr_to_resize, size_t new_length)
 
     Deallocate an array whose buffer was allocated by malloc().
 
-    Template params:
+    Template_Params:
         Item = the type of items making up the array
 
     Params:

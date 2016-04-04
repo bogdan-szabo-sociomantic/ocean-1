@@ -282,7 +282,7 @@ public class StringEncode ( istring fromcode, istring tocode ) : StringEncoder
     String encoder sequence. Runs a sequence of encoders over a string until one
     achieves a successful encoding.
 
-    Template params:
+    Template_Params:
         Encoders = tuple of types of encoders
 
 *******************************************************************************/

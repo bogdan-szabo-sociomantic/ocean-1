@@ -71,7 +71,7 @@ import ocean.util.container.ebtree.c.ebtree: eb_node, eb_root;
 
     EBTree32 class template.
 
-    Template params:
+    Template_Params:
         signed = false: use 'uint' as key type, true: use 'int'.
 
 *******************************************************************************/

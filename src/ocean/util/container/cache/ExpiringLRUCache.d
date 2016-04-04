@@ -34,7 +34,7 @@ import ocean.stdc.time: time_t;
     time, has expired, it is removed automatically on the next
     getAndRefreshValue()/exists() access.
 
-    Template params:
+    Template_Params:
         T = the type of data that will be stored
 
 *******************************************************************************/

@@ -51,7 +51,7 @@ class DeserializationException : Exception
 
         Ensures length `len` does not exceed hard size limit `max`
 
-        Template params:
+        Template_Params:
             S   = type of the struct which is currently loaded
 
         Params:
@@ -80,7 +80,7 @@ class DeserializationException : Exception
 
         Throws this instance if len is not at lest required.
 
-        Template params:
+        Template_Params:
             S = type of the struct that is currently loaded
 
         Params:
@@ -228,7 +228,7 @@ struct Deserializer
         Params:
             src = data buffer previously created by Serializer
 
-        Template Params:
+        Template_Params:
             S = struct type expected
 
         Returns:
@@ -289,7 +289,7 @@ struct Deserializer
             src = buffer previously created by Serializer, unchanged
             dst = buffer to store deserialized data
 
-        Template Params:
+        Template_Params:
             S = struct type `src` is assumed to contain
 
         Returns:
@@ -371,7 +371,7 @@ struct Deserializer
         Calculates total amount of bytes needed for an array to store
         deserialized S instance.
 
-        Template Params:
+        Template_Params:
             S = struct type `instance` is assumed to contain
 
         Params:
@@ -413,7 +413,7 @@ struct Deserializer
         This is the private version used internally as public one does not
         make that distinction and only return single size.
 
-        Template Params:
+        Template_Params:
             S = struct type
 
         Params:
@@ -471,7 +471,7 @@ struct Deserializer
         be called recursively for any nested struct type, given a proper
         sub-slice
 
-        Template Params:
+        Template_Params:
             S = struct type
 
         Params:
@@ -558,7 +558,7 @@ struct Deserializer
         If there are no branched arrays available via T, amount of extra
         bytes is always expected to be 0
 
-        Template params:
+        Template_Params:
             T = array element type
 
          Params:
@@ -655,7 +655,7 @@ struct Deserializer
         If no branched arrays are transitively stored in T, `extra_bytes` is not
         supposed to be incremeneted
 
-        Template params:
+        Template_Params:
             T = array element type
 
          Params:
@@ -737,7 +737,7 @@ struct Deserializer
         resized so it is legal to use sub-slice of original buffer (unused
         memory part) as `slices_buffer` argument.
 
-        Template Params:
+        Template_Params:
             S = struct type to deserialize
 
         Params:

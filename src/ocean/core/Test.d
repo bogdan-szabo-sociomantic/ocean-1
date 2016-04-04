@@ -109,7 +109,7 @@ unittest
         file = file of origin
         line = line of origin
 
-    Template Params:
+    Template_Params:
         E = exception type to expect, Exception by default
 
     Throws:

@@ -244,7 +244,7 @@ template CacheBase ( bool TrackCreateTimes = false )
     Data cache class template. Stores items of raw data, either of fixed or
     dynamic size.
 
-    Template params:
+    Template_Params:
         ValueSize = size of a data item. If 0 is specified (the default), the
             items stored in the cache are of variable (dynamic) size
         TrackCreateTimes = if true, each cache item is stored with its create
@@ -889,7 +889,7 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
 
     Typed cache class template. Stores items of a particular type.
 
-    Template params:
+    Template_Params:
         T = type of item to store in cache
         TrackCreateTimes = if true, each cache item is stored with its create
             time, in addition to its last access time

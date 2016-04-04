@@ -68,7 +68,7 @@ public alias SimpleSerializerT!(false) SimpleSerializer;
 
     Simple serializer struct - just a namespace, all methods are static.
 
-    Template Params:
+    Template_Params:
         SerializeDynArrays = true: dynamic arrays in structs will be serialized
                              false: not.
 
@@ -87,7 +87,7 @@ static:
         If data is a pointer to a struct or union, it is dereferenced
         automatically.
 
-        Template params:
+        Template_Params:
             T = type of data to write
 
         Params:
@@ -164,7 +164,7 @@ static:
         If data is a pointer to a struct or union, it is dereferenced
         automatically.
 
-        Template params:
+        Template_Params:
             T = type of data to read
 
         Params:
@@ -239,7 +239,7 @@ static:
         If data is a pointer to a struct or union, it is dereferenced
         automatically.
 
-        Template params:
+        Template_Params:
             Stream = type of stream; must be either InputStream or OutputStream
             T = type of data to transmit
 
@@ -327,7 +327,7 @@ static:
         Reads/writes data from/to an io stream, populating/consuming
         data[0 .. bytes].
 
-        Template params:
+        Template_Params:
             Stream = type of stream; must be either InputStream or OutputStream
 
         Params:
@@ -355,7 +355,7 @@ static:
         Reads/writes data from/to an io stream, populating/consuming data to its
         entirety.
 
-        Template params:
+        Template_Params:
             Stream = type of stream; must be either InputStream or OutputStream
 
         Params:

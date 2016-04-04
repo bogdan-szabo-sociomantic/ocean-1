@@ -101,7 +101,7 @@ public static class FirstName
 
         Function to map an abitrary integer to a string for easier distinction
 
-        Template Params:
+        Template_Params:
             T = integer type, should be Fnv1a compatible
 
         Params:

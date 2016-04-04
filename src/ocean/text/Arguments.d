@@ -1262,7 +1262,7 @@ public class Arguments
         an argument. This is valid only if the argument has been assigned
         exactly one parameter.
 
-        Template params:
+        Template_Params:
             T = type of integer to return
 
         Params:

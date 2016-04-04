@@ -100,7 +100,7 @@ import Float = ocean.text.convert.Float;
 
     Xml struct serializer
 
-    Template params:
+    Template_Params:
         Char = character type of output string
 
 *******************************************************************************/
@@ -122,7 +122,7 @@ class XmlStructSerializer ( Char )
 
         Convenience method to serialize a struct.
 
-        Template params:
+        Template_Params:
             T = type of struct to serialize
 
         Params:
@@ -177,7 +177,7 @@ class XmlStructSerializer ( Char )
 
         Appends a named item to the xml string
 
-        Template params:
+        Template_Params:
             T = type of item
 
         Params:
@@ -243,7 +243,7 @@ class XmlStructSerializer ( Char )
 
         Appends a named array to the xml string
 
-        Template params:
+        Template_Params:
             T = base type of array
 
         Params:
@@ -293,7 +293,7 @@ class XmlStructSerializer ( Char )
         Appends a named array of structs to the xml string, as an array of
         indexed objects.
 
-        Template params:
+        Template_Params:
             T = base type of array
 
         Params:

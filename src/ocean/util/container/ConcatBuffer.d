@@ -40,7 +40,7 @@ import ocean.core.Array : removeShift;
 
     Concat buffer class template.
 
-    Template params:
+    Template_Params:
         T = element type of buffer
 
     This template is useful for situations where you want to be able to
@@ -199,7 +199,7 @@ public class ConcatBuffer ( T )
     Slice buffer class template. Extends ConcatBuffer, encapsulating a buffer
     with a list of slices to the concatenated items.
 
-    Template params:
+    Template_Params:
         T = element type of buffer
 
     This template is useful for situations where you need to build up a list of

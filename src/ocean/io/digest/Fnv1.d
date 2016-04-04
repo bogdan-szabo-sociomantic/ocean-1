@@ -32,7 +32,7 @@ import ocean.core.ByteSwap;
     template for creating FNV magic constants and endianness, depending on
     if 32bit (uint) or 64bit (ulong) are used.
 
-    Template params:
+    Template_Params:
         T = Type of hash to use, should be `uint` or `ulong`, or any alias
             to them. Defaults to `hash_t`, which is a D alias to `size_t`.
 
@@ -94,7 +94,7 @@ public alias Fnv1Generic!(true,  ulong) Fnv1a64;
     defined below. They have to appear after this template definition because
     DMD can currently (v1.075) not handle forward aliases in this case.
 
-    Template params:
+    Template_Params:
         T = Type of hash to use, should be `uint` or `ulong`, or any alias
             to them. Defaults to `hash_t`, which is a D alias to `size_t`.
 
@@ -664,7 +664,7 @@ public class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
         Creates a combined hash of all the provided parameters.
         The previous hashed value is used as the initial state for the next.
 
-        Template Params:
+        Template_Params:
             Vals = Tuple of value types, inferred.
 
         Params:

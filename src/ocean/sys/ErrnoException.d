@@ -147,7 +147,7 @@ public class ErrnoException : Exception
         Presence of additional wrapper struct is dictated by limitations
         of dmd1 type inference in method/function signatures.
 
-        Template Params:
+        Template_Params:
             Func = function alias, usually C library function
 
         Params:

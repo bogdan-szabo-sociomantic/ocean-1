@@ -74,7 +74,7 @@ private class Converter : VersionDecorator
     Everything else is identical to the class Map, that means you still need to
     implement your own hashing functionality.
 
-    Template Params:
+    Template_Params:
         V = type of the value
         K = type of the key
 
@@ -131,7 +131,7 @@ abstract class SerializingMap ( V, K ) : Map!(V, K)
 
     See SerializingMap for an usage example
 
-    Template Params:
+    Template_Params:
         K = key type of the map
         V = value type of the map
 
@@ -361,7 +361,7 @@ class MapSerializer
 
         Only works with tuples of length 2
 
-        Template Params:
+        Template_Params:
             index = index of the type that will be made into StructPrevious
             T...  = tuple of the types
 
@@ -387,7 +387,7 @@ class MapSerializer
         Takes a type tuple and transforms it into the same type tuple but with
         the types being pointers to the original types.
 
-        Template Params:
+        Template_Params:
             T... = tuple to convert
 
     ***************************************************************************/
@@ -659,7 +659,7 @@ class MapSerializer
 
         Internal dump function
 
-        Template Params:
+        Template_Params:
             K = Key type of the map
             V = Value type of the map
             HeaderVersion = version of the file header we're trying to load
@@ -715,7 +715,7 @@ class MapSerializer
             Exception when the file has not the expected fileheader and
             other Exceptions for various kinds of errors (file not found, etc)
 
-        Template Params:
+        Template_Params:
             K = key of the array map
             V = value of the corresponding key
 
@@ -762,7 +762,7 @@ class MapSerializer
             Exception when the file has not the expected fileheader and
             other Exceptions for various kinds of errors (file not found, etc)
 
-        Template Params:
+        Template_Params:
             K = key of the array map
             V = value of the corresponding key
 
@@ -792,7 +792,7 @@ class MapSerializer
             Exception when the file has not the expected fileheader and
             other Exceptions for various kinds of errors (file not found, etc)
 
-        Template Params:
+        Template_Params:
             K = key of the array map
             V = value of the corresponding key
             HeaderVersion = version of the file header we're trying to load
@@ -920,7 +920,7 @@ class MapSerializer
 
         Checks if a struct needs to be converted and converts it if required
 
-        Template Params:
+        Template_Params:
             loadFunc = function to use to load older version of the struct
             index    = index of the type in the tuple that should be
                        checked/converted
@@ -962,7 +962,7 @@ class MapSerializer
 
         Checks if a struct needs to be converted and converts it if required
 
-        Template Params:
+        Template_Params:
             throw_if_unable = if true, an exception is thrown if we can't
                               convert this struct
             loadFunc = function to use to load older version of the struct
@@ -1042,7 +1042,7 @@ class MapSerializer
 
         Previous load function, kept so that old versions can still be loaded
 
-        Template Params:
+        Template_Params:
             K = type of the key
             V = type of the value
 
@@ -1189,7 +1189,7 @@ version ( UnitTest )
         Dump function that dumps in the old format, to test whether we can still
         read it (and convert it)
 
-        Template Params:
+        Template_Params:
             K = type of key
             V = type of value
 

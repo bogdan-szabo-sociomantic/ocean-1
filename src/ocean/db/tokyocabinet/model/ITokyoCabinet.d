@@ -415,7 +415,7 @@ struct TokyoCabinetIterator ( TCDB, alias tcdbforeach )
             in the args structure, and are rethrown at this point, outside of
             the C code.
 
-            Template params:
+            Template_Params:
                 A = type of args struct
                 R = return type of iteration delegate
 

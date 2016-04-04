@@ -143,7 +143,7 @@ class SerializerException : Exception
 
     Struct serializer
 
-    Template params:
+    Template_Params:
         AllowUnions = if true, unions will be serialized as raw bytes, without
             checking whether the union contains dynamic arrays. Otherwise unions
             cause a compile-time error.
@@ -558,7 +558,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
         See ocean.io.serialize.JsonStructSerializer for an example.
 
-        Template params:
+        Template_Params:
             S = type of struct to serialize
             Serializer = type of serializer object
             D = tuple of data parameters passed to the serializer
@@ -1009,7 +1009,7 @@ struct StructSerializer ( bool AllowUnions = false )
         serializer object. See the description of the dump() method above for a
         full description of how the serializer object should behave.
 
-        Template params:
+        Template_Params:
             S = type of struct to serialize
             Serializer = type of serializer object
             D = tuple of data parameters passed to the serializer
@@ -1085,7 +1085,7 @@ struct StructSerializer ( bool AllowUnions = false )
         description of the dump() method above for a full description of how the
         serializer object should behave.
 
-        Template params:
+        Template_Params:
             T = array base type, should be a struct or a (possibly
                 multi-dimensional) array of structs
             Serializer = type of serializer object
@@ -1228,7 +1228,7 @@ struct StructSerializer ( bool AllowUnions = false )
         The s != null checking is done in assert() fashion; that is, it is not
         done in release mode.
 
-        Template params:
+        Template_Params:
             func = invoking function (for message generation)
 
         Params:
