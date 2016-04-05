@@ -935,6 +935,22 @@ body
     return ClassIterator!(T, Source)(config, root);
 }
 
+
+/******************************************************************************
+
+    Fills the fields of the `reference` from config file's group.
+
+    Template Params:
+        T  = type of the class to fill
+        Source = source to use
+
+    Params:
+        group = group to read fields from
+        reference = reference to the object to be filled
+        config = instance of the source to use
+
+******************************************************************************/
+
 protected void readFields ( T, Source )
                           ( cstring group, T reference, Source config )
 in
