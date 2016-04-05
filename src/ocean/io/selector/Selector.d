@@ -53,10 +53,11 @@
  * events for them. To do that you need to use the select() method. This
  * method blocks until either one of the conduits is selected or the
  * specified timeout is reached. Even though it has two different versions:
- * $(OL
- *       $(LI select())
- *       $(LI select(Interval))
- * )
+ *
+ * 1. select()
+ *
+ * 2. select(Interval)
+ *
  * the first one is just the same as doing
  * select(Interval.max). In that case we don't have a timeout and
  * select() blocks until a conduit receives an event.
