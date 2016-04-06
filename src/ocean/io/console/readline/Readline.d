@@ -74,7 +74,7 @@ import ocean.stdc.stdlib : free;
 
 *******************************************************************************/
 
-char[] readline(char[] prompt = null, char[] buffer = null)
+char[] readline(ref char[] prompt, ref char[] buffer)
 {
     char* prompt_ptr = null;
     if (prompt != null)
@@ -96,6 +96,51 @@ char[] readline(char[] prompt = null, char[] buffer = null)
     }
     buffer.copy( c_buf[0..c_buf_len] );
     return buffer;
+}
+
+/*******************************************************************************
+
+    Overloaded method of readline().
+
+    See readline() documentation above.
+
+    Returns:
+        Returns the text of the line read. A blank line returns empty string.
+        If EOF is encountered while reading a line, and the line is empty, null
+        is returned.  If an EOF  is  read  with  a non-empty line, it is treated
+        as a newline.
+
+*******************************************************************************/
+
+deprecated ("Use `readline(ref char[] prompt, ref char[] buffer)` instead")
+char[] readline ()
+{
+    char[] prompt, buffer;
+    return readline(prompt, buffer);
+}
+
+/*******************************************************************************
+
+    Overloaded method of readline().
+
+    See readline() documentation above.
+
+    Params:
+        prompt = the string to be prompted to the user (see the documentation
+            for readline() above for more details).
+
+    Returns:
+        Returns the text of the line read. A blank line returns empty string.
+        If EOF is encountered while reading a line, and the line is empty, null
+        is returned.  If an EOF  is  read  with  a non-empty line, it is treated
+        as a newline.
+
+*******************************************************************************/
+deprecated ("Use `readline(ref char[] prompt, ref char[] buffer)` instead")
+char[] readline(ref char[] prompt)
+{
+    char[] buffer;
+    return readline(prompt, buffer);
 }
 
 /*******************************************************************************

@@ -78,6 +78,14 @@ Deprecations
   This package has been removed. It was only used in one project so has been
   moved into that repo.
 
+* `ocean.io.console.readline.Readline.readline()`
+
+  Deprecated the buggy, allocating versions of the `readline()` method.
+  The new replacing method takes both the prompt string as well as the input-
+  reading string as mutable buffers. The prompt needs to be a mutable buffer
+  as a null terminated character might be added to the string in order to
+  pass it to the C readline function.
+
 New Features
 ============
 
