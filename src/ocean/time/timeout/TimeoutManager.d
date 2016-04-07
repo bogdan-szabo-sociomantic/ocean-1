@@ -44,8 +44,7 @@ import ocean.time.timeout.model.ITimeoutManager,
        ocean.time.timeout.model.IExpiryRegistration,
        ocean.time.timeout.model.ExpiryRegistrationBase;                 // ExpiryTree, Expiry, ExpiryRegistrationBase
 
-import ocean.time.model.IMicrosecondsClock,
-       ocean.time.MicrosecondsClock;
+import ocean.time.MicrosecondsClock;
 
 import ocean.util.container.AppendBuffer;
 
