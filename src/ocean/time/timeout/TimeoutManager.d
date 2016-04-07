@@ -348,9 +348,7 @@ abstract class TimeoutManagerBase : ITimeoutManager
 
     /***************************************************************************
 
-        Returns the current wall clock time. Calls gettimeofday() each time by
-        default; may be overridden to use a more efficient implementation, e.g.
-        using the IntervalClock.
+        Returns the current wall clock time according to gettimeofday().
 
         Returns:
             the current wall clock time as UNIX time value in microseconds.

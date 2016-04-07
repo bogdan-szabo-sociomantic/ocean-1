@@ -59,9 +59,6 @@
 
     ---
 
-    TODO: make a version of PeriodcTracer which gets the now time externally
-    (this would then work with an IntervalClock)
-
 *******************************************************************************/
 
 module ocean.util.log.PeriodicTrace;
