@@ -240,7 +240,7 @@ public template SmartEnumCore ( BaseType )
 
     ***************************************************************************/
 
-    static public BaseType* code ( istring description )
+    static public BaseType* code ( cstring description )
     {
         return description in map;
     }
@@ -286,10 +286,10 @@ public template SmartEnumCore ( BaseType )
 
     ***************************************************************************/
 
-    static public BaseType opIndex ( istring description )
+    static public BaseType opIndex ( cstring description )
     {
         auto code = description in map;
-        enforce(code, description ~ " not found in SmartEnum");
+        enforce(code, cast(istring)(description ~ " not found in SmartEnum"));
         return *code;
     }
 
@@ -326,7 +326,7 @@ public template SmartEnumCore ( BaseType )
 
     ***************************************************************************/
 
-    static public size_t* indexOf ( istring description )
+    static public size_t* indexOf ( cstring description )
     {
         return map.indexOf(description);
     }
@@ -825,6 +825,20 @@ unittest
     test!("==")(*Name.code("a"), 0);
     test!("==")(*Name.code("b"), 1);
     test!("==")(*Name.code("c"), 2);
+
+    // Test lookup with mutable values
+    mstring name1 = "a".dup, name2 = "b".dup, name3 = "c".dup;
+    Name n;
+
+    test!("==")(*Name.code(name1), 0);
+    test!("==")(*Name.code(name2), 1);
+    test!("==")(*Name.code(name3), 2);
+
+    test!("in")(name1, n);
+    test!("in")(name2, n);
+    test!("in")(name3, n);
+    // `!in` doesn't exist in D1 :(
+    test(!("NON_EXISTENT".dup in n), "Found non existent description!");
 }
 
 /*******************************************************************************
@@ -1076,7 +1090,7 @@ public struct TwoWayMap ( A )
 
     ***************************************************************************/
 
-    public KeyType* opIn_r ( ValueType b )
+    public KeyType* opIn_r ( cstring b )
     {
         return b in this.b_to_a;
     }
@@ -1118,7 +1132,7 @@ public struct TwoWayMap ( A )
 
     ***************************************************************************/
 
-    public KeyType opIndex ( ValueType b )
+    public KeyType opIndex ( cstring b )
     {
         return this.b_to_a[b];
     }
@@ -1264,7 +1278,7 @@ public struct TwoWayMap ( A )
 
     ***************************************************************************/
 
-    public size_t* indexOf ( ValueType b )
+    public size_t* indexOf ( cstring b )
     {
         auto index = b in this.b_to_index;
         enforce(index, typeof(this).stringof ~ ".indexOf - element not present in map");
