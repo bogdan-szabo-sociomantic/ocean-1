@@ -359,7 +359,7 @@ abstract class TimeoutManagerBase : ITimeoutManager
 
     public final ulong now ( )
     {
-        return MicrosecondsClock.now_us_static;
+        return MicrosecondsClock.now_us();
     }
 
     /***************************************************************************

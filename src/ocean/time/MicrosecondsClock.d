@@ -18,13 +18,11 @@ module ocean.time.MicrosecondsClock;
 
  ******************************************************************************/
 
-import ocean.time.model.IMicrosecondsClock;
-
 import ocean.stdc.posix.sys.time: timeval, gettimeofday;
 
 /******************************************************************************/
 
-class MicrosecondsClock : IMicrosecondsClock
+class MicrosecondsClock
 {
     /**************************************************************************
 
@@ -49,7 +47,7 @@ class MicrosecondsClock : IMicrosecondsClock
 
      **************************************************************************/
 
-    public ulong now_us ( )
+    static public ulong now_us ( )
     {
         return us(now);
     }
@@ -61,6 +59,7 @@ class MicrosecondsClock : IMicrosecondsClock
 
      **************************************************************************/
 
+    deprecated("Use now_us() instead")
     static public ulong now_us_static ( )
     {
         return us(now);

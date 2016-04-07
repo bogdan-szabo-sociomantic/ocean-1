@@ -17,6 +17,11 @@ Migration Instructions
   any code that uses static array as second argument will stop compiling and
   will need to be adjusted to use copy + in-place overload of these functions.
 
+* `ocean.time.MicrosecondsClock`
+
+  This class no longer implements the `IMicrosecondsClock` interface, which is
+  scheduled to be deprecated. All of its members are now static.
+
 Deprecations
 ============
 
@@ -50,6 +55,11 @@ Deprecations
 * `ocean.io.selector`
 
   This whole package has been deprecated. It is unused.
+
+* `ocean.time.MicrosecondsClock`
+
+  The `now_us_static()` method has been deprecated. `now_us()` is now static, so
+  can be used instead.
 
 New Features
 ============
