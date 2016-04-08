@@ -215,7 +215,20 @@ version (UnitTest)
     import tango.core.Tuple: Tuple;
 }
 
-/// Ensure D2 const correctness
+/// EmailSender simple usage
+unittest
+{
+    void sendReport ()
+    {
+        auto reporter = new EmailSender();
+
+        reporter.sendEmail("notification@example.com", "test@example.com",
+                           "Notification test report", "This is a test report",
+                           "noreply@example.com");
+    }
+}
+
+// Ensure D2 const correctness
 unittest
 {
     void sendReport ()
