@@ -46,9 +46,9 @@ class EmailSender
 
     ***************************************************************************/
 
-    private char[] recipients_buf;
-    private char[] cc_buf;
-    private char[] bcc_buf;
+    private mstring recipients_buf;
+    private mstring cc_buf;
+    private mstring bcc_buf;
 
 
     /***************************************************************************
@@ -88,11 +88,12 @@ class EmailSender
 
     ***************************************************************************/
 
-    public bool sendEmail ( char[] sender, char[][] recipients, char[] subject,
-        char[] msg_body, char[] reply_to = null, char[] mail_id = null,
-        char[][] cc = null, char[][] bcc = null )
+    public bool sendEmail ( cstring sender, cstring[] recipients,
+        cstring subject, cstring msg_body, cstring reply_to = null,
+        cstring mail_id = null, cstring[] cc = null, cstring[] bcc = null )
     {
-        void format_entries_buf ( char[][] param_to_format, ref char[] buf )
+        void format_entries_buf ( cstring[] param_to_format,
+                                  ref mstring buf )
         {
             auto first_entry = true;
 
@@ -153,9 +154,9 @@ class EmailSender
 
     ***************************************************************************/
 
-    public bool sendEmail ( char[] sender, char[] recipients, char[] subject,
-        char[] msg_body, char[] reply_to = null, char[] mail_id = null,
-        char[] cc = null, char[] bcc = null )
+    public bool sendEmail ( cstring sender, cstring recipients,
+        cstring subject, cstring msg_body, cstring reply_to = null,
+        cstring mail_id = null, cstring cc = null, cstring bcc = null )
     {
         Process.Result result;
 
@@ -206,5 +207,33 @@ class EmailSender
             }
         }
         return true;
+    }
+}
+
+version (UnitTest)
+{
+    import tango.core.Tuple: Tuple;
+}
+
+/// Ensure D2 const correctness
+unittest
+{
+    void sendReport ()
+    {
+        auto reporter = new EmailSender();
+
+        alias Tuple!(cstring, istring, mstring) ArgTypes;
+
+        foreach (ArgType; ArgTypes)
+        {
+            ArgType email_from = "notification@example.com".dup;
+            ArgType email_to = "test@example.com".dup;
+            ArgType email_subject = "Notification test report".dup;
+            ArgType email_body = "This is a test report".dup;
+            ArgType email_reply_to = "noreply@example.com".dup;
+
+            reporter.sendEmail(email_from, email_to, email_subject, email_body,
+                               email_reply_to);
+        }
     }
 }
