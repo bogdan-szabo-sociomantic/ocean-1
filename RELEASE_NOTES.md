@@ -124,3 +124,9 @@ New Features
   An exception message may now be passed to `resume()`, which is then returned
   (not thrown for compatibility reasons) by the waiting `suspend()` call.
   Previously this was disallowed.
+
+* `ocean.time.MicrosecondsClock`
+
+  New functions have been added, to convert the time specified as a `time_t` or
+  `timeval` to a full date/time representation, as a `tm` or `DateTime` struct.
+
