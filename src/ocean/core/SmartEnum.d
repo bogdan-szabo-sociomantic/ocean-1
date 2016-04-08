@@ -894,8 +894,8 @@ public struct TwoWayMap ( A, B )
 
     ***************************************************************************/
 
-    private B[A] a_to_b;
-    private A[B] b_to_a;
+    private ValueType[KeyType] a_to_b;
+    private KeyType[ValueType] b_to_a;
 
 
     /***************************************************************************
@@ -908,8 +908,8 @@ public struct TwoWayMap ( A, B )
 
     ***************************************************************************/
 
-    private A[] keys_list;
-    private B[] values_list;
+    private KeyType[] keys_list;
+    private ValueType[] values_list;
 
 
     /***************************************************************************
@@ -918,8 +918,8 @@ public struct TwoWayMap ( A, B )
 
     ***************************************************************************/
 
-    private size_t[A] a_to_index; // A to index in keys_list
-    private size_t[B] b_to_index; // B to index in values_list
+    private size_t[KeyType] a_to_index; // A to index in keys_list
+    private size_t[ValueType] b_to_index; // B to index in values_list
 
 
     /***************************************************************************
@@ -955,7 +955,7 @@ public struct TwoWayMap ( A, B )
 
     ***************************************************************************/
 
-    public void opAssign ( B[A] assoc_array )
+    public void opAssign ( ValueType[KeyType] assoc_array )
     {
         this.keys_list.length = 0;
         this.values_list.length = 0;
@@ -973,7 +973,7 @@ public struct TwoWayMap ( A, B )
         this.updateIndices();
     }
 
-    public void opAssign ( A[B] assoc_array )
+    public void opAssign ( KeyType[ValueType] assoc_array )
     {
         this.keys_list.length = 0;
         this.values_list.length = 0;
@@ -1002,7 +1002,7 @@ public struct TwoWayMap ( A, B )
 
     ***************************************************************************/
 
-    public void opIndexAssign ( A a, B b )
+    public void opIndexAssign ( KeyType a, ValueType b )
     out
     {
         assert(this.a_to_index[a] < this.keys_list.length);
@@ -1024,7 +1024,7 @@ public struct TwoWayMap ( A, B )
         this.updateIndices();
     }
 
-    public void opIndexAssign ( B b, A a )
+    public void opIndexAssign ( ValueType b, KeyType a )
     out
     {
         assert(this.a_to_index[a] < this.keys_list.length);
@@ -1076,7 +1076,7 @@ public struct TwoWayMap ( A, B )
 
     ***************************************************************************/
 
-    public A* opIn_r ( B b )
+    public KeyType* opIn_r ( ValueType b )
     {
         return b in this.b_to_a;
     }
@@ -1096,7 +1096,7 @@ public struct TwoWayMap ( A, B )
 
     ***************************************************************************/
 
-    public B* opIn_r ( A a )
+    public ValueType* opIn_r ( KeyType a )
     {
         return a in this.a_to_b;
     }
@@ -1118,7 +1118,7 @@ public struct TwoWayMap ( A, B )
 
     ***************************************************************************/
 
-    public A opIndex ( B b )
+    public KeyType opIndex ( ValueType b )
     {
         return this.b_to_a[b];
     }
@@ -1140,7 +1140,7 @@ public struct TwoWayMap ( A, B )
 
     ***************************************************************************/
 
-    public B opIndex ( A a )
+    public ValueType opIndex ( KeyType a )
     {
         return this.a_to_b[a];
     }
@@ -1166,7 +1166,7 @@ public struct TwoWayMap ( A, B )
 
     ***************************************************************************/
 
-    public A[] keys ( )
+    public KeyType[] keys ( )
     {
         return this.keys_list;
     }
@@ -1179,7 +1179,7 @@ public struct TwoWayMap ( A, B )
 
     ***************************************************************************/
 
-    public B[] values ( )
+    public ValueType[] values ( )
     {
         return this.values_list;
     }
@@ -1194,7 +1194,7 @@ public struct TwoWayMap ( A, B )
 
     ***************************************************************************/
 
-    public int opApply ( int delegate ( ref A a, ref B b ) dg )
+    public int opApply ( int delegate ( ref KeyType a, ref ValueType b ) dg )
     {
         int res;
         foreach ( a, b; this.a_to_b )
@@ -1214,7 +1214,7 @@ public struct TwoWayMap ( A, B )
 
     ***************************************************************************/
 
-    public int opApply ( int delegate ( ref size_t index, ref A a, ref B b ) dg )
+    public int opApply ( int delegate ( ref size_t index, ref KeyType a, ref ValueType b ) dg )
     {
         int res;
         foreach ( a, b; this.a_to_b )
@@ -1242,7 +1242,7 @@ public struct TwoWayMap ( A, B )
 
     ***************************************************************************/
 
-    public size_t* indexOf ( A a )
+    public size_t* indexOf ( KeyType a )
     {
         auto index = a in this.a_to_index;
         enforce(index, typeof(this).stringof ~ ".indexOf - element not present in map");
@@ -1264,7 +1264,7 @@ public struct TwoWayMap ( A, B )
 
     ***************************************************************************/
 
-    public size_t* indexOf ( B b )
+    public size_t* indexOf ( ValueType b )
     {
         auto index = b in this.b_to_index;
         enforce(index, typeof(this).stringof ~ ".indexOf - element not present in map");
