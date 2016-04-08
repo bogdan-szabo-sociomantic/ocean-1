@@ -98,6 +98,7 @@ import ocean.transition;
 import ocean.io.Terminal;
 
 import ocean.time.model.IMicrosecondsClock;
+import ocean.time.MicrosecondsClock;
 
 import ocean.core.Array;
 
@@ -121,7 +122,7 @@ import ocean.stdc.stdarg;
 
 import ocean.stdc.stdlib: div;
 
-import ocean.stdc.time: clock_t, clock, tm, time_t;
+import ocean.stdc.time: clock_t, clock, tm, time_t, time;
 
 import ocean.text.convert.Format;
 
@@ -167,6 +168,7 @@ public class AppStatus
 
     ***************************************************************************/
 
+    deprecated("IAdvancedMicrosecondsClock is going to be deprecated")
     protected alias .IAdvancedMicrosecondsClock IAdvancedMicrosecondsClock;
 
     protected alias .TerminalOutput!(char) TerminalOutput;
@@ -230,6 +232,7 @@ public class AppStatus
 
     ***************************************************************************/
 
+    deprecated("IAdvancedMicrosecondsClock is going to be deprecated")
     private IAdvancedMicrosecondsClock clock;
 
 
@@ -370,16 +373,42 @@ public class AppStatus
 
     ***************************************************************************/
 
+    deprecated("IAdvancedMicrosecondsClock is going to be deprecated, please "
+        "use the other constructor")
     public this ( cstring app_name, cstring app_version, cstring app_build_date,
         cstring app_build_author, IAdvancedMicrosecondsClock clock, uint size,
         ulong ms_between_calls = 1000 )
+    {
+        this.clock = clock;
+        this(app_name, app_version, app_build_date, app_build_author, size,
+            ms_between_calls);
+    }
+
+
+    /***************************************************************************
+
+        Constructor. Saves the current time as the program start time.
+
+        Params:
+            app_name = name of the application
+            app_version = version of the application
+            app_build_date = date the application was built
+            app_build_author = who built the current build
+            size = number of loglines that are to be displayed below the
+                    title line
+            ms_between_calls = expected milliseconds between calls to
+                               getCpuUsage (defaults to 1000ms)
+
+    ***************************************************************************/
+
+    public this ( cstring app_name, cstring app_version, cstring app_build_date,
+        cstring app_build_author, uint size, ulong ms_between_calls = 1000 )
     {
         this.app_name.copy(app_name);
         this.app_version.copy(app_version);
         this.app_build_date.copy(app_build_date);
         this.app_build_author.copy(app_build_author);
-        this.clock = clock;
-        this.start_time = this.clock.now_sec;
+        this.start_time = time(null);
         this.static_lines.length = size;
         this.static_lines_display_props.length = size;
         this.ms_between_calls = ms_between_calls;
@@ -786,7 +815,7 @@ public class AppStatus
     public void getUptime ( out uint weeks, out uint days, out uint hours,
         out uint mins, out uint secs )
     {
-        time_t _uptime = this.clock.now_sec - this.start_time;
+        time_t _uptime = time(null) - this.start_time;
         assert (_uptime < int.max && _uptime > int.min);
         uint uptime = castFrom!(long).to!(int)(_uptime);
 
@@ -869,14 +898,14 @@ public class AppStatus
 
     private void printHeadingLine ( )
     {
-        auto time = this.clock.now_DateTime.time;
-        auto date = this.clock.now_DateTime.date;
+        ulong us; // unused
+        auto dt = MicrosecondsClock.toDateTime(MicrosecondsClock.now(), us);
 
         this.heading_line.length = 0;
 
         Format.format(this.heading_line, "[{:d2}/{:d2}/{:d2} "
-            "{:d2}:{:d2}:{:d2}] {}", date.day, date.month, date.year,
-            time.hours, time.minutes, time.seconds, this.app_name);
+            "{:d2}:{:d2}:{:d2}] {}", dt.date.day, dt.date.month, dt.date.year,
+            dt.time.hours, dt.time.minutes, dt.time.seconds, this.app_name);
 
         this.formatUptime();
         this.formatMemoryUsage();

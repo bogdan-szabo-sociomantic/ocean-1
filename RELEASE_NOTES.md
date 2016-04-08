@@ -67,6 +67,12 @@ Deprecations
   replaced with `time(null)` or the higher-precision functions in
   `ocean.time.MicrosecondsClock`.
 
+* `ocean.io.console.AppStatus`
+
+  The constructor which requires an `IAdvancedMicrosecondsClock` reference is
+  deprecated. Use the other constructor instead, which accepts all the same
+  arguments except the clock.
+
 New Features
 ============
 
