@@ -61,6 +61,12 @@ Deprecations
   The `now_us_static()` method has been deprecated. `now_us()` is now static, so
   can be used instead.
 
+* `ocean.io.select.client.IntervalClock`
+
+  This whole module is deprecated. All time getting functionality can be
+  replaced with `time(null)` or the higher-precision functions in
+  `ocean.time.MicrosecondsClock`.
+
 New Features
 ============
 
