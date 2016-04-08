@@ -201,7 +201,7 @@ public template SmartEnumCore ( BaseType )
 
     ***************************************************************************/
 
-    static public TwoWayMap!(BaseType, istring) map;
+    static public TwoWayMap!(BaseType) map;
 
 
     /***************************************************************************
@@ -863,7 +863,7 @@ import ocean.core.Traits : isAssocArrayType;
 
 *******************************************************************************/
 
-public struct TwoWayMap ( A, B )
+public struct TwoWayMap ( A )
 {
     /***************************************************************************
 
@@ -872,9 +872,9 @@ public struct TwoWayMap ( A, B )
 
     ***************************************************************************/
 
-    static if ( is(A == B) )
+    static if ( is(A : cstring) )
     {
-        static assert(false, "TwoWayMap only supports mapping between two different types, not " ~ A.stringof ~ " <-> " ~ B.stringof);
+        static assert(false, "TwoWayMap does not support mapping to a string type");
     }
 
 
@@ -885,7 +885,7 @@ public struct TwoWayMap ( A, B )
     ***************************************************************************/
 
     public alias A KeyType;
-    public alias B ValueType;
+    public alias istring ValueType;
 
 
     /***************************************************************************
