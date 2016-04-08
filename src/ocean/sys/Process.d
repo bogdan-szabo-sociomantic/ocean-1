@@ -444,7 +444,7 @@ class Process
     {
         void example ( )
         {
-            Process p;
+            auto p = new Process;
             p.args("myprogram", "first", "second argument", "third");
         }
     }
@@ -470,7 +470,7 @@ class Process
     {
         void example ( )
         {
-            Process p;
+            auto p = new Process;
             p.argsWithCommand(["myprogram", "first", "second argument", "third"]);
         }
     }
@@ -496,7 +496,7 @@ class Process
     {
         void example ( )
         {
-            Process p;
+            auto p = new Process;
             p.setArgs("myprogram", "first", "second argument", "third").execute();
         }
     }
@@ -597,7 +597,7 @@ class Process
     {
         void example ( )
         {
-            Process p;
+            auto p = new Process;
             istring[istring] env;
             env["MYVAR1"] = "first";
             env["MYVAR2"] = "second";
