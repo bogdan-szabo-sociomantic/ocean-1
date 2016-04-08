@@ -846,28 +846,6 @@ import ocean.core.Array_tango : find;
 
 import ocean.core.Traits : isAssocArrayType;
 
-/*******************************************************************************
-
-    Template to create a two way map from an associative array type.
-
-    Template params:
-        T = associative array map type
-
-*******************************************************************************/
-
-public template TwoWayMap ( T )
-{
-    static if ( isAssocArrayType!(T) )
-    {
-        public alias TwoWayMap!(typeof(T.init.values[0]), typeof(T.init.keys[0])) TwoWayMap;
-    }
-    else
-    {
-        static assert(false, "'" ~ T.stringof ~ "' isn't an associative array type, cannot create two way map");
-    }
-}
-
-
 
 /*******************************************************************************
 
