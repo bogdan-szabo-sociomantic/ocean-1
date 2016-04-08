@@ -49,7 +49,7 @@ class MicrosecondsClock : IMicrosecondsClock
 
      **************************************************************************/
 
-    ulong now_us ( )
+    public ulong now_us ( )
     {
         return us(now);
     }
@@ -61,7 +61,7 @@ class MicrosecondsClock : IMicrosecondsClock
 
      **************************************************************************/
 
-    static ulong now_us_static ( )
+    static public ulong now_us_static ( )
     {
         return us(now);
     }
@@ -91,7 +91,7 @@ class MicrosecondsClock : IMicrosecondsClock
 
      **************************************************************************/
 
-    static timeval now ( )
+    static public timeval now ( )
     {
         timeval t;
 
@@ -114,7 +114,7 @@ class MicrosecondsClock : IMicrosecondsClock
 
      **************************************************************************/
 
-    static ulong us ( timeval t )
+    static public ulong us ( timeval t )
     in
     {
         static if (is (t.tv_sec : int))
