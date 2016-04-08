@@ -201,7 +201,7 @@ public template SmartEnumCore ( BaseType )
 
     ***************************************************************************/
 
-    static public TwoWayMap!(BaseType, istring, true) map;
+    static public TwoWayMap!(BaseType, istring) map;
 
 
     /***************************************************************************
@@ -863,7 +863,7 @@ import ocean.core.Traits : isAssocArrayType;
 
 *******************************************************************************/
 
-public struct TwoWayMap ( A, B, bool Indexed = false )
+public struct TwoWayMap ( A, B )
 {
     /***************************************************************************
 
@@ -918,11 +918,8 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
 
     ***************************************************************************/
 
-    static if ( Indexed )
-    {
-        private size_t[A] a_to_index; // A to index in keys_list
-        private size_t[B] b_to_index; // B to index in values_list
-    }
+    private size_t[A] a_to_index; // A to index in keys_list
+    private size_t[B] b_to_index; // B to index in values_list
 
 
     /***************************************************************************
@@ -939,7 +936,7 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
     {
         assert(this.a_to_b.length == this.b_to_a.length);
 
-        debug ( TwoWayMapFullConsistencyCheck ) static if ( Indexed )
+        debug ( TwoWayMapFullConsistencyCheck )
         {
             foreach ( a, b; this.a_to_b )
             {
@@ -973,10 +970,7 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
             this.values_list ~= *(a in this.a_to_b);
         }
 
-        static if ( Indexed )
-        {
-            this.updateIndices();
-        }
+        this.updateIndices();
     }
 
     public void opAssign ( A[B] assoc_array )
@@ -994,10 +988,7 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
             this.values_list ~= *(a in this.a_to_b);
         }
 
-        static if ( Indexed )
-        {
-            this.updateIndices();
-        }
+        this.updateIndices();
     }
 
 
@@ -1014,11 +1005,8 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
     public void opIndexAssign ( A a, B b )
     out
     {
-        static if ( Indexed )
-        {
-            assert(this.a_to_index[a] < this.keys_list.length);
-            assert(this.b_to_index[b] < this.values_list.length);
-        }
+        assert(this.a_to_index[a] < this.keys_list.length);
+        assert(this.b_to_index[b] < this.values_list.length);
     }
     body
     {
@@ -1033,20 +1021,14 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
             this.values_list ~= *(a in this.a_to_b);
         }
 
-        static if ( Indexed )
-        {
-            this.updateIndices();
-        }
+        this.updateIndices();
     }
 
     public void opIndexAssign ( B b, A a )
     out
     {
-        static if ( Indexed )
-        {
-            assert(this.a_to_index[a] < this.keys_list.length);
-            assert(this.b_to_index[b] < this.values_list.length);
-        }
+        assert(this.a_to_index[a] < this.keys_list.length);
+        assert(this.b_to_index[b] < this.values_list.length);
     }
     body
     {
@@ -1061,10 +1043,7 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
             this.values_list ~= *(a in this.a_to_b);
         }
 
-        static if ( Indexed )
-        {
-            this.updateIndices();
-        }
+        this.updateIndices();
     }
 
 
@@ -1079,10 +1058,7 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
         this.a_to_b.rehash;
         this.b_to_a.rehash;
 
-        static if ( Indexed )
-        {
-            this.updateIndices();
-        }
+        this.updateIndices();
     }
 
 
@@ -1238,20 +1214,17 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
 
     ***************************************************************************/
 
-    static if ( Indexed )
+    public int opApply ( int delegate ( ref size_t index, ref A a, ref B b ) dg )
     {
-        public int opApply ( int delegate ( ref size_t index, ref A a, ref B b ) dg )
+        int res;
+        foreach ( a, b; this.a_to_b )
         {
-            int res;
-            foreach ( a, b; this.a_to_b )
-            {
-                auto index = this.indexOf(a);
-                assert(index);
+            auto index = this.indexOf(a);
+            assert(index);
 
-                res = dg(*index, a, b);
-            }
-            return res;
+            res = dg(*index, a, b);
         }
+        return res;
     }
 
 
@@ -1269,14 +1242,11 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
 
     ***************************************************************************/
 
-    static if ( Indexed )
+    public size_t* indexOf ( A a )
     {
-        public size_t* indexOf ( A a )
-        {
-            auto index = a in this.a_to_index;
-            enforce(index, typeof(this).stringof ~ ".indexOf - element not present in map");
-            return index;
-        }
+        auto index = a in this.a_to_index;
+        enforce(index, typeof(this).stringof ~ ".indexOf - element not present in map");
+        return index;
     }
 
 
@@ -1294,14 +1264,11 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
 
     ***************************************************************************/
 
-    static if ( Indexed )
+    public size_t* indexOf ( B b )
     {
-        public size_t* indexOf ( B b )
-        {
-            auto index = b in this.b_to_index;
-            enforce(index, typeof(this).stringof ~ ".indexOf - element not present in map");
-            return index;
-        }
+        auto index = b in this.b_to_index;
+        enforce(index, typeof(this).stringof ~ ".indexOf - element not present in map");
+        return index;
     }
 
 
@@ -1311,15 +1278,12 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
 
     ***************************************************************************/
 
-    static if ( Indexed )
+    private void updateIndices ( )
     {
-        private void updateIndices ( )
+        foreach ( a, b; this.a_to_b )
         {
-            foreach ( a, b; this.a_to_b )
-            {
-                this.a_to_index[a] = this.keys_list.find(a);
-                this.b_to_index[b] = this.values_list.find(b);
-            }
+            this.a_to_index[a] = this.keys_list.find(a);
+            this.b_to_index[b] = this.values_list.find(b);
         }
     }
 }
