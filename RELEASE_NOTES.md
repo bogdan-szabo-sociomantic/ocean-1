@@ -73,6 +73,11 @@ Deprecations
   deprecated. Use the other constructor instead, which accepts all the same
   arguments except the clock.
 
+* `ocean.db`
+
+  This package has been removed. It was only used in one project so has been
+  moved into that repo.
+
 New Features
 ============
 
