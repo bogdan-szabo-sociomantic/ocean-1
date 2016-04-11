@@ -40,4 +40,4 @@ $O/test-filesystemevent: override LDFLAGS += -lrt
 
 # Link unittests to all used libraries
 $O/%unittests: override LDFLAGS += -lglib-2.0 -lpcre -lxml2 -lxslt -lebtree \
-		-ltokyocabinet -lreadline -lhistory -llzo2 -lbz2 -lz -ldl -lgcrypt
+		-lreadline -lhistory -llzo2 -lbz2 -lz -ldl -lgcrypt
