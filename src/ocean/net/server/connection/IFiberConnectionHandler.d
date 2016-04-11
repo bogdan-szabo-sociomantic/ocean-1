@@ -82,6 +82,7 @@ abstract class IFiberConnectionHandlerBase : IConnectionHandler
         Params:
             epoll       = epoll select dispatcher
             stack_size  = fiber stack size
+            socket      = the socket
             finalize_dg = user-specified finalizer, called when the connection
                           is shut down
             error_dg    = user-specified error handler, called when a connection
@@ -91,10 +92,11 @@ abstract class IFiberConnectionHandlerBase : IConnectionHandler
 
     protected this ( EpollSelectDispatcher epoll,
                      size_t stack_size,
+                     ISocket socket,
                      FinalizeDg finalize_dg = null,
                      ErrorDg error_dg = null )
     {
-        super(finalize_dg, error_dg);
+        super(socket, finalize_dg, error_dg);
 
         this.fiber = new SelectFiber(epoll, &this.handleConnection_, stack_size);
     }
@@ -108,6 +110,7 @@ abstract class IFiberConnectionHandlerBase : IConnectionHandler
 
         Params:
             epoll       = epoll select dispatcher
+            socket      = the socket
             finalize_dg = user-specified finalizer, called when the connection
                           is shut down
             error_dg    = user-specified error handler, called when a connection
@@ -115,10 +118,10 @@ abstract class IFiberConnectionHandlerBase : IConnectionHandler
 
     ***************************************************************************/
 
-    protected this ( EpollSelectDispatcher epoll,
+    protected this ( EpollSelectDispatcher epoll, ISocket socket,
                      FinalizeDg finalize_dg = null, ErrorDg error_dg = null )
     {
-        this(epoll, this.default_stack_size, finalize_dg, error_dg);
+        this(epoll, this.default_stack_size, socket, finalize_dg, error_dg);
     }
 
 
@@ -300,6 +303,7 @@ abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase, Resettable
                               should use for i/o
             stack_size      = fiber stack size
             buffered_writer = set to true to use the buffered writer
+            socket          = the socket
             finalize_dg     = user-specified finalizer, called when the
                               connection is shut down
             error_dg        = user-specified error handler, called when a
@@ -308,13 +312,13 @@ abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase, Resettable
     ***************************************************************************/
 
     protected this ( EpollSelectDispatcher epoll,
-                     size_t stack_size, bool buffered_writer,
+                     size_t stack_size, bool buffered_writer, ISocket socket,
                      FinalizeDg finalize_dg = null, ErrorDg error_dg = null )
     {
         this(epoll, buffered_writer?
                         new BufferedFiberSelectWriter(this.socket, this.fiber, this.io_warning, this.socket_error) :
                         new FiberSelectWriter(this.socket, this.fiber, this.io_warning, this.socket_error),
-                    finalize_dg, error_dg, stack_size);
+                    socket, finalize_dg, error_dg, stack_size);
     }
 
     /***************************************************************************
@@ -328,6 +332,7 @@ abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase, Resettable
             epoll           = epoll select dispatcher which this connection
                               should use for i/o
             buffered_writer = set to true to use the buffered writer
+            socket          = the socket
             finalize_dg     = user-specified finalizer, called when the
                               connection is shut down
             error_dg        = user-specified error handler, called when a
@@ -336,9 +341,11 @@ abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase, Resettable
     ***************************************************************************/
 
     protected this ( EpollSelectDispatcher epoll, bool buffered_writer,
+                     ISocket socket,
                      FinalizeDg finalize_dg = null, ErrorDg error_dg = null )
     {
-        this(epoll, this.default_stack_size, buffered_writer, finalize_dg, error_dg);
+        this(epoll, this.default_stack_size, buffered_writer, socket,
+             finalize_dg, error_dg);
     }
 
     /***************************************************************************
@@ -352,6 +359,7 @@ abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase, Resettable
             epoll           = epoll select dispatcher which this connection
                               should use for i/o
             stack_size      = fiber stack size
+            socket          = the socket
             finalize_dg     = user-specified finalizer, called when the
                               connection is shut down
             error_dg        = user-specified error handler, called when a
@@ -360,10 +368,11 @@ abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase, Resettable
     ***************************************************************************/
 
     protected this ( EpollSelectDispatcher epoll, size_t stack_size,
+                     ISocket socket,
                      FinalizeDg finalize_dg = null, ErrorDg error_dg = null )
     {
         this(epoll, stack_size,
-             this.use_buffered_writer_by_default, finalize_dg, error_dg);
+             this.use_buffered_writer_by_default, socket, finalize_dg, error_dg);
     }
 
     /***************************************************************************
@@ -377,6 +386,7 @@ abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase, Resettable
         Params:
             epoll           = epoll select dispatcher which this connection
                               should use for i/o
+            socket          = the socket
             finalize_dg     = user-specified finalizer, called when the
                               connection is shut down
             error_dg        = user-specified error handler, called when a
@@ -384,10 +394,11 @@ abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase, Resettable
 
     ***************************************************************************/
 
-    protected this ( EpollSelectDispatcher epoll, FinalizeDg finalize_dg = null,
-                     ErrorDg error_dg = null )
+    protected this ( EpollSelectDispatcher epoll, ISocket socket,
+                     FinalizeDg finalize_dg = null, ErrorDg error_dg = null )
     {
-        this(epoll, this.use_buffered_writer_by_default, finalize_dg, error_dg);
+        this(epoll, this.use_buffered_writer_by_default, socket,
+             finalize_dg, error_dg);
     }
 
     /***************************************************************************
@@ -401,6 +412,7 @@ abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase, Resettable
             epoll       = epoll select dispatcher which this connection should
                           use for i/o
             writer      = SelectWriter instance to use
+            socket      = the socket
             finalize_dg = user-specified finalizer, called when the connection
                           is shut down
             error_dg    = user-specified error handler, called when a connection
@@ -412,10 +424,10 @@ abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase, Resettable
     ***************************************************************************/
 
     private this ( EpollSelectDispatcher epoll, lazy SelectWriter writer,
-                   FinalizeDg finalize_dg, ErrorDg error_dg,
+                   ISocket socket, FinalizeDg finalize_dg, ErrorDg error_dg,
                    size_t stack_size )
     {
-        super(epoll, stack_size, finalize_dg, error_dg);
+        super(epoll, stack_size, socket, finalize_dg, error_dg);
 
         this.io_warning = new IOWarning(this.socket);
 

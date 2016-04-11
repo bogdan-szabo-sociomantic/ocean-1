@@ -20,8 +20,6 @@ module ocean.io.select.protocol.generic.ErrnoIOException;
 
 import ocean.sys.ErrnoException;
 
-import ocean.sys.socket.IPSocket: IIPSocket;
-
 import ocean.io.model.IConduit: ISelectable;
 
 import ocean.stdc.errno: errno;
@@ -134,6 +132,8 @@ class IOError : IOWarning
 
 class SocketError : IOError
 {
+    import ocean.sys.socket.model.ISocket;
+
     /**************************************************************************
 
         Constructor
@@ -158,7 +158,7 @@ class SocketError : IOError
 
     override int error_code ( )
     {
-        return IIPSocket.error(this.conduit);
+        return ISocket.error(this.conduit);
     }
 
 

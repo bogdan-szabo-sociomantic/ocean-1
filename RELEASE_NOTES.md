@@ -44,6 +44,37 @@ Migration Instructions
   it forces the argument to be a dynamic array. This change affects both D1
   and D2. It is not sure if this can cause any breakage
 
+* `ocean.net.server.SelectListener`
+
+  `SelectListener` was modified in order to support a broader family of stream
+  sockets (e.g TCP/IP, UNIX). A `sockaddr*` struct and the socket must be
+  instantiated before the `SelectListener` object is instantiated and be passed
+  as arguments in the `SelectListener`'s constructor.
+  Moreover, for TCP/IP sockets, the `socket.updateAddress()` must be called
+  after the instantiation of a `SelectListener` in order to make the socket
+  have the correct assigned address and port.
+  An example is this one:
+  ```D
+  InetAddress!(false) addr;
+  auto socket = new AddressIPSocket!();
+  auto listener = new Listener(addr(address, port), socket, ...);
+  // We have to check that `updateAddress` execution was successful.
+  // This check was previously inside SelectListener's constructor.
+  enforce(!this.socket.updateAddress(), "socket.updateAddress() failed!");
+  ```
+
+* `ocean.net.server.connection.IConnectionHandler`
+
+  The socket must be passed as an argument. Usually, it is enough to create
+  a new socket and pass it to the constructor, e.g.
+  `super(new AddressIPSocket!(), null, null);`.
+
+* `ocean.net.server.connection.IFiberConnectionHandler`
+
+  The socket must be passed as an argument. Usually, it is enough to create
+  a new socket and pass it to the constructor, e.g.
+  `super(epoll, new AddressIPSocket!(), null, null);`
+
 Deprecations
 ============
 
