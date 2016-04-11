@@ -212,7 +212,7 @@ class EmailSender
 
 version (UnitTest)
 {
-    import tango.core.Tuple: Tuple;
+    import ocean.core.Tuple: Tuple;
 }
 
 /// EmailSender simple usage
