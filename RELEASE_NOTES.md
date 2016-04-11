@@ -161,3 +161,7 @@ New Features
 
   Added bindings for message digest (aka hash), random number and gpgerror
   functionality of libgcrypt.
+
+* `ocean.util.cipher.MessageDigest`
+
+  Convenience wrapper for libgcrypt message digest functions with HMAC support.
