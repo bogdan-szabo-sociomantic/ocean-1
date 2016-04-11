@@ -333,7 +333,7 @@ class FiberSelectReader : IFiberSelectProtocol
         be filled.
 
         Params:
-            data = pre-allocated array which will be filled
+            data_out = pre-allocated array which will be filled
 
         Returns:
             this instance

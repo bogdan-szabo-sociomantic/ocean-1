@@ -80,7 +80,7 @@
         }
         else
         {
-            // not found :(
+            // not found
         }
 
     ---
@@ -207,7 +207,7 @@ import Traits = ocean.core.Traits;
 
     Creates an extra create_time field depending on the template parameter.
 
-    Template Params:
+    Template_Params:
         T = the type of value to store
         TrackCreateTimes = flags whether a create_time field should be created
 
@@ -227,7 +227,7 @@ private struct ValueT(T,  bool TrackCreateTimes)
     Data cache class template. Stores items of raw data, either of fixed or
     dynamic size.
 
-    Template params:
+    Template_Params:
         T = type of item to store in cache
         TrackCreateTimes = if true, each cache item is stored with its create
             time, in addition to its last access time
@@ -381,6 +381,7 @@ class LRUCache(T, bool TrackCreateTimes = false) : PriorityCache!(ValueT!(T, Tra
 
         Params:
             key         = key to lookup
+            access_time = access time of the element
             existed     = true:  the item already existed,
                           false: the item was created
 
@@ -423,6 +424,7 @@ class LRUCache(T, bool TrackCreateTimes = false) : PriorityCache!(ValueT!(T, Tra
 
         Params:
             key         = key to lookup
+            access_time = access time of the element
             existed     = true:  the item already existed,
                           false: the item was created
 
@@ -489,6 +491,7 @@ class LRUCache(T, bool TrackCreateTimes = false) : PriorityCache!(ValueT!(T, Tra
 
         Params:
             key = key to lookup
+            access_time = access time of the element
 
         Returns:
             pointer to item value, may be null if key not found
@@ -517,6 +520,7 @@ class LRUCache(T, bool TrackCreateTimes = false) : PriorityCache!(ValueT!(T, Tra
 
         Params:
             key = key to lookup
+            access_time = access time of the element
 
         Returns:
             pointer to item value, may be null if key not found

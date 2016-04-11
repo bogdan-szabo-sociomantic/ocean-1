@@ -143,7 +143,7 @@ struct Node ( eb_node, Key, alias eb_getkey, alias eb_next, alias eb_prev,
         Library function call wrapper. Invokes eb_func with this instance as
         first argument.
 
-        Template params:
+        Template_Params:
             eb_func = library function
 
         Returns:

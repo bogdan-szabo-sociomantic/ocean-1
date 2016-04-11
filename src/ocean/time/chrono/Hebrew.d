@@ -197,7 +197,7 @@ public class Hebrew : Calendar {
   /**
    * Overridden. Indicates whether the specified _year in the specified _era is a leap _year.
    * Params: year = An integer representing the _year.
-   * Params: era = An integer representing the _era.
+   *         era = An integer representing the _era.
    * Returns: true is the specified _year is a leap _year; otherwise, false.
    */
   public override bool isLeapYear(uint year, uint era) {

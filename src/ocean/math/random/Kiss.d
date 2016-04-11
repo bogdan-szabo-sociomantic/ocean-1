@@ -180,7 +180,7 @@ struct Kiss
 
         /**********************************************************************
 
-                Returns a value in the range [0, 1) using 32 bits
+                Returns a value in the range [0, 1$(RPAREN) using 32 bits
                 of precision (with thanks to Dr Jurgen A Doornik)
 
         **********************************************************************/
@@ -192,7 +192,7 @@ struct Kiss
 
         /**********************************************************************
 
-                Returns a value in the range [0, 1) using 52 bits
+                Returns a value in the range [0, 1$(RPAREN) using 52 bits
                 of precision (with thanks to Dr Jurgen A Doornik)
 
         **********************************************************************/

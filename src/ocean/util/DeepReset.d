@@ -25,7 +25,7 @@ version(UnitTest) import ocean.core.Test;
     Template to determine the correct DeepReset function to call dependent on
     the type given.
 
-    Template params:
+    Template_Params:
         T = type to deep reset
 
     Evaluates to:
@@ -74,7 +74,7 @@ public template DeepReset ( T )
     Params:
         dst = destination array
 
-    Template params:
+    Template_Params:
         T = type of array to deep copy
 
 *******************************************************************************/
@@ -96,7 +96,7 @@ public void DynamicArrayDeepReset ( T ) ( ref T[] dst )
     Params:
         dst = destination array
 
-    Template params:
+    Template_Params:
         T = type of array to deep copy
 
 *******************************************************************************/
@@ -115,7 +115,7 @@ public void StaticArrayDeepReset ( T ) ( T[] dst )
     Params:
         dst = destination array
 
-    Template params:
+    Template_Params:
         T = type of array to deep copy
 
 *******************************************************************************/
@@ -174,7 +174,7 @@ private void ArrayDeepReset ( T ) ( ref T[] dst )
     Params:
         dst = destination struct
 
-    Template params:
+    Template_Params:
         T = type of struct to deep copy
 
 *******************************************************************************/
@@ -230,7 +230,7 @@ public void StructDeepReset ( T ) ( ref T dst )
     Params:
         dst = destination instance
 
-    Template params:
+    Template_Params:
         T = type of class to deep copy
 
 *******************************************************************************/

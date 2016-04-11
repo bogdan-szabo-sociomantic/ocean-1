@@ -27,13 +27,15 @@ private struct _Dummy
     Checks if given type statically conforms to the serialization API.
 
     Any serializer must:
-    1) define static `serialize` method that takes two arguemnts : any struct
-        and output void[] buffer. It must return the very same buffer slice
-        after writing serialized data to it.
-    2) define static `countRequiredSize` method that estimates needed size of
-        destination buffer for serialization
 
-    Template Params:
+        1. define static `serialize` method that takes two arguemnts : any struct
+            and output void[] buffer. It must return the very same buffer slice
+            after writing serialized data to it.
+
+        2. define static `countRequiredSize` method that estimates needed size of
+            destination buffer for serialization
+
+    Template_Params:
         T = type to check
 
 *******************************************************************************/
@@ -77,16 +79,18 @@ version(UnitTest)
     Checks if given type statically conforms to the deserialization API.
 
     Any deserializer must:
-    1) define two static `deserialize` methods. One takes single void[]
-        argument and deserialized it in-place. Another takes additional
-        argument of the same type as return type and uses it tp copy
-        deserialized data to.
-        Exact return types are implementation-defined but expected to be
-        buffer wrappers f some sort.
-    2) define static `countRequiredSize` method that calculates size of the
-        buffer needed to store deserialized struct instance
 
-    Template Params:
+        1. define two static `deserialize` methods. One takes single void[]
+            argument and deserialized it in-place. Another takes additional
+            argument of the same type as return type and uses it tp copy
+            deserialized data to.
+            Exact return types are implementation-defined but expected to be
+            buffer wrappers f some sort.
+
+        2. define static `countRequiredSize` method that calculates size of the
+            buffer needed to store deserialized struct instance
+
+    Template_Params:
         T = type to check
 
 *******************************************************************************/
@@ -146,13 +150,16 @@ version(UnitTest)
     additiona storage-related details.
 
     Any decorator must:
-    1) define `Serializer` and `Deserializer` aliases that it uses internally
-    2) define `store` method that mirrors Serializer.serialize method
-        signature
-    3) define two `load` methods that mirror Deserializer.deserialize method
-        signatures
 
-    Template Params:
+        1. define `Serializer` and `Deserializer` aliases that it uses internally
+
+        2. define `store` method that mirrors Serializer.serialize method
+            signature
+
+        3. define two `load` methods that mirror Deserializer.deserialize method
+            signatures
+
+    Template_Params:
         T = type to check
 
 *******************************************************************************/
@@ -222,7 +229,7 @@ version(UnitTest)
     implementations like Decorator. Because return type may depend on input struct
     type such relation can't be expressed via trivial typeof one-liner
 
-    Template Params:
+    Template_Params:
         D = Deserializer type
         S = deserialized struct type
 

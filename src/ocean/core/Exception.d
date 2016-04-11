@@ -135,6 +135,8 @@ public template ReusableExceptionImplementation()
 
         Params:
             msg  = exception message
+            file = file where the exception has been thrown
+            line = line where the exception has been thrown
 
         Returns:
             this instance
@@ -158,6 +160,8 @@ public template ReusableExceptionImplementation()
         Params:
             ok   = condition to enforce
             msg  = exception message
+            file = file where the exception has been thrown
+            line = line where the exception has been thrown
 
         Throws:
             this instance if ok is false, 0 or null.

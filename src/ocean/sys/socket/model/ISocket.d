@@ -197,7 +197,7 @@ public abstract class ISocket : InputDevice, IOutputDevice
                 The domain argument specifies a communication domain; this sel-
                 ects the protocol family which will be used for communication.
                 These families are defined in <sys/socket.h>. The currently
-                understood formats include:
+                understood formats include
 
                 Name                Purpose                          Man page
                 AF_UNIX, AF_LOCAL   Local communication              unix(7)
@@ -212,14 +212,14 @@ public abstract class ISocket : InputDevice, IOutputDevice
                 AF_PACKET           Low level packet interface       packet(7)
 
             type = desired socket type, which specifies the communication
-                semantics.  Supported types are:
+                semantics.  Supported types are
 
                 SOCK_STREAM     Provides sequenced, reliable,  two-way,  connec‐
                                 tion-based  byte  streams.   An out-of-band data
                                 transmission mechanism may be supported.
 
-                SOCK_DGRAM      Supports datagrams  (connectionless,  unreliable
-                                messages of a fixed maximum length).
+                SOCK_DGRAM      Supports datagrams - connectionless,  unreliable
+                                messages of a fixed maximum length.
 
                 SOCK_SEQPACKET  Provides  a sequenced, reliable, two-way connec‐
                                 tion-based data transmission path for  datagrams
@@ -249,8 +249,8 @@ public abstract class ISocket : InputDevice, IOutputDevice
                                 may be useful.
 
             protocol = desired protocol or 0 to use the default protocol for the
-                specified type (e.g. TCP for type = SOCK_STREAM or UDP for
-                type = SOCK_DGRAM).
+                specified type (e.g. TCP for `type == SOCK_STREAM` or UDP for
+                `type == SOCK_DGRAM`).
 
                 The protocol specifies a particular protocol to be used with the
                 socket.   Normally  only  a  single protocol exists to support a
@@ -324,7 +324,7 @@ public abstract class ISocket : InputDevice, IOutputDevice
         the subclass variants for a particular address family are preferred.
 
         Params:
-            address = local internet address, expected to point to a sin_addr
+            local_address = local internet address, expected to point to a sin_addr
                       or sin6_addr instance, depending on the IP version of this
                       instance
 
@@ -380,7 +380,7 @@ public abstract class ISocket : InputDevice, IOutputDevice
         SIGIO when activity occurs on a socket; see socket(7) for details.
 
         Params:
-            listening_fd   = the file descriptor of the listening socket to
+            listening_socket   = the file descriptor of the listening socket to
                              accept the new connection from
             remote_address = filled in with the address of the peer socket, as
                              known to the communications layer; expected to
@@ -544,7 +544,7 @@ public abstract class ISocket : InputDevice, IOutputDevice
         sockaddr set to AF_UNSPEC (supported on Linux since kernel 2.2).
 
         Params:
-            address = remote internet address, expected to point to a sin_addr
+            remote_address = remote internet address, expected to point to a sin_addr
                       or sin6_addr instance, depending on the IP version of this
                       instance
 
@@ -1011,7 +1011,7 @@ public abstract class ISocket : InputDevice, IOutputDevice
 
 
         Params:
-            src   = data to send
+            dst   = buffer to receive data in
             flags =  the bitwise OR of zero or more of the following flags:
 
                 MSG_CMSG_CLOEXEC (recvmsg() only; since Linux 2.6.23)

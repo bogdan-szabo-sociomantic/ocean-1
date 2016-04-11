@@ -97,7 +97,7 @@ version (UnitTestVerbose) import ocean.io.Stdout;
 
     HashMap class template. Manages a mapping from hash_t to the specified type.
 
-    Template params:
+    Template_Params:
         V = type to store in values of map
 
 *******************************************************************************/

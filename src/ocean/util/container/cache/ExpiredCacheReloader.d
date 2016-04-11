@@ -34,7 +34,7 @@ import ocean.stdc.time: time_t, time;
     CachingStructLoader so that last accessed element won't become invalidated
     between context switches
 
-    Template Params:
+    Template_Params:
         S = type of the deserialized struct expected in contiguous buffer
 
 *******************************************************************************/

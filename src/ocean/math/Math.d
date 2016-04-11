@@ -1025,10 +1025,10 @@ public:
  * Calculates e$(SUP x).
  *
  *  $(TABLE_SV
- *    $(TR $(TH x)             $(TH e$(SUP x)) )
- *    $(TD +$(INFIN))          $(TD +$(INFIN)) )
- *    $(TD -$(INFIN))          $(TD +0.0)      )
- *    $(TR $(TD $(NAN))        $(TD $(NAN))    )
+ *    $(TR $(TH x)                   $(TH e$(SUP x)) )
+ *    $(TR $(TD +$(INFIN))           $(TD +$(INFIN)) )
+ *    $(TR $(TD -$(INFIN))           $(TD +0.0)      )
+ *    $(TR $(TD $(NAN))              $(TD $(NAN))    )
  *  )
  */
 real exp(real x) {
@@ -1052,8 +1052,8 @@ real exp(real x) {
  *  $(TABLE_SV
  *    $(TR $(TH x)             $(TH e$(SUP x)-1)  )
  *    $(TR $(TD $(PLUSMN)0.0)  $(TD $(PLUSMN)0.0) )
- *    $(TD +$(INFIN))          $(TD +$(INFIN))    )
- *    $(TD -$(INFIN))          $(TD -1.0)         )
+ *    $(TR $(TD +$(INFIN))     $(TD +$(INFIN))    )
+ *    $(TR $(TD -$(INFIN))     $(TD -1.0)         )
  *    $(TR $(TD $(NAN))        $(TD $(NAN))       )
  *  )
  */
@@ -1213,9 +1213,9 @@ L_largenegative:
  * Calculates 2$(SUP x).
  *
  *  $(TABLE_SV
- *    $(TR $(TH x)             $(TH exp2(x)    )
- *    $(TD +$(INFIN))          $(TD +$(INFIN)) )
- *    $(TD -$(INFIN))          $(TD +0.0)      )
+ *    $(TR $(TH x)             $(TH exp2(x))   )
+ *    $(TR $(TD +$(INFIN))     $(TD +$(INFIN)) )
+ *    $(TR $(TD -$(INFIN))     $(TD +0.0)      )
  *    $(TR $(TD $(NAN))        $(TD $(NAN))    )
  *  )
  */
@@ -1890,6 +1890,7 @@ unittest
  *                         + x($(SUB a, 3) + ...)))
  * Params:
  *      A =     array of coefficients $(SUB a, 0), $(SUB a, 1), etc.
+ *      x =  point in which to evaluate polynomial
  */
 T poly(T)(T x, T[] A)
 in

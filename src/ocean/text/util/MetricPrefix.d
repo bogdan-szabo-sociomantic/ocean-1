@@ -70,6 +70,8 @@ public struct MetricPrefix
 
     dchar prefix = ' ';
 
+    public const BinaryPrefixes = [' ', 'K', 'M', 'G', 'T', 'P', 'E'];
+
     /**************************************************************************
 
         Converts n into a metric-like prefixed representation, using powers of
@@ -84,8 +86,6 @@ public struct MetricPrefix
             this instance
 
     **************************************************************************/
-
-    public const BinaryPrefixes = [' ', 'K', 'M', 'G', 'T', 'P', 'E'];
 
     typeof (this) bin ( T : float ) ( T n )
     {
@@ -113,6 +113,8 @@ public struct MetricPrefix
         return this;
     }
 
+    public const DecimalPrefixes = [cast(wchar)'p', 'n', 'µ', 'm', ' ', 'k', 'M', 'G', 'T'];
+
     /**************************************************************************
 
         Converts n into a metric prefixed representation.
@@ -128,8 +130,6 @@ public struct MetricPrefix
             this instance
 
     **************************************************************************/
-
-    public const DecimalPrefixes = [cast(wchar)'p', 'n', 'µ', 'm', ' ', 'k', 'M', 'G', 'T'];
 
     typeof (this) dec ( T : float ) ( T n, int e = 0 )
     in

@@ -18,13 +18,20 @@ module ocean.time.MicrosecondsClock;
 
  ******************************************************************************/
 
-import ocean.time.model.IMicrosecondsClock;
-
+import ocean.time.Time;
 import ocean.stdc.posix.sys.time: timeval, gettimeofday;
+import ocean.stdc.posix.time: gmtime_r, localtime_r;
+import ocean.stdc.time: tm, time_t;
+import ocean.core.TypeConvert;
+
+version ( UnitTest )
+{
+    import ocean.core.Test;
+}
 
 /******************************************************************************/
 
-class MicrosecondsClock : IMicrosecondsClock
+class MicrosecondsClock
 {
     /**************************************************************************
 
@@ -49,7 +56,7 @@ class MicrosecondsClock : IMicrosecondsClock
 
      **************************************************************************/
 
-    ulong now_us ( )
+    static public ulong now_us ( )
     {
         return us(now);
     }
@@ -61,7 +68,8 @@ class MicrosecondsClock : IMicrosecondsClock
 
      **************************************************************************/
 
-    static ulong now_us_static ( )
+    deprecated("Use now_us() instead")
+    static public ulong now_us_static ( )
     {
         return us(now);
     }
@@ -91,7 +99,7 @@ class MicrosecondsClock : IMicrosecondsClock
 
      **************************************************************************/
 
-    static timeval now ( )
+    static public timeval now ( )
     {
         timeval t;
 
@@ -99,7 +107,6 @@ class MicrosecondsClock : IMicrosecondsClock
 
         return t;
     }
-
 
     /**************************************************************************
 
@@ -114,7 +121,7 @@ class MicrosecondsClock : IMicrosecondsClock
 
      **************************************************************************/
 
-    static ulong us ( timeval t )
+    static public ulong us ( timeval t )
     in
     {
         static if (is (t.tv_sec : int))
@@ -126,5 +133,142 @@ class MicrosecondsClock : IMicrosecondsClock
     body
     {
         return t.tv_sec * 1_000_000UL + t.tv_usec;
+    }
+
+    /***************************************************************************
+
+        Converts `t` to a tm struct, specifying the year, months, days, hours,
+        minutes, and seconds.
+
+        Params:
+            t = time in seconds to convert
+            local = true: return local time, false: return GMT.
+
+        Returns:
+            the t as tm struct.
+
+        Out:
+            DST can be enabled with local time only.
+
+    ***************************************************************************/
+
+    static public tm toTm ( time_t t, bool local = false )
+    out (datetime)
+    {
+        assert (local || datetime.tm_isdst <= 0, "DST enabled with GMT");
+    }
+    body
+    {
+        tm datetime;
+
+        // actually one should check the return value of localtime_r() and
+        // gmtime_r(), but in this usage they should never fail
+        (local? &localtime_r : &gmtime_r)(&t, &datetime);
+
+        return datetime;
+    }
+
+    unittest
+    {
+        time_t sec = 1460103457;
+        auto t = toTm(sec);
+
+        // Just compare the raw time values
+        t.tm_gmtoff = t.tm_gmtoff.init;
+        t.tm_zone = t.tm_zone.init;
+
+        test!("==")(t, tm(37, 17, 8, 8, 3, 116, 5, 98, 0));
+    }
+
+    /***************************************************************************
+
+        Converts `t` to a tm struct, specifying the year, months, days, hours,
+        minutes, and seconds, plus the microseconds via an out parameter.
+
+        Params:
+            t = timeval struct to convert
+            us = receives the remainder number of microseconds (not stored in
+                the returned tm struct)
+
+        Returns:
+            tm struct containing everything.
+
+    ***************************************************************************/
+
+    static public tm toTm ( timeval t, out ulong us )
+    {
+        us = t.tv_usec;
+        return toTm(t.tv_sec);
+    }
+
+    unittest
+    {
+        timeval tv;
+        tv.tv_sec = 1460103457;
+        tv.tv_usec = 1095;
+        ulong us;
+        auto t = toTm(tv, us);
+
+        // Just compare the raw time values
+        t.tm_gmtoff = t.tm_gmtoff.init;
+        t.tm_zone = t.tm_zone.init;
+
+        test!("==")(t, tm(37, 17, 8, 8, 3, 116, 5, 98, 0));
+        test!("==")(us, 1095);
+    }
+
+    /***************************************************************************
+
+        Converts `t` to a DateTime struct, specifying the year, months, days,
+        hours, minutes, seconds, and milliseconds, plus the microseconds via an
+        out parameter.
+
+        Params:
+            t = timeval struct to convert
+            us = receives the remainder number of microseconds (not stored in
+                the returned DateTime struct)
+
+        Returns:
+            DateTime struct containing everything.
+
+    ***************************************************************************/
+
+    static public DateTime toDateTime ( timeval t, out ulong us )
+    {
+        with (t) with (toTm(tv_sec))
+        {
+            DateTime dt;
+
+            dt.date.day   = tm_mday;
+            dt.date.year  = tm_year + 1900;
+            dt.date.month = tm_mon  + 1;
+            dt.date.dow   = tm_wday;
+            dt.date.doy   = tm_yday + 1;
+
+            dt.time.hours   = tm_hour;
+            dt.time.minutes = tm_min;
+            dt.time.seconds = tm_sec;
+
+            auto usec = tv_usec / 1000;
+            assert (usec <= uint.max);
+            assert (usec >= 0);
+            dt.time.millis = castFrom!(long).to!(uint)(usec);
+
+            us = tv_usec % 1000;
+
+            return dt;
+        }
+    }
+
+    unittest
+    {
+        timeval tv;
+        tv.tv_sec = 1460103457;
+        tv.tv_usec = 1095;
+        ulong us;
+        auto dt = toDateTime(tv, us);
+        test!("==")(dt,
+            DateTime(Date(0, 8, 2016, 4, 5, 99), TimeOfDay(8, 17, 37, 1)));
+        test!("==")(us, 95);
     }
 }

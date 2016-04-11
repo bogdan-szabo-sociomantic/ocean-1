@@ -275,10 +275,10 @@ public struct Range ( T )
         empty range when min > max or when it is impossible to respect
         the specified boundaries.
 
-        Template params:
+        Template_Params:
             boundaries = string which denotes which kind of boundaries
                          will be provided. Square "[" bracket denotes inclusive
-                         boundary, round "(" one denotes exclusive boundary
+                         boundary, round "$(LPAREN)" one denotes exclusive boundary
 
         Params:
             min = minimum value of range

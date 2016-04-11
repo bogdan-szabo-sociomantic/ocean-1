@@ -183,7 +183,7 @@ struct Twister
 
         /**********************************************************************
 
-                generates a random number on [0,1) interval
+                generates a random number on [0,1$(RPAREN) interval
 
         **********************************************************************/
 
@@ -194,7 +194,7 @@ struct Twister
 
         /**********************************************************************
 
-                generates a random number on [0,1) with 53-bit resolution
+                generates a random number on [0,1$(RPAREN) with 53-bit resolution
 
         **********************************************************************/
 

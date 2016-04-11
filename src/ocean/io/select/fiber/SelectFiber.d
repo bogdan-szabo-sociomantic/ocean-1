@@ -58,6 +58,7 @@ public class SelectFiber : MessageFiber
         Constructor
 
         Params:
+            epoll = EpollSelectDispatcher instance
             coroutine = fiber coroutine
 
      **************************************************************************/
@@ -74,7 +75,8 @@ public class SelectFiber : MessageFiber
         Constructor
 
         Params:
-            routine = fiber coroutine
+            epoll = EpollSelectDispatcher instance
+            coroutine = fiber coroutine
             sz      = fiber stack size
 
      **************************************************************************/

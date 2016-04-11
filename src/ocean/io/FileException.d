@@ -42,6 +42,8 @@ class FileException : ErrnoException
             filename =  filename that was used for the I/O (only used in
                 message formatting)
             handle = file handle that was used for the I/O (can be null)
+            file = file where the enforce is called
+            line = line where the enforce is called
 
         Throws:
             `this` upon any of conditions:

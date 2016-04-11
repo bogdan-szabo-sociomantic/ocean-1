@@ -315,7 +315,7 @@ static this ( )
     Sets up logging configuration. Creates an AppendSysLog appender for each
     log.
 
-    Template Params:
+    Template_Params:
         Source = the type of the config parser
         FileLayout = layout to use for logging to file, defaults to LayoutDate
         ConsoleLayout = layout to use for logging to console, defaults to
@@ -359,7 +359,7 @@ public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
     per log being configured and passes the returned appender to the log's add()
     method.
 
-    Template Params:
+    Template_Params:
         Source = the type of the config parser
         FileLayout = layout to use for logging to file, defaults to LayoutDate
         ConsoleLayout = layout to use for logging to console, defaults to

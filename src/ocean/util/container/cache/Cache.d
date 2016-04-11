@@ -2,12 +2,6 @@
 
     Cache class, caches raw data of either fixed or dynamic length
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        May 2011: Initial release
-
-    authors:        Gavin Norman, David Eckardt
-
     Cache of raw data (ubyte[] / void[]) items of either fixed or variable
     length. The cache is initialised with a fixed capacity (the number of items
     that can be stored). When the cache reaches its full capacity, any newly
@@ -82,7 +76,7 @@
         }
         else
         {
-            // not found :(
+            // not found
         }
 
     ---
@@ -189,6 +183,13 @@
     Link with:
         -Llibebtree.a
 
+
+    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
+
+    version:        May 2011: Initial release
+
+    authors:        Gavin Norman, David Eckardt
+
 *******************************************************************************/
 
 module ocean.util.container.cache.Cache;
@@ -243,7 +244,7 @@ template CacheBase ( bool TrackCreateTimes = false )
     Data cache class template. Stores items of raw data, either of fixed or
     dynamic size.
 
-    Template params:
+    Template_Params:
         ValueSize = size of a data item. If 0 is specified (the default), the
             items stored in the cache are of variable (dynamic) size
         TrackCreateTimes = if true, each cache item is stored with its create
@@ -301,19 +302,6 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
                 return this.value[] = value[];
             }
         }
-
-        /***********************************************************************
-
-            Copies the src value to dst.
-
-            Params:
-                dst = destination value buffer (will be resized as required)
-                src = source value
-
-            Returns:
-                dst
-
-        ***********************************************************************/
 
         static if ( is_dynamic )
         {
@@ -635,7 +623,7 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
 
         Params:
             node = time-to-index tree node
-            time = access time
+            access_time = access time
 
         Returns:
             the cache item or a null if realtime is disabled and the access time
@@ -666,8 +654,8 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
 
 
         Params:
-            node = time-to-index tree node
-            time = access time
+            key = time-to-index tree node key
+            access_time = access time
 
         Returns:
             the corresponding cache item or null if key could not be found or
@@ -854,7 +842,7 @@ class Cache ( size_t ValueSize = 0, bool TrackCreateTimes = false ) : CacheBase!
 
     Typed cache class template. Stores items of a particular type.
 
-    Template params:
+    Template_Params:
         T = type of item to store in cache
         TrackCreateTimes = if true, each cache item is stored with its create
             time, in addition to its last access time
@@ -917,7 +905,6 @@ class Cache ( T, bool TrackCreateTimes = false ) : Cache!(T.sizeof, TrackCreateT
 
         Params:
             key   = item key
-            value = item to store in cache
 
         Returns:
             true if a record was updated / overwritten, false if a new record

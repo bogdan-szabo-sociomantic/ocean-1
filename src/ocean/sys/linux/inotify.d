@@ -14,7 +14,7 @@ version (linux)
             /* char name[]; /* Name.  */
         }
 
-        enum: uint
+        enum EventBitMask : uint
         {
             /* Supported events suitable for MASK parameter of INOTIFY_ADD_WATCH.  */
             IN_ACCESS           = 0x00000001,   /* File was accessed.  */

@@ -268,7 +268,7 @@ struct GlibUnicode
         Converts an UTF-32 charachter to UTF-8
 
         Params:
-            input= UTF-32 character
+            c = UTF-32 character
 
         Returns:
             UTF-8 character
@@ -297,7 +297,7 @@ struct GlibUnicode
         character.
 
         Params:
-            input = UTF-8 character
+            c = UTF-8 character
 
         Returns:
             UTF-32 character or GUtf8Validation code

@@ -67,7 +67,7 @@ version ( UnitTest )
     modified in-place as required. This avoids any per-element memory
     allocation, which the normal ~ operator suffers from.
 
-    Template params:
+    Template_params:
         T = type of array element
 
     Params:
@@ -102,7 +102,7 @@ unittest
     modified in-place as required. This avoids any per-element memory
     allocation, which the normal ~ operator suffers from.
 
-    Template params:
+    Template_params:
         T = type of array element
 
     Params:
@@ -136,12 +136,12 @@ unittest
 
     This function is provided as a shorthand for this common operation.
 
-    Template params:
+    Template_params:
         T = type of array element
 
     Params:
         dest = reference to the destination array
-        array = array to copy; null has the same effect as an empty array
+        src = array to copy; null has the same effect as an empty array
 
     Returns:
         dest
@@ -177,12 +177,12 @@ unittest
     Since dest.length will not be decreased, dest will contain tailing garbage
     if src.length < dest.length.
 
-    Template params:
+    Template_params:
         T = type of array element
 
     Params:
         dest  = reference to the destination array
-        array = array to copy; null has the same effect as an empty array
+        src = array to copy; null has the same effect as an empty array
 
     Returns:
         slice to copied elements in dest
@@ -240,12 +240,12 @@ unittest
 
     This function is provided as a shorthand for this common operation.
 
-    Template params:
+    Template_params:
         T = type of array element
 
     Params:
         dest = reference to the destination array list
-        array = array to copy
+        src = array to copy
 
     Returns:
         dest
@@ -281,7 +281,7 @@ unittest
 
     (Adapted from ocean.text.Util : split, which isn't memory safe.)
 
-    Template params:
+    Template_params:
         T = type of array element
 
     Params:
@@ -324,11 +324,11 @@ unittest
 
     (Adapted from ocean.text.Util : substitute, which isn't memory safe.)
 
-    Template params:
+    Template_params:
         T = type of array element
 
     Params:
-        src = source array to search
+        source = source array to search
         match = pattern to match in source array
         replacement = pattern to replace matched sub-arrays
         result = receives array with replaced patterns
@@ -375,7 +375,7 @@ unittest
     Removes and returns (via the 'popped' out parameter) the last element in an
     array. If the provided array is empty, the function returns false.
 
-    Template params:
+    Template_params:
         T = type of array element
 
     Params:
@@ -414,11 +414,11 @@ unittest
 
     Removes all instances of match from source.
 
-    Template params:
+    Template_params:
         T = type of array element
 
     Params:
-        src = source array to search
+        source = source array to search
         match = pattern to remove from source array
         result = receives array with removed patterns
 
@@ -449,7 +449,7 @@ unittest
     Removes an element from the middle of an array, maintaining the order of the
     remaining elements by shifting them left using memmove.
 
-    Template params:
+    Template_params:
         T = type of array element
 
     Params:
@@ -479,7 +479,7 @@ unittest
     Removes elements from the middle of an array, maintaining the order of the
     remaining elements by shifting them left using memmove.
 
-    Template params:
+    Template_params:
         T = type of array element
 
     Params:
@@ -538,7 +538,7 @@ unittest
     Inserts an element into the middle of an array, maintaining the order of the
     existing elements by shifting them right using memmove.
 
-    Template params:
+    Template_params:
         T = type of array element
 
     Params:
@@ -568,7 +568,7 @@ unittest
     Inserts elements into the middle of an array, maintaining the order of the
     existing elements by shifting them right using memmove.
 
-    Template params:
+    Template_params:
         T = type of array element
 
     Params:
@@ -623,7 +623,7 @@ unittest
 
     Sorts array and removes all value duplicates.
 
-    Template params:
+    Template_params:
         T    = type of array element
         sort = true: do array.sort first; false: array is already sorted
 
@@ -678,7 +678,7 @@ unittest
 
     Sorts array and checks if it contains at least one duplicate.
 
-    Template params:
+    Template_params:
         T    = type of array element
         sort = true: do array.sort first; false: array is already sorted
 
@@ -721,7 +721,7 @@ public bool containsDuplicate ( T, bool sort = true ) ( T[] array )
                        });
     ---
 
-    Template params:
+    Template_params:
         T    = type of array element
         sort = true: do array.sort first; false: array is already sorted
 
@@ -848,7 +848,7 @@ unittest
 
     Check if the given array starts with the given prefix
 
-    Template Params:
+    Template_Params:
         T = The type of the array element
 
     Params:
@@ -862,7 +862,9 @@ unittest
 
 bool startsWith ( TC1, TC2 ) ( TC1[] arr, TC2[] prefix )
 {
-    return (arr.length >= prefix.length) && (arr[0..prefix.length] == prefix[]);
+    if (arr.length < prefix.length)
+        return false;
+    return arr[0..prefix.length] == prefix[];
 }
 
 unittest
@@ -884,7 +886,7 @@ unittest
 
     Check if the given array ends with the given suffix
 
-    Template Params:
+    Template_Params:
         T = The type of the array element
 
     Params:
@@ -898,7 +900,9 @@ unittest
 
 bool endsWith ( TC1, TC2 ) ( TC1[] arr, TC2[] suffix )
 {
-    return (arr.length >= suffix.length) && (arr[$ - suffix.length .. $] == suffix[]);
+    if (arr.length < suffix.length)
+        return false;
+    return arr[$ - suffix.length .. $] == suffix[];
 }
 
 unittest
@@ -920,7 +924,7 @@ unittest
 
     Remove the given prefix from the given array.
 
-    Template Params:
+    Template_Params:
         T = The type of the array element
 
     Params:
@@ -963,7 +967,7 @@ unittest
 
     Remove the given suffix from the given array.
 
-    Template Params:
+    Template_Params:
         T = The type of the array element
 
     Params:
@@ -1089,7 +1093,7 @@ unittest
 
     Params:
         length  = array length
-        exclude = returns true if array)[index] matches the exclusion
+        exclude = returns true if (array)[index] matches the exclusion
                   criterium
         swap    = swaps array[i] and array[j]
 
@@ -1250,7 +1254,7 @@ unittest
     compatible to size_t (which includes ssize_t, the signed version of size_t),
     by calculating the difference.
 
-    Template params:
+    Template_params:
         T = type of array element
 
     Params:
@@ -1622,7 +1626,7 @@ private T[] concat_ ( T, TC ) ( T[] dest, TC[][] arrays, size_t start = 0 )
     function of the run-time library which uses gc_malloc() to allocate the
     array buffer.
 
-    Template params:
+    Template_params:
         func = function name for static assertion messages
 
     Params:
@@ -1673,7 +1677,7 @@ body
     Note that start may be greater than the initial length of dest; dest will
     then be extended appropriately.
 
-    Template params:
+    Template_params:
         func = function name for static assertion messages
 
     Params:

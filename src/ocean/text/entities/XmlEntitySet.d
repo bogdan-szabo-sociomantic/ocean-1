@@ -76,6 +76,7 @@ public class XmlEntitySet : IEntitySet
 
         Params:
             unicode = unicode of entity to encode
+            output = output buffer
 
         Returns:
             the fully encoded form of the entity, or "" if the unicode value

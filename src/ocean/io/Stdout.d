@@ -121,7 +121,7 @@ public class TerminalOutput ( T ) : FormatOutput!(T)
 
         Template method to output a CSI sequence
 
-        Template params:
+        Template_Params:
             seq = csi sequence to output
 
     ***************************************************************************/
@@ -441,7 +441,7 @@ public class TerminalOutput ( T ) : FormatOutput!(T)
 
             Sets the text colour and optionally boldness.
 
-            Template params:
+            Template_Params:
                 method = name of outer class method to call to set the colour
 
             Params:
@@ -517,7 +517,7 @@ public class TerminalOutput ( T ) : FormatOutput!(T)
 
             Sets the background colour.
 
-            Template params:
+            Template_Params:
                 method = name of outer class method to call to set the colour
 
         ***********************************************************************/

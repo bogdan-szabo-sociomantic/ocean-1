@@ -97,6 +97,8 @@ public class ErrnoException : Exception
             msg = extra error message to append after main error
                 description, can be empty
             name = extern function name that is expected to set errno
+            file = file where the expr is evaluated
+            line = line where the expr is evaluated
 
         Throws:
             this if 'expr' is false
@@ -145,12 +147,14 @@ public class ErrnoException : Exception
         Presence of additional wrapper struct is dictated by limitations
         of dmd1 type inference in method/function signatures.
 
-        Template Params:
+        Template_Params:
             Func = function alias, usually C library function
 
         Params:
             verify = lambda that takes return value of Func and returns
                 `true` itself if result is considered successful
+            file = file where the expr is evaluated
+            line = line where the expr is evaluated
 
         Returns:
             proxy `Caller` value with a single `call` method which accepts
@@ -268,6 +272,8 @@ public class ErrnoException : Exception
 
         Params:
             name = extern function name that is expected to set errno, optional
+            file = file where the exception errno is set
+            line = line where the exception errno is set
 
         Returns:
             this instance
@@ -299,6 +305,8 @@ public class ErrnoException : Exception
         Params:
             err_num = error number with same value set as in errno
             name = extern function name that is expected to set errno, optional
+            file = file where the exception errno is set
+            line = line where the exception errno is set
 
         Returns:
             this

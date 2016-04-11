@@ -650,7 +650,7 @@ version (Posix) {
   }
   /**
    * $(I Property.) Assigns a NumberFormat defining the culturally appropriate format for displaying numbers and currency.
-   * Params: values = A NumberFormat defining the culturally appropriate format for displaying numbers and currency.
+   * Params: value = A NumberFormat defining the culturally appropriate format for displaying numbers and currency.
    */
   public void numberFormat(NumberFormat value) {
     checkReadOnly();
@@ -672,7 +672,7 @@ version (Posix) {
   }
   /**
    * $(I Property.) Assigns a DateTimeFormat defining the culturally appropriate format for displaying dates and times.
-   * Params: values = A DateTimeFormat defining the culturally appropriate format for displaying dates and times.
+   * Params: value = A DateTimeFormat defining the culturally appropriate format for displaying dates and times.
    */
   public void dateTimeFormat(DateTimeFormat value) {
     checkReadOnly();
@@ -923,7 +923,7 @@ public class Region {
  * // The currency symbol for English (Trinidad and Tobago) is 'TT$'
  * // The currency symbol for English (Zimbabwe) is 'Z$'
  * // The currency symbol for English (Republic of the Philippines) is 'Php'
- *---
+ * ---
  */
 public class NumberFormat : IFormatService {
 
@@ -1780,7 +1780,7 @@ version(Clone)
   }
   /**
    * $(I Property.) Assigns the first day of the week.
-   * Params: valie = A DayOfWeek value indicating the first day of the week.
+   * Params: value = A DayOfWeek value indicating the first day of the week.
    */
   public final void firstDayOfWeek(Calendar.DayOfWeek value) {
     checkReadOnly();

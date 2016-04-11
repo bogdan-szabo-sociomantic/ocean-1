@@ -17,18 +17,25 @@
     and then re-register at the queue and wait for another call to notify().
     In other words:
 
-    1) NotifyingQueue.ready(&notify)
-    2) NotifyingQueue.ready calls notify()
-    3) notify() calls NotifyingQueue.pop();
-      a) pop() returned a request: notify() processes data, back to 3)
-      b) pop() returned null: continue to 4)
-    4) notify() calls NotifyingQueue.ready(&notify)
+        1. NotifyingQueue.ready(&notify)
+
+        2. NotifyingQueue.ready calls notify()
+
+        3. notify() calls NotifyingQueue.pop();
+
+            * pop() returned a request: notify() processes data, back to 3.
+
+            * pop() returned null: continue to 4.
+
+        4. notify() calls NotifyingQueue.ready(&notify)
 
     A more simple solution like this was considered:
 
-    1) NotifyingQueue.ready(&notify)
-    2) NotifyingQueue calls notify(Request)
-    3) notify() processes, back to 1)
+        1. NotifyingQueue.ready(&notify)
+
+        2. NotifyingQueue calls notify(Request)
+
+        3. notify() processes, back to 1.
 
     But was decided against because it would cause a stack overflow for fibers,
     as a RequestHandler needs to call RequestQueue.ready() and if fibers are
@@ -277,7 +284,7 @@ class NotifyingByteQueue : ISuspendable, IQueueInfo
         register an handler as available
 
         Params:
-            handler = handler that is now available
+            notifier = handler that is now available
 
         Returns:
             false if the handler was called right away without

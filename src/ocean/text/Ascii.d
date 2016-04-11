@@ -17,6 +17,8 @@ module ocean.text.Ascii;
 
 import ocean.transition;
 
+import ocean.core.Array;
+
 version (Posix)
 {
     import ocean.stdc.string: strncasecmp, memcmp;
@@ -25,80 +27,81 @@ version (Posix)
 
 /******************************************************************************
 
-  Convert to lowercase. Returns the converted content in dst,
-  performing an in-place conversion if dst is null
+    Convert to lowercase. Performs in-place conversion.
 
- ******************************************************************************/
+    Params:
+        src = text to convert
 
-char[] toLower (char[] src, char[] dst = null)
+    Returns:
+        slice of src after conversion
+
+*******************************************************************************/
+
+
+public mstring toLower ( mstring src )
 {
-    if (dst.ptr)
-    {
-        assert (dst.length >= src.length);
-        dst[0 .. src.length] = src [0 .. $];
-    }
-    else
-        dst = src;
-
-    foreach (ref c; dst)
+    foreach (ref c; src)
         if (c>= 'A' && c <= 'Z')
             c = cast(char)(c + 32);
-    return dst [0  .. src.length];
-}
-
-version (D_Version2)
-{
-    /**************************************************************************
-    
-        Original toLower signature is inherently unsafe and can't be const
-        correct. Adding D2-only overload that demands `dst` for non-mutable
-        `src` fixes that.
-
-    **************************************************************************/
-
-    char[] toLower(istring src, char[] dst)
-    {
-        return toLower(cast(char[]) src, dst);
-    }
+    return src;
 }
 
 /******************************************************************************
 
-  Convert to uppercase. Returns the converted content in dst,
-  performing an in-place conversion if dst is null
+    Convert to lowercase. Result is written to resized buffer.
 
- ******************************************************************************/
+    Params:
+        src = text to convert
+        dst = buffer to write result to
 
-char[] toUpper (char[] src, char[] dst = null)
+    Returns:
+        slice of dst after conversion
+
+*******************************************************************************/
+
+public mstring toLower ( cstring src, ref mstring dst )
 {
-    if (dst.ptr)
-    {
-        assert (dst.length >= src.length);
-        dst[0 .. src.length] = src [0 .. $];
-    }
-    else
-        dst = src;
-
-    foreach (ref c; dst)
-        if (c>= 'a' && c <= 'z')
-            c = cast(char)(c - 32);
-    return dst[0 .. src.length];
+    dst.copy(src);
+    return toLower(dst);
 }
 
-version (D_Version2)
+/******************************************************************************
+
+    Convert to uppercase. Performs in-place conversion.
+
+    Params:
+        src = text to convert
+
+    Returns:
+        slice of src after conversion
+
+*******************************************************************************/
+
+public mstring toUpper ( mstring src )
 {
-    /**************************************************************************
-    
-        Original toUpper signature is inherently unsafe and can't be const
-        correct. Adding D2-only overload that demands `dst` for non-mutable
-        `src` fixes that.
+    foreach (ref c; src)
+        if (c>= 'a' && c <= 'z')
+            c = cast(char)(c - 32);
+    return src;
+}
 
-    **************************************************************************/
+/******************************************************************************
 
-    char[] toUpper(istring src, char[] dst)
-    {
-        return toUpper(cast(char[]) src, dst);
-    }
+    Convert to uppercase. Result is written to resized buffer.
+
+    Params:
+        src = text to convert
+        dst = buffer to write result to
+
+    Returns:
+        slice of dst after conversion
+
+*******************************************************************************/
+
+public mstring toUpper ( cstring src, ref mstring dst )
+{
+    dst.copy(src);
+    return toUpper(dst);
 }
 
 /******************************************************************************
@@ -212,7 +215,7 @@ static int isearch (in cstring src, in cstring pattern)
 
 unittest
 {
-    char[20] tmp;
+    char[] tmp;
 
     assert (toLower("1bac", tmp) == "1bac");
     assert (toLower("1BAC", tmp) == "1bac");

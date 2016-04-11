@@ -182,6 +182,7 @@ struct ByteConverter
          *
          * Params:
          *     input = Integral to convert to bytes
+         *     output = array to store bytes to
          *
          * Returns:
          *     Integral input of type T split into its respective bytes

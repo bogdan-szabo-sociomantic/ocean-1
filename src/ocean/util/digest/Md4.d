@@ -159,7 +159,7 @@ class Md4 : MerkleDamgard
                 Performs the cipher on a block of data
 
                 Params:
-                data = the block of data to cipher
+                input = the block of data to cipher
 
                 Remarks:
                 The actual cipher algorithm is carried out by this method on

@@ -30,7 +30,7 @@ import ocean.stdc.time;
     Moving average designed to handle irregularly spaced data, i.e. data where
     the time intervals between successive values are not the same.
 
-    Template params:
+    Template_Params:
         Time = type used to indicate the observation time of individual
                data values; may be any type implicitly convertible to
                time_t, or any integral or floating point value

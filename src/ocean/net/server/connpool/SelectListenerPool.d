@@ -38,7 +38,7 @@ import ocean.util.container.pool.ObjectPool : AutoCtorPool;
     The additional T constructor argument parameters must appear after those for
     the mandatory IConnectionHandler constructor.
 
-    Template params:
+    Template_Params:
         T    = connection handler class
         Args = additional constructor arguments for T
 

@@ -454,7 +454,7 @@ public abstract class IPool : IPoolInfo, ILimitable
         Puts item back to the pool.
 
         Params:
-            item = item to put back
+            item_in = item to put back
 
     ***************************************************************************/
 

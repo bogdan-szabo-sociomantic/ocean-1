@@ -410,7 +410,7 @@ class StringLayout ( T = char ) : AppendBuffer!(T)
 
     ---
 
-    Template params:
+    Template_Params:
         R = dg return type
         A = types of additional arguments for dg
 

@@ -85,7 +85,6 @@ class BufferedInput : InputFilter, InputBuffer
 
                 Params:
                 stream = An input stream.
-                capacity = Desired buffer capacity.
 
                 Remarks:
                 Construct a Buffer upon the provided input stream.
@@ -873,7 +872,6 @@ class BufferedOutput : OutputFilter, OutputBuffer
 
                 Params:
                 stream = An input stream.
-                capacity = Desired buffer capacity.
 
                 Remarks:
                 Construct a Buffer upon the provided input stream.

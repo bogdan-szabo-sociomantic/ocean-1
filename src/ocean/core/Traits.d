@@ -54,7 +54,7 @@ version (UnitTest)
     This function does not check for this case.
 
     Params:
-        string = string to check
+        str = string to check
 
     Returns:
         true if the string is a D 1.0 keyword
@@ -151,7 +151,7 @@ public bool isIdentifier ( cstring input )
 
     If T is enum, aliases to its base type. Otherwise aliases to T.
 
-    Template Params
+    Template_Params
         T = any type
 
 *******************************************************************************/
@@ -194,7 +194,7 @@ unittest
     ``void`` is a primitive type. Imaginary and complex numbers are considered
     primitive types, too, which may be subject to discussion.
 
-    Template Params:
+    Template_Params:
         T = type to check
 
 *******************************************************************************/
@@ -218,7 +218,7 @@ public template isPrimitiveType ( T )
 
     If T is empty then the result is false.
 
-    Template Params:
+    Template_Params:
         T = types to check (with no type the result is false)
 
 *******************************************************************************/
@@ -299,7 +299,7 @@ unittest
       - a dynamic or static array or
       - a struct or a union.
 
-    Template Params:
+    Template_Params:
         T = type to check
 
     Returns:
@@ -425,7 +425,7 @@ unittest
     Template which evaluates to true if the specified type is a compound type
     (ie a class, struct or union).
 
-    Template params:
+    Template_Params:
         T = type to check
 
     Evaluates to:
@@ -456,7 +456,7 @@ unittest
 
     Template to get the type tuple of compound type T.
 
-    Template params:
+    Template_Params:
         T = type to get type tuple of
 
     Evaluates to:
@@ -484,7 +484,7 @@ unittest
 
     Template to get the type of the ith data member struct/class T.
 
-    Template params:
+    Template_Params:
         T = type to get field of
 
     Evaluates to:
@@ -512,7 +512,7 @@ unittest
 
     Gets a pointer to the ith member of a struct/class.
 
-    Template params:
+    Template_Params:
         i = index of member to get
         T = type of compound to get member from
 
@@ -541,7 +541,7 @@ unittest
 
     Gets a pointer to the ith member of a struct/class.
 
-    Template params:
+    Template_Params:
         i = index of member to get
         M = type of member
         T = type of compound to get member from
@@ -676,7 +676,7 @@ unittest
     (This is not actually true with current versions of the compiler, but
     anyway.)
 
-    Template params:
+    Template_Params:
         T = type of instances to copy fields from and to
 
     Params:
@@ -727,7 +727,7 @@ unittest
 
         void copy ( )
         {
-            C c;
+            C c = new C;
             copyClassFields(this, c);
         }
     }
@@ -747,7 +747,7 @@ unittest
     (This is not actually true with current versions of the compiler, but
     anyway.)
 
-    Template params:
+    Template_Params:
         T = type of instances to initialise
 
     Params:
@@ -845,7 +845,7 @@ unittest
     Typedef has been removed in D2 and this template will always evaluate to
     false if compiled with version = D_Version2.
 
-    Template params:
+    Template_Params:
         T = type to check
 
     Evaluates to:
@@ -906,7 +906,7 @@ unittest
     Typedef has been removed in D2 and this template is a no-op if compiled
     with version = D_Version2.
 
-    Template params:
+    Template_Params:
         T = type to strip of typedef
 
     Evaluates to:
@@ -1246,7 +1246,7 @@ unittest
     Check if a class or struct type contains a method with the given
     method name, and has the same signature as the given delegate.
 
-    Template params:
+    Template_Params:
         T = The class or struct type to check
         name = The name of the method to look up
         Dg = The delegate type with the signature of the method to look for
@@ -1336,7 +1336,7 @@ unittest
 
     Returns "name" (identifier) of a given symbol as string
 
-    Template Params:
+    Template_Params:
         Sym = any symbol alias
 
 *******************************************************************************/

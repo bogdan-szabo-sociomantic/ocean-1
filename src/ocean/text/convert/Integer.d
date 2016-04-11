@@ -35,7 +35,7 @@ import ocean.core.Traits;
     (where present). When radix is set to zero, conversion will default to
     decimal.
 
-    Template params:
+    Template_Params:
         C = char type of string
         T = type of integer to parse (must be byte, ubyte, short, ushort,
             int, uint, long or ulong)
@@ -101,7 +101,7 @@ public bool toInteger ( C, T ) ( C[] digits, out T value, uint radix = 0 )
     (where present). When radix is set to zero, conversion will default to
     decimal.
 
-    Template params:
+    Template_Params:
         T = char type of string
 
     Params:
@@ -171,7 +171,7 @@ public bool toUlong ( T ) ( T[] digits, out ulong value, uint radix = 0 )
     (where present). When radix is set to zero, conversion will default to
     decimal.
 
-    Template params:
+    Template_Params:
         T = char type of string
         I = type of integer to extract
 
@@ -243,7 +243,7 @@ private bool toSignedInteger ( T, I ) ( T[] digits, out I value, uint radix = 0 
     (where present). When radix is set to zero, conversion will default to
     decimal.
 
-    Template params:
+    Template_Params:
         T = char type of string
         U = type of unsigned integer to extract
 
@@ -312,7 +312,7 @@ private bool toUnsignedInteger ( T, U ) ( T[] digits, out U value, uint radix = 
     Parsing fails (returning false) if 'digits' represents an integer of greater
     magnitude than the type T can store.
 
-    Template params:
+    Template_Params:
         T = char type of string
 
     Params:
@@ -374,7 +374,7 @@ private bool convert ( T ) ( T[] digits, out ulong value, out uint eaten,
     and does not match an explicit prefix, the latter will remain unconsumed.
     Otherwise, radix will default to 10.
 
-    Template params:
+    Template_Params:
         T = char type of string
 
     Params:

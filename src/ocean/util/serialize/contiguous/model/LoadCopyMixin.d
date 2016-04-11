@@ -11,7 +11,7 @@ module ocean.util.serialize.contiguous.model.LoadCopyMixin;
 
 /*******************************************************************************
 
-    Template Params:
+    Template_Params:
         exception_field = host member field with VersionHandlingException
             instance
 

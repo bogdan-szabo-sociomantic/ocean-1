@@ -113,7 +113,6 @@ public class HMAC
 
         Params:
             hash = the hash algorithm to use (i.E. new Sha1(); )
-            key = the key to initialize with
 
     ***************************************************************************/
 

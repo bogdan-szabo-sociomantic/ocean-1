@@ -22,7 +22,7 @@
         hash_t hash = 232323;
 
         // Add a hash
-        set.put(hash));
+        set.put(hash);
 
         // Check if a hash exists in the set (null if not found)
         auto exists = hash in set;

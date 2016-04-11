@@ -52,7 +52,7 @@ struct addrinfo
     enum Flags
     {
         None = 0,
-        AI_PASSIVE                  = 1 << 0, /// Socket address is intended for `bind'.
+        AI_PASSIVE                  = 1 << 0, /// Socket address is intended for `bind`.
         AI_CANONNAME                = 1 << 1, /// Request for canonical name.
         AI_NUMERICHOST              = 1 << 2, /// Don't use name resolution.
         AI_V4MAPPED                 = 1 << 3, /// IPv4 mapped addresses are acceptable.
@@ -74,15 +74,15 @@ struct addrinfo
     enum ErrorCode
     {
         Success = 0,
-        EAI_BADFLAGS    = -1,     /// Invalid value for `ai_flags' field.
+        EAI_BADFLAGS    = -1,     /// Invalid value for ai_flags field.
         EAI_NONAME      = -2,     /// NAME or SERVICE is unknown.
         EAI_AGAIN       = -3,     /// Temporary failure in name resolution.
         EAI_FAIL        = -4,     /// Non-recoverable failure in name res.
-        EAI_FAMILY      = -6,     /// `ai_family' not supported.
-        EAI_SOCKTYPE    = -7,     /// `ai_socktype' not supported.
-        EAI_SERVICE     = -8,     /// SERVICE not supported for `ai_socktype'.
+        EAI_FAMILY      = -6,     /// `ai_family` not supported.
+        EAI_SOCKTYPE    = -7,     /// `ai_socktype` not supported.
+        EAI_SERVICE     = -8,     /// SERVICE not supported for `ai_socktype`.
         EAI_MEMORY      = -10,    /// Memory allocation failure.
-        EAI_SYSTEM      = -11,    /// System error returned in `errno'.
+        EAI_SYSTEM      = -11,    /// System error returned in `errno`.
         EAI_OVERFLOW    = -12,    /// Argument buffer overflow.
         EAI_NODATA      = -5,     /// No address associated with NAME.
         EAI_ADDRFAMILY  = -9,     /// Address family for NAME not supported.
@@ -838,9 +838,6 @@ class AddrInfoC
     /***************************************************************************
 
         Obtains the current IP address in standard notation.
-
-        Params:
-            dst = destination buffer
 
         Returns:
             a slice to the resulting IP address string in dst on success or null

@@ -24,7 +24,7 @@ import ocean.text.convert.Format;
     Enforces that given expression evaluates to boolean `true` after
     implicit conversion.
 
-    Template Params:
+    Template_Params:
         E = exception type to create and throw
         T = type of expression to test
 
@@ -126,7 +126,7 @@ unittest
     In D2 we will be able to call this via UFCS:
         exception.enforce(1 == 1);
 
-    Template Params:
+    Template_Params:
         E = exception type to create and throw
         T = type of expression to test
 
@@ -279,7 +279,7 @@ unittest
 
     'op' can be any binary operation.
 
-    Template Params:
+    Template_Params:
         op = binary operator string
         E = exception type to create and throw
         T1 = type of left operand
@@ -390,7 +390,7 @@ unittest
 
     ditto
 
-    Template Params:
+    Template_Params:
         op = binary operator string
         E = exception type to create and throw
         T1 = type of left operand
@@ -518,7 +518,7 @@ unittest
 
     Throws a new exception E chained together with an existing exception.
 
-    Template params:
+    Template_Params:
         E = type of exception to throw
 
     Params:

@@ -27,7 +27,7 @@ import ocean.core.Traits;
     than a plain cast, as it also statically ensures that the variable being
     cast from is a class or an interface.
 
-    Template params:
+    Template_Params:
         To = type to cast to (must be a class)
         From = type to cast from (must be a class or interface)
 
@@ -112,21 +112,39 @@ unittest
         float f = castFrom!(int).to!(float)(i);
     ---
 
-    Template params:
+    Template_Params:
         From = type to cast from
-        To = type to cast to
-        T = type of value being cast (statically checked to be == From)
 
-    Params:
-        value = value to be cast to type To
-
-    Returns:
-        input parameter cast to type To
-
-*******************************************************************************/
+******************************************************************************/
 
 template castFrom ( From )
 {
+
+    /*************************************************************************
+
+        Explicit cast function -- both from and to types must be specified by
+        the user and are statically ensured to be correct. This extra security
+        can help prevent refactoring errors.
+
+        Usage:
+        ---
+            int i;
+            float f = castFrom!(int).to!(float)(i);
+        ---
+
+        Template_Params:
+            From = type to cast from
+            To = type to cast to
+            T = type of value being cast (statically checked to be == From)
+
+        Params:
+            value = value to be cast to type To
+
+        Returns:
+            input parameter cast to type To
+
+    **************************************************************************/
+
     To to ( To, T ) ( T value )
     {
         static assert(
@@ -165,7 +183,7 @@ unittest
     Creates a new array from the elements supplied as function arguments,
     casting each of them to T.
 
-    Template Params:
+    Template_Params:
         T = type of element of new array
 
     Params:

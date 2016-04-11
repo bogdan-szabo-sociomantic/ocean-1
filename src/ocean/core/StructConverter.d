@@ -121,7 +121,7 @@ public void structConvert ( From, To ) ( ref From from, out To to,
     Copies a field to another field, doing a conversion if required and
     possible.
 
-    Template Params:
+    Template_Params:
         From = type of field we copy/convert from
         To   = type of field we copy/convert to
 
@@ -232,7 +232,7 @@ private void copyField ( From, To ) ( From* from_field, To* to_field,
 
     Checks whether struct S has a member (variable or method) of the given name
 
-    Template Params:
+    Template_Params:
         name = name to check for
         S    = struct to check
 
@@ -264,7 +264,7 @@ private bool structHasMember ( istring name, S ) ( )
     void delegate ( );
     ---
 
-    Template Params:
+    Template_Params:
         From = type of the struct that will be passed to the function
         To   = type of the struct that has to have that function
         function_name = name of the function that To must have
@@ -322,7 +322,7 @@ private void callBestOverload ( From, To, istring function_name )
 
     aliases to the type of the member <name> in the struct <Struct>
 
-    Template Params:
+    Template_Params:
         name = name of the member you want the type of
         Struct = struct that <name> is member of
 
@@ -337,7 +337,7 @@ private template TypeOf ( istring name, Struct )
 
     Returns a pointer to the field <field_name> defined in the struct <Struct>
 
-    Template Params:
+    Template_Params:
         field_name = name of the field in the struct <Struct>
         Struct     = struct that is expected to have a member called
                      <field_name>

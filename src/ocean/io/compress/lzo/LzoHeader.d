@@ -553,7 +553,7 @@ align (1) struct LzoHeader ( bool LengthInline = true )
             Strips the header from chunk
 
             Params:
-                chunk: chunk with header (must not be a Null chunk)
+                chunk = chunk with header (must not be a Null chunk)
 
             Returns:
                 chunk payload, that is, the chunk data without header (slice)
@@ -585,7 +585,7 @@ align (1) struct LzoHeader ( bool LengthInline = true )
             complete chunk on itself, that is the Null chunk.
 
             Params:
-                chunk: input chunk
+                chunk = input chunk
 
             Returns:
                 true if chunk is a Null chunk or false otherwise.

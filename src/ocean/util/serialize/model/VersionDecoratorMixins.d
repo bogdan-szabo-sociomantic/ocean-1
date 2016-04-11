@@ -37,7 +37,7 @@ version (UnitTest) import ocean.core.Test;
     It is completely self-contained and does not expect anything from the host
     class
 
-    Template Params:
+    Template_Params:
         Serializer = serializer implementation to use
 
 *******************************************************************************/
@@ -93,7 +93,7 @@ template StoreMethod(Serializer)
     on remaining buffer which is supposed to take care of converting between
     versions.
 
-    Template Params:
+    Template_Params:
         Deserializer = deserializer implementation to use
         exception_field = host exception object that has `enforceInputLength`
             method
@@ -148,7 +148,7 @@ template LoadMethod (Deserializer, alias exception_field)
     decrement and calls `this.convert` to proceed with actual struct conversion
     for two deduced types.
 
-    Template Params:
+    Template_Params:
         Deserializer = deserializer implementation to use
         exception_field = host exception object that has `throwCantConvert`
             method
@@ -163,7 +163,7 @@ template HandleVersionMethod(Deserializer, alias exception_field)
         struct version. Converted struct will be stored in the same buffer
         replacing old data.
 
-        Template Params:
+        Template_Params:
             S = final struct version to get
 
         Params:
@@ -244,7 +244,7 @@ template ConvertMethod(Serializer, Deserializer)
 
         Uses this.convert_buffer for temporary allocations
 
-        Template Params:
+        Template_Params:
             S = needed struct type
             Source = struct type seralized into buffer
 
@@ -293,7 +293,7 @@ template ConvertMethod(Serializer, Deserializer)
     This class serves exclusively as example of usage of mixins defines in this
     module. It is not intended to be used or derived from.
 
-    Template Params:
+    Template_Params:
         Srlz  = Serializer to use
         Dsrlz = Deserializer to use
 
@@ -445,7 +445,7 @@ class VersionHandlingException : Exception
             file = inferred
             line = inferred
 
-        Template Params:
+        Template_Params:
             S = struct type that was attempted to be loaded
 
     ***************************************************************************/
@@ -479,7 +479,7 @@ class VersionHandlingException : Exception
             file = inferred
             line = inferred
 
-        Template Params:
+        Template_Params:
             S = struct type that was attempted to be loaded
 
     ***************************************************************************/

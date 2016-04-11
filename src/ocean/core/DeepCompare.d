@@ -65,16 +65,17 @@ private template needsSpecialCompare(T)
 
     This differs from built-in == in two respects.
 
-    1) Dynamic arrays are compared by value, even when they are struct members.
+        1. Dynamic arrays are compared by value, even when they are struct members.
 
-    2) Floating point numbers which are NaN are considered equal.
-       This preserves the important property that deepEquals(x, x) is true
-       for all x.
+        2. Floating point numbers which are NaN are considered equal.
+           This preserves the important property that deepEquals(x, x) is true
+           for all x.
 
     Classes are compared in the normal way, using opEquals.
 
     Params:
-        a, b    = Structs to be compared
+        a    = Struct to be compared with b
+        b    = Struct to be compared with a
 
     Returns:
         true if equal

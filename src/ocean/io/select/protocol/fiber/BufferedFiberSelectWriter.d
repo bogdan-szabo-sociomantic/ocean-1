@@ -84,7 +84,7 @@ class BufferedFiberSelectWriter : FiberSelectWriter
 
         Params:
             other       = other instance of this class
-            buffer_size = output buffer size
+            size        = output buffer size
 
         In:
             buffer_size must not be 0.
@@ -208,7 +208,7 @@ class BufferedFiberSelectWriter : FiberSelectWriter
         Sends data_.
 
         Params:
-            data_: data to send
+            data = data to send
 
         Returns:
             this instance.

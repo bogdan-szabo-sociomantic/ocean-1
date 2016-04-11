@@ -214,7 +214,7 @@ class Gregorian : Calendar
     /**
      * Overridden. Indicates whether the specified _year in the specified _era is a leap _year.
      * Params: year = An integer representing the _year.
-     * Params: era = An integer representing the _era.
+     *         era = An integer representing the _era.
      * Returns: true is the specified _year is a leap _year; otherwise, false.
      */
     override bool isLeapYear(uint year, uint era)
@@ -275,10 +275,10 @@ class Gregorian : Calendar
      * true results in 2/28/2000.
      *
      * Params: t = A time to add the months to
-     * Params: nMonths = The number of months to add.  This can be
-     * negative.
-     * Params: truncateDay = Round the day down to the maximum day of the
-     * target month if necessary.
+     *         nMonths = The number of months to add.  This can be
+     *                   negative.
+     *         truncateDay = Round the day down to the maximum day of the
+     *                       target month if necessary.
      *
      * Returns: A Time that represents the provided time with the number
      * of months added.
@@ -335,7 +335,7 @@ class Gregorian : Calendar
      * is negative, and supports crossing from BC to AD.
      *
      * Params: t = A time to add the years to
-     * Params: nYears = The number of years to add.  This can be negative.
+     *         nYears = The number of years to add.  This can be negative.
      *
      * Returns: A Time that represents the provided time with the number
      * of years added.

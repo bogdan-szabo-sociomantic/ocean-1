@@ -72,23 +72,27 @@
         // Handle arriving data.
         epoll.eventLoop;
 
+    ---
 
-        All EpollProcess instances created in this manner need to share the same
-        EpollSelectDispatcher instance (since they would rely on the singleton
-        instance of the ProcessMonitor class).
 
-        However, it is sometimes desirable to use more than one
-        EpollSelectDispatcher instance with various EpollProcess instances.
-        One example of such usage is when an application needs to create
-        short-lived EpollProcess instance(s) in a unittest block. In this case
-        one EpollSelectDispatcher instance would be needed in the unittest
-        block, and a different one in the application's main logic.
-        To achieve this, the singleton ProcessMonitor instance needs to be
-        circumvented for the EpollProcess instances of the unittest block.
-        This can be done by explicitly creating a ProcessMonitor instance and
-        passing it to both the constructor and the 'start' method of
-        EpollProcess. This involves the following changes to the usage example
-        above:
+    All EpollProcess instances created in this manner need to share the same
+    EpollSelectDispatcher instance (since they would rely on the singleton
+    instance of the ProcessMonitor class).
+
+    However, it is sometimes desirable to use more than one
+    EpollSelectDispatcher instance with various EpollProcess instances.
+    One example of such usage is when an application needs to create
+    short-lived EpollProcess instance(s) in a unittest block. In this case
+    one EpollSelectDispatcher instance would be needed in the unittest
+    block, and a different one in the application's main logic.
+    To achieve this, the singleton ProcessMonitor instance needs to be
+    circumvented for the EpollProcess instances of the unittest block.
+    This can be done by explicitly creating a ProcessMonitor instance and
+    passing it to both the constructor and the 'start' method of
+    EpollProcess. This involves the following changes to the usage example
+    above:
+
+    ---
 
         class CurlProcess : EpollProcess
         {
@@ -746,7 +750,7 @@ public abstract class EpollProcess
 
     ***************************************************************************/
 
-    public void start ( cstring[] args_with_command,
+    public void start ( Const!(mstring)[] args_with_command,
                         ProcessMonitor process_monitor = null )
     {
         assert(this.state == State.None); // TODO: error notification?

@@ -56,7 +56,7 @@
 
  ******************************************************************************/
 
-module ocean.io.select.client.IntervalClock;
+deprecated module ocean.io.select.client.IntervalClock;
 
 /******************************************************************************
 
@@ -79,6 +79,8 @@ import ocean.stdc.time:           gmtime, tm, time_t;
 
 import ocean.time.Time;
 
+deprecated("Call time(null) for the time in seconds or the functions in "
+    "ocean.time.MicrosecondsClock for microseconds precision")
 public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
 {
     public alias MicrosecondsClock.us us;
@@ -167,6 +169,7 @@ public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
 
      **************************************************************************/
 
+    deprecated("Use MicrosecondsClock.now() instead")
     public timeval now_timeval ( )
     {
         if (this.expired)
@@ -214,6 +217,7 @@ public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
 
      **************************************************************************/
 
+    deprecated("Use time(null) instead")
     public time_t now_sec ( )
     {
         return this.now_timeval.tv_sec;
@@ -226,6 +230,7 @@ public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
 
      **************************************************************************/
 
+    deprecated("Use MicrosecondsClock.now_us() instead")
     public ulong now_us ( )
     {
         return this.us(this.now_timeval);
@@ -246,6 +251,7 @@ public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
 
      **************************************************************************/
 
+    deprecated("Use MicrosecondsClock.toTm(time(null)) instead")
     public tm now_tm ( bool local = false )
     {
         return this.toTm(this.now_timeval.tv_sec);
@@ -268,6 +274,7 @@ public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
 
      **************************************************************************/
 
+    deprecated("Use MicrosecondsClock.toTm(MicrosecondsClock.now()) instead")
     public tm now_tm ( out uint us, bool local = false )
     {
         with (this.now_timeval)
@@ -290,6 +297,8 @@ public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
 
      **************************************************************************/
 
+    deprecated("Use MicrosecondsClock.toDateTime(MicrosecondsClock.now()) "
+        "instead")
     public DateTime now_DateTime ( )
     {
         with (this.now_timeval) with (this.toTm(tv_sec))
@@ -402,6 +411,7 @@ public class IntervalClock : ITimerEvent, IAdvancedMicrosecondsClock
 
      **************************************************************************/
 
+    deprecated("Use MicrosecondsClock.toTm() instead")
     public static tm toTm ( time_t t, bool local = false )
     out (datetime)
     {

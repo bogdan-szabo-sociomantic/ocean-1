@@ -205,8 +205,6 @@ class PriorityCache(T) : ICacheInfo
         Params:
             max_items = maximum number of items in the cache, set once, cannot
                 be changed
-            is_priority = flags whether the items are stored according to
-                priority or according to access time
 
     ***************************************************************************/
 
@@ -227,7 +225,7 @@ class PriorityCache(T) : ICacheInfo
 
         Params:
             key = the item key
-            track_get_miss = flags whether not finding the item should count as
+            track_misses = flags whether not finding the item should count as
                 a cache miss
 
         Returns:
@@ -262,7 +260,7 @@ class PriorityCache(T) : ICacheInfo
                 item already exists
             existed = will be assigned to true if the item already existed and
                 wasn't created
-            track_get_miss = flags whether not finding the item should count as
+            tracK_get_miss = flags whether not finding the item should count as
                 a cache miss
 
         Returns:
@@ -294,7 +292,7 @@ class PriorityCache(T) : ICacheInfo
                 to the new item
             existed = will be assigned to true if the item already existed and
                 wasn't created
-            track_get_miss = flags whether not finding the item should count as
+            tracK_get_miss = flags whether not finding the item should count as
                 a cache miss
 
         Returns:
@@ -328,6 +326,8 @@ class PriorityCache(T) : ICacheInfo
         Params:
             key = item's key
             new_priority = node's new priority
+            tracK_get_miss = flags whether not finding the item should count as
+                a cache miss
 
         Returns:
             A pointer to the item that was updated or null if the key didn't
@@ -416,6 +416,58 @@ class PriorityCache(T) : ICacheInfo
 
     /***************************************************************************
 
+        Returns the item with highest priority.
+
+        Params:
+            key = set to the key of highest priority item
+            priority = set to the priority of the highest priority item
+
+        Returns:
+            returns a pointer to the highest priority item or null if the cache
+            is empty
+
+    ***************************************************************************/
+
+    public T* getHighestPriorityItem ( out hash_t key, out ulong priority )
+    {
+        if ( !this.length )
+            return null;
+
+        auto highest_node = this.time_to_index.last;
+        priority = this.getNodePriority(*highest_node);
+        auto item = &this.items[this.getNodeIndex(*highest_node)];
+        key = item.key;
+        return &item.value;
+    }
+
+    /***************************************************************************
+
+        Returns the item with lowest priority.
+
+        Params:
+            key = set to the key of lowest priority item
+            priority = set to the priority of the lowest priority item
+
+        Returns:
+            returns a pointer to the lowest priority item or null if the cache
+            is empty
+
+    ***************************************************************************/
+
+    public T* getLowestPriorityItem ( out hash_t key, out ulong priority )
+    {
+        if ( !this.length )
+            return null;
+
+        auto lowest_node = this.time_to_index.first;
+        priority = this.getNodePriority(*lowest_node);
+        auto item = &this.items[this.getNodeIndex(*lowest_node)];
+        key = item.key;
+        return &item.value;
+    }
+
+    /***************************************************************************
+
         The signature for the delegate to be used in a foreach loop:
 
             foreach(hash_t key, ref T item, ulong item_priority; cache)
@@ -460,6 +512,43 @@ class PriorityCache(T) : ICacheInfo
         scope iterator = this.time_to_index.new Iterator;
 
         foreach_reverse (ref node; iterator)
+        {
+            auto node_item_index = this.getNodeIndex(node);
+            CacheItem* cache_item =  &this.items[node_item_index];
+
+            auto key = cache_item.key; // Copy it so it can't be changed by ref
+            auto priority = this.getNodePriority(node);
+            ret = dg(key, cache_item.value, priority);
+            if (ret)
+                break;
+        }
+
+        return ret;
+    }
+
+    /***************************************************************************
+
+        A foreach-iterator for iterating over the items in the tree.
+
+        The items are passed in a ascending order of priority (lowest priority
+        first followed by higher priority).
+
+        Parmas:
+            dg = the foreach delegate
+
+        Returns:
+            If dg returns a nonzero value then the method return that value,
+            returns zero otherwise
+
+    ***************************************************************************/
+
+    public int opApplyReverse ( ForeachDg dg )
+    {
+        int ret = 0;
+
+        scope iterator = this.time_to_index.new Iterator;
+
+        foreach (ref node; iterator)
         {
             auto node_item_index = this.getNodeIndex(node);
             CacheItem* cache_item =  &this.items[node_item_index];
@@ -654,7 +743,7 @@ class PriorityCache(T) : ICacheInfo
 
     /***************************************************************************
 
-        Return the priority if an item.
+        Return the priority of an item.
 
         Params:
             node = node to lookup
@@ -671,7 +760,7 @@ class PriorityCache(T) : ICacheInfo
 
     /***************************************************************************
 
-        Return the priority if an item.
+        Return the index of an item.
 
         Params:
             node = node to lookup
@@ -928,9 +1017,13 @@ class PriorityCache(T) : ICacheInfo
     }
 }
 
+version (UnitTest) import ocean.core.Test;
+
 // Test documentation example
 unittest
 {
+    auto t = new NamedTest("Documentation example");
+
     const NUM_ITEM = 10;
     auto cache = new PriorityCache!(char[])(NUM_ITEM);
 
@@ -943,7 +1036,7 @@ unittest
     {
         *item = "ABC".dup;
     }
-    assert(item_existed_before is false);
+    t.test!("==")(item_existed_before, false);
 
     ulong no_effect_priority = 70;
     item = cache.getOrCreate(key, no_effect_priority, item_existed_before);
@@ -952,27 +1045,29 @@ unittest
     {
         *item = "DEF".dup;
     }
-    assert(item_existed_before is true);
+    t.test!("==")(item_existed_before, true);
 
     ulong retrieved_priority;
     item = cache.getPriority(key, retrieved_priority);
-    assert(item !is null);
-    assert(*item == "DEF");
-    assert(retrieved_priority == priority); // Not no_effect_priority
+    t.test!("!is")(item, null);
+    t.test!("==")(*item, "DEF");
+    t.test!("==")(retrieved_priority, priority); // Not no_effect_priority
 
 
     auto new_priority = 10;
     item = cache.getUpdateOrCreate(key, new_priority, item_existed_before);
 
     cache.getPriority(key, retrieved_priority);
-    assert(item_existed_before is true);
-    assert(item !is null);
-    assert(retrieved_priority == new_priority);
+    t.test!("==")(item_existed_before, true);
+    t.test!("!is")(item, null);
+    t.test!("==")(retrieved_priority, new_priority);
 }
 
 // Test adding and removing
 unittest
 {
+    auto t = new NamedTest("Adding and removing items to the cache");
+
     const NUM_OF_ITEMS = 150;
 
     auto test_cache = new PriorityCache!(int)(NUM_OF_ITEMS);
@@ -984,21 +1079,61 @@ unittest
     {
         bool existed;
         auto int_ptr = test_cache.getOrCreate(i, i + PRIORITY, existed);
-        assert(int_ptr !is null, "unexpectedly item was not created");
-        assert(existed is false, "item previously existed");
+        t.test!("!is")(int_ptr, null, "unexpectedly item was not created");
+        t.test!("==")(existed, false, "item previously existed");
         *int_ptr = i + VALUE;
     }
 
 
     foreach(j, value; test_cache.items)
     {
-        assert(test_cache.remove(j), "Removing non-existing item");
+        t.test(test_cache.remove(j), "Removing non-existing item");
     }
+}
+
+// Test getting highest and lowest items
+unittest
+{
+    auto t = new NamedTest("Retrieving highest and lowest priority items");
+
+    const NUM_OF_ITEMS = 150;
+
+    auto test_cache = new PriorityCache!(int)(NUM_OF_ITEMS);
+
+    const PRIORITY = 10;
+    const VALUE = 50;
+
+    bool existed;
+    hash_t key;
+    ulong priority;
+
+    // Test that nothing is returned when cache is empty
+    t.test!("==")(test_cache.getLowestPriorityItem(key, priority), null);
+    t.test!("==")(test_cache.getHighestPriorityItem(key, priority), null);
+
+    // Populate the cache with some items
+    for (int i = 0; i < NUM_OF_ITEMS; i++)
+    {
+        auto int_ptr = test_cache.getOrCreate(i, i + PRIORITY, existed);
+        *int_ptr = i + VALUE;
+    }
+
+    // Test the cache after items has been added to it
+    t.test!("==")(*test_cache.getLowestPriorityItem(key, priority), VALUE);
+    t.test!("==")(key, 0);
+    t.test!("==")(priority, PRIORITY);
+
+    t.test!("==")(*test_cache.getHighestPriorityItem(key, priority),
+                  NUM_OF_ITEMS - 1 + VALUE);
+    t.test!("==")(key, NUM_OF_ITEMS - 1);
+    t.test!("==")(priority, NUM_OF_ITEMS - 1 + PRIORITY);
 }
 
 // Test clearing
 unittest
 {
+    auto t = new NamedTest("Clearing the cache");
+
     const NUM_OF_ITEMS = 150;
 
     auto test_cache = new PriorityCache!(int)(NUM_OF_ITEMS);
@@ -1021,13 +1156,15 @@ unittest
     for (int i = 0; i < NUM_OF_ITEMS; i++)
     {
         auto is_removed = test_cache.remove(i + INDEX);
-        assert(!is_removed, "Should fail removing non-existing item");
+        t.test(!is_removed, "Should fail removing non-existing item");
     }
 }
 
 // Test opApply
 unittest
 {
+    auto t = new NamedTest("opApply foreach loops");
+
     const NUM_OF_ITEMS = 150;
 
     auto test_cache = new PriorityCache!(int)(NUM_OF_ITEMS);
@@ -1047,8 +1184,8 @@ unittest
     foreach (key, ref item, ulong priority; test_cache)
     {
         counter--;
-        assert(key == counter, "Unexpected key");
-        assert(priority == counter + PRIORITY, "Unexpected item priority");
+        t.test!("==")(key, counter, "Unexpected key");
+        t.test!("==")(priority, counter + PRIORITY, "Unexpected item priority");
         item = counter + NEW_VALUE;
     }
 
@@ -1056,8 +1193,24 @@ unittest
     for (int i = 0; i < NUM_OF_ITEMS; i++)
     {
         auto int_ptr = test_cache.get(i);
-        assert(int_ptr, "item unexpectedly null");
-        assert(*int_ptr == i + NEW_VALUE, "Unexpected item value");
+        t.test(int_ptr, "item unexpectedly null");
+        t.test!("==")(*int_ptr, i + NEW_VALUE, "Unexpected item value");
+    }
+
+    foreach_reverse (key, ref item, ulong priority; test_cache)
+    {
+        t.test!("==")(key, counter, "Unexpected key");
+        t.test!("==")(priority, counter + PRIORITY, "Unexpected item priority");
+        item = counter - NEW_VALUE;
+        counter++;
+    }
+
+    // Confirm that the new assigned values weren't lost
+    for (int i = 0; i < NUM_OF_ITEMS; i++)
+    {
+        auto int_ptr = test_cache.get(i);
+        t.test(int_ptr, "item unexpectedly null");
+        t.test!("==")(*int_ptr, i - NEW_VALUE, "Unexpected item value");
     }
 }
 
@@ -1065,6 +1218,8 @@ unittest
 // Test dropped items are correctly reported
 unittest
 {
+    auto t = new NamedTest("Dropped items are correctly reported");
+
     const CACHE_SIZE = 10;
     const ITEMS_INSERTED = 150;
 
@@ -1079,7 +1234,7 @@ unittest
 
         protected override void itemDropped (hash_t key, ref uint value)
         {
-            assert(key == value, "Wrong key/value are reported");
+            t.test!("==")(key, value, "Wrong key/value are reported");
             items_removed_count++;
         }
     }
@@ -1092,14 +1247,16 @@ unittest
         *int_ptr = i;
     }
 
-    assert(items_removed_count == ITEMS_INSERTED - CACHE_SIZE,
-           "Not all dropped items were reported");
+    t.test!("==")(items_removed_count, ITEMS_INSERTED - CACHE_SIZE,
+                  "Not all dropped items were reported");
 }
 
 
 // Test dropped items are passed by ref
 unittest
 {
+    auto t = new NamedTest("Dropped items are passed by ref to notifier");
+
     const CACHE_SIZE = 10;
     bool item_dropped = false;
 
@@ -1123,6 +1280,6 @@ unittest
     *new_value = 50;
     test_cache.remove(20);
 
-    assert(item_dropped, "Item was not dropped");
-    assert(*new_value == 10, "Item was not dropped by ref");
+    t.test(item_dropped, "Item was not dropped");
+    t.test!("==")(*new_value, 10, "Item was not dropped by ref");
 }

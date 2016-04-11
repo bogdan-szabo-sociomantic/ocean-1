@@ -794,7 +794,7 @@ unittest
     In D1 most common idiom is to simply check for `is(typeof(T.something))` but
     in D2 it can backfire because of UFCS as global names are checked too
 
-    Template Params:
+    Template_Params:
         T = aggregate type to check
         name = method/field name to look for
 

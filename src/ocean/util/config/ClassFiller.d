@@ -163,7 +163,7 @@ private bool loose_parsing = false;
 
     If T is not a struct, T itself is returned
 
-    Template Params:
+    Template_Params:
         T = struct or type to find the basetype for
 
 *******************************************************************************/
@@ -186,7 +186,7 @@ template BaseType ( T )
 
     If value is not a struct, the value itself is returned
 
-    Template Params:
+    Template_Params:
         v = instance of a struct the value itself
 
 *******************************************************************************/
@@ -208,7 +208,7 @@ BaseType!(T) Value ( T ) ( T v )
     Contains methods used in all WrapperStructs to access and set the value
     variable
 
-    Template Params:
+    Template_Params:
         T = type of the value
 
 *******************************************************************************/
@@ -295,7 +295,7 @@ template WrapperStructCore ( T, T init = T.init )
 
     The value can be accessed with the opCall method
 
-    Template Params:
+    Template_Params:
         T = the original type of the variable
 
 *******************************************************************************/
@@ -335,7 +335,7 @@ struct Required ( T )
 
     The value can be accessed with the opCall method
 
-    Template Params:
+    Template_Params:
         T    = the original type of the variable (can be another struct)
         min  = smallest allowed value
         max  = biggest allowed value
@@ -385,7 +385,7 @@ struct MinMax ( T, T min, T max, T init = T.init )
 
     The value can be accessed with the opCall method
 
-    Template Params:
+    Template_Params:
         T    = the original type of the variable (can be another struct)
         min  = smallest allowed value
         init = default value when it is not given in the configuration file
@@ -430,7 +430,7 @@ struct Min ( T, T min, T init = T.init )
 
     The value can be accessed with the opCall method
 
-    Template Params:
+    Template_Params:
         T    = the original type of the variable (can be another struct)
         max  = biggest allowed value
         init = default value when it is not given in the configuration file
@@ -493,7 +493,7 @@ bool defComp ( T ) ( T a, T b )
 
     The value can be accessed with the opCall method
 
-    Template Params:
+    Template_Params:
         T    = the original type of the variable (can be another struct)
         init = default value when it is not given in the configuration file
         comp = compare function to be used to compare two values from the set
@@ -561,7 +561,7 @@ unittest
 
     Simplified version of LimitCmp that uses default comparison
 
-    Template Params:
+    Template_Params:
         T = type of the value
         init = default initial value if config value wasn't set
         Set = set of allowed values
@@ -585,7 +585,7 @@ unittest
     Simplified version of LimitCmp that uses default comparison and default
     initializer
 
-    Template Params:
+    Template_Params:
         T = type of the value
         Set = set of allowed values
 
@@ -602,7 +602,7 @@ template Limit ( T, Set... )
     Adds the information of whether the filler actually set the value
     or whether it was left untouched.
 
-    Template Params:
+    Template_Params:
         T = the original type
 
 *******************************************************************************/
@@ -662,7 +662,7 @@ struct SetInfo ( T )
 
     Template that evaluates to true when T is a supported type
 
-    Template Params:
+    Template_Params:
         T = type to check for
 
 *******************************************************************************/
@@ -774,8 +774,6 @@ body
     Params:
         group     = the group/section of the variable
         reference = the instance to fill. If null it will be created
-        loose     = whether to throw when configuration keys exist
-                    that aren't used(false) or to output a warning(true)
         config    = instance of the source to use
 
     Returns:
@@ -937,18 +935,21 @@ body
     return ClassIterator!(T, Source)(config, root);
 }
 
-/*******************************************************************************
 
-    Converts property to T
+/******************************************************************************
+
+    Fills the fields of the `reference` from config file's group.
+
+    Template Params:
+        T  = type of the class to fill
+        Source = source to use
 
     Params:
-        property = value to convert
+        group = group to read fields from
+        reference = reference to the object to be filled
         config = instance of the source to use
 
-    Returns:
-        property converted to T
-
-*******************************************************************************/
+******************************************************************************/
 
 protected void readFields ( T, Source )
                           ( cstring group, T reference, Source config )

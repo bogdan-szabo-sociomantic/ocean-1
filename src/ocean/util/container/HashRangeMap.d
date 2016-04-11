@@ -50,7 +50,7 @@ public alias Range!(hash_t) HashRange;
     then called on HashRangeMaps with various different types of Value,
     in a unittest block outside the struct.
 
-    Template params:
+    Template_Params:
         Value = type to store in values of map
 
 *******************************************************************************/

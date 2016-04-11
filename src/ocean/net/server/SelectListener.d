@@ -456,7 +456,7 @@ abstract class ISelectListener : ISelectClient
     The additional T constructor argument parameters must appear after those for
     the mandatory IConnectionHandler constructor.
 
-    Template params:
+    Template_Params:
         T    = connection handler class
         Args = additional constructor arguments for T
 
@@ -493,7 +493,6 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
         Params:
             address    = server address
             port       = listening port
-            dispatcher = SelectDispatcher instance to use
             args       = additional T constructor arguments, might be empty
             backlog    = (see ISelectListener ctor)
 
@@ -514,7 +513,6 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
 
         Params:
             port       = listening port
-            dispatcher = SelectDispatcher instance to use
             args       = additional T constructor arguments, might be empty
             backlog    = (see ISelectListener ctor)
 

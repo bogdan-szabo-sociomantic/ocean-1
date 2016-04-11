@@ -85,7 +85,7 @@ public interface IFreeList ( T ) : IFreeListInfo
 
     ***************************************************************************/
 
-    void recycle ( T );
+    void recycle ( T item );
 
 
     /***************************************************************************
@@ -115,7 +115,7 @@ version ( UnitTest )
 
         Free list tester base class. Tests all methods of IFreeList.
 
-        Template params:
+        Template_Params:
             I = type of item stored in free list
 
     ***************************************************************************/

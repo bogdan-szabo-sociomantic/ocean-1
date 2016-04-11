@@ -44,8 +44,7 @@ import ocean.time.timeout.model.ITimeoutManager,
        ocean.time.timeout.model.IExpiryRegistration,
        ocean.time.timeout.model.ExpiryRegistrationBase;                 // ExpiryTree, Expiry, ExpiryRegistrationBase
 
-import ocean.time.model.IMicrosecondsClock,
-       ocean.time.MicrosecondsClock;
+import ocean.time.MicrosecondsClock;
 
 import ocean.util.container.AppendBuffer;
 
@@ -349,9 +348,7 @@ abstract class TimeoutManagerBase : ITimeoutManager
 
     /***************************************************************************
 
-        Returns the current wall clock time. Calls gettimeofday() each time by
-        default; may be overridden to use a more efficient implementation, e.g.
-        using the IntervalClock.
+        Returns the current wall clock time according to gettimeofday().
 
         Returns:
             the current wall clock time as UNIX time value in microseconds.
@@ -360,7 +357,7 @@ abstract class TimeoutManagerBase : ITimeoutManager
 
     public final ulong now ( )
     {
-        return MicrosecondsClock.now_us_static;
+        return MicrosecondsClock.now_us();
     }
 
     /***************************************************************************

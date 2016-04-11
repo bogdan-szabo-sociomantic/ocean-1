@@ -33,7 +33,7 @@ version(UnitTest)
     the struct of type S. Intended as type-safe tool to guarantee that any
     operations on such structs preserve the contiguous data layout
 
-    Template Params:
+    Template_Params:
         S = type of the wrapped struct
 
 *******************************************************************************/

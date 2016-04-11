@@ -6,8 +6,13 @@
 *******************************************************************************/
 module ocean.math.random.engines.ArraySource;
 
-/// very simple array based source (use with care, some methods in non uniform distributions
-/// expect a random source with correct statistics, and could loop forever with such a source)
+/*******************************************************************************
+
+    very simple array based source (use with care, some methods in non uniform
+    distributions  expect a random source with correct statistics, and could
+    loop forever with such a source)
+
+********************************************************************************/
 struct ArraySource{
     uint[] a;
     size_t i;
