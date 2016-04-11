@@ -201,7 +201,7 @@ public template SmartEnumCore ( BaseType )
 
     ***************************************************************************/
 
-    static public TwoWayMap!(BaseType, istring, true) map;
+    static public TwoWayMap!(BaseType) map;
 
 
     /***************************************************************************
@@ -240,7 +240,7 @@ public template SmartEnumCore ( BaseType )
 
     ***************************************************************************/
 
-    static public BaseType* code ( istring description )
+    static public BaseType* code ( cstring description )
     {
         return description in map;
     }
@@ -286,10 +286,10 @@ public template SmartEnumCore ( BaseType )
 
     ***************************************************************************/
 
-    static public BaseType opIndex ( istring description )
+    static public BaseType opIndex ( cstring description )
     {
         auto code = description in map;
-        enforce(code, description ~ " not found in SmartEnum");
+        enforce(code, cast(istring)(description ~ " not found in SmartEnum"));
         return *code;
     }
 
@@ -326,7 +326,7 @@ public template SmartEnumCore ( BaseType )
 
     ***************************************************************************/
 
-    static public size_t* indexOf ( istring description )
+    static public size_t* indexOf ( cstring description )
     {
         return map.indexOf(description);
     }
@@ -825,6 +825,20 @@ unittest
     test!("==")(*Name.code("a"), 0);
     test!("==")(*Name.code("b"), 1);
     test!("==")(*Name.code("c"), 2);
+
+    // Test lookup with mutable values
+    mstring name1 = "a".dup, name2 = "b".dup, name3 = "c".dup;
+    Name n;
+
+    test!("==")(*Name.code(name1), 0);
+    test!("==")(*Name.code(name2), 1);
+    test!("==")(*Name.code(name3), 2);
+
+    test!("in")(name1, n);
+    test!("in")(name2, n);
+    test!("in")(name3, n);
+    // `!in` doesn't exist in D1 :(
+    test(!("NON_EXISTENT".dup in n), "Found non existent description!");
 }
 
 /*******************************************************************************
@@ -846,28 +860,6 @@ import ocean.core.Array_tango : find;
 
 import ocean.core.Traits : isAssocArrayType;
 
-/*******************************************************************************
-
-    Template to create a two way map from an associative array type.
-
-    Template_Params:
-        T = associative array map type
-
-*******************************************************************************/
-
-public template TwoWayMap ( T )
-{
-    static if ( isAssocArrayType!(T) )
-    {
-        public alias TwoWayMap!(typeof(T.init.values[0]), typeof(T.init.keys[0])) TwoWayMap;
-    }
-    else
-    {
-        static assert(false, "'" ~ T.stringof ~ "' isn't an associative array type, cannot create two way map");
-    }
-}
-
-
 
 /*******************************************************************************
 
@@ -885,7 +877,7 @@ public template TwoWayMap ( T )
 
 *******************************************************************************/
 
-public struct TwoWayMap ( A, B, bool Indexed = false )
+public struct TwoWayMap ( A )
 {
     /***************************************************************************
 
@@ -894,9 +886,9 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
 
     ***************************************************************************/
 
-    static if ( is(A == B) )
+    static if ( is(A : cstring) )
     {
-        static assert(false, "TwoWayMap only supports mapping between two different types, not " ~ A.stringof ~ " <-> " ~ B.stringof);
+        static assert(false, "TwoWayMap does not support mapping to a string type");
     }
 
 
@@ -907,7 +899,7 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
     ***************************************************************************/
 
     public alias A KeyType;
-    public alias B ValueType;
+    public alias istring ValueType;
 
 
     /***************************************************************************
@@ -916,8 +908,8 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
 
     ***************************************************************************/
 
-    private B[A] a_to_b;
-    private A[B] b_to_a;
+    private ValueType[KeyType] a_to_b;
+    private KeyType[ValueType] b_to_a;
 
 
     /***************************************************************************
@@ -930,8 +922,8 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
 
     ***************************************************************************/
 
-    private A[] keys_list;
-    private B[] values_list;
+    private KeyType[] keys_list;
+    private ValueType[] values_list;
 
 
     /***************************************************************************
@@ -940,11 +932,8 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
 
     ***************************************************************************/
 
-    static if ( Indexed )
-    {
-        private size_t[A] a_to_index; // A to index in keys_list
-        private size_t[B] b_to_index; // B to index in values_list
-    }
+    private size_t[KeyType] a_to_index; // A to index in keys_list
+    private size_t[ValueType] b_to_index; // B to index in values_list
 
 
     /***************************************************************************
@@ -961,7 +950,7 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
     {
         assert(this.a_to_b.length == this.b_to_a.length);
 
-        debug ( TwoWayMapFullConsistencyCheck ) static if ( Indexed )
+        debug ( TwoWayMapFullConsistencyCheck )
         {
             foreach ( a, b; this.a_to_b )
             {
@@ -980,7 +969,7 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
 
     ***************************************************************************/
 
-    public void opAssign ( B[A] assoc_array )
+    public void opAssign ( ValueType[KeyType] assoc_array )
     {
         this.keys_list.length = 0;
         this.values_list.length = 0;
@@ -995,13 +984,10 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
             this.values_list ~= *(a in this.a_to_b);
         }
 
-        static if ( Indexed )
-        {
-            this.updateIndices();
-        }
+        this.updateIndices();
     }
 
-    public void opAssign ( A[B] assoc_array )
+    public void opAssign ( KeyType[ValueType] assoc_array )
     {
         this.keys_list.length = 0;
         this.values_list.length = 0;
@@ -1016,10 +1002,7 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
             this.values_list ~= *(a in this.a_to_b);
         }
 
-        static if ( Indexed )
-        {
-            this.updateIndices();
-        }
+        this.updateIndices();
     }
 
 
@@ -1033,14 +1016,11 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
 
     ***************************************************************************/
 
-    public void opIndexAssign ( A a, B b )
+    public void opIndexAssign ( KeyType a, ValueType b )
     out
     {
-        static if ( Indexed )
-        {
-            assert(this.a_to_index[a] < this.keys_list.length);
-            assert(this.b_to_index[b] < this.values_list.length);
-        }
+        assert(this.a_to_index[a] < this.keys_list.length);
+        assert(this.b_to_index[b] < this.values_list.length);
     }
     body
     {
@@ -1055,20 +1035,14 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
             this.values_list ~= *(a in this.a_to_b);
         }
 
-        static if ( Indexed )
-        {
-            this.updateIndices();
-        }
+        this.updateIndices();
     }
 
-    public void opIndexAssign ( B b, A a )
+    public void opIndexAssign ( ValueType b, KeyType a )
     out
     {
-        static if ( Indexed )
-        {
-            assert(this.a_to_index[a] < this.keys_list.length);
-            assert(this.b_to_index[b] < this.values_list.length);
-        }
+        assert(this.a_to_index[a] < this.keys_list.length);
+        assert(this.b_to_index[b] < this.values_list.length);
     }
     body
     {
@@ -1083,10 +1057,7 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
             this.values_list ~= *(a in this.a_to_b);
         }
 
-        static if ( Indexed )
-        {
-            this.updateIndices();
-        }
+        this.updateIndices();
     }
 
 
@@ -1101,10 +1072,7 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
         this.a_to_b.rehash;
         this.b_to_a.rehash;
 
-        static if ( Indexed )
-        {
-            this.updateIndices();
-        }
+        this.updateIndices();
     }
 
 
@@ -1122,7 +1090,7 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
 
     ***************************************************************************/
 
-    public A* opIn_r ( B b )
+    public KeyType* opIn_r ( cstring b )
     {
         return b in this.b_to_a;
     }
@@ -1142,7 +1110,7 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
 
     ***************************************************************************/
 
-    public B* opIn_r ( A a )
+    public ValueType* opIn_r ( KeyType a )
     {
         return a in this.a_to_b;
     }
@@ -1164,7 +1132,7 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
 
     ***************************************************************************/
 
-    public A opIndex ( B b )
+    public KeyType opIndex ( cstring b )
     {
         return this.b_to_a[b];
     }
@@ -1186,7 +1154,7 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
 
     ***************************************************************************/
 
-    public B opIndex ( A a )
+    public ValueType opIndex ( KeyType a )
     {
         return this.a_to_b[a];
     }
@@ -1212,7 +1180,7 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
 
     ***************************************************************************/
 
-    public A[] keys ( )
+    public KeyType[] keys ( )
     {
         return this.keys_list;
     }
@@ -1225,7 +1193,7 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
 
     ***************************************************************************/
 
-    public B[] values ( )
+    public ValueType[] values ( )
     {
         return this.values_list;
     }
@@ -1240,7 +1208,7 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
 
     ***************************************************************************/
 
-    public int opApply ( int delegate ( ref A a, ref B b ) dg )
+    public int opApply ( int delegate ( ref KeyType a, ref ValueType b ) dg )
     {
         int res;
         foreach ( a, b; this.a_to_b )
@@ -1260,20 +1228,17 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
 
     ***************************************************************************/
 
-    static if ( Indexed )
+    public int opApply ( int delegate ( ref size_t index, ref KeyType a, ref ValueType b ) dg )
     {
-        public int opApply ( int delegate ( ref size_t index, ref A a, ref B b ) dg )
+        int res;
+        foreach ( a, b; this.a_to_b )
         {
-            int res;
-            foreach ( a, b; this.a_to_b )
-            {
-                auto index = this.indexOf(a);
-                assert(index);
+            auto index = this.indexOf(a);
+            assert(index);
 
-                res = dg(*index, a, b);
-            }
-            return res;
+            res = dg(*index, a, b);
         }
+        return res;
     }
 
 
@@ -1291,14 +1256,11 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
 
     ***************************************************************************/
 
-    static if ( Indexed )
+    public size_t* indexOf ( KeyType a )
     {
-        public size_t* indexOf ( A a )
-        {
-            auto index = a in this.a_to_index;
-            enforce(index, typeof(this).stringof ~ ".indexOf - element not present in map");
-            return index;
-        }
+        auto index = a in this.a_to_index;
+        enforce(index, typeof(this).stringof ~ ".indexOf - element not present in map");
+        return index;
     }
 
 
@@ -1316,14 +1278,11 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
 
     ***************************************************************************/
 
-    static if ( Indexed )
+    public size_t* indexOf ( cstring b )
     {
-        public size_t* indexOf ( B b )
-        {
-            auto index = b in this.b_to_index;
-            enforce(index, typeof(this).stringof ~ ".indexOf - element not present in map");
-            return index;
-        }
+        auto index = b in this.b_to_index;
+        enforce(index, typeof(this).stringof ~ ".indexOf - element not present in map");
+        return index;
     }
 
 
@@ -1333,15 +1292,12 @@ public struct TwoWayMap ( A, B, bool Indexed = false )
 
     ***************************************************************************/
 
-    static if ( Indexed )
+    private void updateIndices ( )
     {
-        private void updateIndices ( )
+        foreach ( a, b; this.a_to_b )
         {
-            foreach ( a, b; this.a_to_b )
-            {
-                this.a_to_index[a] = this.keys_list.find(a);
-                this.b_to_index[b] = this.values_list.find(b);
-            }
+            this.a_to_index[a] = this.keys_list.find(a);
+            this.b_to_index[b] = this.values_list.find(b);
         }
     }
 }
