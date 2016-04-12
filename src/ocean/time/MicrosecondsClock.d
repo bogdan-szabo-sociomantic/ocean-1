@@ -63,19 +63,6 @@ class MicrosecondsClock
 
     /**************************************************************************
 
-        Returns:
-            the current UNIX wall clock time in µs.
-
-     **************************************************************************/
-
-    deprecated("Use now_us() instead")
-    static public ulong now_us_static ( )
-    {
-        return us(now);
-    }
-
-    /**************************************************************************
-
         Usage tips: use
 
         ---

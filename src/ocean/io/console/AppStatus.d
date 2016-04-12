@@ -168,9 +168,6 @@ public class AppStatus
 
     ***************************************************************************/
 
-    deprecated("IAdvancedMicrosecondsClock is going to be deprecated")
-    protected alias .IAdvancedMicrosecondsClock IAdvancedMicrosecondsClock;
-
     protected alias .TerminalOutput!(char) TerminalOutput;
 
 
@@ -223,17 +220,6 @@ public class AppStatus
     ***************************************************************************/
 
     private DisplayProperties current_display_props;
-
-
-    /***************************************************************************
-
-        Interval clock, passed into the constructor. Used to display the current
-        time and to calculate running time.
-
-    ***************************************************************************/
-
-    deprecated("IAdvancedMicrosecondsClock is going to be deprecated")
-    private IAdvancedMicrosecondsClock clock;
 
 
     /***************************************************************************
@@ -354,35 +340,6 @@ public class AppStatus
     ***************************************************************************/
 
     private int old_terminal_size;
-
-
-    /***************************************************************************
-
-        Constructor. Saves the current time as the program start time.
-
-        Params:
-            app_name = name of the application
-            app_version = version of the application
-            app_build_date = date the application was built
-            app_build_author = who built the current build
-            clock = clock used to get the current time
-            size = number of loglines that are to be displayed below the
-                    title line
-            ms_between_calls = expected milliseconds between calls to
-                               getCpuUsage (defaults to 1000ms)
-
-    ***************************************************************************/
-
-    deprecated("IAdvancedMicrosecondsClock is going to be deprecated, please "
-        "use the other constructor")
-    public this ( cstring app_name, cstring app_version, cstring app_build_date,
-        cstring app_build_author, IAdvancedMicrosecondsClock clock, uint size,
-        ulong ms_between_calls = 1000 )
-    {
-        this.clock = clock;
-        this(app_name, app_version, app_build_date, app_build_author, size,
-            ms_between_calls);
-    }
 
 
     /***************************************************************************
