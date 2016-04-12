@@ -156,3 +156,8 @@ New Features
   Note that this feature was always documented for the `eb*_insert` functions.
   It is currently not supported by the `EBTree*` classes because it would
   require a major interface change to return the existing node if enabled.
+
+* `ocean.util.cipher.gcrypt.c`
+
+  Added bindings for message digest (aka hash), random number and gpgerror
+  functionality of libgcrypt.
