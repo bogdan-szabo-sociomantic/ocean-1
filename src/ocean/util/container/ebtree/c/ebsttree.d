@@ -40,10 +40,12 @@ ebmb_node* ebst_lookup(eb_root* root, char* x);
  */
 ebmb_node* ebst_lookup_len(eb_root* root, char* x, uint len);
 
-/* Insert ebmb_node <neww> into subtree starting at node root <root>. Only
- * neww->key needs be set with the zero-terminated string key. The ebmb_node is
- * returned. If root->b[EB_RGHT]==1, the tree may only contain unique keys. The
- * caller is responsible for properly terminating the key with a zero.
+/* Insert ebmb_node <neww> into subtree starting at node root <root>, unless
+ * <root> is tagged to allow adding unique keys only, i.e. root->b[EB_RGHT]==1,
+ * and a node with neww.key already exists.
+ * Only neww->key needs be set with the zero-terminated string key. The caller
+ * is responsible for properly terminating the key with a zero.
+ * Returns <neww> if added or the existing node if attempting to add a duplicate
+ * and <root> is tagged to accept unique keys only.
  */
 ebmb_node* ebst_insert(eb_root* root, ebmb_node* neww);
-

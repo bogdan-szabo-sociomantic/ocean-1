@@ -147,3 +147,12 @@ New Features
   New functions have been added, to convert the time specified as a `time_t` or
   `timeval` to a full date/time representation, as a `tm` or `DateTime` struct.
 
+* `ocean.util.container.ebtree.c.ebtree`
+
+  `eb_root` can now be configured to accept only unique nodes. If this is
+  enabled and a node with an existing key is passed to one of the `eb*_insert`
+  functions then the function will not add the new node but return the existing
+  one, performing an "add new or get existing" operation.
+  Note that this feature was always documented for the `eb*_insert` functions.
+  It is currently not supported by the `EBTree*` classes because it would
+  require a major interface change to return the existing node if enabled.

@@ -312,16 +312,20 @@ eb128_node* eb128_lookup_le_264 ( eb_root* root, ulong lo, ulong hi );
 eb128_node* eb128_lookup_ge_264 ( eb_root* root, ulong lo, ulong hi );
 
 /**
- * Insert eb128_node <neww> into subtree starting at node root <root>.
- * Only neww->key needs be set with the key. The eb128_node is returned.
- * If root->b[EB_RGHT]==1, the tree may only contain unique keys.
+ * Insert eb128_node <neww> into subtree starting at node root <root>, unless
+ * <root> is tagged to allow adding unique keys only, i.e. root->b[EB_RGHT]==1,
+ * and a node with neww.key already exists.
+ * Returns <neww> if added or the existing node if attempting to add a duplicate
+ * and <root> is tagged to accept unique keys only.
  */
 eb128_node* eb128_insert ( eb_root* root, eb128_node* neww );
 
 /**
- * Insert eb128_node <neww> into subtree starting at node root <root>, using
- * signed keys. Only neww->key needs be set with the key. The eb128_node
- * is returned. If root->b[EB_RGHT]==1, the tree may only contain unique keys.
+ * Insert eb128_node <neww> into subtree starting at node root <root>, unless
+ * <root> is tagged to allow adding unique keys only, i.e. root->b[EB_RGHT]==1,
+ * and a node with neww.key already exists.
+ * Returns <neww> if added or the existing node if attempting to add a duplicate
+ * and <root> is tagged to accept unique keys only.
  */
 eb128_node* eb128i_insert ( eb_root* root, eb128_node* neww );
 

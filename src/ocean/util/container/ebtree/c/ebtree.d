@@ -276,12 +276,59 @@ struct eb_root
     const BITS          = 1;
     const BRANCHES      = (1 << BITS);
 
+    /* Tags to set in root->b[RGHT] :
+     * - NORMAL is a normal tree which stores duplicate keys.
+     * - UNIQUE is a tree which stores unique keys.
+     */
+    const RGHT   = 1;
+    const NORMAL = cast(eb_troot_t*)0;
+    const UNIQUE = cast(eb_troot_t*)1;
+
     eb_troot_t*[BRANCHES] b; /* left and right branches */
 
     /* Return non-zero if the tree is empty, otherwise zero */
     bool is_empty ( )
     {
         return !!eb_is_empty(this);
+    }
+
+    /***************************************************************************
+
+        Tells whether this tree is configured so that the `eb*_insert` functions
+        allow adding unique nodes only or if they allow adding duplicates.
+
+        Returns:
+            true if only unique nodes are added for this tree or false if
+            duplicates can be added.
+
+    ***************************************************************************/
+
+    bool unique ( )
+    {
+        return this.b[RGHT] is UNIQUE;
+    }
+
+    /***************************************************************************
+
+        Configures this tree so that the `eb*_insert` functions either allow
+        adding unique nodes only or allow adding duplicates.
+
+        This configuration can be changed at any time and affects subsequent
+        `eb*_insert` function calls.
+
+        Params:
+            enable = true: only allow unique nodes;
+                     false: allow adding duplicates
+
+        Returns:
+            enable
+
+    ***************************************************************************/
+
+    bool unique ( bool enable )
+    {
+        this.b[RGHT] = enable? UNIQUE : NORMAL;
+        return enable;
     }
 }
 
