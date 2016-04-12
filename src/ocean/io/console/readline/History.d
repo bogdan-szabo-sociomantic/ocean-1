@@ -29,6 +29,7 @@ module ocean.io.console.readline.History;
 
 import C = ocean.io.console.readline.c.history;
 import ocean.text.util.StringC;
+import ocean.transition;
 
 static this()
 {
@@ -56,7 +57,7 @@ static this()
 
 *******************************************************************************/
 
-void addHistory(char[] line)
+void addHistory(mstring line)
 {
     char* line_ptr = StringC.toCstring( line );
     C.add_history(line_ptr);

@@ -43,6 +43,8 @@ import ocean.text.util.StringC;
 import ocean.stdc.string: strlen;
 import ocean.stdc.stdlib : free;
 
+import ocean.transition;
+
 /*******************************************************************************
 
     Reads a line from the terminal and return it, using prompt as a prompt.
@@ -74,7 +76,7 @@ import ocean.stdc.stdlib : free;
 
 *******************************************************************************/
 
-char[] readline(ref char[] prompt, ref char[] buffer)
+mstring readline(ref mstring prompt, ref mstring buffer)
 {
     char* prompt_ptr = null;
     if (prompt != null)
@@ -112,10 +114,10 @@ char[] readline(ref char[] prompt, ref char[] buffer)
 
 *******************************************************************************/
 
-deprecated ("Use `readline(ref char[] prompt, ref char[] buffer)` instead")
-char[] readline ()
+deprecated ("Use `readline(ref mstring prompt, ref mstring buffer)` instead")
+mstring readline ()
 {
-    char[] prompt, buffer;
+    mstring prompt, buffer;
     return readline(prompt, buffer);
 }
 
@@ -136,10 +138,10 @@ char[] readline ()
         as a newline.
 
 *******************************************************************************/
-deprecated ("Use `readline(ref char[] prompt, ref char[] buffer)` instead")
-char[] readline(ref char[] prompt)
+deprecated ("Use `readline(ref mstring prompt, ref mstring buffer)` instead")
+mstring readline(ref mstring prompt)
 {
-    char[] buffer;
+    mstring buffer;
     return readline(prompt, buffer);
 }
 
