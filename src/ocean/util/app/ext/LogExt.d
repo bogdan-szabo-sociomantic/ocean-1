@@ -36,7 +36,6 @@ import ocean.transition;
 import ocean.io.device.File;
 
 import ocean.util.log.Log;
-import ocean.util.log.AppendSyslog;
 
 
 
@@ -130,23 +129,13 @@ class LogExt : IConfigExtExtension
 
         Appender appender ( istring file, LogUtil.Layout layout )
         {
-            auto reopenable_files_ext =
-                (cast(Application)app).getExtension!(ReopenableFilesExt);
-
-            if ( reopenable_files_ext )
+            auto stream = new File(file, File.WriteAppending);
+            if ( auto reopenable_files_ext =
+                (cast(Application)app).getExtension!(ReopenableFilesExt) )
             {
-                auto stream = new File(file, File.WriteAppending);
                 reopenable_files_ext.register(stream);
-
-                return new AppendStream(stream, true, layout);
             }
-            else
-            {
-                auto file_count = castFrom!(size_t).to!(uint)(log_meta_config.file_count);
-                return new AppendSyslog(file, file_count,
-                    log_meta_config.max_file_size, "gzip {}", "gz",
-                    log_meta_config.start_compress, layout);
-            }
+            return new AppendStream(stream, true, layout);
         }
 
         LogUtil.configureLoggers(log_config, log_meta_config, &appender,

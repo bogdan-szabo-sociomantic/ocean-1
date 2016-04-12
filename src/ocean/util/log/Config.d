@@ -88,7 +88,6 @@ import ocean.util.log.AppendSysLog;
 import ocean.text.util.StringSearch;
 
 import ocean.util.log.Log;
-import ocean.util.log.AppendSyslog;
 import ocean.util.log.InsertConsole;
 import ocean.util.log.AppendConsole;
 
@@ -342,11 +341,7 @@ public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
 {
     Appender newAppender ( istring file, Appender.Layout layout )
     {
-        return new AppendSyslog(file,
-            cast(uint)(m_config.file_count),
-            m_config.max_file_size,
-            "gzip {}", "gz", m_config.start_compress,
-            layout);
+        return new AppendFile(file, layout);
     }
 
     configureLoggers!(Source, FileLayout, ConsoleLayout)

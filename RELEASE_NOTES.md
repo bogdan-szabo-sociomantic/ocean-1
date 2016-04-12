@@ -22,6 +22,25 @@ Migration Instructions
 
   Completely removed, use modules from ocean package.
 
+* `ocean.util.app.ext.LogExt`,
+  `ocean.util.app.ext.StatsExt`,
+  `ocean.util.log.Stats`,
+  `ocean.util.log.Config`
+
+  The `LogExt` and `StatsExt`, the `configureLoggers()` function in
+  `ocean.util.log.Config`, and the constructor of `StatsLog` no longer configure
+  the application's log files to automatically rotate themselves (via the
+  `AppendSyslog` appender in tango). Instead, it is expected that logs will be
+  rotated via the `logrotate` system facility in conjunction with the
+  `ReopenableFilesExt`. Programs which make use of loggers should be based on
+  ocean's `DaemonApp`, which provides all the facilities required for rotated
+  log files (see the [v1.26.0 release notes](https://github.com/sociomantic/ocean/releases/tag/v1.26.0)
+  for migration instructions).
+
+  The file-rotation-related fields or `StatsLog.Config` (that is,
+  `max_file_size`, `file_count`, `start_compress`) have been removed, along with
+  the corresponding `default_` constants in `StatsLog`.
+
 Deprecations
 ============
 

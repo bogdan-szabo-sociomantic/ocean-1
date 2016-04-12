@@ -36,7 +36,6 @@ import ocean.transition;
 import ocean.io.device.File;
 
 import ocean.util.log.Log;
-import ocean.util.log.AppendSyslog;
 
 
 
@@ -110,23 +109,13 @@ class StatsExt : IConfigExtExtension
     {
         Appender newAppender ( istring file, Appender.Layout layout )
         {
-            auto reopenable_files_ext =
-                (cast(Application)app).getExtension!(ReopenableFilesExt);
-
-            if ( reopenable_files_ext )
+            auto stream = new File(file, File.WriteAppending);
+            if ( auto reopenable_files_ext =
+                (cast(Application)app).getExtension!(ReopenableFilesExt) )
             {
-                auto stream = new File(file, File.WriteAppending);
                 reopenable_files_ext.register(stream);
-
-                return new AppendStream(stream, true, layout);
             }
-            else
-            {
-                auto file_count = castFrom!(size_t).to!(uint)(stats_config.file_count);
-                return new AppendSyslog(file, file_count,
-                    stats_config.max_file_size, "gzip {}", "gz",
-                    stats_config.start_compress, layout);
-            }
+            return new AppendStream(stream, true, layout);
         }
 
         return new StatsLog(stats_config, &newAppender);

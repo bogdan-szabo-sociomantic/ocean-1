@@ -48,7 +48,6 @@ import ocean.util.log.layout.LayoutStatsLog;
 import ocean.transition;
 import ocean.core.Traits;
 import ocean.util.log.Log;
-import ocean.util.log.AppendSyslog;
 
 import ocean.stdc.time : time_t;
 
@@ -97,6 +96,8 @@ version (UnitTest)
 
 public class StatsLog
 {
+    import ocean.util.log.AppendFile;
+
     /***************************************************************************
 
         Stats log config class
@@ -106,19 +107,10 @@ public class StatsLog
     public static class Config
     {
         public istring file_name;
-        public size_t max_file_size;
-        public size_t file_count;
-        public size_t start_compress;
 
-        public this ( istring file_name = default_file_name,
-            size_t max_file_size = default_max_file_size,
-            size_t file_count = default_file_count,
-            size_t start_compress = default_start_compress)
+        public this ( istring file_name = default_file_name )
         {
             this.file_name = file_name;
-            this.max_file_size = max_file_size;
-            this.file_count = file_count;
-            this.start_compress = start_compress;
         }
     }
 
@@ -130,10 +122,7 @@ public class StatsLog
     ***************************************************************************/
 
     public const time_t default_period = 30; // 30 seconds
-    public const default_file_count = 10;
-    public const default_max_file_size = 10 * 1024 * 1024; // 10Mb
     public const istring default_file_name = "log/stats.log";
-    public const size_t default_start_compress = 4;
 
 
     /***************************************************************************
@@ -178,10 +167,7 @@ public class StatsLog
     {
         Appender newAppender ( istring file, Appender.Layout layout )
         {
-            return new AppendSyslog(file,
-                castFrom!(size_t).to!(int)(config.file_count),
-                config.max_file_size, "gzip {}", "gz",
-                config.start_compress, layout);
+            return new AppendFile(file, layout);
         }
 
         this(config, &newAppender, name);
