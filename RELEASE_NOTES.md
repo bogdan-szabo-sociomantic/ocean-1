@@ -22,6 +22,14 @@ Migration Instructions
   This class no longer implements the `IMicrosecondsClock` interface, which is
   scheduled to be deprecated. All of its members are now static.
 
+* `ocean.core.Exception`
+
+  `ReusableExceptionImplementation` was changed to override `message` method
+  instead of `toString` to be more compatible with what D2 runtime expects
+  from exception `toString` methods. Use `ocean.transition.getMsg` helper
+  to reliably get exception message no matter what ocean version is used and
+  whenever it is D1 or D2.
+
 Deprecations
 ============
 
