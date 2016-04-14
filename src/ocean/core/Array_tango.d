@@ -2581,24 +2581,11 @@ else
         }
     }
 
-
-    template sort( Buf )
+    T[] sort ( T, Pred = IsLess!(T) )
+        ( T[] array, Pred pred = Pred.init )
     {
-        ElemTypeOf!(Buf)[] sort( Buf buf )
-        {
-            return sort_!(ElemTypeOf!(Buf)).fn( buf );
-        }
+        return sort_!(T, Pred).fn( array, pred );
     }
-
-
-    template sort( Buf, Pred )
-    {
-        ElemTypeOf!(Buf)[] sort( Buf buf, Pred pred )
-        {
-            return sort_!(ElemTypeOf!(Buf), Pred).fn( buf, pred );
-        }
-    }
-
 
     unittest
     {
@@ -2618,6 +2605,11 @@ else
         test( "the quick brown fox jumped over the lazy dog".dup );
         test( "abcdefghijklmnopqrstuvwxyz".dup );
         test( "zyxwvutsrqponmlkjihgfedcba".dup );
+
+        char[4] sarr;
+        sarr[] = "dbca"[];
+        sort(sarr);
+        assert(sarr == "abcd");
     }
 }
 

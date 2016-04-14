@@ -38,6 +38,12 @@ Migration Instructions
   `error`, and `fatal` to `stderr` and `info` and `trace` to `stdout`. This
   change of behaviour is not expected to affect any applications.
 
+* `ocean.core.Array_tango`
+
+  `sort` function was rewritten using a different template declaration so that
+  it forces the argument to be a dynamic array. This change affects both D1
+  and D2. It is not sure if this can cause any breakage
+
 Deprecations
 ============
 
