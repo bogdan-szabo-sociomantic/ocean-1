@@ -29,59 +29,8 @@
         3. Extensibility. Functionality is split into several modules, including
            a base class for easier reuse of components.
 
-    Usage example with various types stored in mapping:
-
-    ---
-
-        import ocean.util.container.map.HashMap;
-
-        // Mapping from hash_t -> int
-        auto map = new HashMap!(int);
-
-        hash_t hash = 232323;
-
-        // Add a mapping
-        *(map.put(hash)) = 12;
-
-        // Look up a mapping and obtain a pointer to the value if found or null
-        // if not found;
-        int* val = hash in map;
-
-        bool exists = val !is null;
-
-        // Remove a mapping
-        map.remove(hash);
-
-        // Clear the map
-        map.clear();
-
-        // Mapping from hash_t -> char[]
-        auto map2 = new HashMap!(char[]);
-
-        // Add a mapping
-        char[]* val2 = map2.put(hash);
-
-        (*val2).length = "hello".length;
-        (*val2)[]      = "hello";
-
-        // Mapping from hash_t -> struct
-        struct MyStruct
-        {
-            int x;
-            float y;
-        }
-
-        auto map3 = new HashMap!(MyStruct);
-
-        // Add a mapping, put() never returns null
-
-        with (*map3.put(hash))
-        {
-            x = 12;
-            y = 23.23;
-        }
-
-    ---
+    A usage example with various types stored in mappings is below in the
+    unit tests.
 
 *******************************************************************************/
 
@@ -246,7 +195,7 @@ public class HashMap ( V ) : Map!(V, hash_t)
             }
             else
             {
-                test!("==")(*map.get(key), V.init); // Value does not equal previously set value
+                test!("is")(*map.get(key), V.init); // Value does not equal previously set value
             }
 
             test(lengthIs(len + (should_exist ? 0 : 1)),
@@ -454,4 +403,56 @@ unittest
     HashMap!(char[]) hs;
     HashMap!(float) hf;
     HashMap!(Object) ho;
+}
+
+///
+unittest
+{
+    // Unittest that serves as a usage example
+    const expected_number_of_elements = 1_000;
+
+    // Mapping from hash_t -> int
+    auto map = new HashMap!(int)(expected_number_of_elements);
+
+    hash_t hash = 232323;
+
+    // Add a mapping
+    *(map.put(hash)) = 12;
+
+    // Look up a mapping and obtain a pointer to the value if found or null
+    // if not found;
+    int* val = hash in map;
+
+    bool exists = val !is null;
+
+    // Remove a mapping
+    map.remove(hash);
+
+    // Clear the map
+    map.clear();
+
+    // Mapping from hash_t -> char[]
+    auto map2 = new HashMap!(char[])(expected_number_of_elements);
+
+    // Add a mapping
+    char[]* val2 = map2.put(hash);
+
+    (*val2).length = "hello".length;
+    (*val2)[]      = "hello";
+
+    // Mapping from hash_t -> struct
+    struct MyStruct
+    {
+        int x;
+        float y;
+    }
+
+    auto map3 = new HashMap!(MyStruct)(expected_number_of_elements);
+
+    // Add a mapping, put() never returns null
+    with (*map3.put(hash))
+    {
+        x = 12;
+        y = 23.23;
+    }
 }
