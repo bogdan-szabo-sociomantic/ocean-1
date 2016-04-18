@@ -30,6 +30,14 @@ Migration Instructions
   to reliably get exception message no matter what ocean version is used and
   whenever it is D1 or D2.
 
+* `ocean.util.log.Config`
+
+  When the `console` flag of the `Config` instance is set to true, instead of
+  creating an `AppendConsole` appender, `configureLoggers()`,  now creates an
+  `AppendStderrStdout`. This new log appender writes messages for levels `warn`,
+  `error`, and `fatal` to `stderr` and `info` and `trace` to `stdout`. This
+  change of behaviour is not expected to affect any applications.
+
 Deprecations
 ============
 
