@@ -34,6 +34,8 @@ TEST_FILTER_OUT += \
 
 ifeq ($(DVER),1)
 override DFLAGS := $(filter-out -di,$(DFLAGS)) -v2 -v2=-static-arr-params -v2=-volatile
+else
+override DFLAGS += -de
 endif
 
 $O/test-filesystemevent: override LDFLAGS += -lrt
