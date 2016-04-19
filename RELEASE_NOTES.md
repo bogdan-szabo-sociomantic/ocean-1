@@ -181,3 +181,8 @@ New Features
 * `ocean.util.cipher.MessageDigest`
 
   Convenience wrapper for libgcrypt message digest functions with HMAC support.
+
+* `ocean.util.log.AppendStderrStdout`
+
+  This new log appender writes messages for levels `warn`, `error`, and `fatal`
+  to `stderr` and `info` and `trace` to `stdout`.
