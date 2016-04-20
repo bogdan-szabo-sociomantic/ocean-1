@@ -90,7 +90,7 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    private char[] path;
+    private mstring path;
 
     /***************************************************************************
 
@@ -107,7 +107,7 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    private char[] index_path;
+    private mstring index_path;
 
     /***************************************************************************
 
@@ -212,7 +212,7 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    public this ( char[] path, size_t size, bool open_existing = false )
+    public this ( cstring path, size_t size, bool open_existing = false )
     {
         this.path  = path.dup;
         this.index_path = path.dup ~ IndexExtension;
@@ -556,7 +556,7 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    private bool filePush ( ubyte[] item )
+    private bool filePush ( in ubyte[] item )
     in
     {
         assert ( item.length <= this.size, "Pushed item will not fit read buffer");
