@@ -94,6 +94,14 @@ public class FlexibleFileQueue : IByteQueue
 
     /***************************************************************************
 
+        Extension of the index file (appended to `path`)
+
+    ***************************************************************************/
+
+    private const istring IndexExtension = ".index";
+
+    /***************************************************************************
+
         Path to the index file to write to if we want to be able to reopen
         any saved data files
 
@@ -207,7 +215,7 @@ public class FlexibleFileQueue : IByteQueue
     public this ( char[] path, size_t size, bool open_existing = false )
     {
         this.path  = path.dup;
-        this.index_path = path.dup ~ ".index";
+        this.index_path = path.dup ~ IndexExtension;
         this.size = size;
         this.open_existing = open_existing;
 
