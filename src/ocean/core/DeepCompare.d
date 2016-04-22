@@ -38,14 +38,14 @@ import ocean.transition;
 
 private template needsSpecialCompare(T)
 {
-    static if ( is( typeof(T[0]) ) )
+    static if ( is(T V : V[]) )
     {
         // T is an array. Strip off all of the [] to get
         // the ultimate element type.
 
         enum
         {
-            needsSpecialCompare = needsSpecialCompare!(typeof(T[0]))
+            needsSpecialCompare = needsSpecialCompare!(V)
         };
     }
     else
@@ -195,6 +195,11 @@ unittest
        double x;
     }
 
+    struct S5
+    {
+       double[] x;
+    }
+
     S0 a, b;
     assert(deepEquals(a, b));
     S1 a1, b1;
@@ -216,4 +221,7 @@ unittest
     S4 a4;
     a4.x = double.nan;
     assert(deepEquals(a4, a4));
+    S5 a5;
+    a5.x ~= double.nan;
+    assert(deepEquals(a5, a5));
 }
