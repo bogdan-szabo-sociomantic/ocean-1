@@ -200,3 +200,10 @@ New Features
 
   This new log appender writes messages for levels `warn`, `error`, and `fatal`
   to `stderr` and `info` and `trace` to `stdout`.
+
+* `ocean.util.container.queue.FlexibleFileQueue`
+
+  The static function `exists()` has been added, allowing to check for the
+  presence of a file and the corresponding index file at a specified location.
+  This is useful if you want to open a file queue, if one already exists, but
+  otherwise do nothing.
