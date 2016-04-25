@@ -31,6 +31,8 @@ module ocean.io.select.EpollSelectDispatcher;
 
 *******************************************************************************/
 
+import ocean.transition;
+
 import ocean.io.select.selector.IEpollSelectDispatcherInfo;
 import ocean.io.select.client.model.ISelectClient;
 
