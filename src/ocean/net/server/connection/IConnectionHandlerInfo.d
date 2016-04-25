@@ -25,6 +25,10 @@ import ocean.io.model.IConduit: ISelectable;
 
 public interface IConnectionHandlerInfo
 {
+    // The following import must be removed when the deprecated constructors
+    // will be removed.
+    import ocean.sys.socket.model.IAddressIPSocketInfo;
+
     /***************************************************************************
 
         Tells whether an I/O error has been reported for the socket since the
@@ -38,6 +42,18 @@ public interface IConnectionHandlerInfo
 
     bool io_error ( );
 
+    /***************************************************************************
+
+        Returns:
+            informational interface to the socket used by this connection
+            handler
+
+    ***************************************************************************/
+
+    deprecated("Please use `connected` or `fileHandle` instead. "
+    "If `address` or `port` is needed, define a socket and use "
+    " `socket.address` or `socket.port` instead. See release notes.")
+    IAddressIPSocketInfo socket_info ( );
 
     /***************************************************************************
 
