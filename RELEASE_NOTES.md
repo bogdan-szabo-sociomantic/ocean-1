@@ -11,7 +11,7 @@ Migration Instructions
 
 * `ocean.text.Ascii`
 
-  `toLower` and `toUpper` functions have been changed to expect a buffer 
+  `toLower` and `toUpper` functions have been changed to expect a buffer
   array as a second argument (it will be expanded if necessary). Previously
   it required a pre-allocated slice of necessary size. As a side effect,
   any code that uses static array as second argument will stop compiling and
@@ -154,7 +154,7 @@ New Features
 * `ocean.sys.Process`
 
   D2 only. Now can use pre-existing `istring[] arguments` array directly without
-  having developer to re-create it as `cstring[] arguments` array manually. 
+  having developer to re-create it as `cstring[] arguments` array manually.
 
 * `ocean.util.container.queue.LinkedListQueue`
 
