@@ -332,7 +332,7 @@ class HttpResponse : HttpHeader
 
      **************************************************************************/
 
-    private static class AppendHeaderLines
+    protected static class AppendHeaderLines
     {
         /**********************************************************************
 

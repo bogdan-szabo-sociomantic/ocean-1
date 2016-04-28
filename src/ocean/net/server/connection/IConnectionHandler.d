@@ -45,12 +45,12 @@ debug ( ConnectionHandler ) import ocean.io.Stdout : Stderr;
 abstract class IConnectionHandler : IConnectionHandlerInfo,
     IAdvancedSelectClient.IErrorReporter
 {
-    import ocean.sys.socket.model.ISocket;
+    protected import ocean.sys.socket.model.ISocket;
 
     // The following 2 imports must be removed when the deprecated constructors
     // will be removed
-    import ocean.sys.socket.AddressIPSocket;
-    import ocean.sys.socket.model.IAddressIPSocketInfo;
+    protected import ocean.sys.socket.AddressIPSocket;
+    protected import ocean.sys.socket.model.IAddressIPSocketInfo;
 
     /***************************************************************************
 

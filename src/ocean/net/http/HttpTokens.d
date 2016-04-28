@@ -330,7 +330,7 @@ class HttpTokens
 
         **********************************************************************/
 
-        private static class FilteredTokens
+        protected static class FilteredTokens
         {
                 private cstring         match;
                 private HttpTokens      tokens;
