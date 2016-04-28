@@ -663,7 +663,7 @@ public istring genOpEquals(istring func_body)
     }
     else
     {
-        result ~= "int opEquals(S rhs)\n";
+        result ~= "int opEquals(typeof(*this) rhs)\n";
     }
     result ~= func_body;
     result ~= "\n}\n";
