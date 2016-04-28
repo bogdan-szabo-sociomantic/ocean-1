@@ -22,5 +22,10 @@ Deprecations
   probably have to implement the functionality yourself (or look for similar
   functionality in other `ocean.time` modules).
 
+* `ocean.util.VariadicArg`
+
+  This module is only used by one team and has been moved to Thrusterproto.
+
+
 New Features
 ============

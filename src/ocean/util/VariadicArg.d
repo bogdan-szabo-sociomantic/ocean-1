@@ -59,6 +59,9 @@
 
 module ocean.util.VariadicArg;
 
+pragma(msg, "Module ocean.util.VariadicArg is deprecated and will be removed ",
+       "in ocean v2.0.0.");
+
 version (DigitalMars) version (X86_64):
 
 /*******************************************************************************
@@ -75,7 +78,7 @@ public  import ocean.stdc.stdarg: __va_argsave_t, __va_list, va_list;
 
 *******************************************************************************/
 
-scope class VaList : IVaList
+deprecated scope class VaList : IVaList
 {
     /***************************************************************************
 
@@ -218,7 +221,7 @@ scope class VaList : IVaList
     }
 }
 
-scope class TypeInfoVaList : IVaList
+deprecated scope class TypeInfoVaList : IVaList
 {
     /***************************************************************************
 
@@ -458,7 +461,7 @@ scope class TypeInfoVaList : IVaList
 
 *******************************************************************************/
 
-abstract scope class IVaList
+deprecated abstract scope class IVaList
 {
     /***************************************************************************
 
