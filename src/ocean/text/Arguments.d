@@ -784,7 +784,7 @@ public class Arguments
 
     ***************************************************************************/
 
-    private istring[] msgs;
+    private Const!(istring)[] msgs;
 
 
     /***************************************************************************
@@ -793,7 +793,7 @@ public class Arguments
 
     ***************************************************************************/
 
-    private static istring[] errmsg = [
+    private const istring[] errmsg = [
         "argument '{0}' expects {2} parameter(s) but has {1}\n",
         "argument '{0}' expects {3} parameter(s) but has {1}\n",
         "argument '{0}' is missing\n",
@@ -923,7 +923,7 @@ public class Arguments
 
     ***************************************************************************/
 
-    public bool parse ( istring[] input, bool sloppy = false )
+    public bool parse ( Const!(istring)[] input, bool sloppy = false )
     {
         bool done;
         int error;
@@ -1009,7 +1009,7 @@ public class Arguments
 
     public Argument get ( char name )
     {
-        return get(cast(istring)(&name)[0 .. 1]);
+        return get(cast(cstring)(&name)[0 .. 1]);
     }
 
 
@@ -1126,7 +1126,7 @@ public class Arguments
 
     ***************************************************************************/
 
-    public Arguments errors ( istring[] errors )
+    public Arguments errors ( Const!(istring)[] errors )
     {
         if ( errors.length is errmsg.length )
         {
@@ -1734,7 +1734,7 @@ public class Arguments
 
         ***********************************************************************/
 
-        public istring[] options;
+        public Const!(istring)[] options;
 
 
         /***********************************************************************
@@ -1743,7 +1743,7 @@ public class Arguments
 
         ***********************************************************************/
 
-        public istring[] deefalts;
+        public Const!(istring)[] deefalts;
 
 
         /***********************************************************************
@@ -1873,7 +1873,7 @@ public class Arguments
 
         ***********************************************************************/
 
-        public istring[] assigned ( )
+        public Const!(istring)[] assigned ( )
         {
             return values.length ? values : deefalts;
         }
@@ -2285,7 +2285,7 @@ public class Arguments
 
         ***********************************************************************/
 
-        public Argument restrict ( istring[] options ... )
+        public Argument restrict ( Const!(istring)[] options ... )
         {
             this.options = options;
 
@@ -2644,4 +2644,23 @@ unittest
     args("num").params(1);
     assert(args.parse("--num 100"));
     assert(args.getInt!(uint)("num") == 100);
+}
+
+// Test for D2 'static immutable'
+unittest
+{
+    const istring name_ = "encode";
+    const istring conflicts_ = "decode";
+    const istring[] restrict_ = [ "json", "yaml" ];
+    const istring requires_ = "input";
+    const istring help_ = "Convert from native format to JSON/Yaml";
+
+    auto args = new Arguments;
+    args(name_)
+        .params(1)
+        .conflicts(conflicts_)
+        .restrict(restrict_)
+        .requires(requires_)
+        .help(help_);
+
 }
