@@ -75,15 +75,9 @@ import ocean.util.container.pool.model.IPoolInfo;
 
 import ocean.text.convert.Format;
 
-import ocean.net.device.Socket,
-       ocean.net.device.Berkeley: IPv4Address;
-
-import ocean.stdc.posix.sys.socket: accept, SOL_SOCKET, SO_ERROR, SO_REUSEADDR;
-
-import ocean.stdc.posix.unistd:     close;
 import ocean.stdc.errno:            errno;
 
-import ocean.sys.socket.AddressIPSocket;
+import ocean.sys.socket.model.ISocket;
 
 import ocean.io.select.protocol.generic.ErrnoIOException: SocketError;
 
@@ -113,14 +107,19 @@ static this ( )
 
 abstract class ISelectListener : ISelectClient
 {
+    import ocean.stdc.posix.sys.socket: accept, SOL_SOCKET, SO_ERROR,
+                                        SO_REUSEADDR, sockaddr;
+    import ocean.stdc.posix.netinet.in_: SOCK_STREAM;
+    import ocean.stdc.posix.unistd:     close;
+
     /**************************************************************************
 
-        IP socket, memorises the address most recently passed to bind() or
+        Socket, memorises the address most recently passed to bind() or
         connect() or obtained by accept().
 
      **************************************************************************/
 
-    private AddressIPSocket!() socket;
+    private ISocket socket;
 
     /**************************************************************************
 
@@ -142,11 +141,27 @@ abstract class ISelectListener : ISelectClient
 
         Constructor
 
-        Creates the server socket and registers it for incoming connections.
+        Creates the server socket -- a streaming socket of the family (aka
+        "domain") specified in `address` and the protocol according to
+        `protocol` -- and registers it for incoming connections.
+
+        `address.sa_family` and `protocol` are passed to `socket(2)` together
+        with the `SOCK_STREAM` type, so the socket family defined by
+        `address.sa_family` is required to support streaming, and `protocol`
+        needs to be a streaming protocol. Socket families supporting streaming
+        include IPv4/IPv6 and UNIX domain sockets (`AF_LOCAL`).
+        `protocol == 0` makes `socket(2)` pick the default streaming protocol
+        for `address.sa_family`. For IPv4/IPv6 the default protocol is TCP.
+        UNIX domain sockets and some other families support only one streaming
+        protocol so for those the default is unambiguous.
+
+        Standards:
+        Posix = http://pubs.opengroup.org/onlinepubs/9699919799/functions/socket.html
+        Linux = http://linux.die.net/man/2/socket
 
         Params:
-            address    = server address
-            port       = server port
+            address    = the socket address and family, must support streaming
+            socket     = the server socket
             backlog    = the maximum length to which the queue of pending
                 connections for sockfd may grow. If a connection request arrives
                 when the queue is full, the client may receive an error with an
@@ -154,63 +169,26 @@ abstract class ISelectListener : ISelectClient
                 supports retransmission, the request may be ignored so that a
                 later reattempt at connection succeeds.
                 (from http://linux.die.net/man/2/listen)
+            protocol   = the socket protocol, for a streaming socket of the
+                family specified in address, or 0 to use the default protocol
+                for a streaming socket of the specified family
 
      **************************************************************************/
 
-    protected this ( cstring address, ushort port, int backlog = 32 )
+    protected this ( sockaddr* address, ISocket socket, int backlog = 32,
+        int protocol= 0)
     {
-        this();
-
-        this.e.assertExSock(!this.socket.bind(address, port),
-                            "error binding socket", __FILE__, __LINE__);
-
-        this.e.assertExSock(!this.socket.listen(backlog),
-                            "error listening on socket", __FILE__, __LINE__);
-
-        this.e.assertExSock(this.socket.updateAddress() == 0,
-                            "error updating address", __FILE__, __LINE__);
-    }
-
-    /**************************************************************************
-
-        Constructor
-
-        Creates the server socket and registers it for incoming connections.
-
-        Params:
-            port       = server port
-            backlog    = (see ctor above)
-
-     **************************************************************************/
-
-    protected this ( ushort port, int backlog = 32 )
-    {
-        this();
-
-        this.e.assertExSock(!this.socket.bind(port),
-                            "error binding socket", __FILE__, __LINE__);
-
-        this.e.assertExSock(!this.socket.listen(backlog),
-                            "error listening on socket", __FILE__, __LINE__);
-
-        this.e.assertExSock(this.socket.updateAddress() == 0,
-                            "error updating address", __FILE__, __LINE__);
-    }
-
-    /**************************************************************************
-
-        Internal constructor.
-
-     **************************************************************************/
-
-    private this ( )
-    {
-        this.socket = new AddressIPSocket!();
+        this.socket = socket;
 
         this.e = new SocketError(this.socket);
 
+        // SOCK_NONBLOCK is a Linux extension, which can be combined with the
+        // actual second argument (SOCK_STREAM) in order to mark the
+        // I/O operations to the socket as non-blocking.
         this.e.enforce(
-            this.socket.tcpSocket(true) >= 0,
+            this.socket.socket(address.sa_family,
+                SOCK_STREAM | SocketFlags.SOCK_NONBLOCK,
+                protocol) >= 0,
             "error creating socket"
         );
 
@@ -218,6 +196,12 @@ abstract class ISelectListener : ISelectClient
             !this.socket.setsockoptVal(SOL_SOCKET, SO_REUSEADDR, true),
             "error enabling reuse of address"
         );
+
+        this.e.assertExSock(!this.socket.bind(address),
+                            "error binding socket", __FILE__, __LINE__);
+
+        this.e.assertExSock(!this.socket.listen(backlog),
+                            "error listening on socket", __FILE__, __LINE__);
     }
 
     /**************************************************************************
@@ -246,20 +230,6 @@ abstract class ISelectListener : ISelectClient
     public override Handle fileHandle ( )
     {
         return this.socket.fileHandle;
-    }
-
-    /**************************************************************************
-
-        Obtains the port number this listener is listening on
-
-        Returns:
-            the current port number.
-
-     **************************************************************************/
-
-    public ushort port ( )
-    {
-        return this.socket.port();
     }
 
     /**************************************************************************
@@ -442,7 +412,8 @@ abstract class ISelectListener : ISelectClient
 
     private void declineConnection ( )
     {
-        if (.close(.accept(this.socket.fileHandle, null, null))) // returns non-zero on failure
+        // This is using the C binding
+        if (close(accept(this.socket.fileHandle, null, null))) // returns non-zero on failure
         {
             .errno = 0;
         }
@@ -491,36 +462,17 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
         Creates the server socket and registers it for incoming connections.
 
         Params:
-            address    = server address
-            port       = listening port
+            address    = the addres of the socket
+            socket     = the server socket
+            dispatcher = SelectDispatcher instance to use
             args       = additional T constructor arguments, might be empty
             backlog    = (see ISelectListener ctor)
 
      **************************************************************************/
 
-    public this ( cstring address, ushort port, Args args, int backlog = 32 )
+    public this ( sockaddr* address, ISocket socket, Args args, int backlog = 32 )
     {
-        super(address, port, backlog);
-
-        this.receiver_pool = new ConnPool(&this.returnToPool, args);
-    }
-
-    /**************************************************************************
-
-        Constructor
-
-        Creates the server socket and registers it for incoming connections.
-
-        Params:
-            port       = listening port
-            args       = additional T constructor arguments, might be empty
-            backlog    = (see ISelectListener ctor)
-
-     **************************************************************************/
-
-    public this ( ushort port, Args args, int backlog = 32 )
-    {
-        super(port, backlog);
+        super(address, socket, backlog);
 
         this.receiver_pool = new ConnPool(&this.returnToPool, args);
     }
@@ -702,54 +654,4 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
 
         this.receiver_pool.recycle(cast (T) connection);
     }
-}
-
-version ( UnitTest )
-{
-    import ocean.core.Test;
-
-    class DummyConHandler : IConnectionHandler
-    {
-        this ( void delegate ( IConnectionHandler instance ) ) { super(null, null); }
-        override protected bool io_error() { return true; }
-        override public void handleConnection () {}
-    }
-
-    ushort testPort ( ushort port )
-    {
-        auto listener = new SelectListener!(DummyConHandler)(port);
-
-        scope (exit) listener.shutdown();
-
-        test(listener.port() != 0, "Did not correctly query bounded port from OS");
-
-        test(port == 0 || listener.port() == port,
-             "Didn't bind to expected port!");
-
-        return listener.port();
-    }
-}
-
-unittest
-{
-    auto port = testPort(0);
-
-    port++;
-
-    // If the port we're testing happens to be taken, try the next one
-    // give up after 10 tries
-    for ( size_t i = 0; i < 10; ++i ) try
-    {
-        port = testPort(port);
-        return;
-    }
-    catch ( SocketError e )
-    {
-        port += i;
-    }
-
-    Log.lookup("ocean.net.server.SelectListener").warn
-                  ("FLAKEY: "
-                   "Failed to perform test of binding to a "
-                   "specific port after 10 tries");
 }

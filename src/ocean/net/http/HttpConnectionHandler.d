@@ -35,6 +35,7 @@ import ocean.net.http.consts.HeaderFieldNames;
 import ocean.net.server.connection.IFiberConnectionHandler,
        ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
 
+import ocean.sys.socket.AddressIPSocket;
 import ocean.sys.ErrnoException;
 import ocean.core.Enforce;
 
@@ -152,7 +153,8 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
                      HttpRequest request, HttpResponse response,
                      HttpMethod[] supported_methods ... )
     {
-        super(dispatcher, stack_size, finalizer);
+
+        super(dispatcher, stack_size, new AddressIPSocket!(), finalizer);
 
         this.request  = request;
         this.response = response;

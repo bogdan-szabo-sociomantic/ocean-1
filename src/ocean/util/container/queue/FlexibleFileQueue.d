@@ -90,7 +90,15 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    private char[] path;
+    private mstring path;
+
+    /***************************************************************************
+
+        Extension of the index file (appended to `path`)
+
+    ***************************************************************************/
+
+    private const istring IndexExtension = ".index";
 
     /***************************************************************************
 
@@ -99,7 +107,7 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    private char[] index_path;
+    private mstring index_path;
 
     /***************************************************************************
 
@@ -204,15 +212,14 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    public this ( char[] path, size_t size, bool open_existing = false )
+    public this ( cstring path, size_t size, bool open_existing = false )
     {
         this.path  = path.dup;
-        this.index_path = path.dup ~ ".index";
+        this.index_path = path.dup ~ IndexExtension;
         this.size = size;
         this.open_existing = open_existing;
 
-        if ( this.open_existing && Filesystem.exists(this.path) &&
-            Filesystem.exists(this.index_path) )
+        if ( this.open_existing && this.exists(this.path) )
         {
             this.file_out = new File(this.path, File.WriteAppending);
             this.file_index = new File(this.index_path, File.ReadWriteExisting);
@@ -235,6 +242,30 @@ public class FlexibleFileQueue : IByteQueue
         this.ext_in.seek(this.file_out.length - this.bytes_in_file);
 
         this.files_open = true;
+    }
+
+
+    /***************************************************************************
+
+        Checks whether a file and the associated index file exist at the
+        specified path.
+
+        Note that this function allocates on every call! It is only intended to
+        be called during application startup.
+
+        Params:
+            path = path to check (".index" is appended to check for the
+                corresponding index file)
+
+        Returns:
+            true if the specified file and index file exist
+
+    ***************************************************************************/
+
+    public static bool exists ( cstring path )
+    {
+        return Filesystem.exists(path)
+            && Filesystem.exists(path ~ IndexExtension);
     }
 
 
@@ -548,7 +579,7 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    private bool filePush ( ubyte[] item )
+    private bool filePush ( in ubyte[] item )
     in
     {
         assert ( item.length <= this.size, "Pushed item will not fit read buffer");

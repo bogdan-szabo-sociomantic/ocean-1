@@ -27,9 +27,6 @@ import ocean.io.select.client.model.ISelectClient : IAdvancedSelectClient;
 
 import ocean.io.select.protocol.generic.ErrnoIOException: SocketError;
 
-import ocean.sys.socket.IPSocket;
-import ocean.sys.socket.AddressIPSocket;
-
 import ocean.io.device.IODevice: IInputDevice, IOutputDevice;
 
 import ocean.text.convert.Format;
@@ -48,6 +45,8 @@ debug ( ConnectionHandler ) import ocean.io.Stdout : Stderr;
 abstract class IConnectionHandler : IConnectionHandlerInfo,
     IAdvancedSelectClient.IErrorReporter
 {
+    import ocean.sys.socket.model.ISocket;
+
     /***************************************************************************
 
         Object pool index.
@@ -62,8 +61,6 @@ abstract class IConnectionHandler : IConnectionHandlerInfo,
 
     ***************************************************************************/
 
-    public alias .AddressIPSocket!() AddressIPSocket;
-
     public alias .EpollSelectDispatcher EpollSelectDispatcher;
 
     protected alias IAdvancedSelectClient.Event Event;
@@ -74,7 +71,7 @@ abstract class IConnectionHandler : IConnectionHandlerInfo,
 
     ***************************************************************************/
 
-    protected AddressIPSocket socket;
+    protected ISocket socket;
 
     /***************************************************************************
 
@@ -139,14 +136,15 @@ abstract class IConnectionHandler : IConnectionHandlerInfo,
         Constructor
 
         Params:
+            socket       = the socket
             error_dg_    = optional user-specified error handler, called when a
                            connection error occurs
 
      ***************************************************************************/
 
-    protected this ( ErrorDg error_dg_ = null )
+    protected this ( ISocket socket, ErrorDg error_dg_ = null )
     {
-        this(null, error_dg_);
+        this(socket, null, error_dg_);
     }
 
     /***************************************************************************
@@ -154,6 +152,7 @@ abstract class IConnectionHandler : IConnectionHandlerInfo,
         Constructor
 
         Params:
+            socket       = the socket
             finalize_dg_ = optional user-specified finalizer, called when the
                            connection is shut down
             error_dg_    = optional user-specified error handler, called when a
@@ -161,12 +160,15 @@ abstract class IConnectionHandler : IConnectionHandlerInfo,
 
     ***************************************************************************/
 
-    protected this ( FinalizeDg finalize_dg_ = null, ErrorDg error_dg_ = null )
+    protected this ( ISocket socket, FinalizeDg finalize_dg_ = null,
+        ErrorDg error_dg_ = null )
     {
+        assert(socket !is null);
+
         this.finalize_dg_ = finalize_dg_;
         this.error_dg_ = error_dg_;
 
-        this.socket = new AddressIPSocket;
+        this.socket = socket;
 
         this.socket_error = new SocketError(this.socket);
 
@@ -245,17 +247,14 @@ abstract class IConnectionHandler : IConnectionHandlerInfo,
 
     /***************************************************************************
 
-        IConnectionHandlerInfo method.
-
         Returns:
-            informational interface to the socket used by this connection
-            handler
+            I/O device instance (file descriptor under linux)
 
     ***************************************************************************/
 
-    public IAddressIPSocketInfo socket_info ( )
+    public ISelectable.Handle fileHandle ( )
     {
-        return this.socket;
+        return this.socket.fileHandle;
     }
 
     /***************************************************************************
@@ -384,9 +383,8 @@ abstract class IConnectionHandler : IConnectionHandlerInfo,
 
     public void formatInfo ( ref char[] buf )
     {
-        Format.format(buf, "fd={}, remote={}:{}, ioerr={}",
-            this.socket_info.fileHandle, this.socket_info.address,
-            this.socket_info.port, this.io_error);
+        Format.format(buf, "fd={}, ioerr={}",
+            this.fileHandle, this.io_error);
     }
 
     /***************************************************************************

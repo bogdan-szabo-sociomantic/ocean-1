@@ -34,9 +34,13 @@ extern (C):
  */
 ebpt_node* ebim_lookup(ebpt_node* root, void *x, uint len);
 
-/* Insert ebpt_node <new> into subtree starting at node root <root>.
- * Only new->key needs be set with the key. The ebpt_node is returned.
- * If root->b[EB_RGHT]==1, the tree may only contain unique keys. The
- * len is specified in bytes.
+/*
+ * Insert ebpt_node <neww> into subtree starting at node root <root>, unless
+ * <root> is tagged to allow adding unique keys only, i.e. root->b[EB_RGHT]==1,
+ * and a node with neww.key already exists.
+ * The len is specified in bytes.
+ * Returns <neww> if added or the existing node if attempting to add a duplicate
+ * and <root> is tagged to accept unique keys only.
  */
+
 ebpt_node* ebim_insert(ebpt_node* root, ebpt_node* neww, uint len);

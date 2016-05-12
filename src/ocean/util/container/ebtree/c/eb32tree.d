@@ -126,15 +126,19 @@ eb32_node* eb32_lookup_le(eb_root* root, uint x);
 eb32_node* eb32_lookup_ge(eb_root* root, uint x);
 
 /**
- * Insert eb32_node <new> into subtree starting at node root <root>.
- * Only new->key needs be set with the key. The eb32_node is returned.
- * If root->b[EB_RGHT]==1, the tree may only contain unique keys.
+ * Insert eb32_node <neww> into subtree starting at node root <root>, unless
+ * <root> is tagged to allow adding unique keys only, i.e. root->b[EB_RGHT]==1,
+ * and a node with neww.key already exists.
+ * Returns <neww> if added or the existing node if attempting to add a duplicate
+ * and <root> is tagged to accept unique keys only.
  */
 eb32_node* eb32_insert(eb_root* root, eb32_node* neww);
 
 /**
- * Insert eb32_node <new> into subtree starting at node root <root>, using
- * signed keys. Only new->key needs be set with the key. The eb32_node
- * is returned. If root->b[EB_RGHT]==1, the tree may only contain unique keys.
+ * Insert eb32_node <neww> into subtree starting at node root <root>, unless
+ * <root> is tagged to allow adding unique keys only, i.e. root->b[EB_RGHT]==1,
+ * and a node with neww.key already exists.
+ * Returns <neww> if added or the existing node if attempting to add a duplicate
+ * and <root> is tagged to accept unique keys only.
  */
 eb32_node* eb32i_insert(eb_root* root, eb32_node* neww);

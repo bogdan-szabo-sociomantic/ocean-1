@@ -19,6 +19,7 @@
         [LOG.LoggerName]
 
         ; Whether to output to the terminal
+        ; warn, error, and fatal are written to stderr, info and trace to stdout
         console   = true
 
         ; File to output to, no output to file if not given
@@ -89,7 +90,7 @@ import ocean.text.util.StringSearch;
 
 import ocean.util.log.Log;
 import ocean.util.log.InsertConsole;
-import ocean.util.log.AppendConsole;
+import ocean.util.log.AppendStderrStdout;
 
 // Log layouts
 import ocean.util.log.layout.LayoutMessageOnly;
@@ -442,7 +443,7 @@ public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
             }
             else
             {
-                log.add(new AppendConsole(console_log_layout));
+                log.add(new AppendStderrStdout(Level.Warn, console_log_layout));
             }
         }
 

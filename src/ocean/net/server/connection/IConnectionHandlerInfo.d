@@ -20,21 +20,11 @@ module ocean.net.server.connection.IConnectionHandlerInfo;
 
 *******************************************************************************/
 
-import ocean.sys.socket.model.IAddressIPSocketInfo;
-
+import ocean.io.model.IConduit: ISelectable;
 
 
 public interface IConnectionHandlerInfo
 {
-    /***************************************************************************
-
-        IAddressIPSocketInfo convenience alias.
-
-    ***************************************************************************/
-
-    alias .IAddressIPSocketInfo IAddressIPSocketInfo;
-
-
     /***************************************************************************
 
         Tells whether an I/O error has been reported for the socket since the
@@ -52,13 +42,21 @@ public interface IConnectionHandlerInfo
     /***************************************************************************
 
         Returns:
-            informational interface to the socket used by this connection
-            handler
+            true if a client connection is currently established or false if
+            not.
 
     ***************************************************************************/
 
-    IAddressIPSocketInfo socket_info ( );
+    public bool connected ( );
 
+    /***************************************************************************
+
+        Returns:
+            I/O device instance (file descriptor under linux)
+
+    ***************************************************************************/
+
+    public ISelectable.Handle fileHandle ( );
 
     /***************************************************************************
 
@@ -73,4 +71,3 @@ public interface IConnectionHandlerInfo
 
     void formatInfo ( ref char[] buf );
 }
-
