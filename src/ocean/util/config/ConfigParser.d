@@ -125,33 +125,52 @@ class ConfigParser
 {
     /***************************************************************************
 
-        Variable Iterator. Iterates over variables of a category
+        Variable Iterator. Iterates over keys or key/value pairs of a category.
+        The values are converted to T, unless T is istring.
 
     ***************************************************************************/
 
-    public struct VarIterator
+    public struct VarIterator ( T = istring )
     {
         ValueNode[istring]* vars;
 
 
         /***********************************************************************
 
-            Variable Iterator. Iterates over variables of a category
+            Variable Iterator. Iterates over key/value pairs of a category.
 
         ***********************************************************************/
 
-        public int opApply ( int delegate ( ref istring x ) dg )
+        public int opApply ( int delegate ( ref istring key, ref T val ) dg )
         {
             if ( this.vars !is null )
             {
-                foreach ( key, val; *this.vars )
+                foreach ( key, valnode; *this.vars )
                 {
-                    if ( int result = dg(key) )
+                    auto val = conv!(T)(valnode.value);
+
+                    if ( int result = dg(key, val) )
                         return result;
                 }
             }
 
             return 0;
+        }
+
+
+        /***********************************************************************
+
+            Variable Iterator. Iterates over keys of a category.
+
+        ***********************************************************************/
+
+        public int opApply ( int delegate ( ref istring x ) dg )
+        {
+            return this.opApply(
+                (ref istring key, ref istring val)
+                {
+                    return dg(key);
+                });
         }
     }
 
@@ -283,19 +302,20 @@ class ConfigParser
 
     /***************************************************************************
 
-        Variable Iterator. Iterates over variables of a category
+        Returns an iterator over keys or key/value pairs in a category.
+        The values are converted to T, unless T is istring.
 
         Params:
             category = category to iterate over
 
         Returns:
-            iterator
+            an iterator over the keys or key/value pairs in category.
 
     ***************************************************************************/
 
-    public VarIterator iterateCategory ( cstring category )
+    public VarIterator!(T) iterateCategory ( T = istring ) ( cstring category )
     {
-        return VarIterator(category in this.properties);
+        return VarIterator!(T)(category in this.properties);
     }
 
 

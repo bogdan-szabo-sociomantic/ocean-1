@@ -137,3 +137,10 @@ New Features
   constructor argument. In that case, the timer scheduler will use the global
   epoll instance defined by `ocean.task.Scheduler` for all event
   (de)registration.
+
+ * `ocean.util.config.ConfigParser`
+
+   The iterator returned by `iterateCategory()` now supports `foreach` iteration
+   over the values, too. The type of the values of the category can be
+   specified as a template parameter; all values are then converted to that
+   type during iteration.
