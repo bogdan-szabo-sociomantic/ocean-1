@@ -142,21 +142,16 @@ class ConfigParser
 
         public int opApply ( int delegate ( ref istring x ) dg )
         {
-            int result = 0;
-
-            if ( vars is null )
+            if ( this.vars !is null )
             {
-                return result;
+                foreach ( key, val; *this.vars )
+                {
+                    if ( int result = dg(key) )
+                        return result;
+                }
             }
 
-            foreach ( key, val; *vars )
-            {
-                result = dg(key);
-
-                if ( result ) break;
-            }
-
-            return result;
+            return 0;
         }
     }
 
