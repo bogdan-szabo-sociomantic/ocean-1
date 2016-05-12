@@ -1,0 +1,10 @@
+For all practical purposes you can consider this project to be distributed
+under Tango 3-Clause BSD License.
+
+All files written by Sociomantic Labs GmbH that are free from Tango code are
+distributed under a dual license: Tango 3-Clause BSD License and Boost Software
+License Version 1.0 too. Please consult file's headers to see if only the BSD
+license applies or if it's dual-licensed if you want to use the Boost license.
+
+For the complete license text, please consult the files LICENSE_BSD.txt and
+LICENSE_BOOST.txt respectively.
