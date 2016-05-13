@@ -38,8 +38,8 @@ abstract public class ISuspendableThrottler
 {
     import ocean.io.model.ISuspendable;
 
-    import ocean.core.Array : contains, remove;
-
+    import ocean.core.array.Mutation : remove;
+    import ocean.core.array.Search : contains;
 
     /***************************************************************************
 

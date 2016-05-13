@@ -773,7 +773,8 @@ unittest
             {
                 int[] result, match;
                 match ~= value;
-                this.expected_values = .remove(this.expected_values, match, result);
+                this.expected_values = ocean.core.array.Transformation.remove(
+                    this.expected_values, match, result);
             }
             else
             {
