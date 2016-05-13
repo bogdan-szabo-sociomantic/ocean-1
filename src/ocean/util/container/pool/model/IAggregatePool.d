@@ -94,6 +94,8 @@ module ocean.util.container.pool.model.IAggregatePool;
 
 *******************************************************************************/
 
+import ocean.transition;
+
 import ocean.util.container.pool.model.IPool;
 import ocean.util.container.pool.model.IFreeList;
 
@@ -791,8 +793,10 @@ public abstract class IAggregatePool ( T ) : IPool, IFreeList!(ItemType_!(T))
         body
         {
             this.outer.safe_iterator_open = true;
-            auto slice = this.outer.iteration_items.copyExtend(
-                this.outer.items[start .. end]);
+            auto slice = this.outer.items[start .. end];
+            enableStomping(this.outer.iteration_items);
+            this.outer.iteration_items.length = slice.length;
+            slice = (this.outer.iteration_items[] = slice[]);
             super(slice);
         }
 
