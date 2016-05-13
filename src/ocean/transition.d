@@ -118,6 +118,47 @@ unittest
 
 /*******************************************************************************
 
+    Same as Const!(T) but for inout
+
+    Example:
+
+    ---
+    Inout!(char[]) foo(Inout!(char[]) arg)
+    {
+        return arg;
+    }
+
+    mstring = foo("aaa"); // error
+    istring = foo("aaa"); // ok
+    mstring = foo("aaa".dup); // ok
+    ---
+
+*******************************************************************************/
+
+template Inout(T)
+{
+    version(D_Version2)
+    {
+        mixin("alias inout(T) Inout;");
+    }
+    else
+    {
+        alias T Inout;
+    }
+}
+
+unittest
+{
+    alias Inout!(char[]) Str;
+
+    Str foo ( Str arg ) { return arg; }
+
+    mstring s1 = foo("aaa".dup);
+    istring s2 = foo("aaa");
+}
+
+/*******************************************************************************
+
     In D1 does nothing. In D2 strips top-most type qualifier.
 
     This is a small helper useful for adapting templated code where template
