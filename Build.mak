@@ -3,6 +3,7 @@ override DFLAGS += -w
 # Remove deprecated modules from testing:
 TEST_FILTER_OUT += \
 	$(shell find $C/src/tango) \
+	$C/src/ocean/time/Ctime.d \
 	$C/src/ocean/core/Enforce_tango.d \
 	$C/src/ocean/text/Arguments_tango.d \
 	$C/src/ocean/util/log/Config_tango.d \

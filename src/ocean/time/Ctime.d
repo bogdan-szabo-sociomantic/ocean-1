@@ -1,4 +1,4 @@
-module ocean.time.Ctime;
+deprecated module ocean.time.Ctime;
 
 import ocean.stdc.time: time_t;
 import ocean.stdc.posix.time: ctime_r;
