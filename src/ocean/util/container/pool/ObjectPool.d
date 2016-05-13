@@ -49,7 +49,7 @@ module ocean.util.container.pool.ObjectPool;
 import ocean.util.container.pool.model.IAggregatePool;
 import ocean.util.container.pool.model.IResettable;
 
-
+import ocean.transition;
 
 /*******************************************************************************
 
@@ -200,6 +200,12 @@ version ( UnitTest )
     class Class
     {
         size_t object_pool_index;
+
+        mixin(genOpEquals(`
+        {
+            auto crhs = cast(typeof(this)) rhs;
+            return this.i == crhs.i && this.s == crhs.s;
+        }`));
 
         size_t i;
         char[] s;

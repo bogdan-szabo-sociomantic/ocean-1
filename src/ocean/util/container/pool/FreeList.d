@@ -323,6 +323,12 @@ version ( UnitTest )
 
     class Class
     {
+        mixin(genOpEquals(`
+        {
+            auto crhs = cast(typeof(this)) rhs;
+            return this.i == crhs.i && this.s == crhs.s;
+        }`));
+
         size_t i;
         char[] s;
     }
