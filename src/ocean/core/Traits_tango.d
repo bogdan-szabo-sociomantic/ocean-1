@@ -39,14 +39,16 @@ unittest
  */
 template isCharType( T )
 {
-    const bool isCharType = is( T == char )  ||
-                            is( T == wchar ) ||
-                            is( T == dchar );
+    const bool isCharType =
+        is( Unqual!(T) == char )
+     || is( Unqual!(T) == wchar )
+     || is( Unqual!(T) == dchar );
 }
 
 unittest
 {
     static assert (isCharType!(wchar));
+    static assert (isCharType!(Const!(char)));
 }
 
 
@@ -55,16 +57,18 @@ unittest
  */
 template isSignedIntegerType( T )
 {
-    const bool isSignedIntegerType = is( T == byte )  ||
-                                     is( T == short ) ||
-                                     is( T == int )   ||
-                                     is( T == long )/+||
+    const bool isSignedIntegerType =
+        is( Unqual!(T) == byte )
+     || is( Unqual!(T) == short )
+     || is( Unqual!(T) == int )
+     || is( Unqual!(T) == long )/+||
                                      is( T == cent  )+/;
 }
 
 unittest
 {
     static assert ( isSignedIntegerType!(int));
+    static assert ( isSignedIntegerType!(Const!(long)));
     static assert (!isSignedIntegerType!(ubyte));
 }
 
@@ -74,17 +78,19 @@ unittest
  */
 template isUnsignedIntegerType( T )
 {
-    const bool isUnsignedIntegerType = is( T == ubyte )  ||
-                                       is( T == ushort ) ||
-                                       is( T == uint )   ||
-                                       is( T == ulong )/+||
-                                       is( T == ucent  )+/;
+    const bool isUnsignedIntegerType =
+        is( Unqual!(T) == ubyte )
+     || is( Unqual!(T) == ushort )
+     || is( Unqual!(T) == uint )
+     || is( Unqual!(T) == ulong )/+||
+        is( T == ucent  )+/;
 }
 
 unittest
 {
     static assert (!isUnsignedIntegerType!(int));
     static assert ( isUnsignedIntegerType!(ubyte));
+    static assert ( isUnsignedIntegerType!(Const!(ulong)));
 }
 
 /**
@@ -108,9 +114,10 @@ unittest
  */
 template isRealType( T )
 {
-    const bool isRealType = is( T == float )  ||
-                            is( T == double ) ||
-                            is( T == real );
+    const bool isRealType =
+        is( Unqual!(T) == float )
+     || is( Unqual!(T) == double )
+     || is( Unqual!(T) == real );
 }
 
 unittest
@@ -126,14 +133,16 @@ unittest
  */
 template isComplexType( T )
 {
-    const bool isComplexType = is( T == cfloat )  ||
-                               is( T == cdouble ) ||
-                               is( T == creal );
+    const bool isComplexType =
+        is( Unqual!(T) == cfloat )
+     || is( Unqual!(T) == cdouble )
+     || is( Unqual!(T) == creal );
 }
 
 unittest
 {
     static assert ( isComplexType!(cdouble));
+    static assert ( isComplexType!(Const!(cdouble)));
     static assert (!isComplexType!(double));
 }
 
@@ -142,14 +151,16 @@ unittest
  */
 template isImaginaryType( T )
 {
-    const bool isImaginaryType = is( T == ifloat )  ||
-                                 is( T == idouble ) ||
-                                 is( T == ireal );
+    const bool isImaginaryType =
+        is( Unqual!(T) == ifloat )
+     || is( Unqual!(T) == idouble )
+     || is( Unqual!(T) == ireal );
 }
 
 unittest
 {
     static assert ( isImaginaryType!(idouble));
+    static assert ( isImaginaryType!(Const!(idouble)));
     static assert (!isImaginaryType!(double));
 }
 

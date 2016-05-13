@@ -201,8 +201,12 @@ unittest
 
 public template isPrimitiveType ( T )
 {
-    const isPrimitiveType = is(T == void) || is(T == bool) ||
-                 isIntegerType!(T) || isCharType!(T) || isFloatingPointType!(T);
+    const isPrimitiveType =
+        is(Unqual!(T) == void)
+     || is(Unqual!(T) == bool)
+     || isIntegerType!(T)
+     || isCharType!(T)
+     || isFloatingPointType!(T);
 }
 
 /*******************************************************************************
