@@ -41,6 +41,26 @@ Migration Instructions
   `max_file_size`, `file_count`, `start_compress`) have been removed, along with
   the corresponding `default_` constants in `StatsLog`.
 
+* `ocean.core.Array_tango`
+
+  Several function unused in sociomantic projects have been removed completely:
+  - all heap manipulation function
+  - `krfind`
+  - `lbound` and `ubound`
+  - tango `bsearch` version (one that returns boolean)
+  - tango `shuffle` version (one that uses predicate struct as random source)
+
+* `ocean.core.Array` `ocean.core.Array_tango`
+
+  These modules have been completely reimplemented to support new `Buffer`
+  struct and improve D2 porting by simplifying templated code. All functions
+  have been split into 3 modules `ocean.core.array.Mutation`,
+  `ocean.core.array.Transormation` and `ocean.core.array.Searching` and both
+  `ocean.core.Array` and `ocean.core.Array_tango` provide them all. As a result
+  some clashes or subtle mismatches may happen in applicaton causing
+  compilation errors. For example, it won't be possible anymore to rely on
+  implicit conversion of `Typedef` values when passing to such functions.
+
 Deprecations
 ============
 
@@ -50,3 +70,10 @@ Deprecations
 
 New Features
 ============
+
+* `ocean.core.Buffer`
+
+  New struct which emulates D1 array semantics (with data stomping on append)
+  via wrapper struct so that it will keep working the same in D2. When
+  compiled in D2 it is also marked as non-copyable to ensure that buffers
+  are only ever passed by reference if they need to be resized.
