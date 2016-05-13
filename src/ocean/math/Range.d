@@ -46,7 +46,7 @@ version ( UnitTest )
 public struct Range ( T )
 {
     import ocean.core.Traits : isUnsignedIntegerType;
-    import ocean.core.Array_tango;
+    import ocean.core.Array;
 
     static assert(isUnsignedIntegerType!(T),
         "Range only works with unsigned integer types");

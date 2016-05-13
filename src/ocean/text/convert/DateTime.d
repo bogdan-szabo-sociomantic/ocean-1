@@ -35,7 +35,7 @@ import ocean.text.Unicode;
 
 import ocean.text.convert.Format;
 
-import ocean.core.Array_tango : contains;
+import ocean.core.Array : contains;
 
 import ocean.time.chrono.Gregorian;
 

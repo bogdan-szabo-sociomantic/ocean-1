@@ -16,7 +16,7 @@
 module ocean.util.cipher.AES;
 
 import ocean.transition;
-import ocean.core.Array_tango;
+import ocean.core.Array;
 import ocean.util.cipher.Cipher;
 
 /**

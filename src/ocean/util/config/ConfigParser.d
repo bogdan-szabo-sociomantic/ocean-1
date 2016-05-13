@@ -31,7 +31,7 @@ import ocean.core.Enforce;
 
 import ocean.io.Stdout;
 
-import ocean.core.Array_tango;
+import ocean.core.Array;
 
 import ocean.io.stream.TextFile;
 

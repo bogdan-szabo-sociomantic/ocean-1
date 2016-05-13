@@ -8,6 +8,10 @@ DC = dmd-transitional
 override DFLAGS += -de
 endif
 
+# Remove deprecated modules from testing:
+TEST_FILTER_OUT += \
+	$C/src/ocean/core/Array_tango.d
+
 $O/test-filesystemevent: override LDFLAGS += -lrt
 
 $O/test-selectlistener: override LDFLAGS += -lebtree

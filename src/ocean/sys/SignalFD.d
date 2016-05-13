@@ -115,7 +115,7 @@ import ocean.stdc.errno : EAGAIN, EWOULDBLOCK, errno;
 
 import ocean.sys.linux.consts.fcntl : O_NONBLOCK;
 
-import ocean.core.Array_tango : contains;
+import ocean.core.Array : contains;
 
 import ocean.transition;
 

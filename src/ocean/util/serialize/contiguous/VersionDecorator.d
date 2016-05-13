@@ -143,7 +143,7 @@ version(UnitTest):
 
 import ocean.core.Test;
 
-import ocean.core.Array_tango;
+import ocean.core.Array;
 import core.memory;
 
 /*******************************************************************************

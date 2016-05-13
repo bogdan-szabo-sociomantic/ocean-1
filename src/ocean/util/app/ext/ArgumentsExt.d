@@ -253,7 +253,7 @@ version (UnitTest)
     import ocean.util.app.Application;
     import ocean.io.device.MemoryDevice;
     import ocean.io.stream.Text : TextOutput;
-    import ocean.core.Array_tango : find;
+    import ocean.core.Array : find;
 
     class App : Application
     {

@@ -81,7 +81,7 @@ debug ( MessageFiber )
 debug ( MessageFiberDump )
 {
     import ocean.time.Clock;
-    import ocean.core.Array_tango;
+    import ocean.core.Array;
     import ocean.core.Memory;
     import ocean.io.Stdout_tango;
     debug = MessageFiberToken;

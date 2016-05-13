@@ -67,7 +67,7 @@ import ocean.text.csv.CSV;
 import ocean.util.container.AppendBuffer;
 import ocean.util.container.ConcatBuffer : SliceBuffer;
 
-import ocean.core.Array_tango : contains, find;
+import ocean.core.Array : contains, find;
 
 import ocean.io.model.IConduit;
 

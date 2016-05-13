@@ -17,7 +17,7 @@ module ocean.io.device.SerialPort;
 
 import ocean.transition;
 
-import ocean.core.Array_tango : sort;
+import ocean.core.Array : sort;
 
 import ocean.core.Exception_tango,
                 ocean.io.device.Device,

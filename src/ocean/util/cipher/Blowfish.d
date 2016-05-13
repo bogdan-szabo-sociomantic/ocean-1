@@ -19,7 +19,7 @@ module ocean.util.cipher.Blowfish;
 
 import ocean.transition;
 
-import ocean.core.Array_tango;
+import ocean.core.Array;
 import ocean.util.cipher.Cipher;
 
 /** Implementation of the Blowfish cipher designed by Bruce Schneier. */

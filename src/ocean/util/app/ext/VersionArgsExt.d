@@ -41,7 +41,7 @@ import ocean.transition;
 import ocean.util.log.Log;
 import ocean.util.log.AppendFile;
 import ocean.util.log.LayoutDate;
-import ocean.core.Array_tango: sort;
+import ocean.core.Array: sort;
 
 
 

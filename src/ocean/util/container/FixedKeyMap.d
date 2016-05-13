@@ -66,7 +66,7 @@ module ocean.util.container.FixedKeyMap;
 *******************************************************************************/
 
 import ocean.transition;
-import ocean.core.Array_tango;
+import ocean.core.Array;
 import ocean.core.Array: copy, bsearch;
 import ocean.core.Enforce;
 

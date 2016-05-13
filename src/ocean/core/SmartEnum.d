@@ -857,7 +857,7 @@ unittest
 
 import ocean.core.Enforce;
 
-import ocean.core.Array_tango : find;
+import ocean.core.Array : find;
 
 import ocean.core.Traits : isAssocArrayType;
 

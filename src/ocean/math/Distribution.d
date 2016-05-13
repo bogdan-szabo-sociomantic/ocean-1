@@ -106,8 +106,7 @@ module ocean.math.Distribution;
 import ocean.transition;
 
 import ocean.core.Enforce;
-import ocean.core.Array : bsearch;
-import ocean.core.Array_tango : sort;
+import ocean.core.Array : bsearch, sort;
 
 import ocean.util.container.AppendBuffer;
 

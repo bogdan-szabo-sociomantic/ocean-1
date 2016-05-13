@@ -38,7 +38,7 @@ import ocean.io.model.ISuspendable,
        ocean.io.model.ISuspendableThrottler,
        ocean.util.container.AppendBuffer;
 
-import ocean.core.Array_tango : contains;
+import ocean.core.Array : contains;
 
 debug import ocean.io.Stdout_tango;
 

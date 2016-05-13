@@ -88,7 +88,7 @@ import ocean.core.Array;
 
 import ocean.io.serialize.StructSerializer;
 
-import ocean.core.Array_tango;
+import ocean.core.Array;
 
 import ocean.core.Traits;
 

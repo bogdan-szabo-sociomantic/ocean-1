@@ -29,7 +29,7 @@ import ocean.sys.Epoll;
 import ocean.sys.SignalMask;
 
 import ocean.transition;
-import ocean.core.Array_tango : contains;
+import ocean.core.Array : contains;
 
 import ocean.stdc.posix.signal : kill, pid_t, sigaction, sigaction_t,
     SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGABRT, SIGBUS;
