@@ -102,7 +102,8 @@ public template ReusableExceptionImplementation()
 {
     import ocean.transition;
     import ocean.text.convert.Integer_tango;
-    static import ocean.core.Array;
+    import ocean.core.Buffer;
+    static import ocean.core.array.Mutation;
 
     static assert (is(typeof(this) : Exception));
 
@@ -113,7 +114,7 @@ public template ReusableExceptionImplementation()
 
     ***************************************************************************/
 
-    protected mstring reused_msg;
+    protected Buffer!(char) reused_msg;
 
     /***************************************************************************
 
@@ -148,7 +149,7 @@ public template ReusableExceptionImplementation()
     public typeof (this) set ( cstring msg, istring file = __FILE__,
         long line = __LINE__ )
     {
-        ocean.core.Array.copy(this.reused_msg, msg);
+        ocean.core.array.Mutation.copy(this.reused_msg, msg);
         this.msg  = null;
         this.file = file;
         this.line = line;
@@ -188,7 +189,7 @@ public template ReusableExceptionImplementation()
 
         public override cstring message ( ) /* d1to2fix_inject: const */
         {
-            return this.msg is null ? this.reused_msg : this.msg;
+            return this.msg[].ptr is null ? this.reused_msg[] : this.msg;
         }
     }
 
@@ -212,7 +213,7 @@ public template ReusableExceptionImplementation()
 
     public typeof (this) append ( cstring msg )
     {
-        ocean.core.Array.append(this.reused_msg, msg);
+        ocean.core.array.Mutation.append(this.reused_msg, msg);
         return this;
     }
 
@@ -236,11 +237,11 @@ public template ReusableExceptionImplementation()
         char[long.max.stringof.length + 1] buff;
         if (hex)
         {
-            ocean.core.Array.append(this.reused_msg, "0x"[]);
-            ocean.core.Array.append(this.reused_msg, format (buff, num, "X"));
+            ocean.core.array.Mutation.append(this.reused_msg, "0x"[]);
+            ocean.core.array.Mutation.append(this.reused_msg, format (buff, num, "X"));
         }
         else
-            ocean.core.Array.append(this.reused_msg, format (buff, num));
+            ocean.core.array.Mutation.append(this.reused_msg, format (buff, num));
         return this;
     }
 }
@@ -252,7 +253,7 @@ unittest
 
     e.set("message");
     assert (getMsg(e) == "message");
-    auto old_ptr = e.reused_msg.ptr;
+    auto old_ptr = e.reused_msg[].ptr;
 
     try
     {
@@ -268,7 +269,7 @@ unittest
     }
     catch (SomeReusableException) { }
     assert (getMsg(e) == "longer message");
-    assert (old_ptr is e.reused_msg.ptr);
+    assert (old_ptr is e.reused_msg[].ptr);
 
     try
     {
@@ -276,7 +277,7 @@ unittest
     }
     catch (SomeReusableException) { }
     assert (getMsg(e) == "Wrong name (NAME) 0x2A 42");
-    assert (old_ptr is e.reused_msg.ptr);
+    assert (old_ptr is e.reused_msg[].ptr);
 }
 
 version (UnitTest)
