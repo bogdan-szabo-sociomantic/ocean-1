@@ -16,6 +16,8 @@ module ocean.io.select.selector.SelectedKeysHandler;
 
 *******************************************************************************/
 
+import ocean.transition;
+
 import ocean.io.select.selector.model.ISelectedKeysHandler;
 
 import ocean.io.select.client.model.ISelectClient;

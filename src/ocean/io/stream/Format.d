@@ -103,7 +103,7 @@ class FormatOutput(T) : OutputFilter
         public alias print      opCall;         /// opCall -> print
         public alias newline    nl;             /// nl -> newline
 
-        private const Eol = "\n";
+        protected const Eol = "\n";
 
         /**********************************************************************
 

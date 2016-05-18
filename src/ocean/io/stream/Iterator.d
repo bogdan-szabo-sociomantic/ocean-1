@@ -16,7 +16,7 @@ import ocean.transition;
 
 import ocean.io.stream.Buffered;
 
-protected import ocean.io.device.Conduit : InputFilter, InputBuffer, InputStream;
+package import ocean.io.device.Conduit : InputFilter, InputBuffer, InputStream;
 
 /*******************************************************************************
 

@@ -97,7 +97,7 @@ public struct Bucket ( size_t V, K = hash_t )
 
          **********************************************************************/
 
-        static assert(val.offsetof % size_t.sizeof == 0);
+        static assert(val.offsetof == 0);
 
         /**********************************************************************
 
@@ -105,7 +105,7 @@ public struct Bucket ( size_t V, K = hash_t )
 
          **********************************************************************/
 
-        private ubyte[(val.offsetof + V) % size_t.sizeof] _padding;
+        private ubyte[V % size_t.sizeof] _padding;
 
         /**********************************************************************
 
@@ -138,7 +138,7 @@ public struct Bucket ( size_t V, K = hash_t )
 
          **********************************************************************/
 
-        package typeof (this) next = null;
+        package Element* next = null;
 
         debug (HostingArrayMapBucket) private Bucket!(V, K)* bucket;
     }
@@ -435,9 +435,3 @@ unittest {
       static assert(y == "cdouble z;\nFoo y;\nubyte x;\n");
   }
 }
-
-
-
-
-
-

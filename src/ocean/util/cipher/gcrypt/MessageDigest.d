@@ -162,9 +162,8 @@ class HMAC: MessageDigest
                         added automatically
 
         Throws:
-            `GcryptException` on error, including the case that the libgcrypt of
-            the run-time `algorithm` doesn't support `algorithm` for HMAC
-            calculation.
+            `GcryptException` on error, including the case that the run-time
+            libgcrypt doesn't support `algorithm` for HMAC calculation.
 
     ***************************************************************************/
 
@@ -193,7 +192,7 @@ class HMAC: MessageDigest
 
         Params:
             hmac_and_input_data = the first element is the HMAC key, the
-                follwing data to hash, which will be concatenated
+                following the data to hash, which will be concatenated
 
         Returns:
             the resuting HMAC.

@@ -82,6 +82,58 @@ abstract class IFiberConnectionHandlerBase : IConnectionHandler
         Params:
             epoll       = epoll select dispatcher
             stack_size  = fiber stack size
+            finalize_dg = user-specified finalizer, called when the connection
+                          is shut down
+            error_dg    = user-specified error handler, called when a connection
+                          error occurs
+
+    ***************************************************************************/
+
+    deprecated("Please use: explicit sockaddr* and ISocket. See release notes.")
+    protected this ( EpollSelectDispatcher epoll,
+                     size_t stack_size,
+                     FinalizeDg finalize_dg = null,
+                     ErrorDg error_dg = null )
+    {
+        auto socket = new AddressIPSocket!();
+        this(epoll, stack_size, socket, finalize_dg, error_dg);
+    }
+
+    /***************************************************************************
+
+        Constructor
+
+        Connects the socket, the asynchronous reader and writer, and the
+        provided epoll select dispatcher.
+
+        Params:
+            epoll       = epoll select dispatcher
+            finalize_dg = user-specified finalizer, called when the connection
+                          is shut down
+            error_dg    = user-specified error handler, called when a connection
+                          error occurs
+
+    ***************************************************************************/
+
+    deprecated("Please use: explicit sockaddr* and ISocket. See release notes.")
+    protected this ( EpollSelectDispatcher epoll,
+                     FinalizeDg finalize_dg = null,
+                     ErrorDg error_dg = null )
+    {
+        auto socket = new AddressIPSocket!();
+        this(epoll, socket, finalize_dg, error_dg);
+    }
+
+    /***************************************************************************
+
+        Constructor
+
+        Connects the socket, the asynchronous reader and writer, and the
+        provided epoll select dispatcher.
+
+        Params:
+            epoll       = epoll select dispatcher
+            stack_size  = fiber stack size
             socket      = the socket
             finalize_dg = user-specified finalizer, called when the connection
                           is shut down
@@ -290,6 +342,142 @@ abstract class IFiberConnectionHandler : IFiberConnectionHandlerBase, Resettable
     ***************************************************************************/
 
     protected IOWarning io_warning;
+
+    /***************************************************************************
+
+        Constructor
+
+        Connects the socket, the asynchronous reader and writer, and the
+        provided epoll select dispatcher.
+
+        Params:
+            epoll       = epoll select dispatcher
+            stack_size  = fiber stack size
+            buffered_writer = set to true to use the buffered writer
+            finalize_dg = user-specified finalizer, called when the connection
+                          is shut down
+            error_dg    = user-specified error handler, called when a connection
+                          error occurs
+
+    ***************************************************************************/
+
+    deprecated("Please use: explicit sockaddr* and ISocket. See release notes.")
+    protected this ( EpollSelectDispatcher epoll,
+                     size_t stack_size,
+                     bool buffered_writer,
+                     FinalizeDg finalize_dg = null,
+                     ErrorDg error_dg = null )
+    {
+        auto socket = new AddressIPSocket!();
+        this(epoll, stack_size, buffered_writer, socket, finalize_dg, error_dg);
+    }
+
+    /***************************************************************************
+
+        Constructor
+
+        Connects the socket, the asynchronous reader and writer, and the
+        provided epoll select dispatcher.
+
+        Params:
+            epoll       = epoll select dispatcher
+            buffered_writer = set to true to use the buffered writer
+            finalize_dg = user-specified finalizer, called when the connection
+                          is shut down
+            error_dg    = user-specified error handler, called when a connection
+                          error occurs
+
+    ***************************************************************************/
+
+    deprecated("Please use: explicit sockaddr* and ISocket. See release notes.")
+    protected this ( EpollSelectDispatcher epoll,
+                     bool buffered_writer,
+                     FinalizeDg finalize_dg = null,
+                     ErrorDg error_dg = null )
+    {
+        this(epoll, this.default_stack_size, buffered_writer, finalize_dg, error_dg);
+    }
+
+    /***************************************************************************
+
+        Constructor
+
+        Connects the socket, the asynchronous reader and writer, and the
+        provided epoll select dispatcher.
+
+        Params:
+            epoll       = epoll select dispatcher
+            stack_size  = fiber stack size
+            finalize_dg = user-specified finalizer, called when the connection
+                          is shut down
+            error_dg    = user-specified error handler, called when a connection
+                          error occurs
+
+    ***************************************************************************/
+
+    deprecated("Please use: explicit sockaddr* and ISocket. See release notes.")
+    protected this ( EpollSelectDispatcher epoll,
+                     size_t stack_size,
+                     FinalizeDg finalize_dg = null,
+                     ErrorDg error_dg = null )
+    {
+        auto socket = new AddressIPSocket!();
+        this(epoll, stack_size, socket, finalize_dg, error_dg);
+    }
+
+    /***************************************************************************
+
+        Constructor
+
+        Connects the socket, the asynchronous reader and writer, and the
+        provided epoll select dispatcher.
+
+        Params:
+            epoll       = epoll select dispatcher
+            finalize_dg = user-specified finalizer, called when the connection
+                          is shut down
+            error_dg    = user-specified error handler, called when a connection
+                          error occurs
+
+    ***************************************************************************/
+
+    deprecated("Please use: explicit sockaddr* and ISocket. See release notes.")
+    protected this ( EpollSelectDispatcher epoll,
+                     FinalizeDg finalize_dg = null,
+                     ErrorDg error_dg = null )
+    {
+        auto socket = new AddressIPSocket!();
+        this(epoll, socket, finalize_dg, error_dg);
+    }
+
+    /***************************************************************************
+
+        Constructor
+
+        Connects the socket, the asynchronous reader and writer, and the
+        provided epoll select dispatcher.
+
+        Params:
+            epoll       = epoll select dispatcher
+            writer      = SelectWriter instance to use
+            finalize_dg = user-specified finalizer, called when the connection
+                          is shut down
+            error_dg    = user-specified error handler, called when a connection
+                          error occurs
+            stack_size  = fiber stack size
+
+    ***************************************************************************/
+
+    deprecated("Please use: explicit sockaddr* and ISocket. See release notes.")
+    protected this ( EpollSelectDispatcher epoll,
+                     lazy SelectWriter writer,
+                     FinalizeDg finalize_dg,
+                     ErrorDg error_dg,
+                     size_t stack_size )
+    {
+        auto socket = new AddressIPSocket!();
+        this(epoll, writer, socket, finalize_dg, error_dg, stack_size);
+    }
 
     /***************************************************************************
 

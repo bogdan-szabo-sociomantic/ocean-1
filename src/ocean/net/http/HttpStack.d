@@ -54,8 +54,8 @@ class Token
     // hidden allocation
     override istring toString ()
     {
-        printf("Use Token.get instead of Token.toString :" ~
-               " latter allocates each time. Aborting\n".ptr);
+        printf(("Use Token.get instead of Token.toString :" ~
+                " latter allocates each time. Aborting\n").ptr);
         abort();
 
         return idup(value);
