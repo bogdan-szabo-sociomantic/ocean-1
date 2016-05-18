@@ -639,11 +639,13 @@ public abstract class Map ( V, K ) : BucketSet!(V.sizeof, K)
 
     public bool remove ( K key, void delegate ( ref V val ) dg = null )
     {
-        return this.remove_(key, dg?
-                                 (ref Bucket.Element element)
-                                 {
-                                     dg(*cast(V*)element.val[0 .. V.sizeof].ptr);
-                                 } : null);
+        scope dg2 = (ref Bucket.Element element)
+                    {
+                        dg(*cast(V*)element.val[0 .. V.sizeof].ptr);
+                    };
+
+        // Issue 16037
+        return this.remove_(key, dg ? dg2 : null);
     }
 
     /***************************************************************************
@@ -1220,4 +1222,3 @@ unittest
     test_val!(int);
     test_val!(long);
 }
-
