@@ -7,7 +7,7 @@
  * Authors:   Stephen L. Moshier (original C code). Conversion to D by Don Clugston
  *
  *
-Macros:
+ * Macros:
  *  TABLE_SV = <table border=1 cellpadding=4 cellspacing=0>
  *      <caption>Special Values</caption>
  *      $0</table>

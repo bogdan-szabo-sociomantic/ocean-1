@@ -1,5 +1,3 @@
-module ocean.text.regex.c.pcre;
-
 /**
  * Perl-Compatible Regular Expressions
  * http://www.pcre.org/
@@ -38,6 +36,8 @@ module ocean.text.regex.c.pcre;
  * POSSIBILITY OF SUCH DAMAGE.
  * -----------------------------------------------------------------------------
  */
+
+module ocean.text.regex.c.pcre;
 
 import ocean.transition;
 

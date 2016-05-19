@@ -130,7 +130,7 @@
             might become visible in (*very* extensive) tests or not.
       )
        the basic source can be easily be changed with something else
-      Efficiency:
+    Efficiency:
       $(LI  very fast methods have been used, and some effort has been put into
             optimizing some of them, but not all, but the interface has been choosen
             so that close to optimal implementation can be provided through the same
@@ -161,10 +161,10 @@
       )
     )
 
-        copyright:      Copyright (c) 2008. Fawzi Mohamed
-        license:        BSD style: $(LICENSE)
-        version:        Initial release: July 2008
-        author:         Fawzi Mohamed
+    copyright:      Copyright (c) 2008. Fawzi Mohamed
+    license:        BSD style: $(LICENSE)
+    version:        Initial release: July 2008
+    author:         Fawzi Mohamed
 
 *******************************************************************************/
 module ocean.math.random.Random;

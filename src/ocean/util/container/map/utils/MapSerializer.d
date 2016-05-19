@@ -6,7 +6,7 @@
     copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
 
     version:        11.09.2012: Initial release
-                    02.10.2012: Now uses SimpleSerielizer
+    02.10.2012: Now uses SimpleSerielizer
 
     authors:        Mathias Baumann, Hans Bjerkander
 

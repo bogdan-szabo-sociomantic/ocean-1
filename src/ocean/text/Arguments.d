@@ -202,7 +202,7 @@
     defined and acts as an accumulator for parameters left uncaptured by other
     arguments.
 
-    Notes:
+    Please note:
         * if sloppy arguments are supported, and if a sloppy argument happens to
           be the last known argument target, then implicit assignment of any
           extra parameters will happen to that sloppy argument.
@@ -265,7 +265,7 @@
     one or more default parameters have been configured, then their number must
     exactly match the number of parameters configured.
 
-    Notes:
+    Please note:
         * Irrespective of whether default parameters have been configured or not,
           if an argument was not given on the command-line, its 'set()' function
           would return 'false'.
@@ -341,7 +341,7 @@
     from its parameter. The ability to smush an argument with its parameter in
     this manner has to be explicitly enabled using the 'smush()' function.
 
-    Notes:
+    Please note:
         * smushing cannot be done with the long prefix version of an argument
           [example 2 below]
 
@@ -427,8 +427,8 @@
     whitespace gets assigned to the last known target (implicit assignment). On
     the other hand, the symbol used for explicitly assigning a parameter to an
     argument defaults to '='. This symbol is also configurable, and can be
-    changed by passing the desired symbol character to the constructor as shown
-    below:
+    changed by passing the desired symbol character to the constructor as
+    shown below:
 
     ---
 
@@ -591,6 +591,8 @@
 
 
     Copyright: Copyright (c) 2009 Kris. All rights reserved.
+
+    License: BSD
 
 
 *******************************************************************************/

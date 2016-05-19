@@ -5,7 +5,7 @@
     license:        BSD style: $(LICENSE)
 
     version:        Sep 2007: Initial release
-    version:        Nov 2007: Added stream wrappers
+    Nov 2007: Added stream wrappers
 
     author:         Kris
 
