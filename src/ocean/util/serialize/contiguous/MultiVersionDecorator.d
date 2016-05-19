@@ -246,6 +246,30 @@ version(UnitTest)
 
 unittest
 {
+    // loadCopy
+
+    auto loader = new VersionDecorator();
+    auto ver0 = Test1.Version0(42, 43, ["version0".dup]);
+    void[] serialized;
+    Contiguous!(Test1.Version2) buffer;
+
+    loader.store(ver0, serialized);
+    auto ver2 = loader.loadCopy(serialized, buffer);
+    
+    testNoAlloc({
+        auto ver2 = loader.loadCopy(serialized, buffer);
+    } ());
+
+    test!("==")(ver2.ptr.a, ver0.a);
+    test!("==")(ver2.ptr.b, ver0.b);
+    test!("==")(ver2.ptr.c, ver0.a + ver0.b);
+    test!("==")(ver2.ptr.strarr, ver0.strarr);
+}
+
+unittest
+{
+    // in-place load
+
     auto loader = new VersionDecorator();
 
     auto ver0 = Test1.Version0(42, 43, ["version0".dup]);
