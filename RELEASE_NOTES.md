@@ -31,6 +31,12 @@ Migration Instructions
   [v1.26.0 release notes](https://github.com/sociomantic/ocean/releases/tag/v1.26.0)
   for full instructions on how to use these facilities.
 
+* `ocean.util.app.ext.StatsExt`
+
+  StatsLog instances created by `newStatsLog` will be named according to the file to which
+  they write.  This means that the name of the default `StatsLog` instance will change from
+  "Stats" to (by default) "log/stats.log".
+
 Deprecations
 ============
 

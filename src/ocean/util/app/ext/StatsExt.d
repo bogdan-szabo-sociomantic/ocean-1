@@ -129,7 +129,7 @@ class StatsExt : IConfigExtExtension
             }
         }
 
-        return new StatsLog(stats_config, &newAppender);
+        return new StatsLog(stats_config, &newAppender, stats_config.file_name);
     }
 
 
