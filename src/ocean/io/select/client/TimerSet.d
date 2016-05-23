@@ -2,6 +2,9 @@
 
     Epoll-based event scheduler.
 
+    Multiplexes multiple, logical timers into a single timer fd (see
+    ocean.io.select.client.TimerEvent).
+
     copyright:  Copyright (c) 2011 sociomantic labs.
                 All rights reserved.
 
