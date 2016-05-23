@@ -21,38 +21,7 @@
     ---
 
     Usage example:
-
-    ---
-
-        import swarm.core.client.request.scheduler.Scheduler;
-
-        // Struct associated with each event.
-        struct EventParams
-        {
-            int x;
-        }
-
-        // Delegate called when an event fired. Receives the associated struct.
-        void fired ( ref EventParams p )
-        {
-            Stdout.formatln("{} fired", p.x);
-        }
-
-        // Construct required objects.
-        auto epoll = new EpollSelectDispatcher;
-        auto scheduler = new EpollScheduler!(Params)(epoll, clock);
-
-        // Schedule some events.
-        scheduler.schedule((ref EventParams p){p.x = 0;}, &fired, 2_000_000);
-        scheduler.schedule((ref EventParams p){p.x = 1;}, &fired, 4_000_000);
-        scheduler.schedule((ref EventParams p){p.x = 2;}, &fired, 6_000_000);
-
-        // Set everything going by starting the epoll event loop.
-        Stdout.formatln("Starting eventloop");
-        epoll.eventLoop;
-        Stdout.formatln("Event loop finished");
-
-    ---
+        See documented unittest of class, below
 
 *******************************************************************************/
 
@@ -380,6 +349,45 @@ public class TimerSet ( EventData ) : TimerEventTimeoutManager
     {
         super.stopTimeout();
         this.epoll.unregister(this.select_client);
+    }
+}
+
+version ( UnitTest )
+{
+    import ocean.io.Stdout;
+    import ocean.io.select.EpollSelectDispatcher;
+}
+
+/// Usage example:
+unittest
+{
+    void timerSetTest ( )
+    {
+        // Struct associated with each event.
+        struct Params
+        {
+            int x;
+        }
+
+        // Delegate called when an event fired. Receives the associated struct.
+        void fired ( ref Params p )
+        {
+            Stdout.formatln("{} fired", p.x);
+        }
+
+        // Construct required objects.
+        auto epoll = new EpollSelectDispatcher;
+        auto timer_set = new TimerSet!(Params)(epoll);
+
+        // Schedule some events.
+        timer_set.schedule((ref Params p){p.x = 0;}, &fired, 2_000_000);
+        timer_set.schedule((ref Params p){p.x = 1;}, &fired, 4_000_000);
+        timer_set.schedule((ref Params p){p.x = 2;}, &fired, 6_000_000);
+
+        // Set everything going by starting the epoll event loop.
+        Stdout.formatln("Starting eventloop");
+        epoll.eventLoop;
+        Stdout.formatln("Event loop finished");
     }
 }
 
