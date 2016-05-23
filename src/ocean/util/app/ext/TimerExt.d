@@ -2,8 +2,8 @@
 
     Application extension for handling user-defined timed or repeating events.
 
-    Internally, the extension uses a scheduler to manage the set of timed
-    events. The internal scheduler's TimerEvent instance is registered with
+    Internally, the extension uses a timer set to manage the set of timed
+    events. The internal timer set's TimerEvent instance is registered with
     epoll when one or more timed events are registered. When no timed events are
     registered, the TimerEvent is not registered.
 
@@ -99,7 +99,7 @@ public class TimerExt : IApplicationExtension
     import ocean.util.app.Application;
 
     import ocean.io.select.EpollSelectDispatcher;
-    import ocean.io.select.client.Scheduler;
+    import ocean.io.select.client.TimerSet;
 
     /***************************************************************************
 
@@ -113,7 +113,7 @@ public class TimerExt : IApplicationExtension
 
     /***************************************************************************
 
-        Data stored for each event registered with the internal scheduler (see
+        Data stored for each event registered with the internal timer set (see
         below).
 
     ***************************************************************************/
@@ -132,7 +132,7 @@ public class TimerExt : IApplicationExtension
         /***********************************************************************
 
             Period after which event should fire again. (Note that we need to
-            store this because scheduler events are one-off, unlike
+            store this because timer set events are one-off, unlike
             TimerEvents.)
 
         ***********************************************************************/
@@ -142,26 +142,26 @@ public class TimerExt : IApplicationExtension
 
     /***************************************************************************
 
-        Internal scheduler used to track the set of timed events. A scheduler
+        Internal timer set used to track the set of timed events. A timer set
         is used to avoid the need for managing a set of TimerEvents, one per
         registered event.
 
     ***************************************************************************/
 
-    private Scheduler!(EventData) scheduler;
+    private TimerSet!(EventData) timer_set;
 
     /***************************************************************************
 
-        Constructor. Creates the internal event scheduler.
+        Constructor. Creates the internal event timer set.
 
         Params:
-            epoll = select dispatcher with which to register the scheduler
+            epoll = select dispatcher with which to register the timer set
 
     ***************************************************************************/
 
     public this ( EpollSelectDispatcher epoll )
     {
-        this.scheduler = new Scheduler!(EventData)(epoll);
+        this.timer_set = new TimerSet!(EventData)(epoll);
     }
 
     /***************************************************************************
@@ -226,7 +226,7 @@ public class TimerExt : IApplicationExtension
     {
         assert(dg);
 
-        this.scheduler.schedule(
+        this.timer_set.schedule(
             ( ref EventData event )
             {
                 event.dg = dg;
@@ -244,7 +244,7 @@ public class TimerExt : IApplicationExtension
 
     public void clear ( )
     {
-        this.scheduler.clear();
+        this.timer_set.clear();
     }
 
     /***************************************************************************
@@ -436,9 +436,9 @@ unittest
             test!("==")(this.counter, 0);
             this.counter++;
 
-            test!("==")(this.timers.scheduler.length, 1);
+            test!("==")(this.timers.timer_set.length, 1);
             this.timers.clear();
-            test!("==")(this.timers.scheduler.length, 0);
+            test!("==")(this.timers.timer_set.length, 0);
 
             return false;
         }

@@ -9,6 +9,11 @@ tango      | v1.3.x
 Migration Instructions
 ======================
 
+* `ocean.io.select.client.Scheduler`
+
+  This module has been moved to `ocean.io.select.client.TimerSet`. The class
+  template `Scheduler` has likewise been renamed to `TimerSet`.
+
 Deprecations
 ============
 
