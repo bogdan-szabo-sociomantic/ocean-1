@@ -856,6 +856,14 @@ class BufferedOutput : OutputFilter, OutputBuffer
 
         /***********************************************************************
 
+            Notifier that will be called on flush.
+
+        ***********************************************************************/
+
+        private void delegate() flush_notifier;
+
+        /***********************************************************************
+
                 Ensure the buffer remains valid between method calls.
 
         ***********************************************************************/
@@ -872,16 +880,18 @@ class BufferedOutput : OutputFilter, OutputBuffer
 
                 Params:
                 stream = An input stream.
-
+                flush_notifier = user specified delegate called after the
+                                 contents of the buffer has been flushed to
+                                 upstream output.
                 Remarks:
                 Construct a Buffer upon the provided input stream.
 
         ***********************************************************************/
 
-        this (OutputStream stream)
+        this (OutputStream stream, void delegate() flush_notifier = null)
         {
                 assert (stream);
-                this (stream, stream.conduit.bufferSize);
+                this (stream, stream.conduit.bufferSize, flush_notifier);
         }
 
         /***********************************************************************
@@ -891,15 +901,20 @@ class BufferedOutput : OutputFilter, OutputBuffer
                 Params:
                 stream = An input stream.
                 capacity = Desired buffer capacity.
+                flush_notifier = user specified delegate called after the
+                                 contents of the buffer has been flushed to
+                                 upstream output.
 
                 Remarks:
                 Construct a Buffer upon the provided input stream.
 
         ***********************************************************************/
 
-        this (OutputStream stream, size_t capacity)
+        this (OutputStream stream, size_t capacity,
+                void delegate() flush_notifier = null)
         {
                 set (new ubyte[capacity], 0);
+                this.flush_notifier = flush_notifier;
                 super (sink = stream);
         }
 
@@ -1159,6 +1174,12 @@ class BufferedOutput : OutputFilter, OutputBuffer
                 // flush the filter chain also
                 clear;
                 super.flush;
+
+                if (this.flush_notifier)
+                {
+                    this.flush_notifier();
+                }
+
                 return this;
         }
 

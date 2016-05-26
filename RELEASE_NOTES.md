@@ -49,3 +49,8 @@ Deprecations
 
 New Features
 ============
+
+* `ocean.io.stream.Buffered`
+
+  User of BufferedOutput now can be notified via provided delegate
+  when the BufferedOutput has flushed data to upstream conduit.
