@@ -2,12 +2,6 @@
 
     Posix functions for masking & unmasking signals.
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        October 2011: Initial release
-
-    authors:        Gavin Norman
-
     Masked signals will not be noted but will not fire. If a signal occurs one
     or more times while masked, when it is unmasked it will fire immediately.
     Signals are not queued, so if a signal fires multiple times while masked, it
@@ -17,6 +11,15 @@
 
     Build flags:
         -debug=SignalMask: prints debugging information to Stderr
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

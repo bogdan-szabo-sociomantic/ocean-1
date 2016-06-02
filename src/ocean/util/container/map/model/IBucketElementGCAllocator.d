@@ -1,15 +1,18 @@
 /*******************************************************************************
 
-    Copyright:      Copyright (C) 2013 sociomantic labs. All rights reserved
-
-    Version:        2013-08-06: Initial release
-
-    Author:        David Eckardt
-
     Base class for a bucket element allocator using the D runtime memory
     manager. Even though this memory manager is called "GC-managed" this class
     in fact doesn't rely on garbage collection but explicitly deletes unused
     bucket elements.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

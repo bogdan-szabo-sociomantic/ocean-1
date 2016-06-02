@@ -1,11 +1,15 @@
 /**
  * Implementation of the gamma and beta functions, and their integrals.
  *
- * License:   BSD style: $(LICENSE)
- * Copyright: Based on the CEPHES math library, which is
- *            Copyright (C) 1994 Stephen L. Moshier (moshier@world.std.com).
- * Authors:   Stephen L. Moshier (original C code). Conversion to D by Don Clugston
+ * Copyright:
+ *     Based on the CEPHES math library, which is
+ *                Copyright (C) 1994 Stephen L. Moshier (moshier@world.std.com).
+ *     Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+ *     All rights reserved.
  *
+ * License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+ *
+ * Authors: Stephen L. Moshier (original C code). Conversion to D by Don Clugston
  *
  * Macros:
  *  TABLE_SV = <table border=1 cellpadding=4 cellspacing=0>

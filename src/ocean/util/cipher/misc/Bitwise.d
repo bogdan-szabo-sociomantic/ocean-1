@@ -1,9 +1,15 @@
 /**
  * This file is part of the dcrypt project.
  *
- * Copyright: Copyright (C) dcrypt contributors 2009. All rights reserved.
- * License:   MIT
- * Authors:   Thomas Dixon
+ * Copyright:
+ *     Copyright (C) dcrypt contributors 2009.
+ *     Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+ *     All rights reserved.
+ *
+ * License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+ *
+ * Authors: Thomas Dixon
+ *
  */
 
 module ocean.util.cipher.misc.Bitwise;

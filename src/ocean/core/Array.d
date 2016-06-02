@@ -1,11 +1,5 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        July 2010: Initial release
-
-    authors:        Gavin Norman
-
     Array manipulation functions.
 
     It's often convenient to use these functions with D's 'function as array
@@ -24,6 +18,15 @@
     ---
 
     TODO: Extend unittest to test all functions in this module.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

@@ -1,9 +1,15 @@
 /**
  * The tuple module defines a template struct used for arbitrary data grouping.
  *
- * Copyright: Copyright (C) 2005-2006 Sean Kelly.  All rights reserved.
- * License:   BSD style: $(LICENSE)
- * Authors:   Walter Bright, Sean Kelly
+ * Copyright:
+ *     Copyright (C) 2005-2006 Sean Kelly.
+ *     Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+ *     All rights reserved.
+ *
+ * License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+ *
+ * Authors: Walter Bright, Sean Kelly
+ *
  */
 module ocean.core.Tuple;
 

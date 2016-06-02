@@ -1,17 +1,20 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2008. All rights reserved
-
-        license:        BSD style: $(LICENSE)
-
-        version:        Initial release: May 2008
-
-        author:         Various
-
-        Since:          0.99.7
-
         With gratitude to Dr Jurgen A Doornik. See his paper entitled
         "Conversion of high-period random numbers to floating point"
+
+        Copyright:
+            Copyright (c) 2008 Tango contributors.
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
+
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+        Version: Initial release: May 2008
+
+        Since: 0.99.7
+
+        Authors: Various
 
 *******************************************************************************/
 

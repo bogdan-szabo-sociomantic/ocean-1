@@ -1,13 +1,16 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2013 sociomantic labs. All rights reserved
-
-    version:        1/10/2013: Initial release
-
-    authors:        Ben Palmer
-
     A log layout that only displays the message and no extra data such as the
     date, level, etc
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

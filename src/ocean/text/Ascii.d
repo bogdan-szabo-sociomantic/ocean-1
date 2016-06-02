@@ -1,15 +1,18 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2006 Kris Bell. All rights reserved
-
-    license:        BSD style: $(LICENSE)
-
-    version:        Dec 2006: Initial release
-
-    author:         Kris
-
     Placeholder for a selection of ASCII utilities. These generally will
     not work with utf8, and cannot be easily extended to utf16 or utf32
+
+    Copyright:
+        Copyright (c) 2006 Kris Bell.
+        Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+    Version: Dec 2006: Initial release
+
+    Authors: Kris
 
 *******************************************************************************/
 

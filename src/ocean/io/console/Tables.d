@@ -2,12 +2,6 @@
 
     Classes to draw auto-formatted tables to the console.
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        April 2011: Initial release
-
-    authors:        Gavin Norman
-
     The number of columns in the table must be specified either at construction,
     or by calling the init() method. Rows can be be added using the firstRow() &
     nextRow() methods. (firstRow() is essentially a reset method.)
@@ -109,6 +103,15 @@
         table.display();
 
     ---
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

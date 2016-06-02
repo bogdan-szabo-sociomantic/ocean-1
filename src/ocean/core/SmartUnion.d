@@ -3,12 +3,6 @@
     Template for a union that knows its active field and uses contracts to
     assert that always the active field is read.
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        April 2010: Initial release
-
-    authors:        David Eckardt
-
     Usage:
     ---
         import $(TITLE);
@@ -35,6 +29,14 @@
             char[] c = u.y          // error, u.y is not the active member
         }
     ---
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
  ******************************************************************************/
 

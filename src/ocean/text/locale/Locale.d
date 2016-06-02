@@ -1,13 +1,5 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2007 Kris. All rights reserved
-
-        license:        BSD style: $(LICENSE)
-
-        version:        Feb 2007: Initial release
-
-        author:         Kris
-
         This is the Tango I18N gateway, which extends the basic Layout
         module with support for cuture- and region-specific formatting
         of numerics, date, time, and currency.
@@ -32,6 +24,17 @@
 
         Locale is currently utf8 only. Support for both Utf16 and utf32
         may be enabled at a later time
+
+        Copyright:
+            Copyright (c) 2007 Kris.
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
+
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+        Version: Feb 2007: Initial release
+
+        Authors: Kris
 
 ******************************************************************************/
 

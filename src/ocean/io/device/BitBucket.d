@@ -2,9 +2,12 @@
 
         A Conduit that ignores all that is written to it
 
-        copyright:      Copyright (c) 2008. Fawzi Mohamed
+        Copyright:
+            Copyright (c) 2008. Fawzi Mohamed
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
 
-        license:        BSD style: $(LICENSE)
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
         version:        Initial release: July 2008
 

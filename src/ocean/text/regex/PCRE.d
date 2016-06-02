@@ -1,11 +1,5 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2009 sociomantic labs. All rights reserved
-
-    version:        Jan 2009: Initial release
-
-    authors:        Thomas Nicolai, Lars Kirchhoff, Gavin Norman
-
     D Library Binding for PCRE regular expression engine.
 
     Requires linking with libpcre.
@@ -34,6 +28,14 @@
     Related:
 
     http://regexkit.sourceforge.net/Documentation/pcre/pcreapi.html
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

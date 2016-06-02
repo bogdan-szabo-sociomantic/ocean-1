@@ -1,13 +1,5 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2005 Kris. All rights reserved
-
-        license:        BSD style: $(LICENSE)
-
-        version:        Initial release: 2005
-
-        author:         Kris, Keinfarbton
-
         This module provides a general-purpose formatting system to
         convert values to text suitable for display. There is support
         for alignment, justification, and common format specifiers for
@@ -21,6 +13,17 @@
         The format notation is influenced by that used by the .NET
         and ICU frameworks, rather than C-style printf or D-style
         writef notation.
+
+        Copyright:
+            Copyright (c) 2005 Kris.
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
+
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+        Version: Initial release: 2005
+
+        Authors: Kris, Keinfarbton
 
 ******************************************************************************/
 

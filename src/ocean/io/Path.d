@@ -1,14 +1,5 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2008 Kris Bell. All rights reserved
-        copyright:      Normalization & Patterns copyright (c) 2006-2009
-                        Max Samukha, Thomas Kühne, Grzegorz Adam Hankiewicz
-
-        license:        BSD style: $(LICENSE)
-
-        version:        Mar 2008: Initial version$(BR)
-                        Oct 2009: Added PathUtil code
-
         A more direct route to the file-system than FilePath. Use this
         if you don't need path editing features. For example, if all you
         want is to check some path exists, using this module would likely
@@ -49,6 +40,19 @@
 
         Compile with -version=Win32SansUnicode to enable Win95 &amp; Win32s
         file support.
+
+        Copyright:
+            Copyright (c) 2008 Kris Bell.
+            Normalization & Patterns copyright (c) 2006-2009 Max Samukha,
+                Thomas Kühne, Grzegorz Adam Hankiewicz
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
+
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+        Version:
+            Mar 2008: Initial version$(BR)
+            Oct 2009: Added PathUtil code
 
 *******************************************************************************/
 

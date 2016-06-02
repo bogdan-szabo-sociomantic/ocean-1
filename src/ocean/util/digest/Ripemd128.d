@@ -1,13 +1,5 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2009 Tango. All rights reserved
-
-        license:        BSD style: see doc/license.txt for details
-
-        version:        Initial release: Sep 2009
-
-        author:         Kai Nacke
-
         This module implements the Ripemd128 algorithm by Hans Dobbertin,
         Antoon Bosselaers and Bart Preneel.
 
@@ -17,6 +9,17 @@
         The implementation is based on:
         RIPEMD-160 software written by Antoon Bosselaers,
  		available at http://www.esat.kuleuven.ac.be/~cosicart/ps/AB-9601/
+
+        Copyright:
+            Copyright (c) 2009 Tango.
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
+
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+        Version: Initial release: Sep 2009
+
+        Authors: Kai Nacke
 
 *******************************************************************************/
 

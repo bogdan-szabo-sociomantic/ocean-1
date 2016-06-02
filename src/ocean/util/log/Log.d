@@ -1,15 +1,5 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2004 Kris Bell. All rights reserved
-
-        license:        BSD style: $(LICENSE)
-
-        version:        May 2004 : Initial release
-        version:        Oct 2004: Hierarchy moved due to circular dependencies
-        version:        Apr 2008: Lazy delegates removed due to awkward usage
-        author:         Kris
-
-
         Simplified, pedestrian usage:
         ---
         import ocean.util.log.Config_tango;
@@ -74,6 +64,20 @@
         at the official Log4J site, where you'll find a good tutorial. Those
         pages are hosted over
         <A HREF="http://logging.apache.org/log4j/docs/documentation.html">here</A>.
+
+        Copyright:
+            Copyright (c) 2004 Kris Bell.
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
+
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+        Version:
+            May 2004 : Initial release
+            Oct 2004: Hierarchy moved due to circular dependencies
+            Apr 2008: Lazy delegates removed due to awkward usage
+
+        Authors: Kris
 
 *******************************************************************************/
 

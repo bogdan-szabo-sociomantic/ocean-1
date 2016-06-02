@@ -4,8 +4,14 @@
  * runtime type information.
  *
  * Authors: Chris Wright (dhasenan) $(EMAIL dhasenan@gmail.com)
- * License: Tango License, Apache 2.0
- * Copyright: Copyright (c) 2009, CHRISTOPHER WRIGHT
+ *
+ * License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+ *
+ * Copyright:
+ *     Copyright (c) 2009, CHRISTOPHER WRIGHT
+ *     Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+ *     All rights reserved.
+ *
  */
 module ocean.core.RuntimeTraits;
 

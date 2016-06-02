@@ -3,9 +3,15 @@
  * 
  * Copied from Tango-D2 project
  *
- * Copyright: Copyright (C) 2012 Pavel Sountsov.  All rights reserved.
- * License:   BSD style: $(LICENSE)
- * Authors:   Pavel Sountsov
+ * Copyright:
+ *     Copyright (C) 2012 Pavel Sountsov.
+ *     Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+ *     All rights reserved.
+ *
+ * License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+ *
+ * Authors: Pavel Sountsov
+ *
  */
 module ocean.core.Time;
 

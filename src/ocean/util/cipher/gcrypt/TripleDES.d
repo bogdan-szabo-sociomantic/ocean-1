@@ -9,7 +9,14 @@
         https://en.wikipedia.org/wiki/Triple_DES
         https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation
 
-    Copyright: Copyright (c) 2016 sociomantic labs. All rights reserved
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

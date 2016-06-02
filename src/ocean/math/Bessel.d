@@ -1,10 +1,16 @@
 /**
  * Cylindrical Bessel functions of integral order.
  *
- * Copyright: Based on the CEPHES math library, which is
- *            Copyright (C) 1994 Stephen L. Moshier (moshier@world.std.com).
- * License:   BSD style: $(LICENSE)
- * Authors:   Stephen L. Moshier (original C code). Conversion to D by Don Clugston
+ * Copyright:
+ *     Based on the CEPHES math library, which is Copyright (C) 1994 Stephen L.
+ *       Moshier (moshier@world.std.com).
+ *     Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+ *     All rights reserved.
+ *
+ * License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+ *
+ * Authors: Stephen L. Moshier (original C code). Conversion to D by Don Clugston
+ *
  */
 
 module ocean.math.Bessel;

@@ -1,11 +1,5 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
-
-    version:        15/08/2012: Initial release
-
-    authors:        Gavin Norman
-
     Base class for all types of pool. Provides the following features:
         * A set of items, each either busy or idle.
         * Idle items can be got from the pool, thus becoming busy, using get().
@@ -28,6 +22,15 @@
     Note that the IPool class is abstract, and provides only the internal
     framework required for getting and recycling pool items (see get_() and
     recycle_()).
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

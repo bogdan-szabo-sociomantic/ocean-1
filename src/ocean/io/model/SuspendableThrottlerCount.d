@@ -1,7 +1,5 @@
 /*******************************************************************************
 
-    copyright:  Copyright (c) 2015 sociomantic labs. All rights reserved
-
     Helper classes to manage the situations where a set of objects implementing
     ISuspendable should be throttled based on a count of pending items of
     some kind. For example, one common situation of this type is as follows:
@@ -13,6 +11,15 @@
         3. The ISuspendables which are providing the input data must be
            throttled (i.e. suspended and resumed) based on the number of pending
            items.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

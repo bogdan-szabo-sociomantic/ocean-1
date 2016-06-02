@@ -1,9 +1,15 @@
 /**
  * Elementary Mathematical Functions
  *
- * Copyright: Portions Copyright (C) 2001-2005 Digital Mars.
- * License:   BSD style: $(LICENSE), Digital Mars.
- * Authors:   Walter Bright, Don Clugston, Sean Kelly
+ * Copyright:
+ *     Portions Copyright (C) 2001-2005 Digital Mars.
+ *     Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+ *     All rights reserved.
+ *
+ * License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+ *
+ * Authors: Walter Bright, Don Clugston, Sean Kelly
+ *
  */
 /* Portions of this code were taken from Phobos std.math, which has the following
  * copyright notice:

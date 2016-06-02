@@ -1,13 +1,5 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2004 Kris Bell. All rights reserved
-
-    license:        BSD style: $(LICENSE)
-
-    version:        Initial release: Nov 2005
-
-    author:         Kris
-
     A set of functions for converting between string and integer
     values.
 
@@ -18,6 +10,17 @@
 
     auto i = Integer.parse ("32767");
     ---
+
+    Copyright:
+        Copyright (c) 2004 Kris Bell.
+        Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+    Version: Initial release: Nov 2005
+
+    Authors: Kris
 
  *******************************************************************************/
 

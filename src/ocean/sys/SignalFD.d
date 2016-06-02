@@ -2,12 +2,6 @@
 
     Linux signal file descriptor event.
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        December 2011: Initial release
-
-    authors:        Gavin Norman
-
     signalfd man page follows:
 
     signalfd() creates a file descriptor that can be used to accept signals
@@ -75,6 +69,15 @@
            When the file descriptor is no longer required it should be closed.
            When all file descriptors associated with the same signalfd object have
            been closed, the resources for object are freed by the kernel.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

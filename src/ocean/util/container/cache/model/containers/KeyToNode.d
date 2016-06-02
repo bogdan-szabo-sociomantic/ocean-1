@@ -1,14 +1,17 @@
 /*******************************************************************************
 
-    Copyright:      Copyright (C) 2013 sociomantic labs. All rights reserved
-
-    Version:        2013-04-05: Initial release
-
-    Author:        David Eckardt
-
     Mapping from key to the time-to-index mapping of an item in the cache.
     Limits the number of available mappings to a fixed value and preallocates
     all bucket elements in an array buffer.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

@@ -1,11 +1,5 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        July 2011: Initial release
-
-    authors:        Gavin Norman
-
     File device, derived from ocean.io.device.File and providing a callback
     which is invoked whenever data is transmitted (read or written). The
     callback notifies the user how many bytes were transmitted, as well as the
@@ -29,6 +23,15 @@
         file.write("hello");
 
     ---
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

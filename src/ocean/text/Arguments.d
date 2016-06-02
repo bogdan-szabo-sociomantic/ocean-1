@@ -589,11 +589,12 @@
 
     ____________________________________________________________________________
 
+    Copyright:
+        Copyright (c) 2009 Kris.
+        Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
 
-    Copyright: Copyright (c) 2009 Kris. All rights reserved.
-
-    License: BSD
-
+    License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
 *******************************************************************************/
 

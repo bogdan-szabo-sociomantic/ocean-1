@@ -8,11 +8,6 @@
  * The symbol [#] indicates an array of machine words which is to be
  * interpreted as a multi-byte number.
  *
- * Copyright: Copyright (C) 2008 Don Clugston.  All rights reserved.
- * License:   BSD style: $(LICENSE)
- * Authors:   Don Clugston
- */
-/**
  * In simple terms, there are 3 modern x86 microarchitectures:
  * (a) the P6 family (Pentium Pro, PII, PIII, PM, Core), produced by Intel;
  * (b) the K6, Athlon, and AMD64 families, produced by AMD; and
@@ -44,6 +39,16 @@
  * The timing for Div is quite unpredictable, but it's probably too slow
  * to be useful. On 64-bit processors, these times should
  * halve if run in 64-bit mode, except for the MMX functions.
+ *
+ * Copyright:
+ *     Copyright (C) 2008 Don Clugston.
+ *     Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+ *     All rights reserved.
+ *
+ * License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+ *
+ * Authors: Don Clugston
+ *
  */
 
 module ocean.math.internal.BignumX86;

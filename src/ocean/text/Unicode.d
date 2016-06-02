@@ -1,13 +1,5 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2007 Peter Triller. All rights reserved
-
-        license:        BSD style: $(LICENSE)
-
-        version:        Initial release: Sept 2007
-
-        authors:        Peter
-
         Provides case mapping Functions for Unicode Strings. As of now it is
         only 99 % complete, because it does not take into account Conditional
         case mappings. This means the Greek Letter Sigma will not be correctly
@@ -23,6 +15,17 @@
         This Module tries to minimize Memory allocation and usage. You can
         always pass the output buffer that should be used to the case mapping
         function, which will be resized if necessary.
+
+        Copyright:
+            Copyright (c) 2007 Peter Triller.
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
+
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+        Version: Initial release: Sept 2007
+
+        Authors: Peter
 
 *******************************************************************************/
 

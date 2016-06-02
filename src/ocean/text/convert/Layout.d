@@ -1,11 +1,5 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        May 2011: Initial release
-
-    authors:        Gavin Norman
-
     Layout class (wrapping ocean.text.convert.Layout_tango) with a single static
     method to write a formatted string into a provided buffer.
 
@@ -26,6 +20,15 @@
         // str will now hold the string "Hello, World!"
 
     ---
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

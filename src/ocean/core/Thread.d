@@ -8,9 +8,15 @@
  * the program. Thus when debugging it is better to use the slower SuspendOneAtTime
  * version.
  *
- * Copyright: Copyright (C) 2005-2006 Sean Kelly, Fawzi.  All rights reserved.
- * License:   BSD style: $(LICENSE)
- * Authors:   Sean Kelly, Fawzi Mohamed
+ * Copyright:
+ *     Copyright (C) 2005-2006 Sean Kelly, Fawzi.
+ *     Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+ *     All rights reserved.
+ *
+ * License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+ *
+ * Authors: Sean Kelly, Fawzi Mohamed
+ *
  */
 module ocean.core.Thread;
 

@@ -2,10 +2,17 @@
 
     Abstract base classes for suspendable throttlers.
 
-    copyright:      Copyright (c) 2015 sociomantic labs. All rights reserved
-
     Provides a simple mechanism for throttling a set of one or more suspendable
     processes based on some condition (as defined by a derived class).
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

@@ -2,15 +2,18 @@
 
     Formats an UNIX time value to a HTTP compliant date/time string
 
-    Copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-
-    Version:        Jan 2011: Initial release
-
-    Authors:        David Eckardt
-
     Formats an UNIX time value to a HTTP compliant (RFC 1123) date/time string.
     Contains a static length array as string buffer to provide
     memory-friendliness.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
  ******************************************************************************/
 

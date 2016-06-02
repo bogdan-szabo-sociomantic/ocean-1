@@ -1,7 +1,14 @@
 /*******************************************************************************
-  copyright:   Copyright (c) 2006 Juan Jose Comellas. All rights reserved
-  license:     BSD style: $(LICENSE)
-  author:      Juan Jose Comellas <juanjo@comellas.com.ar>
+
+  Copyright:
+      Copyright (c) 2006 Juan Jose Comellas.
+      Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+      All rights reserved.
+
+  License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+  Authors: Juan Jose Comellas <juanjo@comellas.com.ar>
+
 *******************************************************************************/
 
 module ocean.sys.Pipe;

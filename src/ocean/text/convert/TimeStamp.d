@@ -1,13 +1,5 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2004 Kris Bell. All rights reserved
-
-    license:        BSD style: $(LICENSE)
-
-    version:        Initial release: May 2005
-
-    author:         Kris
-
     Converts between native and text representations of HTTP time
     values. Internally, time is represented as UTC with an epoch
     fixed at Jan 1st 1970. The text representation is formatted in
@@ -25,6 +17,17 @@
 
         auto t = TimeStamp.parse ("Sun, 06 Nov 1994 08:49:37 GMT");
     ---
+
+    Copyright:
+        Copyright (c) 2004 Kris Bell.
+        Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+    Version: Initial release: May 2005
+
+    Authors: Kris
 
 *******************************************************************************/
 

@@ -3,12 +3,6 @@
     Serializer, to be used with the StructSerializer, which dumps a struct into
     an xmlstring.
 
-    copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-
-    version:        October 2010: Initial release
-
-    authors:        Gavin Norman
-
     Serializer, to be used with the StructSerializer in
     ocean.io.serialize.StructSerializer, which dumps a struct into an xml
     string.
@@ -69,6 +63,15 @@
         <count>0</count>
         <money>nan</money>
     </Data>
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

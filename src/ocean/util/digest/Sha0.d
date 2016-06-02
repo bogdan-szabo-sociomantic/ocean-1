@@ -1,15 +1,18 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2006 Tango. All rights reserved
+        This module implements the SHA-0 Algorithm described by Secure
+        Hash Standard, FIPS PUB 180
 
-        license:        BSD style: see doc/license.txt for details
+        Copyright:
+            Copyright (c) 2006 Tango.
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
 
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
         version:        Initial release: Feb 2006
 
         author:         Regan Heath, Oskar Linde
 
-        This module implements the SHA-0 Algorithm described by Secure
-        Hash Standard, FIPS PUB 180
 
 *******************************************************************************/
 

@@ -2,17 +2,20 @@
 
     HTTP connection handler base class for use with the SelectListener
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        May 2011: Initial release
-
-    author:         David Eckardt
-
     Fiber based HTTP server base class, derived from IFiberConnectionHandler.
 
     To build a HTTP server, create a HttpConnectionHandler subclass which
     implements handleRequest() and use that subclass as connection handler in
     the SelectListener.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
  ******************************************************************************/
 

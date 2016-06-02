@@ -1,11 +1,5 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-
-    version:        July 2010: Initial release
-
-    author:         Gavin Norman
-
     Struct template to iterate over strings in variable encoding format (utf8,
     utf16, utf32), extracting one unicode character at a time. Each unicode
     character may be represented by one or more character in the input string,
@@ -51,6 +45,15 @@
         assert(utf_match(str1, str2));
 
     ---
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

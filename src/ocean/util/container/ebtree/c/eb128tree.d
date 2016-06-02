@@ -25,12 +25,6 @@
 
     128-bit key extension and D language binding:
 
-    copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
-
-    version:        April 2012: Initial release
-
-    authors:        Gavin Norman, Mathias Baumann, David Eckardt
-
     This module contains the D binding of the library functions of eb128tree.c.
     eb128tree.c uses a 128-bit integer type for the node keys, which is not a
     part of the standard C language but provided as an extension by GCC 4.6 and
@@ -45,6 +39,15 @@
 
     You need to have the library installed and link with -lebtree. A Debian
     package is provided in Sociomantic repos.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
  ******************************************************************************/
 

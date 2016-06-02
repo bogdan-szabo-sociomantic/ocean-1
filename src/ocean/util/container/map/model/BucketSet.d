@@ -1,11 +1,5 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
-
-    version:        12/04/2012: Initial release
-
-    authors:        Gavin Norman, David Eckardt
-
     Template for a class implementing a set of buckets containing elements
     indexed by unique keys. The bucket set contains both a set of buckets and a
     pool of bucket elements. The bucket elements are structured as linked lists,
@@ -28,6 +22,15 @@
     library using 'new'/'delete' or malloc()/free(), respectively. Also, if the
     maximum number of elements in the map is known in advance, all elements can
     be preallocated in a row.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

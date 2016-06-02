@@ -1,16 +1,18 @@
 /*******************************************************************************
 
-	D binding for the C iconv library.
+       D binding for the C iconv library.
 
-	copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
+       The C iconv library is used to convert from one character encoding to another.
+       See http://www.gnu.org/software/libiconv/
 
-	version:        Apr 2010: Initial release
+       Copyright:
+           Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+           All rights reserved.
 
-	authors:        David Eckardt
-					Gavin Norman
-
-	The C iconv library is used to convert from one character encoding to another.
-	See http://www.gnu.org/software/libiconv/
+       License:
+           Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+           Alternatively, this file may be distributed under the terms of the Tango
+           3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

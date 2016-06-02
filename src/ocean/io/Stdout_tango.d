@@ -1,13 +1,5 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2005 Kris Bell. All rights reserved
-
-    license:        BSD style: $(LICENSE)
-
-    version:        Nov 2005: Initial release
-
-    author:         Kris
-
     Standard, global formatters for console output. If you don't need
     formatted output or unicode translation, consider using the module
     ocean.io.Console directly. If you need to format, but not output
@@ -89,6 +81,17 @@
     Note that Stdout is *not* intended to be thread-safe. Use either
     ocean.util.log.Trace or the standard logging facilities in order
     to enable atomic console I/O.
+
+    Copyright:
+        Copyright (c) 2005 Kris Bell.
+        Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+    Version: Nov 2005: Initial release
+
+    Authors: Kris Bell
 
 *******************************************************************************/
 

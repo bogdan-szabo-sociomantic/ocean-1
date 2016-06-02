@@ -1,15 +1,18 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2007 Kris Bell. All rights reserved
+        Streams for swapping endian-order. The stream is treated as a set
+        of same-sized elements. Note that partial elements are not mutated.
 
-        license:        BSD style: $(LICENSE)
+        Copyright:
+            Copyright (c) 2007 Kris Bell.
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
 
         version:        Initial release: Nov 2007
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
         author:         Kris
 
-        Streams for swapping endian-order. The stream is treated as a set
-        of same-sized elements. Note that partial elements are not mutated.
 
 *******************************************************************************/
 

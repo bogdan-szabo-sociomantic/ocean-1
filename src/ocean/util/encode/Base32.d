@@ -1,10 +1,14 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2010 Ulrik Mikaelsson. All rights reserved
+        Standards: rfc3548, rfc4648
 
-        license:        BSD style: $(LICENSE)
+        Copyright:
+            Copyright (c) 2010 Ulrik Mikaelsson.
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
 
         author:         Ulrik Mikaelsson
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
         standards:      rfc3548, rfc4648
 

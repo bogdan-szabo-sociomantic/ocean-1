@@ -2,12 +2,6 @@
 
     Timeout manager interface
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        July 2011: Initial release
-
-    author:         David Eckardt
-
     The reason for this interface is to avoid requiring an application to be
     linked against the libebtree, which is required by TimeoutManager and
     ExpiryRegistration, when it uses a library module that supports a timeout
@@ -15,6 +9,15 @@
     Therefore, library modules that support a timeout functionality as an
     optional feature should always use this interface and not import
     TimeoutManager/ExpiryRegistration.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

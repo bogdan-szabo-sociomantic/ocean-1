@@ -1,13 +1,5 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2007-2008 Jascha Wetzel. All rights reserved.
-
-    license:        BSD style: $(LICENSE)
-
-    version:        Initial release: Jan 2008
-
-    authors:        Jascha Wetzel
-
     This is a regular expression compiler and interpreter based on the Tagged NFA/DFA method.
 
     The Regex class is not thread safe.
@@ -69,6 +61,18 @@
     </table>
 
     Note that "alphanumeric" only applies to Latin-1.
+
+    Copyright:
+        Copyright (c) 2007-2008 Jascha Wetzel.
+        Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+    Version: Initial release: Jan 2008
+
+    Authors: Jascha Wetzel
+
 *******************************************************************************/
 module ocean.text.Regex;
 

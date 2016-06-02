@@ -1,11 +1,5 @@
 /*******************************************************************************
 
-    Copyright:      Copyright (c) 2013 sociomantic labs. All rights reserved
-
-    Version:        2013-01-17: Initial release
-
-    Authors:        Gavin Norman
-
     Class for parsing streams of CSV data with handling of column headings. The
     fields of the first row are parsed as the column headings. The user delegate
     passed to the parse() methods receives the values of the fields in a row
@@ -44,6 +38,15 @@
         });
 
     ---
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

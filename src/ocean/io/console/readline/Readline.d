@@ -1,11 +1,5 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2013 sociomantic labs. All rights reserved
-
-    version:        June 2013: Initial release
-
-    authors:        Hatem Oraby, Leandro Lucarella
-
     A D wrapper around the GNU readline/readline file
 
     readline is a powerful library for reading the user input from the console.
@@ -25,6 +19,15 @@
 
     Notes:
         Requires linking with libreadline
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 
@@ -176,7 +179,6 @@ void bindKey(char key, CommandFunc* func)
 {
     C.rl_bind_key(cast(int)key, func);
 }
-
 
 /*******************************************************************************
 

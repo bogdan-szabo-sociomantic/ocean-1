@@ -1,15 +1,5 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2005 John Chapman. All rights reserved
-
-        license:        BSD style: $(LICENSE)
-
-        version:        Jan 2005: initial release
-                        Mar 2009: extracted from locale, and
-                                  converted to a struct
-
-        author:         John Chapman, Kris, mwarning
-
         Support for formatting date/time values, in a locale-specific
         manner. See DateTimeLocale.format() for a description on how
         formatting is performed (below).
@@ -19,6 +9,20 @@
         http://www.opengroup.org/onlinepubs/007908799/xsh/strftime.html
         http://msdn.microsoft.com/en-us/library/system.globalization.datetimeformatinfo(VS.71).aspx
         ---
+
+        Copyright:
+            Copyright (c) 2005 John Chapman.
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
+
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+        Version:
+            Jan 2005: initial release
+            Mar 2009: extracted from locale, and
+                      converted to a struct
+
+        Authors: John Chapman, Kris, mwarning
 
 ******************************************************************************/
 

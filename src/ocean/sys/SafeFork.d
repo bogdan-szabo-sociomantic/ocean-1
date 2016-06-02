@@ -2,19 +2,21 @@
 
     SafeFork
 
-    copyright:      Copyright (c) 2009-2011 sociomantic labs.
-                    All rights reserved
-
-    version:        June 2011: initial release
-
-    authors:        Mathias L. Baumann
-
     Offers some wrappers for the usage of fork to call expensive blocking
     functions without interrupting the main process and without the need to
     synchronize.
 
     Useful version switches:
         TimeFork = measures and displays the time taken by the linux fork() call
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

@@ -1,16 +1,19 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2007 Kris Bell. All rights reserved
-
-        license:        BSD style: $(LICENSE)
-
-        version:        Initial release: Nov 2007
-
-        author:         Kris
-
         UTF conversion streams, supporting cross-translation of char, wchar
         and dchar variants. For supporting endian variations, configure the
         appropriate EndianStream upstream of this one (closer to the source.)
+
+        Copyright:
+            Copyright (c) 2007 Kris Bell.
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
+
+        version:        Initial release: Nov 2007
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+        author:         Kris
+
 
 *******************************************************************************/
 

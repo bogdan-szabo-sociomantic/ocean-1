@@ -4,9 +4,15 @@
  * two modules may share a common implementation if possible (as is done
  * here).
  *
- * Copyright: Public Domain
- * License:   Public Domain
- * Authors:   Hauke Duden, Walter Bright
+ * Copyright:
+ *     Public Domain
+ *     Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+ *     All rights reserved.
+ *
+ * License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+ *
+ * Authors: Hauke Duden, Walter Bright
+ *
  */
 module ocean.core.Vararg;
 

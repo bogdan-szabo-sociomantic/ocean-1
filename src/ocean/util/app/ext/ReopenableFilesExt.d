@@ -1,11 +1,18 @@
 /*******************************************************************************
 
-    Copyright:      Copyright (c) 2014 sociomantic labs. All rights reserved
-
     Set of files which are reopened upon calling the reopenAll() method. The
     extension cooperates with the SignalExt, allowing the registered set of
     files to be reopened when a specific signal is received by the application.
     The constructor provides a convenient means to configure this behaviour.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

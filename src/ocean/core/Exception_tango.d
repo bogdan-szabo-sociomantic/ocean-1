@@ -2,9 +2,15 @@
  * The exception module defines all system-level exceptions and provides a
  * mechanism to alter system-level error handling.
  *
- * Copyright: Copyright (C) 2005-2006 Sean Kelly, Kris Bell.  All rights reserved.
- * License:   BSD style: $(LICENSE)
- * Authors:   Sean Kelly, Kris Bell
+ * Copyright:
+ *     Copyright (C) 2005-2006 Sean Kelly, Kris Bell.
+ *     Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+ *     All rights reserved.
+ *
+ * License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+ *
+ * Authors: Sean Kelly, Kris Bell
+ *
  */
 module ocean.core.Exception_tango;
 

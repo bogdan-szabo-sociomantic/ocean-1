@@ -3,18 +3,21 @@
     Base class for fiber based registrable client objects for the
     SelectDispatcher
 
-    copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-
-    version:        June 2011: Initial release
-
-    authors:        David Eckardt
-
     Contains the five things that the fiber based SelectDispatcher needs:
         1. the I/O device instance,
         2. the I/O events to register the device for,
         3. the event handler to invoke when an event occured for the device,
         4. the finalizer that resumes the fiber,
         5. the error handler that kills the fiber.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
  ******************************************************************************/
 

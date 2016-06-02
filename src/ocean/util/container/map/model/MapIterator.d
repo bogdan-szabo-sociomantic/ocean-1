@@ -1,15 +1,18 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
-
-    version:        09/07/2012: Initial release
-
-    authors:        Gavin Norman, David Eckardt
-
     Utility template to implement Map.opApply()/Set.opApply(), working around
     the problem that opApply() cannot have static array parameters because 'ref'
     is forbidden for static arrays. The solution is to use dynamic arrays
     instead and pass an array slice to to the 'foreach' loop body delegate.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

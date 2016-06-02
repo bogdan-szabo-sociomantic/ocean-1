@@ -1,11 +1,5 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
-
-    version:        11/04/2012: Initial release
-
-    authors:        David Eckardt, Gavin Norman
-
     Class implementing a set of hashes. The set is built on top of an efficient
     bucket algorithm, allowing for fast look up of hashes in the set.
 
@@ -33,6 +27,15 @@
         set.clear();
 
     ---
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

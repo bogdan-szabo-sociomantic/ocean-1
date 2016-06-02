@@ -1,12 +1,15 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2009 Kris Bell. All rights reserved
+        Various low-level console oriented utilities
 
-        license:        BSD style: $(LICENSE)
+        Copyright:
+            Copyright (c) 2009 Kris Bell.
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
 
         version:        rewritten: Nov 2009
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
-        Various low-level console oriented utilities
 
 *******************************************************************************/
 

@@ -1,16 +1,19 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-
-    version:        July 2010: Initial release
-
-    author:         Gavin Norman
-
     An abstract class template representing an entity de/coder, over a specific
     set of entities.
 
     The class has various abstract methods, which must be implemented, to decode
     and encode strings.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

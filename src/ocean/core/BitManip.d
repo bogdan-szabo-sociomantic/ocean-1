@@ -1,9 +1,15 @@
 /**
  * This module contains a collection of bit-level operations.
  *
- * Copyright: Public Domain
- * License:   Public Domain
- * Author:    Sean Kelly
+ * Copyright:
+ *     Public Domain
+ *     Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+ *     All rights reserved.
+ *
+ * License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+ *
+ * Authors: Sean Kelly
+ *
  */
 module ocean.core.BitManip;
 

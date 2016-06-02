@@ -1,18 +1,21 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2009 Tango. All rights reserved
-
-        license:        BSD style: see doc/license.txt for details
-
-        version:        Initial release: Jan 2010
-
-        author:         Kai Nacke
-
         This module implements the Whirlpool algorithm by Paulo S.L.M. Barreto
         and Vincent Rijmen.
 
         See https://www.cosic.esat.kuleuven.ac.be/nessie/workshop/submissions/whirlpool.zip
         for more information.
+
+        Copyright:
+            Copyright (c) 2009 Tango.
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
+
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+        Version: Initial release: Jan 2010
+
+        Authors: Kai Nacke
 
 *******************************************************************************/
 

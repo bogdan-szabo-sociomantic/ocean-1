@@ -1,12 +1,15 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2004 Kris Bell. All rights reserved
+        Copyright:
+            Copyright (c) 2004 Kris Bell.
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
 
-        license:        BSD style: $(LICENSE)
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
-        version:        Initial release: May 2004
+        Version: Initial release: May 2004
 
-        author:         Kris
+        Authors: Kris
 
 *******************************************************************************/
 

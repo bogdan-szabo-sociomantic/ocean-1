@@ -2,12 +2,6 @@
 
     Periodic console tracer
 
-    copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-
-    version:        December 2010: Initial release
-
-    authors:        Gavin Norman
-
     Periodic console tracer - writes messages to the console limited to a
     specified update interval. This can be used to safely limit the number of
     writes to the console. The write is done using either Stderr or
@@ -58,6 +52,15 @@
         }
 
     ---
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

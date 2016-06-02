@@ -1,14 +1,5 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2004 Kris Bell. All rights reserved
-
-    license:        BSD style: $(LICENSE)
-
-    version:        Initial release: Nov 2005
-                    Ocean adaptation: July 2012
-
-    author:         Kris, Gavin Norman
-
     A set of functions for converting strings to integer values.
 
     This module is adapted from ocean.text.convert.Integer_tango. The functions have
@@ -16,10 +7,23 @@
     via their bool return value. This is more efficient and avoids the tango
     style of always throwing new Exceptions upon error.
 
+    Copyright:
+        Copyright (c) 2004 Kris Bell.
+        Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+    Version:
+        Initial release: Nov 2005
+        Ocean adaptation: July 2012
+
+    Authors: Kris Bell, Gavin Norman
+
 *******************************************************************************/
 
 module ocean.text.convert.Integer;
- 
+
 import ocean.transition;
 
 import ocean.core.Traits;

@@ -1,7 +1,5 @@
 /*******************************************************************************
 
-    Copyright:      Copyright (c) 2014 sociomantic labs. All rights reserved
-
     Application extension which handles signals to the process and calls the
     onSignal() method of all registered extensions (see ISignalExtExtension).
     The extension can handle any number of different signals -- depending solely
@@ -77,6 +75,15 @@
         }
 
     ---
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

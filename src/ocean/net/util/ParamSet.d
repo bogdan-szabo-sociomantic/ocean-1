@@ -2,12 +2,6 @@
 
     Manages a set of parameters where each parameter is a string key/value pair.
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        May 2011: Initial release
-
-    authors:        David Eckardt
-
     Wraps an associative array serving as map of parameter key and value
     strings.
     The parameter keys are set on instantiation; that is, a key list is passed
@@ -23,6 +17,15 @@
     -L-lglib-2.0
 
     to the DMD build parameters.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
  ******************************************************************************/
 

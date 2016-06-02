@@ -2,18 +2,21 @@
 
     Value comparison for structs and arbitrary types.
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        February 2013: Enhanced version of sonar.records.core.CompareStructs
-
-    authors:        Don Clugston, Gavin Norman, Ben Palmer
-
     Does a deep equality comparison of one type to another.
 
     'Deep' meaning:
         * The _contents_ of dynamic arrays are compared
         * Types are recursed, allowing multi-dimensional arrays to be compared
         * All members of structs are compared (recursively, if needed).
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

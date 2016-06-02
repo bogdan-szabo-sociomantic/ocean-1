@@ -2,12 +2,6 @@
 
     Internet address handling and conversion heper.
 
-    copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
-
-    version:        August 2012: Initial release
-
-    authors:        David Eckardt
-
     Wraps a sockaddr_in or sockaddr_in6 struct instance together with the IP
     address network <-> presentation and port number network <-> host conversion
     functions.
@@ -33,6 +27,16 @@
 
     Important note: To reinitialise the address, use clear() (do not assign
                     .init).
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
+
 *******************************************************************************/
 
 module ocean.sys.socket.InetAddress;

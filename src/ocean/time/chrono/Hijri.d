@@ -1,8 +1,11 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2005 John Chapman. All rights reserved
+        Copyright:
+            Copyright (c) 2005 John Chapman.
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
 
-        license:        BSD style: $(LICENSE)
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
         version:        Mid 2005: Initial release
                         Apr 2007: reshaped

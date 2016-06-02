@@ -2,12 +2,6 @@
 
     GLIB Unicode Manipulation import declaration module
 
-    copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-
-    version:        February 2010: Initial release
-
-    author:         David Eckardt
-
     Documentation:
 
         http://www.gtk.org/api/2.6/glib/glib-Unicode-Manipulation.html
@@ -39,6 +33,15 @@
     list of people on the GLib Team.  See the ChangeLog files for a list of
     changes.  These files are distributed with GLib at
     ftp://ftp.gtk.org/pub/gtk/.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
  /*****************************************************************************/
 

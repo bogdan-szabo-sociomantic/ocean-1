@@ -1,11 +1,5 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2013 sociomantic labs. All rights reserved
-
-    version:        June 2013: Initial release
-
-    authors:        Hatem Oraby, Leandro Lucarella
-
     A D wrapper around the GNU readline/history file
 
     The module contains functionalities to manipulate the readline session
@@ -16,6 +10,15 @@
         - Requires linking with libreadline
         - The user of this module doesn't need to call `using_history()` as its
           automatically called once this module is imported.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

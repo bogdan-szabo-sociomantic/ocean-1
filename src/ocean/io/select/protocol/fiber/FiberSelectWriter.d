@@ -2,12 +2,6 @@
 
     Fiber/coroutine based non-blocking output select client base class
 
-    copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-
-    version:        December 2010: Initial release
-
-    authors:        David Eckardt, Gavin Norman
-
     Base class for a non-blocking output select client using a fiber/coroutine to
     suspend operation while waiting for the read event and resume on that event.
 
@@ -17,6 +11,15 @@
     To force sending pending data, call corkFlush().
 
     @see http://linux.die.net/man/7/tcp
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
  ******************************************************************************/
 

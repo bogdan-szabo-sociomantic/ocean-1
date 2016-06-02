@@ -3,12 +3,6 @@
     Custom event for use with fibers and epoll, allowing a process to be
     suspended until the event is triggered.
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        August 2011: Initial release
-
-    authors:        Gavin Norman
-
     Usage example:
 
     ---
@@ -34,6 +28,15 @@
         }
 
     ---
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

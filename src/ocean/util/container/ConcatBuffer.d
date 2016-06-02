@@ -1,11 +1,5 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        May 2011: Initial release
-
-    authors:        Gavin Norman, Mathias Baumann, David Eckardt
-
     Class templates for reusable buffers with minimal memory allocation.
 
     Each class has its own detailed description and usage example below.
@@ -17,6 +11,15 @@
     arrays from its 'add' method. The extended SliceBuffer class internally
     keeps track of the appended slices, and offers opIndex and opApply methods
     over them.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

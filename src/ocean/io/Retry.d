@@ -2,13 +2,6 @@
 
     I/O wait and retry callback manager
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        November 2009: Initial release
-                    March 2011: Complete rewrite
-
-    authors:        David Eckardt, Gavin Norman
-
     Provides a simple means for trying a block of code and retrying it if
     specified conditions occur. The default condition for retrying is if any
     exceptions are thrown in the code block. Custom success conditions can be
@@ -78,6 +71,15 @@
 
     An extended class, WaitRetry, implements a retryer which pauses for a
     specified length of time before each retry.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

@@ -2,12 +2,6 @@
 
     Linux custom file descriptor event.
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        August 2011: Initial release
-
-    authors:        Gavin Norman
-
     eventfd man page follows:
 
     Creates an "eventfd object" that can be used as an event wait/notify
@@ -87,6 +81,15 @@
 
     Returns:
         new file descriptor that can be used to refer to the eventfd object
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

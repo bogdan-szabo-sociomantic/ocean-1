@@ -1,11 +1,5 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
-
-    version:        15/08/2012: Initial release
-
-    authors:        Gavin Norman
-
     Pool of structs or classes. Adds the following features to the base class:
         * Iteration over all items in the pool, or all busy or idle items. (See
           further notes below.)
@@ -78,6 +72,15 @@
     If the pool items are structs, 'ref' iteration is required to make the
     modification of the items iterated over permanent. For objects 'ref' should
     not be used.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

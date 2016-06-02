@@ -2,14 +2,6 @@
 
     Provides a HMAC implementation
 
-    copyright:      Copyright (C) dcrypt contributors 2008. All rights reserved.
-
-    version:        Jan 2010: Initial release
-
-    License:           MIT
-
-    authors:        Thomas Dixon, Mathias L. Baumann
-
     Usage example:
 
     ---
@@ -31,6 +23,17 @@
         // To reuse the hmac object, init() must be called again.
 
     ---
+
+    Copyright:
+        Copyright (C) dcrypt contributors 2008.
+        Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+    Version: Jan 2010: Initial release
+
+    Authors: Thomas Dixon, Mathias L. Baumann
 
 *******************************************************************************/
 

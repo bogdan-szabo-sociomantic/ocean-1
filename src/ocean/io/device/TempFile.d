@@ -1,12 +1,21 @@
 /******************************************************************************
  *
- * copyright:   Copyright &copy; 2007 Daniel Keep.  All rights reserved.
- * license:     BSD style: $(LICENSE)
- * version:     Dec 2007: Initial release$(BR)
- *              May 2009: Inherit File
- * authors:     Daniel Keep
- * credits:     Thanks to John Reimer for helping test this module under
- *              Linux.
+ * Copyright:
+ *     Copyright &copy; 2007 Daniel Keep.
+ *     Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+ *     All rights reserved.
+ *
+ * License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+ *
+ * Version:
+ *     Dec 2007: Initial release$(BR)
+ *     May 2009: Inherit File
+ *
+ * Authors: Daniel Keep
+ *
+ * Credits:
+ *     Thanks to John Reimer for helping test this module under Linux.
+ *
  *
  ******************************************************************************/
 

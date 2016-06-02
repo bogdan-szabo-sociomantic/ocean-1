@@ -3,8 +3,6 @@
     (L)east (R)ecently (U)sed Cache class, Caches data items according to their
     access time and discards item that were least recently accessed.
 
-    copyright:      Copyright (c) 2015 sociomantic labs. All rights reserved
-
     Cache of raw data (ubyte[] / void[]) items of either fixed or variable
     length. The cache is initialised with a fixed capacity (the number of items
     that can be stored). When the cache reaches its full capacity, any newly
@@ -186,6 +184,15 @@
 
     Link with:
         -Llibebtree.a
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

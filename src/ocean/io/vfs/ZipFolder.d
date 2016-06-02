@@ -1,14 +1,17 @@
 /*******************************************************************************
 
-    copyright:  Copyright © 2007 Daniel Keep.  All rights reserved.
+    Copyright:
+        Copyright © 2007 Daniel Keep.
+        Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
 
-    license:    BSD style: $(LICENSE)
+    License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
-    version:    The Great Namechange: February 2008$(BR)
+    Version:
+        The Great Namechange: February 2008$(BR)
+        Initial release: December 2007
 
-                Initial release: December 2007
-
-    author:     Daniel Keep
+    Authors: Daniel Keep
 
 *******************************************************************************/
 

@@ -1,7 +1,5 @@
 /*******************************************************************************
 
-    Copyright:      Copyright (c) 2014 sociomantic labs. All rights reserved
-
     Types concerning the values stored in cache.
 
     Value is the type stored in the cache.
@@ -18,6 +16,15 @@
     to a Value struct instance while getRaw() returns either a pointer or null.
     The Value struct wraps a dynamic array and provides access via struct
     methods.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

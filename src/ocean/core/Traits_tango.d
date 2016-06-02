@@ -5,9 +5,15 @@
  * naming convention used for types, and templates which evaluate to a value
  * follow the naming convention used for functions.
  *
- * Copyright: Copyright (C) 2005-2006 Sean Kelly.  All rights reserved.
- * License:   BSD style: $(LICENSE)
- * Authors:   Sean Kelly, Fawzi Mohamed, Abscissa
+ * Copyright:
+ *     Copyright (C) 2005-2006 Sean Kelly.
+ *     Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+ *     All rights reserved.
+ *
+ * License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+ *
+ * Authors: Sean Kelly, Fawzi Mohamed, Abscissa
+ *
  */
 module ocean.core.Traits_tango;
 

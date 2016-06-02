@@ -1,14 +1,5 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2005 Kris Bell. All rights reserved
-
-    license:        BSD style: $(LICENSE)
-
-    version:        Initial release: December 2005
-
-    author:         Kris
-
-
     Text is a class for managing and manipulating Unicode character
     arrays.
 
@@ -192,6 +183,17 @@
             void replace(T[]);
     }
     ---
+
+    Copyright:
+        Copyright (c) 2005 Kris Bell.
+        Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+    Version: Initial release: December 2005
+
+    Authors: Kris
 
 *******************************************************************************/
 

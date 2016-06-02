@@ -1,11 +1,5 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2013 sociomantic labs. All rights reserved
-
-    version:        September 2013: Initial release
-
-    author:         Stefan Brus
-
     Contains utility functions for working with unicode strings. Contains a
     function to return the length of a UTF-8 string, a method to truncate a
     UTF-8 string to the nearest whitespace character that is less than a maximum
@@ -26,6 +20,15 @@
         size_t len2 = utf8Length(utf, (size_t i){ // error handling code...  });
 
     ---
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

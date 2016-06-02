@@ -1,16 +1,19 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) Nov 2007 Kris Bell. All rights reserved
-
-        license:        BSD style: $(LICENSE)
-
-        version:        Nov 2007: Initial release
-
-        author:         Kris
-
         Support for HTTP chunked I/O.
 
         See http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html
+
+        Copyright:
+            Copyright (c) Nov 2007 Kris Bell.
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
+
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+        Version: Nov 2007: Initial release
+
+        Authors: Kris
 
 *******************************************************************************/
 

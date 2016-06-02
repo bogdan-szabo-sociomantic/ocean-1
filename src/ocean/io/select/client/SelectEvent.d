@@ -2,12 +2,6 @@
 
     Custom event which can be registered with the EpollSelectDispatcher.
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        April 2011: Initial release
-
-    authors:        Gavin Norman
-
     An instance of this class can be registered with an EpollSelectDispatcher,
     and triggered at will, causing it to be selected in the select loop. When it
     is selected, a user-specified callback (given in the class' constructor) is
@@ -41,6 +35,15 @@
         // select the event and invoke its handler callback.
 
     ---
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

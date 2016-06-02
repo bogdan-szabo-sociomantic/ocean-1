@@ -1,17 +1,20 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2005 John Chapman. All rights reserved
-
-        license:        BSD style: $(LICENSE)
-
-        version:        Initial release: 2005
-
-        author:         John Chapman
-
         Contains classes that provide information about locales, such as
         the language and calendars, as well as cultural conventions used
         for formatting dates, currency and numbers. Use these classes when
         writing applications for an international audience.
+
+        Copyright:
+            Copyright (c) 2005 John Chapman.
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
+
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+        Version: Initial release: 2005
+
+        Authors: John Chapman
 
 ******************************************************************************/
 

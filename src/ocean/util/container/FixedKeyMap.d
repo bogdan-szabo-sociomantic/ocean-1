@@ -2,12 +2,6 @@
 
     Map template with a fixed set of keys.
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        November 2011: Initial release
-
-    authors:        Gavin Norman
-
     Map template with a fixed set of keys, specified in the class' constructor.
     If an item is added whose key is not in the fixed set, an exception is
     thrown.
@@ -49,6 +43,15 @@
         auto nine = "ninth" in map;
 
     ---
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

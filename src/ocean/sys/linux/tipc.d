@@ -1,9 +1,15 @@
 /**
  * D header file for Linux TIPC sockets.
  *
- * Copyright: Public Domain
- * License:   Public Domain
- * Authors:   Leandro Lucarella, based on the TIPC linux C header.
+ * Copyright:
+ *     Public Domain
+ *     Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+ *     All rights reserved.
+ *
+ * License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+ *
+ * Authors: Leandro Lucarella, based on the TIPC linux C header.
+ *
  */
 
 module ocean.sys.linux.tipc;

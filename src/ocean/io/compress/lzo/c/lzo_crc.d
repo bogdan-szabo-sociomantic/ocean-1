@@ -2,12 +2,6 @@
 
     Binding of the LZO library CRC-32 functions
 
-    copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-
-    version:        July 2010: Initial release
-
-    authors:        David Eckardt
-
     Unfortunately, the definitions of the CRC-32 functions are currently missing
     in the source code of the MiniLZO although they are declared in the MiniLZO
     include headers.
@@ -47,6 +41,15 @@
               http://www.oberhumer.com/opensource/lzo/
     Version : 2.03
     Date    : 30 Apr 2008
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
  *****************************************************************************/
 

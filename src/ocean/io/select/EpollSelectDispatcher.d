@@ -3,12 +3,6 @@
     Manages an I/O event loop with automatic handler invocation and
     unregistration.
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        July 2010: Initial release
-
-    authors:        David Eckardt, Gavin Norman
-
     The EpollSelectDispatcher class wraps a Tango EpollSelector and uses
     ISelectClient instances for Select I/O event registration, unregistration
     and event handler invocation. An I/O event loop is provided that runs while
@@ -20,6 +14,15 @@
     If a handler throws an Exception, it is caught, the ISelectClient containing
     that handler is unregistered immediately and finalize() is invoked.
     Exceptions thrown by the ISelectClient's finalize() methods are also caught.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

@@ -2,14 +2,6 @@
 
     Sliding Average Module
 
-    copyright:      Copyright (c) 2009-2011 sociomantic labs.
-                    All rights reserved
-
-    version:        September 2011: initial release
-                    July 2013: reworked documentation
-
-    authors:        Mathias L. Baumann
-
     This module contains two classes to calculate the average of a fixed amount
     of values. Once the fixed amount of values has been added, each time a new
     value is added, the oldest is forgotten
@@ -23,6 +15,15 @@
     is aware of that period and adjusts the added values accordingly. You tell
     it how much time a single completed value corresponds to and what time
     output resultion you desire.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

@@ -2,12 +2,6 @@
 
     File-based queue implementation.
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        January 2012: Initial release
-
-    authors:        Mathias Baumann, Ben Palmer
-
     The flexible file queue can be set to either open any existing files it
     finds, or always delete existing files when it is created using the
     open_existing parameter in the contructor.
@@ -15,6 +9,15 @@
     Note that the queue file is deleted in the following cases:
         1. Upon calling the clear() method.
         2. Upon calling pop() on an empty queue.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

@@ -1,18 +1,23 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2004 Kris Bell. All rights reserved
-
-        license:        BSD style: $(LICENSE)
-
-        version:        Initial release: April 2004
-                        Outback release: December 2006
-
-        author:         Kris    - original module
-        author:         h3r3tic - fixed a number of Post issues and
-                                  bugs in the 'params' construction
-
         Redirection handling guided via
                     http://ppewww.ph.gla.ac.uk/~flavell/www/post-redirect.html
+
+        Copyright:
+            Copyright (c) 2004 Kris Bell.
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
+
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+        Version:
+            Initial release: April 2004
+            Outback release: December 2006
+
+        Authors:
+            Kris    - original module
+            h3r3tic - fixed a number of Post issues and
+                      bugs in the 'params' construction
 
 *******************************************************************************/
 

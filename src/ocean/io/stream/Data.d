@@ -1,13 +1,5 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2007 Kris Bell. All rights reserved
-
-        license:        BSD style: $(LICENSE)
-
-        version:        Initial release: Oct 2007
-
-        author:         Kris
-
         These classes represent a simple means of reading and writing
         discrete data types as binary values, with an option to invert
         the endian order of numeric values.
@@ -16,6 +8,17 @@
         length-prefix, and should otherwise be explicitly managed at
         the application level. We'll add additional support for arrays
         and aggregates in future.
+
+        Copyright:
+            Copyright (c) 2007 Kris Bell.
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
+
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+        Version: Initial release: Oct 2007
+
+        Authors: Kris
 
 *******************************************************************************/
 

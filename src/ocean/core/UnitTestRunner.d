@@ -2,8 +2,6 @@
 
     Flexible unittest runner
 
-    copyright:      Copyright (c) 2014 Sociomantic Labs. All rights reserved
-
     This module provides a more flexible unittest runner.
 
     The goals for this test runner is to function as a standalone program,
@@ -36,6 +34,15 @@
     Status codes can be aggregated via ORing, so for example, a status of 12
     means both failures and errors were encountered, and status of 20 means
     failures were encountered and there was an error writing the XML file.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

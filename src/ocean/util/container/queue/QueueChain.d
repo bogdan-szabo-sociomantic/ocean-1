@@ -2,12 +2,6 @@
 
     Composes two queues, with the second acting as an overflow of the first.
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        January 2012: Initial release
-
-    authors:        Mathias Baumann
-
     Items are initially pushed into the main queue until it is full. Subsequent
     items then begin to be pushed into the swap queue and will continue doing so
     until the swap queue becomes empty again.
@@ -18,6 +12,15 @@
     The composed queues do not have to be of the same type (they are both simply
     required to implement the IByteQueue interface). A common usage pattern is
     to chain a file-based queue as an overflow of a memory-based queue.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

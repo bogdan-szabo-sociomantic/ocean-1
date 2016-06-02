@@ -1,8 +1,14 @@
 /** Arbitrary-precision ('bignum') arithmetic
  *
- * Copyright: Copyright (C) 2008 Don Clugston.  All rights reserved.
- * License:   BSD style: $(LICENSE)
- * Authors:   Don Clugston
+ * Copyright:
+ *     Copyright (C) 2008 Don Clugston.
+ *     Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+ *     All rights reserved.
+ *
+ * License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+ *
+ * Authors: Don Clugston
+ *
  */
 
 module ocean.math.BigInt;

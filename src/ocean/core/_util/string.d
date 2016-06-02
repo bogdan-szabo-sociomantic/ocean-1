@@ -1,13 +1,15 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2004 Tango group. All rights reserved
-
-        license:        BSD style: $(LICENSE)
-
-        version:        Initial release: July 2006
-
-
         Various char[] utilities
+
+        Copyright:
+            Copyright (c) 2004 Tango group.
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
+
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+        Version: Initial release: July 2006
 
 *******************************************************************************/
 

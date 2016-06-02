@@ -2,18 +2,21 @@
 
     Manages an array buffer for better incremental appending performance
 
-    Copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-
-    Version:        May 2011: Initial release
-
-    Authors:        David Eckardt
-
     Manages an array buffer for better performance when elements are
     incrementally appended to an array.
 
     Note that, as with each dynamic array, changing the length invalidates
     existing slices to the array, potentially turning them into dangling
     references.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
  ******************************************************************************/
 

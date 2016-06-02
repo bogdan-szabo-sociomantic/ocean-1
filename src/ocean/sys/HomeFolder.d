@@ -1,9 +1,12 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2006-2009 Lars Ivar Igesund, Thomas Kühne,
-                                           Grzegorz Adam Hankiewicz, sleek
+        Copyright:
+            Copyright (c) 2006-2009 Lars Ivar Igesund, Thomas Kühne,
+              Grzegorz Adam Hankiewicz, sleek
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
 
-        license:        BSD style: $(LICENSE)
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
         version:        Initial release: December 2006
                         Updated and readded: August 2009

@@ -1,11 +1,15 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2008 Kris Bell. All rights reserved
+        Copyright:
+            Copyright (c) 2008 Kris Bell.
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
 
-        license:        BSD style: $(LICENSE)
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
-        version:        Apr 2008: Initial release
-                        Jan 2009: Added GCChunk allocator
+        Version:
+            Apr 2008: Initial release
+            Jan 2009: Added GCChunk allocator
 
         authors:        Kris, schveiguy
 

@@ -1,13 +1,17 @@
 /*******************************************************************************
-        copyright:      Copyright (c) 2006 Tango. All rights reserved
-
-        license:        BSD style: see doc/license.txt for details
-
-        version:        Initial release: Feb 2006
-
-        author:         Regan Heath, Oskar Linde
 
         This module implements a generic Merkle-Damgard hash function
+
+        Copyright:
+            Copyright (c) 2006 Tango.
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
+
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+        Version: Initial release: Feb 2006
+
+        Authors: Regan Heath, Oskar Linde
 
 *******************************************************************************/
 

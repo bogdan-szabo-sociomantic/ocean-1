@@ -3,12 +3,6 @@
     Smart enum template class, encapsulates an enum with a map of its codes
     and descriptions.
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        March 2011: Initial release
-
-    authors:        Gavin Norman
-
     Contains two main mixin templates:
 
         1. SmartEnum
@@ -105,6 +99,15 @@
             "second"));
 
     ---
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

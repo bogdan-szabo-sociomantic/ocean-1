@@ -1,7 +1,14 @@
 /**
- * Copyright: Copyright (C) Thomas Dixon 2009. All rights reserved.
- * License:   BSD style: $(LICENSE)
- * Authors:   Thomas Dixon
+ *
+ * Copyright:
+ *     Copyright (C) Thomas Dixon 2009.
+ *     Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+ *     All rights reserved.
+ *
+ * License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+ *
+ * Authors: Thomas Dixon
+ *
  */
 
 module ocean.util.cipher.Salsa20;

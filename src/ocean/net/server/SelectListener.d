@@ -2,12 +2,6 @@
 
     Server socket listener using multiplexed non-blocking socket I/O
 
-    copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-
-    version:        December 2010: Initial release
-
-    authors:        David Eckardt
-
     Creates a server socket and a pool of connection handlers and registers
     the server socket for incoming connection in a provided SelectDispatcher
     instance. When a connection comes in, takes an IConnectionHandler instance
@@ -53,6 +47,15 @@
         }
 
     ---
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
  ******************************************************************************/
 

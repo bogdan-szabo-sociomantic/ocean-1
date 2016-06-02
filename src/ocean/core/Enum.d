@@ -1,11 +1,5 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
-
-    version:        18/10/2012: Initial release
-
-    authors:        Gavin Norman
-
     Mixin for an enum class with the following basic features:
         * Contains an enum, called E, with members specified by an associative
           array passed to the mixin.
@@ -119,6 +113,15 @@
     TODO: does it matter that the enum values are always int? We could add a
     template parameter to specify the base type, but I think it'd be a shame to
     make things more complex. IEnum would have to become a template then.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

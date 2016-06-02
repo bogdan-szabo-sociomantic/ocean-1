@@ -1,11 +1,5 @@
 /*******************************************************************************
 
-    Copyright:      Copyright (c) 2013 sociomantic labs. All rights reserved
-
-    Version:        2013-09-12: Initial release
-
-    Authors:        Gavin Norman
-
     Utility functions for converting hash_t <-> hexadecimal strings.
 
     A few different types of data are handled:
@@ -14,6 +8,15 @@
           specifier ("0x")
         * Hash digests: hex strings of exactly hash_t.sizeof * 2 digits
         * hash_t
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

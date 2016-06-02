@@ -1,14 +1,20 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2016 sociomantic labs. All rights reserved
-
     Module that provides a method to convert from a date time formatted as a
     string to a UNIX timestamp value.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 
 module ocean.text.convert.DateTime;
-
 
 
 /*******************************************************************************
@@ -32,7 +38,6 @@ import ocean.text.convert.Format;
 import ocean.core.Array_tango : contains;
 
 import ocean.time.chrono.Gregorian;
-
 
 
 /*******************************************************************************

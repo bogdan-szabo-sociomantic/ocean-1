@@ -1,16 +1,19 @@
 /*******************************************************************************
 
-    Copyright:      Copyright (c) 2013 sociomantic labs. All rights reserved
-
-    Version:        2013-02-12: Initial release
-
-    Authors:        Gavin Norman
-
     Functions to set a process' CPU affinity.
 
     This module uses the GNU API and contains declarations and functionality
     found in <sched.h> on GNU/Linux. See
     http://www.gnu.org/software/libc/manual/html_node/CPU-Affinity.html
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

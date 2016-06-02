@@ -1,14 +1,5 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2004 Kris Bell. All rights reserved
-
-    license:        BSD style: $(LICENSE)
-
-    version:        Nov 2005: Initial release
-    Jan 2010: added internal ecvt()
-
-    author:         Kris
-
     A set of functions for converting between string and floating-
     point values.
 
@@ -19,6 +10,19 @@
 
     auto f = Float.parse ("3.14159");
     ---
+
+    Copyright:
+        Copyright (c) 2004 Kris Bell.
+        Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+    Version:
+        Nov 2005: Initial release
+        Jan 2010: added internal ecvt()
+
+    Authors: Kris
 
 ********************************************************************************/
 

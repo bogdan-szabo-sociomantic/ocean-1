@@ -17,11 +17,14 @@
     mathematical function $(LPAREN)for more details in these functions see
     http://man7.org/linux/man-pages/man7/math_error.7.html$(RPAREN).
 
-    copyright: Copyright (c) 2013 sociomantic labs. All rights reserved
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
 
-    version: 22/11/2013 Initial release
-
-    authors: Ben Palmer
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

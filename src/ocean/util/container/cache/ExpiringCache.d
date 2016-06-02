@@ -2,15 +2,18 @@
 
     Cache with an element expiration facility.
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        May 2011: Initial release
-
-    authors:        Gavin Norman, David Eckardt
-
     Extends the Cache by providing a settable lifetime and automatically
     removing  elements where the difference between the current time and the
     createtime is greater than that lifetime value.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

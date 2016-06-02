@@ -1,13 +1,5 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2004 Kris Bell. All rights reserved
-
-    license:        BSD style: $(LICENSE)
-
-    version:        Initial release: Oct 2004
-
-    authors:        Kris
-
     Fast Unicode transcoders. These are particularly sensitive to
     minor changes on 32bit x86 devices, because the register set of
     those devices is so small. Beware of subtle changes which might
@@ -45,6 +37,17 @@
     $(UL $(LINK http://www.hackcraft.net/xmlUnicode/))
     $(UL $(LINK http://www.azillionmonkeys.com/qed/unicode.html/))
     $(UL $(LINK http://icu.sourceforge.net/docs/papers/forms_of_unicode/))
+
+    Copyright:
+        Copyright (c) 2004 Kris Bell.
+        Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+    Version: Initial release: Oct 2004
+
+    Authors: Kris
 
  *******************************************************************************/
 

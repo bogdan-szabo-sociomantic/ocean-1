@@ -3,15 +3,18 @@
     Simulates a device that you can write to and read from, behaves pretty much
     like a file
 
-    copyright:      Copyright (c) 2014 sociomantic labs. All rights reserved
-
-    version:        02.04.2013: Initial release
-
-    authors:        Mathias Baumann
-
     This was created as an alternative to ocean.io.device.Array, whose write()
     function has the unreasonable limitation of always appending instead of
     respecting the current seek position and thus not properly simulating a file
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

@@ -1,11 +1,5 @@
 /*******************************************************************************
 
-    copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
-
-    version:        12/21/2012: Initial release
-
-    authors:        Ben Palmer
-
     Module to display application information in the terminal. Does not keep
     track of any values, only puts the information to the terminal in two
     separate portions - a static portion in the bottom and a streaming portion
@@ -80,6 +74,15 @@
 
     Tip: look for convenience aliases of other supported colours within the class
          body below
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

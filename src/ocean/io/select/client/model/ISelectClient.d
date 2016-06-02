@@ -2,12 +2,6 @@
 
     Base class for registrable client objects for the SelectDispatcher
 
-    copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-
-    version:        July 2010: Initial release
-
-    authors:        David Eckardt
-
     Contains the three things that the SelectDispatcher needs:
         1. the I/O device instance
         2. the I/O events to register the device for
@@ -16,6 +10,15 @@
     In addition a subclass may override finalize(). When handle() returns false
     or throws an Exception, the ISelectClient instance is unregistered from the
     SelectDispatcher and finalize() is invoked.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
  ******************************************************************************/
 

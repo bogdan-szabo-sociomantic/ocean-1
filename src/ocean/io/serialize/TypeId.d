@@ -3,12 +3,6 @@
     Templates to generate a a hash or a string that describes the binary layout
     of a value type, fully recursing into aggregates.
 
-    copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
-
-    version:        October 2012: Initial release
-
-    authors:        David Eckardt
-
     The data layout identifier hash is the 64-bit Fnv1a hash value of a string
     that is generated from a struct or union by concatenating the offsets
     and types of each field in order of appearance, recursing into structs,
@@ -72,6 +66,15 @@
 
     The type identifier of a non-aggregate type is the .stringof of that type
     (or its base if it is a typedef or enum).
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
  ******************************************************************************/
 

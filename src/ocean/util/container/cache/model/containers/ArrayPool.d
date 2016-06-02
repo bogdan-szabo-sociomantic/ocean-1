@@ -1,11 +1,5 @@
 /*******************************************************************************
 
-    Copyright:      Copyright (C) 2013 sociomantic labs. All rights reserved
-
-    Version:        2013-04-05: Initial release
-
-    Author:        David Eckardt
-
     Basic preallocated pool of a fixed number of value type items, all items are
     stored in one dynamic array.
     Uses malloc() instead of D memory managed allocation for two reasons:
@@ -13,6 +7,15 @@
          as the D memory manager does is not desired.
       2. The elements do not contain references to D memory managed objects so
          they can be invisible to the GC.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

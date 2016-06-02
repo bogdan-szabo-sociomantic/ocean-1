@@ -2,12 +2,6 @@
 
     Linux signal file descriptor event for use with epoll.
 
-    copyright:      Copyright (c) 2011 sociomantic labs. All rights reserved
-
-    version:        December 2011: Initial release
-
-    authors:        Gavin Norman
-
     Allows signals to be handled as events in epoll, rather than as interrupts.
     One or more signals can be speicified. Once the SignalEvent is registered,
     the default interrupt-based signal handlers will no longer receive these
@@ -18,6 +12,15 @@
 
     Note that when the SignalEvent is unregistered from epoll, the interrupt-
     based signal handlers are automatically reinstated.
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

@@ -2,10 +2,15 @@
  * This module contains a packed bit array implementation in the style of D's
  * built-in dynamic arrays.
  *
- * Copyright: Copyright (C) 2005-2006 Digital Mars, www.digitalmars.com.
- *            All rights reserved.
- * License:   BSD style: $(LICENSE)
- * Authors:   Walter Bright, Sean Kelly
+ * Copyright:
+ *     Copyright (C) 2005-2006 Digital Mars, www.digitalmars.com.
+ *     Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+ *     All rights reserved.
+ *
+ * License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+ *
+ * Authors: Walter Bright, Sean Kelly
+ *
  */
 module ocean.core.BitArray;
 

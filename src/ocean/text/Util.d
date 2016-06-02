@@ -1,15 +1,5 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2004 Kris Bell. All rights reserved
-
-        license:        BSD style: $(LICENSE)
-
-        version:        Apr 2004: Initial release
-                        Dec 2006: South Seas version
-
-        author:         Kris
-
-
         Placeholder for a variety of wee functions. These functions are all
         templated with the intent of being used for arrays of char, wchar,
         and dchar. However, they operate correctly with other array types
@@ -96,6 +86,19 @@
         Please note that any 'pattern' referred to within this module
         refers to a pattern of characters, and not some kind of regex
         descriptor. Use the Regex module for regex operation.
+
+        Copyright:
+            Copyright (c) 2004 Kris Bell.
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
+
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+        Version:
+            Apr 2004: Initial release
+            Dec 2006: South Seas version
+
+        Authors: Kris
 
 *******************************************************************************/
 

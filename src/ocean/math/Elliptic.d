@@ -2,17 +2,21 @@
  * Elliptic integrals.
  * The functions are named similarly to the names used in Mathematica.
  *
- * License:   BSD style: $(LICENSE)
- * Copyright: Based on the CEPHES math library, which is
- *            Copyright (C) 1994 Stephen L. Moshier (moshier@world.std.com).
- * Authors:   Stephen L. Moshier (original C code). Conversion to D by Don Clugston
- *
- * References:
- * $(LINK http://en.wikipedia.org/wiki/Elliptic_integral)
- *
  * Eric W. Weisstein. "Elliptic Integral of the First Kind." From MathWorld--A Wolfram Web Resource. $(LINK http://mathworld.wolfram.com/EllipticIntegraloftheFirstKind.html)
  *
  * $(LINK http://www.netlib.org/cephes/ldoubdoc.html)
+ *
+ * Copyright:
+ *     Based on the CEPHES math library, which is
+ *                Copyright (C) 1994 Stephen L. Moshier (moshier@world.std.com).
+ *     Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+ *     All rights reserved.
+ *
+ * License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+ *
+ * Authors: Stephen L. Moshier (original C code). Conversion to D by Don Clugston
+ *
+ * References: $(LINK http://en.wikipedia.org/wiki/Elliptic_integral)
  *
  * Macros:
  *  TABLE_SV = <table border=1 cellpadding=4 cellspacing=0>

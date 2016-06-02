@@ -1,16 +1,19 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2008 Kris Bell. All rights reserved
-
-        license:        BSD style: $(LICENSE)
-
-        version:        Apr 2008: Initial release
-
-        authors:        Kris
-
-        Since:          0.99.7
-
         Based upon Doug Lea's Java collection package
+
+        Copyright:
+            Copyright (c) 2008 Kris Bell.
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
+
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+        Version: Apr 2008: Initial release
+
+        Authors: Kris
+
+        Since: 0.99.7
 
 *******************************************************************************/
 

@@ -2,16 +2,19 @@
 
     Http Session "Cookie" Structure
 
-    copyright:      Copyright (c) 2010 sociomantic labs. All rights reserved
-
-    version:        Apr 2010: Initial release
-
-    author:         David Eckardt
-
     Reference:      RFC 2109
 
                     @see http://www.w3.org/Protocols/rfc2109/rfc2109.txt
                     @see http://www.servlets.com/rfcs/rfc2109.html
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
  ******************************************************************************/
 

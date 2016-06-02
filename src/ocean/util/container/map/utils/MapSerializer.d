@@ -3,13 +3,6 @@
     Contains extensions for Map based classes to dump the contents of maps to a
     file or to read from a file into a map. Includes struct versioning support.
 
-    copyright:      Copyright (c) 2012 sociomantic labs. All rights reserved
-
-    version:        11.09.2012: Initial release
-    02.10.2012: Now uses SimpleSerielizer
-
-    authors:        Mathias Baumann, Hans Bjerkander
-
     This module provides you with several ways to load/dump a map from/into a
     file:
 
@@ -18,6 +11,15 @@
     * Using the class MapSerializer to use the load/dump functions directly
 
     See documentation of class MapSerializer for more details
+
+    Copyright:
+        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        All rights reserved.
+
+    License:
+        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+        Alternatively, this file may be distributed under the terms of the Tango
+        3-Clause BSD License (see LICENSE_BSD.txt for details).
 
 *******************************************************************************/
 

@@ -1,12 +1,5 @@
 /*******************************************************************************
 
-        Copyright:      Copyright (c) 2007-2008 Matti Niemenmaa.
-                        All rights reserved
-        License:        BSD style: $(LICENSE)
-        Version:        Aug 2007: Initial release
-                        Feb 2008: Retooled
-        Author:         Matti Niemenmaa
-
         This module is based on the ISO 8601:2004 standard, and has functions
         for parsing (almost) every date/time format specified therein. (The
         ones not supported are intervals, durations, and recurring intervals.)
@@ -23,6 +16,19 @@
         lead to the date changing when only a time was parsed: e.g. "01:00+03"
         is the same as "22:00", except that when the former is parsed, one is
         subtracted from the day.
+
+        Copyright:
+            Copyright (c) 2007-2008 Matti Niemenmaa.
+            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            All rights reserved.
+
+        License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+        Version:
+            Aug 2007: Initial release
+            Feb 2008: Retooled
+
+        Authors: Matti Niemenmaa
 
 *******************************************************************************/
 
