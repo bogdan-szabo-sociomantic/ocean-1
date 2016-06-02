@@ -11,7 +11,7 @@
     See_Also: https://gnupg.org/documentation/manuals/gcrypt/index.html
 
     Copyright:
-        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        Copyright (c) 2009-2016 Sociomantic Labs GmbH.
         All rights reserved.
 
     License:

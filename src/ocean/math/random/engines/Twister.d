@@ -3,7 +3,7 @@
         Copyright:
             Copyright (C) 1997-2004, Makoto Matsumoto, Takuji Nishimura, and
               Eric Landry.
-            Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+            Some parts copyright (c) 2009-2016 Sociomantic Labs GmbH.
             All rights reserved.
 
         License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.

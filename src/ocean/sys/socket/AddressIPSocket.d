@@ -3,7 +3,7 @@
     IP socket that memorises its address
 
     Copyright:
-        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        Copyright (c) 2009-2016 Sociomantic Labs GmbH.
         All rights reserved.
 
     Todo: Add an AddressIPSocket subclass with host resolution.

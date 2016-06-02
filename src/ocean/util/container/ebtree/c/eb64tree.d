@@ -24,7 +24,7 @@
     package is provided in Sociomantic repos.
 
     Copyright:
-        Copyright (c) 2009-2016, Sociomantic Labs GmbH.
+        Copyright (c) 2009-2016 Sociomantic Labs GmbH.
         All rights reserved.
 
     License:

@@ -5,7 +5,7 @@
  *
  * Copyright:
  *     Copyright &copy; 2007 Daniel Keep.
- *     Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+ *     Some parts copyright (c) 2009-2016 Sociomantic Labs GmbH.
  *     All rights reserved.
  *
  * License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.

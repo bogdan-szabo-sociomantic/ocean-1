@@ -9,7 +9,7 @@
  * Copyright:
  *     Based on the CEPHES math library, which is
  *                Copyright (C) 1994 Stephen L. Moshier (moshier@world.std.com).
- *     Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
+ *     Some parts copyright (c) 2009-2016 Sociomantic Labs GmbH.
  *     All rights reserved.
  *
  * License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
