@@ -5,9 +5,8 @@
     differing in the exact entities which must be encoded. (The html entities
     are a superset of the xml entities, for example.)
 
-    See here for details:
-
-    http://en.wikipedia.org/wiki/List_of_XML_and_HTML_character_entity_references
+    See_Also:
+        http://en.wikipedia.org/wiki/List_of_XML_and_HTML_character_entity_references
 
     Example usage:
 

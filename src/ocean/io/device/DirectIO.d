@@ -42,9 +42,10 @@
     bytes long and the final 412 bytes will contain garbage. truncate(2) or
     ftruncate(2) might be used to truncate the file to its real size if desired.
 
-    See_Also:       https://github.com/sociomantic/swarm/issues/3
-                    http://www.westnet.com/~gsmith/content/linux-pdflush.htm
-                    https://www.kernel.org/doc/Documentation/sysctl/vm.txt
+    See_Also:
+        https://github.com/sociomantic/swarm/issues/3
+        http://www.westnet.com/~gsmith/content/linux-pdflush.htm
+        https://www.kernel.org/doc/Documentation/sysctl/vm.txt
 
     Copyright:
         Copyright (c) 2009-2016, Sociomantic Labs GmbH.

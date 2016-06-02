@@ -3,7 +3,8 @@
        D binding for the C iconv library.
 
        The C iconv library is used to convert from one character encoding to another.
-       See http://www.gnu.org/software/libiconv/
+
+       See_Also: http://www.gnu.org/software/libiconv/
 
        Copyright:
            Copyright (c) 2009-2016, Sociomantic Labs GmbH.

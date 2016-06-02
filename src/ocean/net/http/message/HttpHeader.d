@@ -5,7 +5,7 @@
     The names of all header fields whose values will be accessed must be added,
     except the General-Header fields specified in RFC 2616 section 4.5.
 
-        @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.5
+    See_Also: http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.5
 
     Copyright:
         Copyright (c) 2009-2016, Sociomantic Labs GmbH.

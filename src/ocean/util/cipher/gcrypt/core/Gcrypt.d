@@ -8,10 +8,7 @@
     This module has support for algorithms that require an initialisation vector
     but it could be easily adapted (/split) to support other algorithms too.
 
-    See_Also:
-
-    Manual:
-        https://gnupg.org/documentation/manuals/gcrypt/index.html
+    See_Also: https://gnupg.org/documentation/manuals/gcrypt/index.html
 
     Copyright:
         Copyright (c) 2009-2016, Sociomantic Labs GmbH.

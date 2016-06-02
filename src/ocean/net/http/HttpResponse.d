@@ -12,20 +12,20 @@
     fields) will be omitted when rendering the response message header.
     Specification of General-Header fields:
 
-        @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.5
+        See_Also: http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.5
 
     Specification of Request-Header fields:
 
-        @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec6.html#sec6.2
+        See_Also: http://www.w3.org/Protocols/rfc2616/rfc2616-sec6.html#sec6.2
 
     Specification of Entity-Header fields:
 
-        @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec7.html#sec7.1
+        See_Also: http://www.w3.org/Protocols/rfc2616/rfc2616-sec7.html#sec7.1
 
     For the definition of the categories the standard request message header
     fields are of
 
-        @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5
+        See_Also: http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5
 
     Copyright:
         Copyright (c) 2009-2016, Sociomantic Labs GmbH.
