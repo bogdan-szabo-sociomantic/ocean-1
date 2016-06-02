@@ -1,9 +1,6 @@
 /******************************************************************************
 
     C string and character tool functions
-    --
-
-    Description:
 
     C string and character tool functions and null terminator utilities
 

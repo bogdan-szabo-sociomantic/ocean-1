@@ -3,12 +3,6 @@
     Module for the conversion between strings in C and D. Needed for C library
     bindings.
 
-    --
-
-    Description:
-
-    --
-
     Usage:
 
     ---

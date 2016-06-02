@@ -6,8 +6,6 @@
 
     Includes methods to extract the values of named entities.
 
-    Named entity extraction usage example:
-
     Usage example:
         See unittests following this class.
 
