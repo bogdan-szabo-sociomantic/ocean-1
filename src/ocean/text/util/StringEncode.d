@@ -10,14 +10,23 @@
         class with the template parameters of the desired character encoding
         conversion:
 
+        ---
+
             auto string_enc = new StringEncode!("ISO-8859-1", "UTF-8");
 
+        ---
+
         The conversion function is called as follows:
+
+        ---
 
             char[] input = "A string to be converted";
             char[] output; // The buffer which is written into
 
             string_enc.convert(input, output);
+
+        ---
+
     Copyright:
         Copyright (c) 2009-2016, Sociomantic Labs GmbH.
         All rights reserved.
