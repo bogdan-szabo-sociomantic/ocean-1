@@ -8,8 +8,6 @@
     ocean.util.log.StaticTrace, depending on the value of the struct's
     static_display member.
 
-    Note: this struct automatically calls Trace.flush / StaticTrace.flush after
-    updating.
 
     Two global instances of this struct exist for convenience: PeriodicTrace and
     StaticPeriodicTrace. The latter has the static_display flag set to true.
@@ -52,6 +50,10 @@
         }
 
     ---
+
+    Note:
+        this struct automatically calls Trace.flush / StaticTrace.flush after
+        updating.
 
     Copyright:
         Copyright (c) 2009-2016, Sociomantic Labs GmbH.

@@ -24,9 +24,6 @@
     be garbage collected and attempting to use it after getting it from the
     cache will make your program go to HELL.
 
-    TODO: Extend the cache by making values visible to the GC by default and
-    provide GC hiding as an option.
-
     When a cache element is removed explicitly (by calling remove()), the value
     of the removed element is kept in the cache in a spare location. If required
     it is possible to erase the value by overriding Cache.replaceRemovedItem(),
@@ -184,6 +181,10 @@
 
     Link with:
         -Llibebtree.a
+
+    TODO:
+        Extend the cache by making values visible to the GC by default and
+        provide GC hiding as an option.
 
     Copyright:
         Copyright (c) 2009-2016, Sociomantic Labs GmbH.

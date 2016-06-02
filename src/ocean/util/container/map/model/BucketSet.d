@@ -10,9 +10,6 @@
     can use a simple bit mask instead of a modulo operation, leading to greater
     efficiency.
 
-    Usage:
-        See ocean.util.container.map.HashMap & ocean.util.container.map.HashSet
-
     The method of bucket element allocation and pool management can be
     customised by passing a custom IAllocator implementation to the constructor.
     The default implementation--the BucketSet.FreeBuckets class--uses
@@ -22,6 +19,9 @@
     library using 'new'/'delete' or malloc()/free(), respectively. Also, if the
     maximum number of elements in the map is known in advance, all elements can
     be preallocated in a row.
+
+    Usage:
+        See ocean.util.container.map.HashMap & ocean.util.container.map.HashSet
 
     Copyright:
         Copyright (c) 2009-2016, Sociomantic Labs GmbH.
