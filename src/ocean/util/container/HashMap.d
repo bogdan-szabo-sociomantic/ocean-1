@@ -13,8 +13,6 @@
 
         Authors: Kris
 
-        Since: 0.99.7
-
 *******************************************************************************/
 
 module ocean.util.container.HashMap;

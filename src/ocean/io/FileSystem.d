@@ -137,8 +137,6 @@ struct FileSystem
 
                         See_also: totalSpace()
 
-                        Since: 0.99.9
-
                 ***************************************************************/
 
                 static long freeSpace(char[] folder, bool superuser = false)
@@ -171,8 +169,6 @@ struct FileSystem
                         run in superuser mode.
 
                         See_also: freeSpace()
-
-                        Since: 0.99.9
 
                 ***************************************************************/
 

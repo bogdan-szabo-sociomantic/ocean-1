@@ -1045,8 +1045,6 @@ FS.Stamps timeStamps (cstring name)
 
         Set the accessed and modified timestamps of the specified file.
 
-        Since: 0.99.9
-
 *******************************************************************************/
 
 void timeStamps (cstring name, Time accessed, Time modified)
@@ -1083,8 +1081,6 @@ bool remove (cstring name)
         Use with great caution.
 
         Note: May allocate memory.
-
-        Since: 0.99.9
 
 *******************************************************************************/
 
@@ -1221,8 +1217,6 @@ FS.Listing children (cstring path, bool all=false)
         folders which match the pattern.)
 
         Note: Allocates memory for returned paths.
-
-        Since: 0.99.9
 
 *******************************************************************************/
 

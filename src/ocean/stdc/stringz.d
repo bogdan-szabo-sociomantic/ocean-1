@@ -88,8 +88,6 @@ unittest
  * This is handy for efficiently converting multiple strings at once.
  *
  * Returns a populated slice of dst
- *
- * Since: 0.99.7
  */
 
 Const!(char)*[] toStringz (char[] tmp, Const!(char)*[] dst, cstring[] strings...)

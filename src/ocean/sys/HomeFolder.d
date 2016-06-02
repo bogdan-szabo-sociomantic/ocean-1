@@ -12,8 +12,6 @@
             Initial release: December 2006
             Updated and readded: August 2009
 
-        Since: 0.99.9
-
         Authors:
             Lars Ivar Igesund, Thomas Kühne,
             Grzegorz Adam Hankiewicz, sleek
