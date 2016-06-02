@@ -43,7 +43,6 @@
     ftruncate(2) might be used to truncate the file to its real size if desired.
 
     See_Also:
-        https://github.com/sociomantic/swarm/issues/3
         http://www.westnet.com/~gsmith/content/linux-pdflush.htm
         https://www.kernel.org/doc/Documentation/sysctl/vm.txt
 
