@@ -7,9 +7,9 @@
 
         License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
-        version:        Initial release: 2005
+        Version: Initial release: 2005
 
-        author:         John Chapman
+        Authors: John Chapman
 
 ******************************************************************************/
 

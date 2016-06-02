@@ -7,11 +7,11 @@
             Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
             All rights reserved.
 
-        version:        Initial release: Oct 2007
         License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
-        author:         Kris
+        Version: Initial release: Oct 2007
 
+        Authors: Kris
 
 *******************************************************************************/
 

@@ -7,10 +7,11 @@
 
     License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
-    version:        Sep 2007: Initial release
-    Nov 2007: Added stream wrappers
+    Version:
+        Sep 2007: Initial release
+        Nov 2007: Added stream wrappers
 
-    author:         Kris
+    Authors: Kris
 
  *******************************************************************************/
 

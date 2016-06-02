@@ -7,9 +7,9 @@
 
         License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
-        version:        Initial release: August 2006
+        Version: Initial release: August 2006
 
-        author:         James Pelcis
+        Authors: James Pelcis
 
 *******************************************************************************/
 

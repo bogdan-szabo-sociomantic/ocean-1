@@ -7,9 +7,9 @@
 
         License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
-        version:        Jul 2007: Initial version
+        Version: Jul 2007: Initial version
 
-        author:         Lars Ivar, Kris
+        Authors: Lars Ivar, Kris Bell
 
 *******************************************************************************/
 

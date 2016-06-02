@@ -7,10 +7,11 @@
 
         License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
-        version:        Mar 2004: Initial release
-        version:        Feb 2007: Now using mutating paths
+        Version:
+            Mar 2004: Initial release
+            Feb 2007: Now using mutating paths
 
-        authors:        Kris, Chris Sauls (Win95 file support)
+        Authors: Kris, Chris Sauls (Win95 file support)
 
 *******************************************************************************/
 

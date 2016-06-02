@@ -8,11 +8,11 @@
 
         License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
+        Version: Jan 2008: Initial release
 
-        version:        Jan 2008: Initial release
-
-        author:         KeYeR (D interface) keyer@team0xf.com
-                        fawzi (converted to engine)
+        Authors:
+            KeYeR (D interface) keyer@team0xf.com
+            fawzi (converted to engine)
 
 *******************************************************************************/
 

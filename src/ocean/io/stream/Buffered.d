@@ -7,10 +7,11 @@
 
         License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
-        version:        Mar 2004: Initial release$(BR)
-                        Dec 2006: Outback release
+        Version:
+            Mar 2004: Initial release$(BR)
+            Dec 2006: Outback release
 
-        authors:        Kris
+        Authors: Kris Bell
 
 *******************************************************************************/
 

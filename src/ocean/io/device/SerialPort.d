@@ -7,7 +7,7 @@
 
         License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
-        author:         Robin Kreis
+        Authors: Robin Kreis
 
 *******************************************************************************/
 

@@ -11,9 +11,9 @@
             Apr 2008: Initial release
             Jan 2009: Added GCChunk allocator
 
-        authors:        Kris, schveiguy
+        Authors: Kris, schveiguy
 
-        Since:          0.99.7
+        Since: 0.99.7
 
 *******************************************************************************/
 

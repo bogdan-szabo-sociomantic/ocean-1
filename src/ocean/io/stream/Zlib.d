@@ -7,13 +7,13 @@
 
     License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
-    author:     Daniel Keep
+    Version:
+        Feb 08: Added support for different stream encodings, removed
+                old "window bits" ctors.$(BR)
+        Dec 07: Added support for "window bits", needed for Zip support.$(BR)
+        Jul 07: Initial release.
 
-    version:
-      Feb 08: Added support for different stream encodings, removed
-              old "window bits" ctors.$(BR)
-      Dec 07: Added support for "window bits", needed for Zip support.$(BR)
-      Jul 07: Initial release.
+    Authors: Daniel Keep
 
 *******************************************************************************/
 

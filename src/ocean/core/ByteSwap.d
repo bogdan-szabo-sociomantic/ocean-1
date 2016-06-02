@@ -7,11 +7,11 @@
 
         License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
-        version:        Initial release: October 2004
+        Version:
+            Initial release: October 2004
+            Feb 20th 2005 - Asm version removed by Aleksey Bobnev
 
-        version:        Feb 20th 2005 - Asm version removed by Aleksey Bobnev
-
-        authors:         Kris, Aleksey Bobnev
+        Authors: Kris, Aleksey Bobnev
 
 *******************************************************************************/
 

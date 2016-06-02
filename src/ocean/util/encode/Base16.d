@@ -7,9 +7,9 @@
 
         License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
-        author:         Ulrik Mikaelsson
+        Standards: rfc3548, rfc4648
 
-        standards:      rfc3548, rfc4648
+        Authors: Ulrik Mikaelsson
 
 *******************************************************************************/
 

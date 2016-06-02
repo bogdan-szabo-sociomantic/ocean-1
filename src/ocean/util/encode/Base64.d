@@ -7,11 +7,11 @@
 
         License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
-        author:         Jeff Davey
+        Standards: rfc3548, rfc2045
 
-        standards:      rfc3548, rfc2045
+        Since: 0.99.7
 
-        Since:          0.99.7
+        Authors: Jeff Davey
 
 *******************************************************************************/
 

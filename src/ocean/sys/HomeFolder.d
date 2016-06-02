@@ -8,13 +8,15 @@
 
         License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
-        version:        Initial release: December 2006
-                        Updated and readded: August 2009
+        Version:
+            Initial release: December 2006
+            Updated and readded: August 2009
 
-        author:         Lars Ivar Igesund, Thomas Kühne,
-                        Grzegorz Adam Hankiewicz, sleek
+        Since: 0.99.9
 
-        Since:          0.99.9
+        Authors:
+            Lars Ivar Igesund, Thomas Kühne,
+            Grzegorz Adam Hankiewicz, sleek
 
 *******************************************************************************/
 

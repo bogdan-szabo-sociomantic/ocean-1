@@ -7,9 +7,9 @@
             Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
             All rights reserved.
 
-        version:        rewritten: Nov 2009
         License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
+        Version: rewritten: Nov 2009
 
 *******************************************************************************/
 

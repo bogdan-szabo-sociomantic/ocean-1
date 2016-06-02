@@ -1,6 +1,4 @@
 /*******************************************************************************
-        version:        Initial release: July 2008
-        author:         Fawzi Mohamed
 
         Copyright:
             Copyright (c) 2008. Fawzi Mohamed
@@ -8,6 +6,10 @@
             All rights reserved.
 
         License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+
+        Version: Initial release: July 2008
+
+        Authors: Fawzi Mohamed
 
 *******************************************************************************/
 module ocean.math.random.ExpSource;

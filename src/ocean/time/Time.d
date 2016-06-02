@@ -7,11 +7,12 @@
 
         License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
-        version:        mid 2005: Initial release
-                        Apr 2007: heavily reshaped
-                        Dec 2007: moved to ocean.time
+        Version:
+            mid 2005: Initial release
+            Apr 2007: heavily reshaped
+            Dec 2007: moved to ocean.time
 
-        author:         John Chapman, Kris, scheivguy
+        Authors: John Chapman, Kris, scheivguy
 
 ******************************************************************************/
 

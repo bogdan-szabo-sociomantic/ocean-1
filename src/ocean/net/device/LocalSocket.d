@@ -7,9 +7,9 @@
 
         License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
-        version:        Nov 2009: Initial release
+        Version: Nov 2009: Initial release
 
-        author:         Lukas Pinkowski, Kris
+        Authors: Lukas Pinkowski, Kris
 
 *******************************************************************************/
 

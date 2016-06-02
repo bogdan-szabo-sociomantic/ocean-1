@@ -1,13 +1,5 @@
 /*******************************************************************************
 
-        version:        Mar 2004: Initial release$(BR)
-                        Dec 2006: Outback release$(BR)
-                        Nov 2008: relocated and simplified
-
-        authors:        Kris,
-                        John Reimer,
-                        Anders F Bjorklund (Darwin patches),
-                        Chris Sauls (Win95 file support)
         Copyright:
             Copyright (c) 2004 Kris Bell.
             Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
@@ -15,6 +7,16 @@
 
         License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
+        Version:
+            Mar 2004: Initial release$(BR)
+            Dec 2006: Outback release$(BR)
+            Nov 2008: relocated and simplified
+
+        Authors:
+            Kris,
+            John Reimer,
+            Anders F Bjorklund (Darwin patches),
+            Chris Sauls (Win95 file support)
 
 *******************************************************************************/
 

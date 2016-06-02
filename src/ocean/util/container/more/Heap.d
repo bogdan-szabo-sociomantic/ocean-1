@@ -1,13 +1,15 @@
 /**
   *
-  * Version:    Oct 2008: Initial release
-  * Author:     Chris Wright, aka dhasenan
   * Copyright:
   *     Copyright (C) 2008 Chris Wright.
   *     Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
   *     All rights reserved.
   *
   * License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+  *
+  * Version: Oct 2008: Initial release
+  *
+  * Authors: Chris Wright, aka dhasenan
   *
   */
 

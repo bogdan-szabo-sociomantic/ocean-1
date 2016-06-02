@@ -7,10 +7,11 @@
 
         License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
-        version:        Nov 2005: split from Configurator.d
-        verison:        Feb 2007: removed default console configuration
+        Version:
+            Nov 2005: split from Configurator.d
+            Feb 2007: removed default console configuration
 
-        author:         Kris
+        Authors: Kris
 
 *******************************************************************************/
 

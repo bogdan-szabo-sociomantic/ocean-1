@@ -7,11 +7,12 @@
 
     License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
-    version:        Feb 2005: Initial release
-                    Nov 2005: Heavily revised for unicode
-                    Dec 2006: Outback release
+    Version:
+        Feb 2005: Initial release
+        Nov 2005: Heavily revised for unicode
+        Dec 2006: Outback release
 
-    author:         Kris
+    Authors: Kris
 
 *******************************************************************************/
 

@@ -8,10 +8,10 @@
             All rights reserved.
 
         License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
-        version:        Initial release: Feb 2006
 
-        author:         Regan Heath, Oskar Linde
+        Version: Initial release: Feb 2006
 
+        Authors: Regan Heath, Oskar Linde
 
 ******************************************************************************/
 

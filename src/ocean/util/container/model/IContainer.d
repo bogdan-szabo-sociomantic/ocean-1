@@ -9,9 +9,9 @@
 
         Version: Apr 2008: Initial release
 
-        authors:        Kris
+        Authors: Kris
 
-        Since:          0.99.7
+        Since: 0.99.7
 
 *******************************************************************************/
 

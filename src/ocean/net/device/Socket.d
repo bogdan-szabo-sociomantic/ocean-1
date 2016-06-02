@@ -7,12 +7,13 @@
 
         License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
 
-        version:        Mar 2004: Initial release
-        version:        Jan 2005: RedShodan patch for timeout query
-        version:        Dec 2006: Outback release
-        version:        Apr 2009: revised for asynchronous IO
+        Version:
+            Mar 2004: Initial release
+            Jan 2005: RedShodan patch for timeout query
+            Dec 2006: Outback release
+            Apr 2009: revised for asynchronous IO
 
-        author:         Kris
+        Authors: Kris
 
 *******************************************************************************/
 
