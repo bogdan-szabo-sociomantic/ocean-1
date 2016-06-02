@@ -383,7 +383,7 @@ public abstract class IPool : IPoolInfo, ILimitable
     out (_item_out)
     {
         auto item_out = cast(Item) _item_out;
-    
+
         assert (!this.isNull(item_out));
 
         assert (this.isSame(item_out, this.items[this.num_busy_ - 1]));

@@ -3881,10 +3881,10 @@ class RegExpT(char_t)
                 default:
                     break;
             }
-            
+
             tp = &s.generic_transitions[0];
             tp_end = tp+s.generic_transitions.length;
-            Ltrans_loop: 
+            Ltrans_loop:
             for ( ; tp < tp_end; ++tp )
             {
                 t = *tp;

@@ -6,33 +6,28 @@
     Usage:
     ---
         import $(TITLE);
-
-        union MyUnion
+                union MyUnion
         {
             int    x;
             char[] y;
         }
-
-        void main ( )
+                void main ( )
         {
             SmartUnion!(MyUnion) u;
-
-            u.Active a;             // u.Active is defined as
+                    u.Active a;             // u.Active is defined as
                                     // enum u.Active {none, x, y}
             a = u.active;           // a is now a.none
-
-            int b = u.x;            // error, u.x has not yet been set
+                    int b = u.x;            // error, u.x has not yet been set
             u.x   = 35;
-
-            a = u.active;           // a is now a.x
-
-            char[] c = u.y          // error, u.y is not the active member
+                    a = u.active;           // a is now a.x
+                    char[] c = u.y          // error, u.y is not the active member
         }
     ---
 
     Copyright:
         Copyright (c) 2009-2016, Sociomantic Labs GmbH.
         All rights reserved.
+
     License:
         Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
         Alternatively, this file may be distributed under the terms of the Tango

@@ -95,7 +95,7 @@ unittest
     {
         istring name;
         ProductionLineStats stats;
-    } 
+    }
 
     Entry[] entries = [
         Entry("samsung", ProductionLineStats(10_000, 200)),

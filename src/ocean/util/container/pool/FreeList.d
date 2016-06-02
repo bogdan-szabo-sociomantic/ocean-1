@@ -31,7 +31,6 @@
 module ocean.util.container.pool.FreeList;
 
 
-
 /*******************************************************************************
 
     Imports
@@ -234,7 +233,6 @@ public class FreeList ( T ) : IFreeList!(ItemType_!(T))
         return this.free_list.length;
     }
 }
-
 
 
 /*******************************************************************************

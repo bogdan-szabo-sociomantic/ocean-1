@@ -265,26 +265,26 @@ private struct FindFruct(T)
 
   Convenient bundle of welterweight search utilities, without the
   hassle of IFTI problems. Create one of these using the search()
-function:
----
-auto match = search ("foo");
-auto content = "wumpus foo bar"
+  function:
+  ---
+  auto match = search ("foo");
+  auto content = "wumpus foo bar"
 
-// search in the forward direction
-auto index = match.forward (content);
-assert (index is 7);
+  // search in the forward direction
+  auto index = match.forward (content);
+  assert (index is 7);
 
-// search again - returns length when no match found
-assert (match.forward(content, index+1) is content.length);
----
+  // search again - returns length when no match found
+  assert (match.forward(content, index+1) is content.length);
+  ---
 
-Searching operates both forward and backward, with an optional
-start offset (can be more convenient than slicing the content).
-There are methods to replace matches within given content, and
-others which return foreach() iterators for traversing content.
+  Searching operates both forward and backward, with an optional
+  start offset (can be more convenient than slicing the content).
+  There are methods to replace matches within given content, and
+  others which return foreach() iterators for traversing content.
 
-FindFruct is a simpler variant, which can operate efficiently on
-short matches and/or short content (employs brute-force strategy)
+  FindFruct is a simpler variant, which can operate efficiently on
+  short matches and/or short content (employs brute-force strategy)
 
  ******************************************************************************/
 

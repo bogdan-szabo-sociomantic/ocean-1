@@ -18,7 +18,6 @@
     Version : 2.03
     Date    : 30 Apr 2008
 
-
     Copyright (C) 2008 Markus Franz Xaver Johannes Oberhumer
     Copyright (C) 2007 Markus Franz Xaver Johannes Oberhumer
     Copyright (C) 2006 Markus Franz Xaver Johannes Oberhumer

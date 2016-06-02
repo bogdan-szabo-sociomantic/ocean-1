@@ -11,6 +11,7 @@
  * Authors: Sean Kelly, Walter Bright
  *
  * Standards: ISO/IEC 9899:1999 (E)
+ *
  */
 module ocean.stdc.stdio;
 

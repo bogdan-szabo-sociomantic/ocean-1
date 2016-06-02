@@ -7,7 +7,6 @@
     ocean.io.serialize.StructSerializer, which dumps a struct into an xml
     string.
 
-
     Usage example (in conjunction with ocean.io.serialize.StructSerializer):
 
     ---

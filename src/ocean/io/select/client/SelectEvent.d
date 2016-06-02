@@ -63,7 +63,6 @@ import ocean.io.select.client.model.ISelectClient;
 
 
 
-
 /*******************************************************************************
 
     CountingSelectEvent class -- counts and reports the number of times the
@@ -108,6 +107,7 @@ public abstract class ISelectEvent : IAdvancedSelectClient
         return Event.EPOLLIN;
     }
 
+
     /***************************************************************************
 
         Required by ISelectable interface.
@@ -121,6 +121,7 @@ public abstract class ISelectEvent : IAdvancedSelectClient
     {
         return this.event_fd.fileHandle;
     }
+
 
     /***************************************************************************
 

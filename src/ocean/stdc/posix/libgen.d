@@ -11,6 +11,7 @@
  * Authors: Leandro Lucarella
  *
  * Standards: The Open Group Base Specifications Issue 6, IEEE Std 1003.1, 2004 Edition
+ *
  */
 module ocean.stdc.posix.libgen;
 

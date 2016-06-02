@@ -22,15 +22,15 @@ import ocean.net.http.HttpClient,
 
 /*******************************************************************************
 
-        Supports the basic needs of a client making requests of an HTTP
-        server. The following is a usage example:
-        ---
-        // open a web-page for reading (see HttpPost for writing)
-        auto page = new HttpGet ("http://www.digitalmars.com/d/intro.html");
+    Supports the basic needs of a client making requests of an HTTP
+    server. The following is a usage example:
+    ---
+    // open a web-page for reading (see HttpPost for writing)
+    auto page = new HttpGet ("http://www.digitalmars.com/d/intro.html");
 
-        // retrieve and flush display content
-        Cout (cast(char[]) page.read) ();
-        ---
+    // retrieve and flush display content
+    Cout (cast(char[]) page.read) ();
+    ---
 
 *******************************************************************************/
 
@@ -40,9 +40,9 @@ class HttpGet : HttpClient
 
         /***********************************************************************
 
-                Create a client for the given URL. The argument should be
-                fully qualified with an "http:" or "https:" scheme, or an
-                explicit port should be provided.
+            Create a client for the given URL. The argument should be
+            fully qualified with an "http:" or "https:" scheme, or an
+            explicit port should be provided.
 
         ***********************************************************************/
 
@@ -53,9 +53,9 @@ class HttpGet : HttpClient
 
         /***********************************************************************
 
-                Create a client with the provided Uri instance. The Uri should
-                be fully qualified with an "http:" or "https:" scheme, or an
-                explicit port should be provided.
+            Create a client with the provided Uri instance. The Uri should
+            be fully qualified with an "http:" or "https:" scheme, or an
+            explicit port should be provided.
 
         ***********************************************************************/
 

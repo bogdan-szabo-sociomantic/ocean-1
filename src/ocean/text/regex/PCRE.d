@@ -25,9 +25,10 @@
 
     ---
 
-    Related:
 
-    http://regexkit.sourceforge.net/Documentation/pcre/pcreapi.html
+    Related:
+        http://regexkit.sourceforge.net/Documentation/pcre/pcreapi.html
+
     Copyright:
         Copyright (c) 2009-2016, Sociomantic Labs GmbH.
         All rights reserved.

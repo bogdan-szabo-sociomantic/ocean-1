@@ -299,7 +299,7 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
                 || is(Unqual!(Char) == dchar),
             This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof
         );
- 
+
         auto entity = this.sliceEncodedEntity(text);
         if ( !entity.length )
         {
@@ -343,7 +343,7 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
                 || is(Unqual!(Char) == dchar),
             This.stringof ~ " template parameter Char must be one of {char, wchar, dchar}, not " ~ Char.stringof
         );
- 
+
         dchar unicode = InvalidUnicode;
 
         if ( entity.length )
@@ -379,7 +379,7 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
 
     protected MutChar[] encode_ ( ConstChar, MutChar ) ( ConstChar[] text,
         ref MutChar[] encoded )
-    { 
+    {
         static assert (is(Unqual!(ConstChar) == Unqual!(MutChar)));
 
         static assert(
@@ -881,4 +881,3 @@ public class MarkupEntityCodec ( E : IEntitySet ) : IEntityCodec!(E)
         }
     }
 }
-

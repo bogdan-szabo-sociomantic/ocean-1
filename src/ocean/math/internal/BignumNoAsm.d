@@ -1,4 +1,5 @@
-/** Arbitrary precision arithmetic ('bignum') for processors with no asm support
+/**
+ * Arbitrary precision arithmetic ('bignum') for processors with no asm support
  *
  * All functions operate on arrays of uints, stored LSB first.
  * If there is a destination array, it will be the first parameter.
