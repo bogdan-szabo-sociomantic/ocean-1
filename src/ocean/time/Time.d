@@ -1,7 +1,7 @@
 /******************************************************************************
 
         Copyright:
-            Copyright (c) 2007 Tango.
+            Copyright (c) 2007 Tango contributors.
             Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
             All rights reserved.
 

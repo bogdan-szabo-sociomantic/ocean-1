@@ -11,7 +11,7 @@
         available at http://www.esat.kuleuven.ac.be/~cosicart/ps/AB-9601/
 
         Copyright:
-            Copyright (c) 2009 Tango.
+            Copyright (c) 2009 Tango contributors.
             Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
             All rights reserved.
 

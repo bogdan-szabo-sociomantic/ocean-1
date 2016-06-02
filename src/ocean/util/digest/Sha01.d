@@ -3,7 +3,7 @@
         This module implements common parts of the SHA-0 and SHA-1 algoritms
 
         Copyright:
-            Copyright (c) 2006 Tango.
+            Copyright (c) 2006 Tango contributors.
             Some parts copyright (c) 2009-2016, Sociomantic Labs GmbH.
             All rights reserved.
 

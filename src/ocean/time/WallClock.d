@@ -26,7 +26,7 @@ import ocean.sys.Common;
         Exposes wall-time relative to Jan 1st, 1 AD. These values are
         based upon a clock-tick of 100ns, giving them a span of greater
         than 10,000 years. These Units of time are the foundation of most
-        time and date functionality in Tango.
+        time and date functionality in Tango contributors.
 
         Please note that conversion between UTC and Wall time is performed
         in accordance with the OS facilities. In particular, Win32 systems
