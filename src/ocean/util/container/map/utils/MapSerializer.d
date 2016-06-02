@@ -3,8 +3,8 @@
     Contains extensions for Map based classes to dump the contents of maps to a
     file or to read from a file into a map. Includes struct versioning support.
 
-    This module provides you with several ways to load/dump a map from/into a
-    file:
+    This module provides you with several ways to load/dump a map from/into
+    a file:
 
     * Using the specialized version SerializingMap of the class Map
     * Using the provided MapExtension mixin to extend a map yourself

@@ -1,7 +1,7 @@
 /*******************************************************************************
 
-    Application class that provides the standard features needed by command line
-    tools:
+    Application class that provides the standard features needed by command
+    line tools:
         * Command line parsing
         * Version support
 

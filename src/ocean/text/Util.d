@@ -19,8 +19,8 @@
         assert (text[0 .. locate (text, '!')] == "happy:faces");
         ---
 
-        The contains() function is more convenient for trivial lookup
-        cases:
+        The contains() function is more convenient for trivial
+        lookup cases:
         ---
         if (contains ("fubar", '!'))
             ...

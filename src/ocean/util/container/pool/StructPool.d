@@ -1,7 +1,7 @@
 /*******************************************************************************
 
-    Pool class template which stores struct instances, has the following
-    features:
+    Pool class template which stores struct instances, has the
+    following features:
         * Get and recycle items. Recycled items will be re-used before creating
           new items.
         * The total number of items, as well as the number of idle or busy items

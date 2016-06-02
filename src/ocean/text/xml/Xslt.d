@@ -6,8 +6,8 @@
 
     See http://en.wikipedia.org/wiki/XSLT
 
-    This module uses the C library libxslt internally, which requires linking
-    with:
+    This module uses the C library libxslt internally, which requires
+    linking with:
 
         -L/usr/lib/libxml2.so.2
         -L/usr/lib/libxslt.so.1
