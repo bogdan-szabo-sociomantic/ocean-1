@@ -9,13 +9,13 @@
     A free list does not manage busy items, it only stores a reference to any
     idle / free items, making them available for re-use.
 
-    TODO: free lists could support limiting, simply by counting the number of
-    allocated (i.e. busy) items. A count of allocated items would also allow a
-    length() method (with the same meaning as the method in IPool) to be
-    implemented.
-
-    TODO: add idle items iterators (safe & unsafe). These could probably share
-    code with the aggregate pool.
+    TODO:
+        - Free lists could support limiting, simply by counting the number of
+          allocated (i.e. busy) items. A count of allocated items would also allow a
+          length() method (with the same meaning as the method in IPool) to be
+          implemented.
+        - Add idle items iterators (safe & unsafe). These could probably share
+          code with the aggregate pool.
 
     Copyright:
         Copyright (c) 2009-2016, Sociomantic Labs GmbH.

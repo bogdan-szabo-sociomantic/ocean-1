@@ -2,8 +2,9 @@
 
     Fixed size memory-based ring queue with a fixed element size.
 
-    TODO: update the classes in this module to be able to use a custom allocater
-    like the constructors of FlexibleByteRingQueue allow.
+    TODO:
+        Update the classes in this module to be able to use a custom allocater
+        like the constructors of FlexibleByteRingQueue allow.
 
     Copyright:
         Copyright (c) 2009-2016, Sociomantic Labs GmbH.
