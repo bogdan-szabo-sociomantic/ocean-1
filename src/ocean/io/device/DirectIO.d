@@ -43,7 +43,7 @@
     ftruncate(2) might be used to truncate the file to its real size if desired.
 
     See_Also:
-        http://www.westnet.com/~gsmith/content/linux-pdflush.htm
+        http://web.archive.org/web/20160317032821/http://www.westnet.com/~gsmith/content/linux-pdflush.htm
         https://www.kernel.org/doc/Documentation/sysctl/vm.txt
 
     Copyright:

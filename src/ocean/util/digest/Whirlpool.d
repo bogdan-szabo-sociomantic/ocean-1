@@ -3,7 +3,7 @@
         This module implements the Whirlpool algorithm by Paulo S.L.M. Barreto
         and Vincent Rijmen.
 
-        See https://www.cosic.esat.kuleuven.ac.be/nessie/workshop/submissions/whirlpool.zip
+        See http://web.archive.org/web/20060621195406/http://www.cosic.esat.kuleuven.ac.be/nessie/workshop/submissions/whirlpool.zip
         for more information.
 
         Copyright:
