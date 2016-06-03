@@ -67,21 +67,6 @@
     same eventfd object. File descriptors created by eventfd() are preserved
     across execve(2).
 
-    Params:
-        initval = initial counter value
-        flags   = Starting with Linux 2.6.27: 0 or a bitwise OR combination of
-                  - EFD_NONBLOCK: Set the O_NONBLOCK file status flag on the
-                        new open file description.
-                  - EFD_CLOEXEC: Set the close-on-exec (FD_CLOEXEC) flag on
-                        the new file descriptor. (See the description of the
-                        O_CLOEXEC  flag  in open(2) for reasons why this may be
-                        useful.)
-
-                  Up to Linux version 2.6.26: Must be 0.
-
-    Returns:
-        new file descriptor that can be used to refer to the eventfd object
-
     Copyright:
         Copyright (c) 2009-2016, Sociomantic Labs GmbH.
         All rights reserved.
@@ -115,6 +100,21 @@ import ocean.stdc.posix.unistd: read, write, close;
 /*******************************************************************************
 
     Definition of external functions required to manage custom events.
+
+    Params:
+        initval = initial counter value
+        flags   = Starting with Linux 2.6.27: 0 or a bitwise OR combination of
+                  - EFD_NONBLOCK: Set the O_NONBLOCK file status flag on the
+                        new open file description.
+                  - EFD_CLOEXEC: Set the close-on-exec (FD_CLOEXEC) flag on
+                        the new file descriptor. (See the description of the
+                        O_CLOEXEC  flag  in open(2) for reasons why this may be
+                        useful.)
+
+                  Up to Linux version 2.6.26: Must be 0.
+
+    Returns:
+        new file descriptor that can be used to refer to the eventfd object
 
 *******************************************************************************/
 
