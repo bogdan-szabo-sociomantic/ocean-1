@@ -5,7 +5,9 @@
  *
  * Authors: Chris Wright (dhasenan) $(EMAIL dhasenan@gmail.com)
  *
- * License: Tango 3-Clause BSD License. See LICENSE_BSD.txt for details.
+ * License:
+ *     Tango Dual License: 3-Clause BSD License / Academic Free License v3.0.
+ *     See LICENSE_TANGO.txt for details.
  *
  * Copyright:
  *     Copyright (c) 2009 CHRISTOPHER WRIGHT
