@@ -44,6 +44,12 @@ Migration Instructions
   it forces the argument to be a dynamic array. This change affects both D1
   and D2. It is not sure if this can cause any breakage
 
+* `ocean.util.app.ext.StatsExt`
+
+  StatsLog instances created by `newStatsLog` will be named according to the file to which
+  they write.  This means that the name of the default `StatsLog` instance will change from
+  "Stats" to (by default) "log/stats.log".
+
 Deprecations
 ============
 
