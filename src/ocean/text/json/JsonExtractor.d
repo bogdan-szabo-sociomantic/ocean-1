@@ -225,7 +225,7 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        public this ( Parser json, GetField[istring] get_named_fields,
+        public this ( Parser json, GetField[cstring] get_named_fields,
                       GetField[] get_indexed_fields ... )
         {
             super(this.json = json, get_named_fields, get_indexed_fields);
@@ -360,7 +360,7 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        private GetField[istring] get_named_fields;
+        private GetField[cstring] get_named_fields;
 
         /***********************************************************************
 
@@ -399,7 +399,7 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        public this ( Parser json, GetField[istring] get_named_fields,
+        public this ( Parser json, GetField[cstring] get_named_fields,
                       GetField[] get_indexed_fields ... )
         {
             this(json, false, get_named_fields, get_indexed_fields);
@@ -424,7 +424,7 @@ struct JsonExtractor
          **********************************************************************/
 
         public this ( Parser json, bool skip_null,
-                      GetField[istring] get_named_fields,
+                      GetField[cstring] get_named_fields,
                       GetField[] get_indexed_fields ... )
         {
             super(json, Type.BeginObject, Type.EndObject, skip_null);
@@ -444,7 +444,7 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        public void addNamedField ( istring name, GetField field )
+        public void addNamedField ( cstring name, GetField field )
         {
             this.get_named_fields[name] = field;
         }
@@ -458,7 +458,7 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        public void removeNamedField ( istring name )
+        public void removeNamedField ( cstring name )
         {
             this.get_named_fields.remove(name);
         }
