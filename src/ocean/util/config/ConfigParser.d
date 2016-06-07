@@ -929,7 +929,7 @@ class ConfigParser
                            || is(Unqual!(U) : dchar)) )
         {
             auto r = fromString8!(Unqual!(U))(property, T.init);
-            return assumeUnique(r);
+            return cast(T) r.dup;
         }
         else static assert(false,
                            Format("{} : get(): type '{}' is not supported",

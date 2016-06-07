@@ -1071,6 +1071,28 @@ unittest
 {
     const config_text =
 `
+[Section]
+str = I'm a mutable string
+`;
+
+    auto config_parser = new ConfigParser();
+    config_parser.parseString(config_text);
+
+    class MutString
+    {
+        mstring str;
+    }
+
+    auto mut_string = new MutString();
+
+    readFields("Section", mut_string, config_parser);
+    test!("==")(mut_string.str, "I'm a mutable string");
+}
+
+unittest
+{
+    const config_text =
+`
 [SectionArray]
 string_arr = Hello
          World
