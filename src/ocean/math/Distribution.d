@@ -101,6 +101,7 @@ module ocean.math.Distribution;
 *******************************************************************************/
 
 import ocean.core.Array : bsearch;
+import ocean.core.Array_tango : sort;
 
 import ocean.util.container.AppendBuffer;
 
@@ -421,12 +422,16 @@ public class Distribution ( T )
     {
         if ( !this.sorted )
         {
-            this.values[].sort;
+            .sort(this.values[]);
             this.sorted = true;
         }
     }
 }
 
+unittest
+{
+    alias Distribution!(size_t) Instance;
+}
 
 
 /*******************************************************************************
