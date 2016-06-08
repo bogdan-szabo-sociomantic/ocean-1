@@ -1,61 +1,10 @@
 /*****************************************************************************
 
-    LZO library binding (general utility functions)
+    LZO library binding (lzoconf.h functions)
 
-    LZO library bindings based on MiniLZO bindings (MiniLZO library is
-    a lightweight version of the LZO libraray which implements only the LZO1X-1
-    algorithm), so some symbols will be missing.
+    Please consult the original header documentation for details.
 
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    ============================================================================
-    LZO -- a real-time data compression library
-    ============================================================================
-
-    Author  : Markus Franz Xaver Johannes Oberhumer
-              <markus@oberhumer.com>
-              http://www.oberhumer.com/opensource/lzo/
-    Version : 2.03
-    Date    : 30 Apr 2008
-
-    Copyright (C) 2008 Markus Franz Xaver Johannes Oberhumer
-    Copyright (C) 2007 Markus Franz Xaver Johannes Oberhumer
-    Copyright (C) 2006 Markus Franz Xaver Johannes Oberhumer
-    Copyright (C) 2005 Markus Franz Xaver Johannes Oberhumer
-    Copyright (C) 2004 Markus Franz Xaver Johannes Oberhumer
-    Copyright (C) 2003 Markus Franz Xaver Johannes Oberhumer
-    Copyright (C) 2002 Markus Franz Xaver Johannes Oberhumer
-    Copyright (C) 2001 Markus Franz Xaver Johannes Oberhumer
-    Copyright (C) 2000 Markus Franz Xaver Johannes Oberhumer
-    Copyright (C) 1999 Markus Franz Xaver Johannes Oberhumer
-    Copyright (C) 1998 Markus Franz Xaver Johannes Oberhumer
-    Copyright (C) 1997 Markus Franz Xaver Johannes Oberhumer
-    Copyright (C) 1996 Markus Franz Xaver Johannes Oberhumer
-    All Rights Reserved.
-
-    The LZO library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU General Public License as
-    published by the Free Software Foundation; either version 2 of
-    the License, or (at your option) any later version.
-
-    The LZO library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with the LZO library; see the file COPYING.
-    If not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-
-    Abstract
-    ========
-    LZO is a portable lossless data compression library written in ANSI C.
-    It offers pretty fast compression and very fast decompression.
-    Decompression requires no memory.
-
-    The LZO algorithms and implementations are copyrighted OpenSource
-    distributed under the GNU General Public License.
+    You need to have the library installed and link with -llzo2.
 
     Copyright:
         Copyright (c) 2009-2016 Sociomantic Labs GmbH.
@@ -65,6 +14,10 @@
         Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
         Alternatively, this file may be distributed under the terms of the Tango
         3-Clause BSD License (see LICENSE_BSD.txt for details).
+
+        Bear in mind this module provides bindings to an external library that
+        has its own license, which might be more restrictive. Please check the
+        external library license to see which conditions apply for linking.
 
  ******************************************************************************/
 
