@@ -21,6 +21,7 @@ TEST_FILTER_OUT += \
 	$C/src/ocean/util/app/CommandLineApp.d \
 	$C/src/ocean/text/util/StringReplace.d \
 	$C/src/ocean/text/utf/UtfConvert.d \
+	$C/src/ocean/io/compress/lzo/c/lzo_crc.d \
 	$C/src/ocean/io/selector/model/ISelector.d \
 	$C/src/ocean/io/selector/AbstractSelector.d \
 	$C/src/ocean/io/selector/EpollSelector.d \

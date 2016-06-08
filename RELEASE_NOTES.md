@@ -41,6 +41,11 @@ Deprecations
 
   This module is only used by one team and has been moved to Thrusterproto.
 
+* `ocean.io.compress.lzo.c.lzo_crc`
+
+  This module contained functions that are already present in
+  `ocean.io.compress.lzo.c.lzoconf`. Just import this module instead.
+
 
 New Features
 ============
