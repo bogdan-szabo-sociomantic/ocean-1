@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module ocean.io.stream.Bzip;
+deprecated module ocean.io.stream.Bzip;
 
 import ocean.transition;
 

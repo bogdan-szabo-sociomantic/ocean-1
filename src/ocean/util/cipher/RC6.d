@@ -4,7 +4,7 @@
  * Authors:   Thomas Dixon
  */
 
-module ocean.util.cipher.RC6;
+deprecated module ocean.util.cipher.RC6;
 
 import ocean.transition;
 

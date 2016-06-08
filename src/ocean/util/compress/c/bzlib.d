@@ -1,6 +1,6 @@
 /* Converted to D from bzlib.h by htod */
 
-module ocean.util.compress.c.bzlib;
+deprecated module ocean.util.compress.c.bzlib;
 
 /*-------------------------------------------------------------*/
 /*--- Public header file for the library.                   ---*/
