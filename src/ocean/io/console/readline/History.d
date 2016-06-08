@@ -7,7 +7,7 @@
     up-arrow he would find the old lines).
 
     Notes:
-        - Requires linking with libreadline
+        - Requires linking with -lhistory
         - The user of this module doesn't need to call `using_history()` as its
           automatically called once this module is imported.
 
@@ -19,6 +19,10 @@
         Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
         Alternatively, this file may be distributed under the terms of the Tango
         3-Clause BSD License (see LICENSE_BSD.txt for details).
+
+        Bear in mind this module provides bindings to an external library that
+        has its own license, which might be more restrictive. Please check the
+        external library license to see which conditions apply for linking.
 
 *******************************************************************************/
 

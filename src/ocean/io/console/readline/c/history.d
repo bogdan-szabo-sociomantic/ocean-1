@@ -1,5 +1,12 @@
 /*******************************************************************************
 
+    Bindings to Readline library's history operations.
+
+    This module contains the D binding of the library functions of history.h.
+    Please consult the original header documentation for details.
+
+    You need to have the library installed and link with -lhistory.
+
     Copyright:
         Copyright (c) 2009-2016 Sociomantic Labs GmbH.
         All rights reserved.
@@ -9,27 +16,11 @@
         Alternatively, this file may be distributed under the terms of the Tango
         3-Clause BSD License (see LICENSE_BSD.txt for details).
 
+        Bear in mind this module provides bindings to an external library that
+        has its own license, which might be more restrictive. Please check the
+        external library license to see which conditions apply for linking.
+
 *******************************************************************************/
-
-
-/* Copyright (C) 1989-2009 Free Software Foundation, Inc.
-
-   This file contains the GNU History Library (History), a set of
-   routines for managing the text of previously typed lines.
-
-   History is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-
-   History is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with History.  If not, see <http://www.gnu.org/licenses/>.
-*/
 
 module ocean.io.console.readline.c.history;
 
