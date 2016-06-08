@@ -1,32 +1,11 @@
 /******************************************************************************
 
-    Elastic Binary Trees - macros and structures for operations on 128bit nodes.
+    Bindings for Elastic Binary Trees library's operations on 128bit nodes.
 
-    Extension to the HAProxy Elastic Binary Trees library.
+    This module contains the D binding of the library functions of eb128tree.h.
+    Please consult the original header documentation for details.
 
-    HAProxy Elastic Binary Trees library:
-
-    Version 6.0
-    (C) 2002-2010 - Willy Tarreau <w@1wt.eu>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
-    128-bit key extension and D language binding:
-
-    This module contains the D binding of the library functions of eb128tree.c.
-    eb128tree.c uses a 128-bit integer type for the node keys, which is not a
+    eb128tree.h uses a 128-bit integer type for the node keys, which is not a
     part of the standard C language but provided as an extension by GCC 4.6 and
     later for targets that support it. These targets include x86-64 but not x86.
 
@@ -37,8 +16,7 @@
     by two 64-bit integer values (int + uint for cent, uint + uint for ucent).
     eb128tree.c provides dual-64-bit functions to interchange the 128-bit keys.
 
-    You need to have the library installed and link with -lebtree. A Debian
-    package is provided in Sociomantic repos.
+    You need to have the library installed and link with -lebtree.
 
     Copyright:
         Copyright (c) 2009-2016 Sociomantic Labs GmbH.
@@ -48,6 +26,10 @@
         Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
         Alternatively, this file may be distributed under the terms of the Tango
         3-Clause BSD License (see LICENSE_BSD.txt for details).
+
+        Bear in mind this module provides bindings to an external library that
+        has its own license, which might be more restrictive. Please check the
+        external library license to see which conditions apply for linking.
 
  ******************************************************************************/
 

@@ -1,27 +1,11 @@
 /******************************************************************************
 
-    Elastic Binary Trees - macros and structures for operations on 32bit nodes.
-    Version 6.0
-    (C) 2002-2010 - Willy Tarreau <w@1wt.eu>
+    Bindings for Elastic Binary Trees library's operations on 32bit nodes.
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+    This module contains the D binding of the library functions of eb32tree.h.
+    Please consult the original header documentation for details.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
-    D language binding:
-
-    You need to have the library installed and link with -lebtree. A Debian
-    package is provided in Sociomantic repos.
+    You need to have the library installed and link with -lebtree.
 
     Copyright:
         Copyright (c) 2009-2016 Sociomantic Labs GmbH.
@@ -31,6 +15,10 @@
         Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
         Alternatively, this file may be distributed under the terms of the Tango
         3-Clause BSD License (see LICENSE_BSD.txt for details).
+
+        Bear in mind this module provides bindings to an external library that
+        has its own license, which might be more restrictive. Please check the
+        external library license to see which conditions apply for linking.
 
  ******************************************************************************/
 
