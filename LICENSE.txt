@@ -6,10 +6,16 @@ linking against.
 
 All files written by Sociomantic Labs GmbH that are free from Tango code are
 distributed under a dual license: Tango 3-Clause BSD License and Boost Software
-License Version 1.0 too. All files coming from the Tango project[1] have
-another dual license: Tango 3-Clause BSD and Academic Free License v3.0. Please
-consult file's headers to see which is which, but if you are fine with 3-Clause
-BSD, then all files can be used with that license.
+License Version 1.0 too. Almost all files coming from the Tango project[1] have
+another dual license: Tango 3-Clause BSD and Academic Free License v3.0. A few
+files have MIT license though, but this license is more permissive than
+3-Clause BSD, so you should still be able to use all the code under the terms
+of the 2-Clause BSD license.
+
+Please consult each file's headers to know the exact licensing options if you
+need to use a license other than 3-Clause BSD. Again, if you link against
+external libraries, you need to see each individual license for those libraries
+to see if more restrictive terms apply.
 
 For the complete license text, please consult the files LICENSE_BSD.txt and
 LICENSE_BOOST.txt for Sociomantic files and LICENSE_TANGO.txt for Tango files.
