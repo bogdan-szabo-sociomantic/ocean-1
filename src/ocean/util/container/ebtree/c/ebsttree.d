@@ -31,25 +31,11 @@ import ocean.util.container.ebtree.c.ebmbtree;
 
 extern (C):
 
-/* Find the first occurence of a zero-terminated string <x> in the tree <root>.
- * It's the caller's reponsibility to use this function only on trees which
- * only contain zero-terminated strings. If none can be found, return NULL.
- */
+/// See original's library documentation for details.
 ebmb_node* ebst_lookup(eb_root* root, char* x);
 
-/* Find the first occurence of a length <len> string <x> in the tree <root>.
- * It's the caller's reponsibility to use this function only on trees which
- * only contain zero-terminated strings, and that no null character is present
- * in string <x> in the first <len> chars. If none can be found, return NULL.
- */
+/// See original's library documentation for details.
 ebmb_node* ebst_lookup_len(eb_root* root, char* x, uint len);
 
-/* Insert ebmb_node <neww> into subtree starting at node root <root>, unless
- * <root> is tagged to allow adding unique keys only, i.e. root->b[EB_RGHT]==1,
- * and a node with neww.key already exists.
- * Only neww->key needs be set with the zero-terminated string key. The caller
- * is responsible for properly terminating the key with a zero.
- * Returns <neww> if added or the existing node if attempting to add a duplicate
- * and <root> is tagged to accept unique keys only.
- */
+/// See original's library documentation for details.
 ebmb_node* ebst_insert(eb_root* root, ebmb_node* neww);

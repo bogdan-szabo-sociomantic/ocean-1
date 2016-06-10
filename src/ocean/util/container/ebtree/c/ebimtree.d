@@ -30,22 +30,8 @@ import ocean.util.container.ebtree.c.ebpttree;
 
 extern (C):
 
-/* Find the first occurence of a key of a least <len> bytes matching <x> in the
- * tree <root>. The caller is responsible for ensuring that <len> will not exceed
- * the common parts between the tree's keys and <x>. In case of multiple matches,
- * the leftmost node is returned. This means that this function can be used to
- * lookup string keys by prefix if all keys in the tree are zero-terminated. If
- * no match is found, NULL is returned. Returns first node if <len> is zero.
- */
+/// See original's library documentation for details.
 ebpt_node* ebim_lookup(ebpt_node* root, void *x, uint len);
 
-/*
- * Insert ebpt_node <neww> into subtree starting at node root <root>, unless
- * <root> is tagged to allow adding unique keys only, i.e. root->b[EB_RGHT]==1,
- * and a node with neww.key already exists.
- * The len is specified in bytes.
- * Returns <neww> if added or the existing node if attempting to add a duplicate
- * and <root> is tagged to accept unique keys only.
- */
-
+/// See original's library documentation for details.
 ebpt_node* ebim_insert(ebpt_node* root, ebpt_node* neww, uint len);

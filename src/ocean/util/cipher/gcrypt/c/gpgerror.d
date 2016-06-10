@@ -32,54 +32,15 @@ import ocean.transition;
 
 extern (C):
 
-/* The version number of this header. */
+/// See original's library documentation for details.
 const GPG_ERROR_VERSION_NUMBER = 0x011500;
 const GPGRT_VERSION_NUMBER =     0x011500;
 
-/* We would really like to use bit-fields in a struct, but using
-   structs as return values can cause binary compatibility issues, in
-   particular if you want to do it efficiently (also see
-   -freg-struct-return option to GCC).  */
+/// See original's library documentation for details.
 alias uint gpg_error_t;
 
 
-/* The GnuPG project consists of many components.  Error codes are
-   exchanged between all components.  The common error codes and their
-   user-presentable descriptions are kept into a shared library to
-   allow adding new error codes and components without recompiling any
-   of the other components.  The interface will not change in a
-   backward incompatible way.
-
-   An error code together with an error source build up an error
-   value.  As the error value is been passed from one component to
-   another, it preserver the information about the source and nature
-   of the error.
-
-   A component of the GnuPG project can define the following macros to
-   tune the behaviour of the library:
-
-   GPG_ERR_SOURCE_DEFAULT: Define to an error source of type
-   GPG_ERR_SOURCE to make that source the default for gpg_error().
-   Otherwise GPG_ERR_SOURCE_UNKNOWN is used as default.
-
-   GPG_ERR_ENABLE_GETTEXT_MACROS: Define to provide macros to map the
-   internal gettext API to standard names.  This has only an effect on
-   Windows platforms.
-
-   GPGRT_ENABLE_ES_MACROS: Define to provide "es_" macros for the
-   estream functions.
-
-   In addition to the error codes, Libgpg-error also provides a set of
-   functions used by most GnuPG components.  */
-
-/* The error source type GPG_ERR_SOURCE.
-
-   Where as the Poo out of a welle small
-   Taketh his firste springing and his sours.
-					--Chaucer.  */
-
-/* Only use free slots, never change or reorder the existing
-   entries.  */
+/// See original's library documentation for details.
 enum GPG_ERR_SOURCE
 {
     UNKNOWN = 0,
@@ -105,18 +66,14 @@ enum GPG_ERR_SOURCE
     USER_3 = 34,
     USER_4 = 35,
 
-    /* We use the upper 7 bits of uint for error sources.  */
     MASK = (1 << 7) - 1
 }
 
-/* This is one more than the largest allowed entry.  */
+/// See original's library documentation for details.
 const GPG_ERR_SOURCE_DIM = GPG_ERR_SOURCE.max + 1;
 
 
-/* The error code type GPG_ERR_CODE.  */
-
-/* Only use free slots, never change or reorder the existing
-   entries.  */
+/// See original's library documentation for details.
 enum GPG_ERR_CODE
 {
     NO_ERROR = 0,
@@ -496,7 +453,6 @@ enum GPG_ERR_CODE
     UNKNOWN_ERRNO = (1 << 14) - 2,
     EOF = (1 << 14) - 1,
 
-    /* The following error codes are used to map system errors.  */
     SYSTEM_ERROR = (1 << 15),
     E2BIG = SYSTEM_ERROR | 0,
     EACCES = SYSTEM_ERROR | 1,
@@ -640,25 +596,16 @@ enum GPG_ERR_CODE
     EXDEV = SYSTEM_ERROR | 139,
     EXFULL = SYSTEM_ERROR | 140,
 
-/* We use the lowest 16 bits of uint for error codes.  The 16th
-   bit indicates system errors.  */
     MASK = (1 << 16) - 1
 }
 
-/* This is one more than the largest allowed entry.  */
+/// See original's library documentation for details.
 const GPG_ERR_CODE_DIM = GPG_ERR_CODE.max + 1;
 
-/* Bits 17 to 24 are reserved.  */
-/* We use the upper 7 bits of uint for error sources.  */
+/// See original's library documentation for details.
 const GPG_ERR_SOURCE_SHIFT  = 24;
 
-/* The highest bit is reserved.  It shouldn't be used to prevent
-   potential negative numbers when transmitting error values as
-   text.  */
-
-/* Initialization function.  */
-
-/* Initialize the library.  This function should be run early.  */
+/// See original's library documentation for details.
 uint gpg_err_init();
 
 static this ( )
@@ -666,24 +613,17 @@ static this ( )
     gpg_err_init();
 }
 
-/* If this is defined, the library is already initialized by the
-   constructor and does not need to be initialized explicitely.  */
-
-/* See the source on how to use the deinit function; it is usually not
-   required.  */
+/// See original's library documentation for details.
 void gpg_err_deinit (int mode);
 
-/* Register blocking system I/O clamping functions.  */
+/// See original's library documentation for details.
 void gpgrt_set_syscall_clamp (void function() pre, void function() post);
 
-/* Register a custom malloc/realloc/free function.  */
+/// See original's library documentation for details.
 void gpgrt_set_alloc_func  (void* function(void *a, size_t n) f);
 
 
-/* Constructor and accessor functions.  */
-
-/* Construct an error value from an error code and source.  Within a
-   subsystem, use gpg_error.  */
+/// See original's library documentation for details.
 uint gpg_err_make(GPG_ERR_SOURCE source, GPG_ERR_CODE code)
 {
     return code? (((source & source.MASK) << GPG_ERR_SOURCE_SHIFT) | (code & code.MASK))
@@ -691,38 +631,30 @@ uint gpg_err_make(GPG_ERR_SOURCE source, GPG_ERR_CODE code)
 }
 
 
+/// See original's library documentation for details.
 gpg_error_t gpg_error (GPG_ERR_CODE code)
 {
   return gpg_err_make(GPG_ERR_SOURCE.init, code);
 }
 
 
-/* Retrieve the error code from an error value.  */
+/// See original's library documentation for details.
 GPG_ERR_CODE gpg_err_code (gpg_error_t err)
 {
   return cast(GPG_ERR_CODE)(err & GPG_ERR_CODE.MASK);
 }
 
 
-/* Retrieve the error source from an error value.  */
+/// See original's library documentation for details.
 GPG_ERR_SOURCE gpg_err_source (gpg_error_t err)
 {
   return cast(GPG_ERR_SOURCE)((err >> GPG_ERR_SOURCE_SHIFT) & GPG_ERR_SOURCE.MASK);
 }
 
-/* String functions.  */
-
-/* Return a pointer to a string containing a description of the error
-   code in the error value ERR.  This function is not thread-safe.  */
+/// See original's library documentation for details.
 Const!(char)* gpg_strerror(gpg_error_t err);
 
-/* Return the error string for ERR in the user-supplied buffer BUF of
-   size BUFLEN.  This function is, in contrast to gpg_strerror,
-   thread-safe if a thread-safe strerror_r() function is provided by
-   the system.  If the function succeeds, 0 is returned and BUF
-   contains the string describing the error.  If the buffer was not
-   large enough, ERANGE is returned and BUF contains as much of the
-   beginning of the error string as fits into the buffer.  */
+/// See original's library documentation for details.
 int gpg_strerror_r(gpg_error_t err, char* buf, size_t buflen);
 
 import ocean.stdc.string;
@@ -740,33 +672,24 @@ body
     return gpg_strerror_r(err, msg.ptr, msg.length);
 }
 
-/* Return a pointer to a string containing a description of the error
-   source in the error value ERR.  */
+/// See original's library documentation for details.
 Const!(char)* gpg_strsource (uint err);
 
-/* Mapping of system errors (errno).  */
-
-/* Retrieve the error code for the system error ERR.  This returns
-   GPG_ERR_UNKNOWN_ERRNO if the system error is not mapped (report
-   this). */
+/// See original's library documentation for details.
 GPG_ERR_CODE gpg_err_code_from_errno(int err);
 
 
-/* Retrieve the system error for the error code CODE.  This returns 0
-   if CODE is not a system error code.  */
+/// See original's library documentation for details.
 int gpg_err_code_to_errno(GPG_ERR_CODE code);
 
 
-/* Retrieve the error code directly from the ERRNO variable.  This
-   returns GPG_ERR_UNKNOWN_ERRNO if the system error is not mapped
-   (report this) and GPG_ERR_MISSING_ERRNO if ERRNO has the value 0. */
+/// See original's library documentation for details.
 GPG_ERR_CODE gpg_err_code_from_syserror();
 
 
-/* Set the ERRNO variable.  This function is the preferred way to set
-   ERRNO due to peculiarities on WindowsCE.  */
+/// See original's library documentation for details.
 void gpg_err_set_errno(int err);
 
-/* Return or check the version.  Both functions are identical.  */
+/// See original's library documentation for details.
 Const!(char)* gpgrt_check_version (Const!(char)* req_version);
 Const!(char)* gpg_error_check_version(Const!(char)* req_version);

@@ -129,12 +129,7 @@ struct Cent
     }
 }
 
-/**
- * This structure carries a node, a leaf, and a key. It must start with the
- * eb_node so that it can be cast into an eb_node. We could also have put some
- * sort of transparent union here to reduce the indirection level, but the fact
- * is, the end user is not meant to manipulate internals, so this is pointless.
- */
+/// See original's library documentation for details.
 struct eb128_node
 {
     eb_node node; // the tree node, must be at the beginning
@@ -272,46 +267,22 @@ eb128_node* eb128_prev_unique(eb128_node* eb128);
 /// Delete node from the tree if it was linked in. Mark the node unused.
 void eb128_delete(eb128_node* eb128);
 
-/**
- * Find the first occurence of a key in the tree <root>. If none can be
- * found, return NULL.
- */
+/// See original's library documentation for details.
 eb128_node* eb128_lookup_264 ( eb_root* root, ulong lo, ulong hi );
 
-/**
- * Find the first occurence of a signed key in the tree <root>. If none can
- * be found, return NULL.
- */
+/// See original's library documentation for details.
 eb128_node* eb128i_lookup_264 ( eb_root* root, ulong lo, long hi );
 
-/**
- * Find the last occurrence of the highest key in the tree <root>, which is
- * equal to or less than <x>. NULL is returned is no key matches.
- */
+/// See original's library documentation for details.
 eb128_node* eb128_lookup_le_264 ( eb_root* root, ulong lo, ulong hi );
 
-/**
- * Find the first occurrence of the lowest key in the tree <root>, which is
- * equal to or greater than <x>. NULL is returned is no key matches.
- */
+/// See original's library documentation for details.
 eb128_node* eb128_lookup_ge_264 ( eb_root* root, ulong lo, ulong hi );
 
-/**
- * Insert eb128_node <neww> into subtree starting at node root <root>, unless
- * <root> is tagged to allow adding unique keys only, i.e. root->b[EB_RGHT]==1,
- * and a node with neww.key already exists.
- * Returns <neww> if added or the existing node if attempting to add a duplicate
- * and <root> is tagged to accept unique keys only.
- */
+/// See original's library documentation for details.
 eb128_node* eb128_insert ( eb_root* root, eb128_node* neww );
 
-/**
- * Insert eb128_node <neww> into subtree starting at node root <root>, unless
- * <root> is tagged to allow adding unique keys only, i.e. root->b[EB_RGHT]==1,
- * and a node with neww.key already exists.
- * Returns <neww> if added or the existing node if attempting to add a duplicate
- * and <root> is tagged to accept unique keys only.
- */
+/// See original's library documentation for details.
 eb128_node* eb128i_insert ( eb_root* root, eb128_node* neww );
 
 /******************************************************************************

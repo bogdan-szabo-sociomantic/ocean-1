@@ -144,19 +144,19 @@ extern ( C )
 
     struct xmlError
     {
-        int domain;             // What part of the library raised this error
-        int code;               // The error code, e.g. an xmlParserError
-        char* message;          // human-readable informative error messag
-        xmlErrorLevel level;    // how consequent is the error
-        char* file;             // the filename
-        int line;               // the line number if available
-        char* str1;             // extra string information
-        char* str2;             // extra string information
-        char* str3;             // extra string information
-        int int1;               // extra number information
-        int int2;               // column number of the error or 0 if N/A
-        void* ctxt;             // the parser context if available
-        void* node;             // the node in the tree
+        int domain;
+        int code;
+        char* message;
+        xmlErrorLevel level;
+        char* file;
+        int line;
+        char* str1;
+        char* str2;
+        char* str3;
+        int int1;
+        int int2;
+        void* ctxt;
+        void* node;
     }
 
     public alias xmlError* xmlErrorPtr;

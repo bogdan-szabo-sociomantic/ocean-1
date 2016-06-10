@@ -28,8 +28,7 @@ public extern (C)
 {
     /***************************************************************************
 
-        Place STRING at the end of the history list.
-        The associated data field (if any) is set to NULL.
+        See original documentation for details.
 
     ***************************************************************************/
 
@@ -37,8 +36,7 @@ public extern (C)
 
     /***************************************************************************
 
-        Begin a session in which the history functions might be used. This just
-        initializes the interactive variables.
+        See original documentation for details.
 
     ***************************************************************************/
 

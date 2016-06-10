@@ -43,5 +43,5 @@ static this ( )
     }
 }
 
-/* Check that the library fulfills the version requirement.  */
+/// See original's library documentation for details.
 extern (C) Const!(char)* gcry_check_version ( Const!(char)* req_version);

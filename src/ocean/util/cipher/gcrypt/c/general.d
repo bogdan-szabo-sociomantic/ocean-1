@@ -29,15 +29,14 @@ import ocean.transition;
 
 extern (C):
 
-// The error type is an unsigned integer
+/// See original's library documentation for details.
 alias uint gcry_error_t;
 
-/* Codes used with the gcry_control function. */
+/// See original's library documentation for details.
 enum gcry_ctl_cmds
 {
-    /* Note: 1 .. 2 are not anymore used. */
     GCRYCTL_CFB_SYNC = 3,
-    GCRYCTL_RESET    = 4,   /* e.g. for MDs */
+    GCRYCTL_RESET    = 4,
     GCRYCTL_FINALIZE = 5,
     GCRYCTL_GET_KEYLEN = 6,
     GCRYCTL_GET_BLKLEN = 7,
@@ -75,7 +74,6 @@ enum gcry_ctl_cmds
     GCRYCTL_ANY_INITIALIZATION_P = 40,
     GCRYCTL_SET_CBC_CTS = 41,
     GCRYCTL_SET_CBC_MAC = 42,
-    /* Note: 43 is not anymore used. */
     GCRYCTL_ENABLE_QUICK_RANDOM = 44,
     GCRYCTL_SET_RANDOM_SEED_FILE = 45,
     GCRYCTL_UPDATE_RANDOM_SEED_FILE = 46,
@@ -90,7 +88,6 @@ enum gcry_ctl_cmds
     GCRYCTL_FIPS_MODE_P = 55,
     GCRYCTL_FORCE_FIPS_MODE = 56,
     GCRYCTL_SELFTEST = 57,
-    /* Note: 58 .. 62 are used internally.  */
     GCRYCTL_DISABLE_HWF = 63,
     GCRYCTL_SET_ENFORCED_FIPS_FLAG = 64,
     GCRYCTL_SET_PREFERRED_RNG_TYPE = 65,
@@ -106,7 +103,7 @@ enum gcry_ctl_cmds
     GCRYCTL_SET_TAGLEN = 75
 }
 
-/* Perform various operations defined by CMD. */
+/// See original's library documentation for details.
 gcry_error_t gcry_control ( gcry_ctl_cmds CMD, ...);
 
 // The function gcry_strerror returns a pointer to a statically allocated string

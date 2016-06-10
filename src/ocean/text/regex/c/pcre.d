@@ -25,33 +25,22 @@ import ocean.transition;
 
 extern (C):
 
-/*
- * When PCRE is compiled as a C++ library, the subject pointer type can be
- * replaced with a custom type. For conventional use, the public interface is a
- * const char*
- */
 char* PCRE_SPTR;
 
-struct real_pcre;                 /* declaration; the definition is private  */
+struct real_pcre;
 alias real_pcre pcre;
 
 
-/*
- * The structure for passing additional data to pcre_exec(). This is defined in
- * such as way as to be extensible. Always add new fields at the end, in order to
- * remain compatible.
- */
 // ulong might be also uint...needs to be checked...
 struct pcre_extra {
-  ulong flags;                      /* Bits for which fields are set */
-  void* study_data;                 /* Opaque data from pcre_study() */
-  ulong match_limit;                /* Maximum number of calls to match() */
-  void* callout_data;               /* Data passed back in callouts */
-  ubyte* tables;                    /* Pointer to character tables */
-  ulong* match_limit_recursion;     /* Max recursive calls to match() */
+  ulong flags;
+  void* study_data;
+  ulong match_limit;
+  void* callout_data;
+  ubyte* tables;
+  ulong* match_limit_recursion;
 };
 
-/* Options */
 
 const int PCRE_CASELESS = 0x00000001;
 const int PCRE_MULTILINE = 0x00000002;
@@ -82,18 +71,17 @@ const int PCRE_BSR_ANYCRLF = 0x00800000;
 const int PCRE_BSR_UNICODE = 0x01000000;
 const int PCRE_JAVASCRIPT_COMPAT = 0x02000000;
 
-/* Exec-time and get/set-time error codes */
 
 const int PCRE_ERROR_NOMATCH = (-1);
 const int PCRE_ERROR_NULL = (-2);
 const int PCRE_ERROR_BADOPTION = (-3);
 const int PCRE_ERROR_BADMAGIC = (-4);
 const int PCRE_ERROR_UNKNOWN_OPCODE = (-5);
-const int PCRE_ERROR_UNKNOWN_NODE = (-5);  /* For backward compatibility */
+const int PCRE_ERROR_UNKNOWN_NODE = (-5);
 const int PCRE_ERROR_NOMEMORY = (-6);
 const int PCRE_ERROR_NOSUBSTRING = (-7);
 const int PCRE_ERROR_MATCHLIMIT = (-8);
-const int PCRE_ERROR_CALLOUT = (-9);  /* Never used by PCRE itself */
+const int PCRE_ERROR_CALLOUT = (-9);
 const int PCRE_ERROR_BADUTF8 = (-10);
 const int PCRE_ERROR_BADUTF8_OFFSET = (-11);
 const int PCRE_ERROR_PARTIAL = (-12);
@@ -106,17 +94,16 @@ const int PCRE_ERROR_DFA_UMLIMIT = (-18);
 const int PCRE_ERROR_DFA_WSSIZE = (-19);
 const int PCRE_ERROR_DFA_RECURSE = (-20);
 const int PCRE_ERROR_RECURSIONLIMIT = (-21);
-const int PCRE_ERROR_NULLWSLIMIT = (-22); /* No longer actually used */
+const int PCRE_ERROR_NULLWSLIMIT = (-22);
 const int PCRE_ERROR_BADNEWLINE = (-23);
 
-/* Request types for pcre_fullinfo() */
 
 const int PCRE_INFO_OPTIONS = 0;
 const int PCRE_INFO_SIZE = 1;
 const int PCRE_INFO_CAPTURECOUNT = 2;
 const int PCRE_INFO_BACKREFMAX = 3;
 const int PCRE_INFO_FIRSTBYTE = 4;
-const int PCRE_INFO_FIRSTCHAR = 4;  /* For backwards compatibility */
+const int PCRE_INFO_FIRSTCHAR = 4;
 const int PCRE_INFO_FIRSTTABLE = 5;
 const int PCRE_INFO_LASTLITERAL = 6;
 const int PCRE_INFO_NAMEENTRYSIZE = 7;
@@ -128,8 +115,6 @@ const int PCRE_INFO_OKPARTIAL = 12;
 const int PCRE_INFO_JCHANGED = 13;
 const int PCRE_INFO_HASCRORLF = 14;
 
-/* Request types for pcre_config(). Do not re-arrange, in order to remain
-compatible. */
 
 const int PCRE_CONFIG_UTF8 = 0;
 const int PCRE_CONFIG_NEWLINE = 1;
@@ -141,8 +126,6 @@ const int PCRE_CONFIG_UNICODE_PROPERTIES = 6;
 const int PCRE_CONFIG_MATCH_LIMIT_RECURSION = 7;
 const int PCRE_CONFIG_BSR = 8;
 
-/* Bit flags for the pcre_extra structure. Do not re-arrange or redefine
-these bits, just add new ones on the end, in order to remain compatible. */
 
 const int PCRE_EXTRA_STUDY_DATA = 0x0001;
 const int PCRE_EXTRA_MATCH_LIMIT = 0x0002;
@@ -150,7 +133,6 @@ const int PCRE_EXTRA_CALLOUT_DATA = 0x0004;
 const int PCRE_EXTRA_TABLES = 0x0008;
 const int PCRE_EXTRA_MATCH_LIMIT_RECURSION = 0x0010;
 
-/* Exported PCRE functions */
 
 pcre*  pcre_compile(char* pattern, int options, char** errptr, int* erroffset, ubyte* tableptr);
 pcre*  pcre_compile2(char* pattern, int options, int* errorcodeptr, char** errptr, int* erroffset, ubyte* tableptr);

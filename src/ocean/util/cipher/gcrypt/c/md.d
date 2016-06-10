@@ -29,8 +29,7 @@ import ocean.transition;
 
 extern (C):
 
-/* Algorithm IDs for the hash functions we know about. Not all of them
-   are implemnted. */
+/// See original's library documentation for details.
 enum gcry_md_algos
 {
     GCRY_MD_NONE    = 0,
@@ -38,8 +37,8 @@ enum gcry_md_algos
     GCRY_MD_SHA1    = 2,
     GCRY_MD_RMD160  = 3,
     GCRY_MD_MD2     = 5,
-    GCRY_MD_TIGER   = 6,   /* TIGER/192 as used by gpg <= 1.3.2. */
-    GCRY_MD_HAVAL   = 7,   /* HAVAL, 5 pass, 160 bit. */
+    GCRY_MD_TIGER   = 6,
+    GCRY_MD_HAVAL   = 7,
     GCRY_MD_SHA256  = 8,
     GCRY_MD_SHA384  = 9,
     GCRY_MD_SHA512  = 10,
@@ -49,50 +48,45 @@ enum gcry_md_algos
     GCRY_MD_CRC32_RFC1510 = 303,
     GCRY_MD_CRC24_RFC2440 = 304,
     GCRY_MD_WHIRLPOOL = 305,
-    GCRY_MD_TIGER1  = 306, /* TIGER fixed.  */
-    GCRY_MD_TIGER2  = 307  /* TIGER2 variant.   */
+    GCRY_MD_TIGER1  = 306,
+    GCRY_MD_TIGER2  = 307
 }
 
-/* Flags used with the open function.  */
+/// See original's library documentation for details.
 enum gcry_md_flags
 {
-    GCRY_MD_FLAG_SECURE = 1,  /* Allocate all buffers in "secure" memory.  */
-    GCRY_MD_FLAG_HMAC   = 2   /* Make an HMAC out of this algorithm.  */
+    GCRY_MD_FLAG_SECURE = 1,
+    GCRY_MD_FLAG_HMAC   = 2
 }
 
-// This object is used to hold a handle to a message digest object.
+/// See original's library documentation for details.
 struct gcry_md_handle;
+/// See original's library documentation for details.
 alias gcry_md_handle* gcry_md_hd_t;
 
-/* Create a message digest object for algorithm ALGO.  FLAGS may be
-   given as an bitwise OR of the gcry_md_flags values.  ALGO may be
-   given as 0 if the algorithms to be used are later set using
-   gcry_md_enable.  */
+/// See original's library documentation for details.
 gcry_error_t gcry_md_open (gcry_md_hd_t* h, gcry_md_algos algo, gcry_md_flags flags);
 
-/* Release the message digest object HD.  */
+/// See original's library documentation for details.
 void gcry_md_close (gcry_md_hd_t hd);
 
-/* Add the message digest algorithm ALGO to the digest object HD.  */
+/// See original's library documentation for details.
 gcry_error_t gcry_md_enable (gcry_md_hd_t hd, gcry_md_algos algo);
 
-/* Create a new digest object as an exact copy of the object HD.  */
+/// See original's library documentation for details.
 gcry_error_t gcry_md_copy (gcry_md_hd_t* bhd, gcry_md_hd_t ahd);
 
-/* Reset the digest object HD to its initial state.  */
+/// See original's library documentation for details.
 void gcry_md_reset (gcry_md_hd_t hd);
 
-/* Perform various operations on the digest object HD. */
+/// See original's library documentation for details.
 gcry_error_t gcry_md_ctl (gcry_md_hd_t hd, int cmd,
                           void* buffer, size_t buflen);
 
-/* Pass LENGTH bytes of data in BUFFER to the digest object HD so that
-   it can update the digest values.  This is the actual hash
-   function. */
+/// See original's library documentation for details.
 void gcry_md_write (gcry_md_hd_t hd, Const!(void)* buffer, size_t length);
 
-/* Read out the final digest from HD return the digest value for
-   algorithm ALGO. */
+/// See original's library documentation for details.
 ubyte* gcry_md_read (gcry_md_hd_t hd, gcry_md_algos algo = gcry_md_algos.init);
 
 extern (D) ubyte[] gcry_md_read_slice (gcry_md_hd_t hd, gcry_md_algos algo = gcry_md_algos.init)
@@ -107,66 +101,50 @@ extern (D) ubyte[] gcry_md_read_slice (gcry_md_hd_t hd, gcry_md_algos algo = gcr
     }
 }
 
-/* Convenience function to calculate the hash from the data in BUFFER
-   of size LENGTH using the algorithm ALGO avoiding the creating of a
-   hash object.  The hash is returned in the caller provided buffer
-   DIGEST which must be large enough to hold the digest of the given
-   algorithm. */
+/// See original's library documentation for details.
 void gcry_md_hash_buffer (gcry_md_algos algo, void* digest,
                           Const!(void)* buffer, size_t length);
 
-/* Retrieve the algorithm used with HD.  This does not work reliable
-   if more than one algorithm is enabled in HD. */
+/// See original's library documentation for details.
 gcry_md_algos gcry_md_get_algo (gcry_md_hd_t hd);
 
-/* Retrieve the length in bytes of the digest yielded by algorithm
-   ALGO. */
+/// See original's library documentation for details.
 uint gcry_md_get_algo_dlen (gcry_md_algos algo);
 
-/* Return true if the the algorithm ALGO is enabled in the digest
-   object A. */
+/// See original's library documentation for details.
 int gcry_md_is_enabled (gcry_md_hd_t a, gcry_md_algos algo);
 
-/* Return true if the digest object A is allocated in "secure" memory. */
+/// See original's library documentation for details.
 int gcry_md_is_secure (gcry_md_hd_t a);
 
-/* Retrieve various information about the object H.  */
+/// See original's library documentation for details.
 gcry_error_t gcry_md_info (gcry_md_hd_t h, gcry_ctl_cmds what, void* buffer,
                           size_t* nbytes);
 
-/* Retrieve various information about the algorithm ALGO.  */
+/// See original's library documentation for details.
 gcry_error_t gcry_md_algo_info (gcry_md_algos algo, gcry_ctl_cmds what, void* buffer,
                                size_t* nbytes);
 
-/* Map the digest algorithm id ALGO to a string representation of the
-   algorithm name.  For unknown algorithms this function returns
-   "?". */
+/// See original's library documentation for details.
 Const!(char)* gcry_md_algo_name (gcry_md_algos algo);
 
-/* Map the algorithm NAME to a digest algorithm Id.  Return 0 if
-   the algorithm name is not known. */
+/// See original's library documentation for details.
 int gcry_md_map_name (Const!(char)* name);
 
-/* For use with the HMAC feature, the set MAC key to the KEY of
-   KEYLEN bytes. */
+/// See original's library documentation for details.
 gcry_error_t gcry_md_setkey (gcry_md_hd_t hd, Const!(void)* key, size_t keylen);
 
-/* Start or stop debugging for digest handle HD; i.e. create a file
-   named dbgmd-<n>.<suffix> while hashing.  If SUFFIX is NULL,
-   debugging stops and the file will be closed. */
+/// See original's library documentation for details.
 void gcry_md_debug (gcry_md_hd_t hd, Const!(char)* suffix);
 
 
-/* Return 0 if the algorithm A is available for use. */
+/// See original's library documentation for details.
 extern (D) gcry_error_t gcry_md_test_algo(gcry_md_algos a)
 {
     return gcry_md_algo_info(a, gcry_ctl_cmds.GCRYCTL_TEST_ALGO, null, null);
 }
 
-/* Return an DER encoded ASN.1 OID for the algorithm A in buffer B. N
-   must point to size_t variable with the available size of buffer B.
-   After return it will receive the actual size of the returned
-   OID. */
+/// See original's library documentation for details.
 extern (D) gcry_error_t gcry_md_get_asnoid(gcry_md_algos a, ref ubyte[] b)
 {
     size_t len = b.length;
@@ -182,11 +160,5 @@ extern (D) gcry_error_t gcry_md_get_asnoid(gcry_md_algos a, ref ubyte[] b)
     }
 }
 
-/* Get a list consisting of the IDs of the loaded message digest
-   modules.  If LIST is zero, write the number of loaded message
-   digest modules to LIST_LENGTH and return.  If LIST is non-zero, the
-   first *LIST_LENGTH algorithm IDs are stored in LIST, which must be
-   of according size.  In case there are less message digest modules
-   than *LIST_LENGTH, *LIST_LENGTH is updated to the correct
-   number.  */
+/// See original's library documentation for details.
 gcry_error_t gcry_md_list (int* list, int* list_length);
