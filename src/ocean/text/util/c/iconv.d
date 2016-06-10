@@ -1,10 +1,12 @@
 /*******************************************************************************
 
-       D binding for the C iconv library.
+       D binding for the POSIX iconv library.
 
-       The C iconv library is used to convert from one character encoding to another.
+       The iconv library is used to convert from one character encoding to
+       another.
 
-       See_Also: http://www.gnu.org/software/libiconv/
+       See_Also:
+           http://pubs.opengroup.org/onlinepubs/009695399/functions/iconv_open.html
 
        Copyright:
            Copyright (c) 2009-2016 Sociomantic Labs GmbH.
