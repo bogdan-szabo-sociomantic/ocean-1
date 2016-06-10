@@ -1,44 +1,23 @@
 /*******************************************************************************
 
+    D bindings to zlib compression library.
+
+    Needs -lz when linking.
+
     Copyright:
         Copyright (c) 2004-2009 Tango contributors.
         Some parts copyright (c) 2009-2016 Sociomantic Labs GmbH.
         All rights reserved.
+
     License:
         Tango Dual License: 3-Clause BSD License / Academic Free License v3.0.
         See LICENSE_TANGO.txt for details.
+
+        Bear in mind this module provides bindings to an external library that
+        has its own license, which might be more restrictive. Please check the
+        external library license to see which conditions apply for linking.
+
 *******************************************************************************/
-
-
-/* zlib.h -- interface of the 'zlib' general purpose compression library
-  version 1.2.3, July 18th, 2005
-
-  Copyright (C) 1995-2005 Jean-loup Gailly and Mark Adler
-
-  This software is provided 'as-is', without any express or implied
-  warranty.  In no event will the authors be held liable for any damages
-  arising from the use of this software.
-
-  Permission is granted to anyone to use this software for any purpose,
-  including commercial applications, and to alter it and redistribute it
-  freely, subject to the following restrictions:
-
-  1. The origin of this software must not be misrepresented; you must not
-     claim that you wrote the original software. If you use this software
-     in a product, an acknowledgment in the product documentation would be
-     appreciated but is not required.
-  2. Altered source versions must be plainly marked as such, and must not be
-     misrepresented as being the original software.
-  3. This notice may not be removed or altered from any source distribution.
-
-  Jean-loup Gailly        Mark Adler
-  jloup@gzip.org          madler@alumni.caltech.edu
-
-
-  The data format used by the zlib library is described by RFCs (Request for
-  Comments) 1950 to 1952 in the files http://www.ietf.org/rfc/rfc1950.txt
-  (zlib format), rfc1951.txt (deflate format) and rfc1952.txt (gzip format).
-*/
 
 module ocean.util.compress.c.zlib;
 

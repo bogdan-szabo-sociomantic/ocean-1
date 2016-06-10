@@ -1,5 +1,7 @@
 /*******************************************************************************
 
+    Zlib base stream
+
     Copyright:
         Copyright (C) 2007 Daniel Keep.
         Some parts copyright (c) 2009-2016 Sociomantic Labs GmbH.
@@ -8,6 +10,10 @@
     License:
         Tango Dual License: 3-Clause BSD License / Academic Free License v3.0.
         See LICENSE_TANGO.txt for details.
+
+        Bear in mind this module provides bindings to an external library that
+        has its own license, which might be more restrictive. Please check the
+        external library license to see which conditions apply for linking.
 
     Version:
         Feb 08: Added support for different stream encodings, removed
