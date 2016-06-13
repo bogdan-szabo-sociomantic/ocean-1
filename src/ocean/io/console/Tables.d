@@ -25,8 +25,7 @@
         // Next row is another divider
         table.nextRow.setDivider();
 
-        // Now we add one row for each of a set of 'nodes' (presumably dht or
-        // queue nodes)
+        // Now we add one row for each of a set of 'nodes'
         foreach ( node; this.nodes )
         {
             table.nextRow.set(
@@ -88,8 +87,7 @@
         // Next row is another divider
         table.nextRow.setDivider();
 
-        // Now we add one row for each of a set of 'nodes' (presumably dht or
-        // queue nodes)
+        // Now we add one row for each of a set of 'nodes'
         foreach ( node; this.nodes )
         {
             table.nextRow.set(Table.Cell.Integer(node.records1), Table.Cell.Integer(node.bytes1),

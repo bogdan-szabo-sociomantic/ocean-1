@@ -11,9 +11,6 @@
           and delimited by another " and a separator character). Separators
           (commas) and newlines (\n) may both appear inside quoted fields.
 
-    (Note: there is some more complex CSV parsing code in shore-feed. This could
-    be adapted into this module, if needed.)
-
     Usage:
 
     ---

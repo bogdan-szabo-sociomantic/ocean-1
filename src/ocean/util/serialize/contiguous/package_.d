@@ -79,18 +79,19 @@
     -----------------
 
     The contiguous serialization format and the version decorator are primarily
-    designed to be used with krill structs stored in the DHT. It is recommended to
-    completely strip the version information with the help of the decorator upon
-    initially reading a record from the DHT, and to use the resulting raw contiguous
-    buffer internally in the application (i.e. in a cache). That way you can use any
-    of the serialization/deserialization utilities in the application without
-    thinking about the version meta-data
+    designed as a way to interchange D structs between different applications
+    that may expect different versions of those struct layout.
+    It is recommended to completely strip the version information with the help
+    of the decorator upon initially reading a record, and to use the resulting
+    raw contiguous buffer internally in the application (i.e. in a cache). That
+    way you can use any of the serialization/deserialization utilities in the
+    application without thinking about the version meta-data
 
     Typical code pattern for a cache:
 
         1. Define a ``Cache`` of ``Contiguous!(S)`` elements.
 
-        2. When receiving data from DHT do
+        2. When receiving external data we do
         ``version_decorator.loadCopy!(S)(dht_data, cache_element)``
 
         3. Use ``contiguous.Util.copy(cache_element, contiguous_instance)`` for

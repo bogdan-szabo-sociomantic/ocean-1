@@ -5,8 +5,7 @@
     Fast 128-bit value binary tree class based on the ebtree library from
     HAProxy.
 
-    You need to have the library installed and link with -lebtree. A Debian
-    package is provided in Sociomantic repos.
+    You need to have the library installed and link with -lebtree.
 
     Copyright:
         Copyright (c) 2009-2016 Sociomantic Labs GmbH.

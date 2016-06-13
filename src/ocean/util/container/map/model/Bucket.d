@@ -83,9 +83,6 @@ public struct Bucket ( size_t V, K = hash_t )
             otherwise the struct can get into alignment issues that can cause
             the GC to miss the pointers in the data.
 
-            Please see https://github.com/sociomantic/ocean/issues/369 for
-            details.
-
          **********************************************************************/
 
         public alias ubyte[V] Val;

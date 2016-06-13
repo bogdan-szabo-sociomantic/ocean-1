@@ -199,13 +199,11 @@ public class FiberTimerEvent : IFiberSelectClient
         SelectFiber.Message message = this.fiber.resume(TimerFired, this);
 
         // FIXME: this should actually always return false, as we always want
-        // the timer to be one-shot. However, as reported in
-        // https://github.com/sociomantic/ocean/issues/27
-        // there is a fundamental bug with the way the messages are handled. The
-        // problem is that IFiberSelectClient.finalize() does not know whether
-        // the fiber is still in use (suspended with no client registered) or
-        // whether it should be killed. This will need to be revisited and
-        // fixed.
+        // the timer to be one-shot. However, there is a fundamental bug with
+        // the way the messages are handled. The problem is that
+        // IFiberSelectClient.finalize() does not know whether the fiber is
+        // still in use (suspended with no client registered) or whether it
+        // should be killed. This will need to be revisited and fixed.
         return (message.active == message.active.num)? message.num != 0 : false;
     }
 

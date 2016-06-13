@@ -217,8 +217,29 @@ private void copyField ( From, To ) ( From* from_field, To* to_field,
     }
     else
     {
-        // Workaround for error-swallowing DMD bug
-        // https://github.com/sociomantic/dmd/issues/20
+        // Workaround for error-swallowing DMD1 bug
+        /+
+            module main;
+
+            size_t foo ( bool bar ) ( int )
+            {
+            }
+
+            unittest
+            {
+                    foo!(true) ();
+            }
+
+            Outputs:
+                main.d(10): Error: template main.foo(bool bar) does not match any function template declaration
+                main.d(10): Error: template main.foo(bool bar) cannot deduce template function from argument types !(true)()
+
+            Fixing the error in foo (by adding `return 0;`) changes the output to
+
+            main.d(10): Error: function main.foo!(true).foo (int _param_0) does not match parameter types ()
+            main.d(10): Error: expected 1 function arguments, not 0
+        +/
+
         pragma(msg, "Unhandled field: " ~
                     FieldName!(to_index, To) ~ " of types " ~ To.stringof ~ "." ~
                         typeof((*to_field)).stringof ~ " " ~ From.stringof ~ "." ~

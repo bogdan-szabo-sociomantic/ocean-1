@@ -43,18 +43,18 @@ class HttpCookieParser : QueryParamSet
 
 unittest
 {
-    const istring cookie_header_value = "sonar=2649113645; sonar-expires=1383922851";
+    const istring cookie_header_value = "test=2649113645; test-value=1383922851";
 
     const istring[] cookie_names =
     [
-        "sonar",
-        "sonar-expires"
+        "test",
+        "test-value"
     ];
 
     scope cookie = new HttpCookieParser(cookie_names);
 
     cookie.parse(cookie_header_value);
 
-    assert (cookie["sonar"] == "2649113645");
-    assert (cookie["sonar-expires"] == "1383922851");
+    assert (cookie["test"] == "2649113645");
+    assert (cookie["test-value"] == "1383922851");
 }

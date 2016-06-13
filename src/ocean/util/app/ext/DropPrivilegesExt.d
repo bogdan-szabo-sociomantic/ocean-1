@@ -41,8 +41,8 @@ import ocean.stdc.errno;
     Config example:
     ----
     [PERMISSIONS]
-    user = reef
-    group = reef
+    user = john
+    group = john
     ----
 
 *******************************************************************************/

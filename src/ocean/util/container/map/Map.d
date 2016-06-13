@@ -1163,8 +1163,6 @@ public abstract class Map ( size_t V, K ) : BucketSet!(V, K)
     Test key types smaller than size_t (or even equals) don't screw up the
     alignment and makes impossible to the GC to scan pointers in the value.
 
-    See https://github.com/sociomantic/ocean/pull/369 for details.
-
 ******************************************************************************/
 
 version (UnitTest)

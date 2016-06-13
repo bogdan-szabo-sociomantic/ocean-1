@@ -14,8 +14,6 @@
 
     ---
 
-        import swarm.core.client.request.scheduler.Scheduler;
-
         // Struct associated with each event.
         struct EventParams
         {

@@ -454,8 +454,8 @@ private scope class UnitTestRunner
             }
             scope (exit)
             {
-                // Workarround for:
-                // https://github.com/sociomantic/ocean/issues/1039
+                // Workarround for the issue where buffered output is not flushed
+                // before close
                 output.flush();
                 output.close();
             }

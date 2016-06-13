@@ -1,8 +1,7 @@
 /*******************************************************************************
 
     Implementation of logging appender which writes to both stdout and stderr
-    based on logging level. This is appender recommended for usage in turtle
-    tested application.
+    based on logging level.
 
     Copyright:
         Copyright (c) 2009-2016 Sociomantic Labs GmbH.
