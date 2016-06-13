@@ -592,10 +592,10 @@ unittest
 
     // Match with a more complicated regex
     testFind(
-        "(aid=google.*(aaid=zalando|aaid=zalando-fr|aaid=zalando-uk))|((aaid=zalando|aaid=zalando-fr|aaid=zalando-uk).*aid=google)",
-        "http://eu-sonar.sociomantic.com/js/2010-07-01/action/click?&",
-        "aid=google&fpc=7161999584528497855&aaid=zalando",
-        "&size=3&cid=445&ao=%5B%7B%22id%22%3A%2216880840621970542745%22%2C%22fsize%22%3A22%7D%5D"
+       "(firstparam=[^l]*liza.*(secondparam=mary|secondparam=lena|secondparam=john))|((secondparam=mary|secondparam=lena|secondparam=john).*firstparam=liza)",
+        "http://example.org?",
+        "firstparam=elizabeth&rand=84527497861&secondparam=mary",
+        "&some=other&params=are&here=%20%21%22%12222"
     );
 
     // Single match returned when multiple matches are possible
