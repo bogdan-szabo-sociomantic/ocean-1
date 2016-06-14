@@ -706,9 +706,11 @@ public class Fnv1Generic ( bool FNV1A = false, T = hash_t ) : FnvDigest
         http://www.isthe.com/chongo/tech/comp/fnv/
 
 
-    C to D port by David Eckardt, sociomantic labs, October 2009
+    The original code was released as public domain by chongo <Landon Curt
+    Noll>:
+    http://web.archive.org/web/20101105131957/http://www.isthe.com/chongo/src/fnv/test_fnv.c
 
-    david_eckardt@sociomantic.com
+    C to D port by David Eckardt, sociomantic labs, October 2009
 
 **************************************************************************/
 
