@@ -2,13 +2,13 @@
  * D header file for Linux TIPC sockets.
  *
  * Copyright:
- *     Public Domain
- *     Some parts copyright (c) 2009-2016 Sociomantic Labs GmbH.
+ *     Copyright (c) 2008 Leandro Lucarella
  *     All rights reserved.
  *
  * License:
- *     Tango Dual License: 3-Clause BSD License / Academic Free License v3.0.
- *     See LICENSE_TANGO.txt for details.
+ *     Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
+ *     Alternatively, this file may be distributed under the terms of the Tango
+ *     3-Clause BSD License (see LICENSE_BSD.txt for details).
  *
  * Authors: Leandro Lucarella, based on the TIPC linux C header.
  *
