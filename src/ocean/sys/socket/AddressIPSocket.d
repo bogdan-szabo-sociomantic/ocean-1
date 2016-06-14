@@ -2,11 +2,11 @@
 
     IP socket that memorises its address
 
+    TODO: Add an AddressIPSocket subclass with host resolution.
+
     Copyright:
         Copyright (c) 2009-2016 Sociomantic Labs GmbH.
         All rights reserved.
-
-    Todo: Add an AddressIPSocket subclass with host resolution.
 
     License:
         Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
