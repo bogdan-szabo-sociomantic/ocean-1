@@ -11,8 +11,6 @@
 
 *******************************************************************************/
 
-
-
 module ocean.sys.linux.signalfd;
 
 import ocean.stdc.posix.signal: sigset_t;

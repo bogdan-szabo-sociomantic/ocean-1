@@ -11,7 +11,6 @@
 
 *******************************************************************************/
 
-
 module ocean.sys.linux.ifaddrs;
 
 import ocean.stdc.posix.sys.socket;

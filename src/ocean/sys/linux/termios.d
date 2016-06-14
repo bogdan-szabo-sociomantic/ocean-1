@@ -11,7 +11,6 @@
 
 *******************************************************************************/
 
-
 module ocean.sys.linux.termios;
 
 public import core.sys.linux.termios;

@@ -11,8 +11,6 @@
 
 *******************************************************************************/
 
-
-
 module ocean.sys.linux.sched;
 
 import ocean.stdc.posix.sys.types: pid_t;

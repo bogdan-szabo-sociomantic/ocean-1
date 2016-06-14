@@ -11,7 +11,6 @@
 
 *******************************************************************************/
 
-
 module ocean.sys.linux.timerfd;
 
 import ocean.stdc.posix.time: itimerspec, clockid_t;
