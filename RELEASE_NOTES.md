@@ -14,6 +14,12 @@ Migration Instructions
   This module has been moved to `ocean.io.select.client.TimerSet`. The class
   template `Scheduler` has likewise been renamed to `TimerSet`.
 
+* `ocean.util.app.ext.StatsExt`
+
+  StatsLog instances created by `newStatsLog` will be named according to the file to which
+  they write.  This means that the name of the default `StatsLog` instance will change from
+  "Stats" to (by default) "log/stats.log".
+
 Deprecations
 ============
 

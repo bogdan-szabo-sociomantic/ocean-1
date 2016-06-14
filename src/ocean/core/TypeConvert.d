@@ -191,30 +191,38 @@ unittest
 
 /******************************************************************************/
 
-T[] arrayOf (T, U...) (U original)
+template arrayOf (T)
 {
-    static assert (U.length > 0);
-    static assert (!hasIndirections!(U));
-    static assert (!hasIndirections!(T));
-
-    // workaround for dmd1 semantic analysis bug
-    auto unused = original[0];
-
-    static istring generateCast ( )
+    T[] arrayOf (U...) (U original)
     {
-        istring result = "[ ";
+        static assert (U.length > 0);
+        static assert (!hasIndirections!(U));
+        static assert (!hasIndirections!(T));
 
-        foreach (i, _; U)
+        // workaround for dmd1 semantic analysis bug
+        auto unused = original[0];
+
+        static istring generateCast ( )
         {
-            result ~= "cast(T) original[" ~ i.stringof ~ "]";
-            if (i + 1 < U.length)
-                result ~= ", ";
+            istring result = "[ ";
+
+            foreach (i, _; U)
+            {
+                result ~= "cast(T) original[" ~ i.stringof ~ "]";
+                if (i + 1 < U.length)
+                    result ~= ", ";
+            }
+
+            return result ~ " ]";
         }
 
-        return result ~ " ]";
+        return mixin(generateCast());
     }
+}
 
-    return mixin(generateCast());
+version (UnitTest)
+{
+    const _arrayOf_global_scope = arrayOf!(byte)(1, 2, 3);
 }
 
 ///

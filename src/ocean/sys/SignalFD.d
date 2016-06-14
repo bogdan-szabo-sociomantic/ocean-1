@@ -114,6 +114,8 @@ import ocean.sys.linux.consts.fcntl : O_NONBLOCK;
 
 import ocean.core.Array_tango : contains;
 
+import ocean.transition;
+
 debug import ocean.io.Stdout;
 
 
@@ -437,6 +439,7 @@ public class SignalFD : ISelectable
     public void handle ( ref SignalInfo[] siginfos )
     {
         siginfos.length = 0;
+        enableStomping(siginfos);
 
         SignalInfo siginfo;
 

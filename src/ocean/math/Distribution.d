@@ -100,7 +100,11 @@ module ocean.math.Distribution;
 
 *******************************************************************************/
 
+import ocean.transition;
+
+import ocean.core.Enforce;
 import ocean.core.Array : bsearch;
+import ocean.core.Array_tango : sort;
 
 import ocean.util.container.AppendBuffer;
 
@@ -268,10 +272,6 @@ public class Distribution ( T )
     ***************************************************************************/
 
     public T percentValue ( double fraction )
-    in
-    {
-        assert(fraction >= 0.0 && fraction <= 1.0, "fraction must be within [0.0 ... 0.1]");
-    }
     out ( result )
     {
         if ( this.values.length == 0 )
@@ -281,6 +281,9 @@ public class Distribution ( T )
     }
     body
     {
+        enforce(fraction >= 0.0 && fraction <= 1.0,
+            "fraction must be within [0.0 ... 1.0]");
+
         if ( this.values.length == 0 )
         {
             return 0;
@@ -421,12 +424,16 @@ public class Distribution ( T )
     {
         if ( !this.sorted )
         {
-            this.values[].sort;
+            .sort(this.values[]);
             this.sorted = true;
         }
     }
 }
 
+unittest
+{
+    alias Distribution!(size_t) Instance;
+}
 
 
 /*******************************************************************************
@@ -477,7 +484,7 @@ private void appendDist ( T ) ( Distribution!(T) dist, T[] values )
 *******************************************************************************/
 
 private void testForError ( bool dummy = false )
-                          ( void delegate ( ) dg, bool error, char[] msg )
+                          ( void delegate ( ) dg, bool error, istring msg )
 {
     bool caught = false;
 
