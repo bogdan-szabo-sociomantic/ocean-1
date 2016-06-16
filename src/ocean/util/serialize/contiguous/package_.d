@@ -134,6 +134,7 @@ version(UnitTest):
 
 ******************************************************************************/
 
+import ocean.transition;
 import ocean.core.Test;
 import ocean.core.StructConverter;
 
@@ -335,7 +336,7 @@ unittest
     Serializer.serialize(s, buffer);
     auto cont_S = Deserializer.deserialize!(S)(buffer);
 
-    // check that serializations nulls pointers 
+    // check that serializations nulls pointers
     auto serialized = Serializer.serialize(cont_S);
     test!("is")(serialized.ptr, cont_S.ptr);
     test!("is")(cont_S.ptr.s4_dynamic_array.ptr, null);
@@ -588,4 +589,26 @@ unittest
     testNoAlloc(Deserializer.deserialize!(S)(buffer));
     buffer = buffer.dup;
     testNoAlloc(Deserializer.deserialize!(S)(buffer, cont_s));
+}
+
+
+/******************************************************************************
+
+    Array of const elements
+
+******************************************************************************/
+
+unittest
+{
+    static struct CS
+    {
+        cstring s;
+    }
+
+    CS s = CS("Hello world");
+    void[] buffer;
+
+    Serializer.serialize(s, buffer);
+    auto new_s = Deserializer.deserialize!(CS)(buffer);
+    test!("==")(s.s, new_s.ptr.s);
 }
