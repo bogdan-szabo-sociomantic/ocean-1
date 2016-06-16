@@ -236,7 +236,7 @@ private bool hasIndirectionsImpl ( T... )()
     }
     else
     {
-        alias StripEnum!(StripTypedef!(T[0])) Type;
+        alias StripEnum!(StripTypedef!(Unqual!(T[0]))) Type;
 
         static if ( isPrimitiveType!(Type) || is(Type == function) )
         {
