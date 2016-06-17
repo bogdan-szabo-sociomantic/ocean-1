@@ -518,6 +518,14 @@ struct Deserializer
 
         foreach (i, Field; typeof (S.tupleof))
         {
+            // Mixin to avoid -v2 warning about immutable being a D2 keyword
+            version (D_Version2)
+                mixin(`
+                static assert (!is(Field == immutable),
+                    "Cannot deserialize field " ~  FieldName!(i, S)
+                    ~ " of struct " ~ S.stringof ~ " because it is immutable");
+                `);
+
             static if (is (Field == struct))
             {
                 This.e.enforceInputSize!(S)(data.length, pos);
@@ -526,6 +534,17 @@ struct Deserializer
             }
             else static if (is (Field Element : Element[]))
             {
+                // Mixin to avoid -v2 warning about immutable being a D2 keyword
+                version (D_Version2)
+                    mixin(`
+                    static assert (!is(Element == immutable),
+                        "Cannot deserialize field " ~ FieldName!(i, S)
+                        ~ " of struct " ~ S.stringof
+                        ~ " because it has an array of immutable elements");
+                    `);
+
+
+
                 static if (is (Element[] == Field))
                 {
                     // dynamic array
