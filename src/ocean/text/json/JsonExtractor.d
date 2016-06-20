@@ -488,7 +488,7 @@ struct JsonExtractor
 
          **********************************************************************/
 
-        final protected override void set_ ( )
+        protected override void set_ ( )
         {
             super.set_();
 
