@@ -854,3 +854,24 @@ unittest
     auto e = new Exception("abcde");
     assert (getMsg(e) == "abcde");
 }
+
+/*******************************************************************************
+
+    Helper which provides stub implementation of GC.usage if it is not present
+    upstream in order to keep ocean compiling and passing tests.
+
+*******************************************************************************/
+
+static import core.memory;
+
+static if (is(typeof(core.memory.GC.usage)))
+{
+    alias core.memory.GC.usage gc_usage;
+}
+else
+{
+    void gc_usage ( out size_t used, out size_t free )
+    {
+        // no-op
+    }
+}
