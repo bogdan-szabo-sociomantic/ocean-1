@@ -73,3 +73,24 @@ New Features
   Now it is possible to supply a custom delegate to `EpollSelectDispatcher`'s
   constructor which will be run once before the event loop starts and
   subsequently each time an event loop select cycle finishes.
+
+* `ocean.task`
+
+  New package providing a set of modules for working with tasks.
+
+  `ocean.task.Task` defines the new "task" abstraction which is essentially:
+
+    1. a class encapsulating a function dedicated to doing some specific job
+    2. the initial data required by that function.
+
+  This makes it possible to allocate many more tasks than fibers (which need a
+  rather large stack space to work reliably) and to execute them without fear of
+  a memory consumption explosion.
+
+  `ocean.task.Scheduler` is supposed to replace `EpollSelectDispatcher` in the
+  role of the main "supervisor" in applications. It still uses epoll internally,
+  but also takes care of distributing scheduled tasks over its internal
+  fiber pool and is exposed as a global singleton to make the application API
+  less burdened with manually passing the same reference around. Contrary to the
+  `EpollSelectDispatcher` + `SelectFiber` combo, it is also capable of handling
+  tasks that are not bound to any registered event.
