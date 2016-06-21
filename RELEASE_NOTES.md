@@ -67,3 +67,9 @@ New Features
   already existing `core.thread.Fiber` instance instead of always allocating
   a new one. It has also become possible to change the underlying fiber
   instance of an already created `MessageFiber` / `SelectFiber`.
+
+* `ocean.io.select.EpollSelectDispatcher`
+
+  Now it is possible to supply a custom delegate to `EpollSelectDispatcher`'s
+  constructor which will be run once before the event loop starts and
+  subsequently each time an event loop select cycle finishes.

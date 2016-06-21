@@ -661,9 +661,14 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
         events to happen, invokes the corresponding event handlers of the
         registered clients and unregisters the clients if they desire so.
 
+        Params:
+            select_cycle_hook = if not null, will be called each time select
+                cycle finished before waiting for more events. Also called
+                once before the first select.
+
      **************************************************************************/
 
-    public void eventLoop ( )
+    public void eventLoop ( void delegate ( ) select_cycle_hook = null )
     in
     {
         assert (!this.in_event_loop, "Event loop has already been started.");
@@ -673,9 +678,14 @@ public class EpollSelectDispatcher : IEpollSelectDispatcherInfo
         this.in_event_loop = true;
         scope ( exit ) this.in_event_loop = false;
 
+        if (select_cycle_hook !is null)
+            select_cycle_hook();
+
         while ( this.registered_clients.length && !this.shutdown_triggered )
         {
             this.select();
+            if (select_cycle_hook !is null)
+                select_cycle_hook();
         }
     }
 
