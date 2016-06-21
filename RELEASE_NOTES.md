@@ -100,6 +100,13 @@ New Features
   simply use the template `TaskWith` as a base class for your application's task
   classes and supply the desired extensions as template arguments.
 
+  `ocean.task.TaskPool` provides the simplest way to start using the new system
+  with minimal customization while still maintaing decent performance. It
+  implements a pool of reusable task objects that automatically get recycled
+  when their main function exits. It also supports copying an arbitrary set of
+  initial arguments into the task by forwarding them to the `copyArguments`
+  method, if it is present in the application task class.
+
   `ocean.task.util.Timer` contains time-related helper functions for use with
   tasks. Currently, it only contains a single function, `wait()`, but more may
   be added in the future. (This module is an example of how having a global
