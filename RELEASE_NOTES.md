@@ -94,3 +94,8 @@ New Features
   less burdened with manually passing the same reference around. Contrary to the
   `EpollSelectDispatcher` + `SelectFiber` combo, it is also capable of handling
   tasks that are not bound to any registered event.
+
+  `ocean.task.extensions` is a package with various optional extensions that
+  affect basic the functionality and/or semantics of task classes. To use them,
+  simply use the template `TaskWith` as a base class for your application's task
+  classes and supply the desired extensions as template arguments.
