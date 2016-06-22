@@ -122,6 +122,15 @@ New Features
   which requires neither adding new fields to classes nor passing the fiber
   reference around (which is necessary with `FiberTimerEvent`).)
 
+  `ocean.task.util.StreamProcessor` is a more specialized version of a task
+  pool for the following (common) situation:
+
+    * The application reads data from one or more arbitrary input streams.
+    * For each piece of data read, a processing task is spawned.
+    * The input streams must be throttled based on the number of queued tasks.
+
+  `StreamProcessor` handles all of the above.
+
 * `ocean.io.select.client.TimerSet`
 
   Now it is possible to supply `null` instead of a valid epoll instance as the
