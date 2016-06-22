@@ -60,3 +60,10 @@ New Features
 
   User of BufferedOutput now can be notified via provided delegate
   when the BufferedOutput has flushed data to upstream conduit.
+
+* `ocean.core.MessageFiber` `ocean.io.select.fiber.SelectFiber`
+
+  Now it is possible to create both `MessageFiber` and `SelectFiber` wrapping an
+  already existing `core.thread.Fiber` instance instead of always allocating
+  a new one. It has also become possible to change the underlying fiber
+  instance of an already created `MessageFiber` / `SelectFiber`.

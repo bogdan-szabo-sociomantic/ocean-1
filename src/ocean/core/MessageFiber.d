@@ -285,11 +285,13 @@ class MessageFiber
 
     /**************************************************************************
 
-        Fiber instance
+        Fiber instance. (Protected but can be accessed via the public rawFiber()
+        and reset() methods. The fiber is not simply made public, as derived
+        classes may need to add special behaviour upon getting/setting it.)
 
      **************************************************************************/
 
-    private Fiber     fiber;
+    protected Fiber     fiber;
 
     /**************************************************************************
 
@@ -336,13 +338,14 @@ class MessageFiber
         Constructor
 
         Params:
-            coroutine = fiber coroutine
+            fiber = already created core.thread.Fiber
 
      **************************************************************************/
 
-    public this ( void delegate ( ) coroutine )
+    public this ( Fiber fiber )
     {
-        this.fiber = new Fiber(coroutine);
+        this.fiber = fiber;
+
         this.e_killed = new KilledException;
         this.e_resume = new ResumeException;
         this.msg.num = 0;
@@ -359,21 +362,27 @@ class MessageFiber
 
         Params:
             coroutine = fiber coroutine
-            sz      = fiber stack size
+
+     **************************************************************************/
+
+    public this ( void delegate ( ) coroutine )
+    {
+        this(new Fiber(coroutine));
+    }
+
+    /**************************************************************************
+
+        Constructor
+
+        Params:
+            coroutine = fiber coroutine
+            sz        = fiber stack size
 
      **************************************************************************/
 
     public this ( void delegate ( ) coroutine, size_t sz )
     {
-        this.fiber = new Fiber(coroutine, sz);
-        this.e_killed = new KilledException;
-        this.e_resume = new ResumeException;
-        this.msg.num = 0;
-
-        debug(MessageFiberDump) addToList();
-
-        debug (MessageFiber) Stdout.formatln("--FIBER {} CREATED (fiber ptr {}) --",
-            FirstName(this), cast(void*) this.fiber).flush();
+        this(new Fiber(coroutine, sz));
     }
 
     /**************************************************************************
@@ -826,6 +835,36 @@ class MessageFiber
             this.killed = false;
             throw this.e_killed;
         }
+    }
+
+    /**************************************************************************
+
+        Direct read-only access to fiber that is used internally by
+        MessageFiber. Most useful for debugging or for sanity checks in
+        contracts.
+
+        Returns:
+            Underlying core.thread.Fiber instance
+
+    **************************************************************************/
+
+    public Fiber getRawFiber ( )
+    {
+        return this.fiber;
+    }
+
+    /**************************************************************************
+
+        Allows to change underlying core.thread.Fiber instance
+
+        Params:
+            fiber = new fiber instance to use
+
+    **************************************************************************/
+
+    public void reset ( Fiber fiber )
+    {
+        this.fiber = fiber;
     }
 
     /**************************************************************************

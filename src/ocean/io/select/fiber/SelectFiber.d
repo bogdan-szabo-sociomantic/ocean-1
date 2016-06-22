@@ -25,6 +25,8 @@ module ocean.io.select.fiber.SelectFiber;
 
 import ocean.core.MessageFiber;
 
+import core.thread;
+
 import ocean.io.select.client.model.ISelectClient;
 import ocean.io.select.client.model.ISelectClientInfo;
 
@@ -58,8 +60,25 @@ public class SelectFiber : MessageFiber
         Constructor
 
         Params:
-            epoll = EpollSelectDispatcher instance
-            coroutine = fiber coroutine
+           epoll = EpollSelectDispatcher instance
+           fiber = already created core.thread.Fiber
+
+     **************************************************************************/
+
+    this ( EpollSelectDispatcher epoll, Fiber fiber )
+    {
+        this.epoll = epoll;
+
+        super(fiber);
+    }
+
+    /**************************************************************************
+
+        Constructor
+
+        Params:
+           epoll = EpollSelectDispatcher instance
+           coroutine = fiber coroutine
 
      **************************************************************************/
 
@@ -86,6 +105,22 @@ public class SelectFiber : MessageFiber
         this.epoll = epoll;
 
         super(coroutine, sz);
+    }
+
+    /**************************************************************************
+
+        Allows to change underlying core.thread.Fiber instance. Unregisters
+        the ISelectClient if necessary.
+
+        Params:
+            fiber = new fiber instance to use
+
+    **************************************************************************/
+
+    override public void reset ( Fiber fiber )
+    {
+        this.unregister();
+        super.reset(fiber);
     }
 
     /**************************************************************************
