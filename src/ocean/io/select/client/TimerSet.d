@@ -37,6 +37,7 @@ module ocean.io.select.client.TimerSet;
 
 import ocean.util.container.pool.ObjectPool;
 
+import ocean.task.Scheduler;
 import ocean.io.select.EpollSelectDispatcher;
 
 import ocean.io.select.timeout.TimerEventTimeoutManager;
@@ -240,19 +241,28 @@ public class TimerSet ( EventData ) : TimerEventTimeoutManager
 
     private ObjectPool!(Event) events;
 
+    version (UnitTest)
+    {
+        public size_t allocated_event_count ( )
+        {
+            return events.length();
+        }
+    }
 
     /***************************************************************************
 
         Constructor.
 
         Params:
-            epoll = epoll select dispatcher to use
+            epoll = epoll select dispatcher to use. If null is supplied, the
+                global `theScheduler.epoll()` instance will be used instead
+                (see `schedule()` / `stopTimeout()`)
             max_events = limit on the number of events which can be managed by
                 the scheduler at one time. (0 = no limit)
 
     ***************************************************************************/
 
-    public this ( EpollSelectDispatcher epoll, uint max_events = 0 )
+    public this ( EpollSelectDispatcher epoll = null, uint max_events = 0 )
     {
         this.epoll = epoll;
 
@@ -297,7 +307,10 @@ public class TimerSet ( EventData ) : TimerEventTimeoutManager
         if ( schedule_us )
         {
             event.register(schedule_us);
-            this.epoll.register(this.select_client);
+            if (this.epoll is null)
+                theScheduler.epoll().register(this.select_client);
+            else
+                this.epoll.register(this.select_client);
         }
         else
         {
@@ -348,7 +361,10 @@ public class TimerSet ( EventData ) : TimerEventTimeoutManager
     override protected void stopTimeout ( )
     {
         super.stopTimeout();
-        this.epoll.unregister(this.select_client);
+        if (this.epoll is null)
+            theScheduler.epoll().unregister(this.select_client);
+        else
+            this.epoll.unregister(this.select_client);
     }
 }
 

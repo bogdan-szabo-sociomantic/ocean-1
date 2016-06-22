@@ -99,3 +99,17 @@ New Features
   affect basic the functionality and/or semantics of task classes. To use them,
   simply use the template `TaskWith` as a base class for your application's task
   classes and supply the desired extensions as template arguments.
+
+  `ocean.task.util.Timer` contains time-related helper functions for use with
+  tasks. Currently, it only contains a single function, `wait()`, but more may
+  be added in the future. (This module is an example of how having a global
+  scheduler singleton makes it possible to implement a fiber waiting function
+  which requires neither adding new fields to classes nor passing the fiber
+  reference around (which is necessary with `FiberTimerEvent`).)
+
+* `ocean.io.select.client.TimerSet`
+
+  Now it is possible to supply `null` instead of a valid epoll instance as the
+  constructor argument. In that case, the timer scheduler will use the global
+  epoll instance defined by `ocean.task.Scheduler` for all event
+  (de)registration.
