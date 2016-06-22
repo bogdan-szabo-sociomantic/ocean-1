@@ -52,6 +52,14 @@ Deprecations
   This module contained functions that are already present in
   `ocean.io.compress.lzo.c.lzoconf`. Just import this module instead.
 
+* `ocean.io.model.ISuspendableThrottler`
+
+  The single `throttle` method has been deprecated in favor of two distinct
+  new methods - `throttledSuspend` and `throttledResume`. The new API is
+  supposed to allow using fibers as the implementations of `ISuspendable`
+  without any risk that the throttler will reach the limit condition and try
+  suspending a data producing fiber while executing another fiber (it is only
+  legal to suspend a fiber from inside itself).
 
 New Features
 ============

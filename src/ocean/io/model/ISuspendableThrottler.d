@@ -2,10 +2,10 @@
 
     Abstract base classes for suspendable throttlers.
 
-    copyright:      Copyright (c) 2015 sociomantic labs. All rights reserved
-
     Provides a simple mechanism for throttling a set of one or more suspendable
     processes based on some condition (as defined by a derived class).
+
+    copyright:      Copyright (c) 2015 sociomantic labs. All rights reserved
 
 *******************************************************************************/
 
@@ -127,6 +127,7 @@ abstract public class ISuspendableThrottler
 
     ***************************************************************************/
 
+    deprecated ("Use either throttledSuspend or throttledResume")
     public void throttle ( )
     {
         if ( this.suspended_ )
@@ -145,11 +146,36 @@ abstract public class ISuspendableThrottler
         }
     }
 
+    /***************************************************************************
+
+        Checks if the suspend limit has been reached and the suspendables need
+        to be suspended.
+
+    ***************************************************************************/
+
+    public void throttledSuspend ( )
+    {
+        if (!this.suspended_ && this.suspend())
+            this.suspendAll();
+    }
+
+    /***************************************************************************
+
+        Checks if resume limit has been reached and the suspendables need to be
+        resumed.
+
+    ***************************************************************************/
+
+    public void throttledResume ( )
+    {
+        if (this.suspended_ && this.resume())
+            this.resumeAll();
+    }
 
     /***************************************************************************
 
         Decides whether the suspendables should be suspended. Called by
-        throttle() when not suspended.
+        throttledSuspend() when not suspended.
 
         Returns:
             true if the suspendables should be suspeneded
@@ -162,7 +188,7 @@ abstract public class ISuspendableThrottler
     /***************************************************************************
 
         Decides whether the suspendables should be resumed. Called by
-        throttle() when suspended.
+        throttledResume() when suspended.
 
         Returns:
             true if the suspendables should be resumed
