@@ -277,6 +277,7 @@ static:
                 size_t length;
                 transmitted += transmit(stream, length);
                 data.length = length;
+                enableStomping(data);
             }
 
             // recursively transmit arrays of arrays
