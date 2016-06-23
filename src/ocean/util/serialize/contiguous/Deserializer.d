@@ -313,6 +313,9 @@ struct Deserializer
     }
     body
     {
+        static assert (is(S == Unqual!(S)),
+                       "Cannot deserialize qualified type : " ~ S.stringof);
+
         debug (DeserializationTrace)
         {
             Stdout.formatln("> deserialize!({})({}, {})", S.stringof,
