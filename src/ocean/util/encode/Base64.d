@@ -33,6 +33,8 @@ module ocean.util.encode.Base64;
 
 import ocean.transition;
 
+version (UnitTest) import ocean.core.Test;
+
 /*******************************************************************************
 
     calculates and returns the size needed to encode the length of the
@@ -339,96 +341,40 @@ body
     return rtn;
 }
 
-version (Test)
+
+unittest
 {
-    import ocean.scrapple.util.Test;
-    import ocean.io.device.File;
-    import ocean.time.StopWatch;
-    import ocean.io.Stdout_tango;
+    istring str = "Hello, how are you today?";
+    Const!(ubyte)[] payload = cast(Const!(ubyte)[]) str;
 
-    unittest
+    // encodeChunktest
     {
-        Test.Status encodeChunktest(ref char[][] messages)
-        {
-            char[] str = "Hello, how are you today?";
-            char[] encoded = new char[allocateEncodeSize(cast(ubyte[])str)];
-            int bytesEncoded = 0;
-            int numBytesLeft = encodeChunk(cast(ubyte[])str, encoded, bytesEncoded);
-            char[] result = encoded[0..bytesEncoded] ~ encode(cast(ubyte[])str[numBytesLeft..$], encoded[bytesEncoded..$]);
-            if (result == "SGVsbG8sIGhvdyBhcmUgeW91IHRvZGF5Pw==")
-                return Test.Status.Success;
-            return Test.Status.Failure;
-        }
-        Test.Status encodeTest(ref char[][] messages)
-        {
-            char[] encoded = new char[allocateEncodeSize(cast(ubyte[])"Hello, how are you today?")];
-            char[] result = encode(cast(ubyte[])"Hello, how are you today?", encoded);
-            if (result == "SGVsbG8sIGhvdyBhcmUgeW91IHRvZGF5Pw==")
-            {
-                char[] result2 = encode(cast(ubyte[])"Hello, how are you today?");
-                if (result == "SGVsbG8sIGhvdyBhcmUgeW91IHRvZGF5Pw==")
-                    return Test.Status.Success;
-            }
+        mstring encoded = new char[allocateEncodeSize(payload)];
+        int bytesEncoded = 0;
+        int numBytesLeft = encodeChunk(payload, encoded, bytesEncoded);
+        cstring result = encoded[0..bytesEncoded] ~ encode(payload[numBytesLeft..$], encoded[bytesEncoded..$]);
+        test!("==")(result, "SGVsbG8sIGhvdyBhcmUgeW91IHRvZGF5Pw==");
+    }
 
-            return Test.Status.Failure;
-        }
+    // encodeTest
+    {
+        mstring encoded = new char[allocateEncodeSize(payload)];
+        cstring result = encode(payload, encoded);
+        test!("==")(result, "SGVsbG8sIGhvdyBhcmUgeW91IHRvZGF5Pw==");
 
-        Test.Status decodeTest(ref char[][] messages)
-        {
-            ubyte[1024] decoded;
-            ubyte[] result = decode("SGVsbG8sIGhvdyBhcmUgeW91IHRvZGF5Pw==", decoded);
-            if (result == cast(ubyte[])"Hello, how are you today?")
-            {
-                result = decode("SGVsbG8sIGhvdyBhcmUgeW91IHRvZGF5Pw==");
-                if (result == cast(ubyte[])"Hello, how are you today?")
-                    return Test.Status.Success;
-            }
-            return Test.Status.Failure;
-        }
+        cstring result2 = encode(payload);
+        test!("==")(result, "SGVsbG8sIGhvdyBhcmUgeW91IHRvZGF5Pw==");
+    }
 
-        Test.Status speedTest(ref char[][] messages)
-        {
-            Stdout("Reading...").newline;
-            char[] data = cast(char[])File.get ("blah.b64");
-            ubyte[] result = new ubyte[data.length];
-            auto t1 = new StopWatch();
-            Stdout("Decoding..").newline;
-            t1.start();
-            uint runs = 100000000;
-            for (uint i = 0; i < runs; i++)
-                decode(data, result);
-            double blah = t1.stop();
-            Stdout.formatln("Decoded {} MB in {} seconds at {} MB/s", cast(double)(cast(double)(data.length * runs) / 1024 / 1024), blah, (cast(double)(data.length * runs)) / 1024 / 1024 / blah );
-            return Test.Status.Success;
-        }
-
-        Test.Status speedTest2(ref char[][] messages)
-        {
-            Stdout("Reading...").newline;
-//            ubyte[] data = cast(ubyte[])FileData("blah.txt").read;
-            ubyte[] data = cast(ubyte[])"I am a small string, Wee...";
-            char[] result = new char[allocateEncodeSize(data)];
-            auto t1 = new StopWatch();
-            uint runs = 100000000;
-            Stdout("Encoding..").newline;
-            t1.start();
-            for (uint i = 0; i < runs; i++)
-                encode(data, result);
-            double blah = t1.stop();
-            Stdout.formatln("Encoded {} MB in {} seconds at {} MB/s", cast(double)(cast(double)(data.length * runs) / 1024 / 1024), blah, (cast(double)(data.length * runs)) / 1024 / 1024 / blah );
-            return Test.Status.Success;
-        }
-
-        auto t = new Test("ocean.util.encode.Base64");
-        t["Encode"] = &encodeTest;
-        t["Encode Stream"] = &encodeChunktest;
-        t["Decode"] = &decodeTest;
-//        t["Speed"] = &speedTest;
-//        t["Speed2"] = &speedTest2;
-        t.run();
+    // decodeTest
+    {
+        ubyte[1024] decoded;
+        ubyte[] result = decode("SGVsbG8sIGhvdyBhcmUgeW91IHRvZGF5Pw==", decoded);
+        test!("==")(result, payload);
+        result = decode("SGVsbG8sIGhvdyBhcmUgeW91IHRvZGF5Pw==");
+        test!("==")(result, payload);
     }
 }
-
 
 
 private:
