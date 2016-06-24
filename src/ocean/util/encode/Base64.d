@@ -18,12 +18,12 @@
 
     Example:
     ---
-    char[] blah = "Hello there, my name is Jeff.";
+    istring blah = "Hello there, my name is Jeff.";
     scope encodebuf = new char[allocateEncodeSize(cast(ubyte[])blah)];
-    char[] encoded = encode(cast(ubyte[])blah, encodebuf);
+    mstring encoded = encode(cast(ubyte[])blah, encodebuf);
 
     scope decodebuf = new ubyte[encoded.length];
-    if (cast(char[])decode(encoded, decodebuf) == "Hello there, my name is Jeff.")
+    if (cast(cstring)decode(encoded, decodebuf) == "Hello there, my name is Jeff.")
         Stdout("yay").newline;
     ---
 
@@ -44,7 +44,7 @@ import ocean.transition;
 *******************************************************************************/
 
 
-size_t allocateEncodeSize(ubyte[] data)
+size_t allocateEncodeSize(in ubyte[] data)
 {
     return allocateEncodeSize(data.length);
 }
@@ -81,12 +81,12 @@ size_t allocateEncodeSize(size_t length)
 
 *******************************************************************************/
 
-int encodeChunk(ubyte[] data, char[] buff, ref int bytesEncoded)
+int encodeChunk(in ubyte[] data, mstring buff, ref int bytesEncoded)
 {
     size_t tripletCount = data.length / 3;
     int rtn = 0;
     char *rtnPtr = buff.ptr;
-    ubyte *dataPtr = data.ptr;
+    Const!(ubyte) *dataPtr = data.ptr;
 
     if (data.length > 0)
     {
@@ -123,7 +123,7 @@ int encodeChunk(ubyte[] data, char[] buff, ref int bytesEncoded)
 
 *******************************************************************************/
 
-char[] encode(ubyte[] data, char[] buff)
+mstring encode(in ubyte[] data, mstring buff)
 in
 {
     assert(data);
@@ -131,14 +131,14 @@ in
 }
 body
 {
-    char[] rtn = null;
+    mstring rtn = null;
 
     if (data.length > 0)
     {
         int bytesEncoded = 0;
         int numBytes = encodeChunk(data, buff, bytesEncoded);
         char *rtnPtr = buff.ptr + bytesEncoded;
-        ubyte *dataPtr = data.ptr + numBytes;
+        Const!(ubyte)* dataPtr = data.ptr + numBytes;
         auto tripletFraction = data.length - (dataPtr - data.ptr);
 
         switch (tripletFraction)
@@ -173,7 +173,7 @@ body
 
     Example:
     ---
-    char[] myEncodedString = encode(cast(ubyte[])"Hello, how are you today?");
+    mstring myEncodedString = encode(cast(ubyte[])"Hello, how are you today?");
     Stdout(myEncodedString).newline; // SGVsbG8sIGhvdyBhcmUgeW91IHRvZGF5Pw==
     ---
 
@@ -181,7 +181,7 @@ body
 *******************************************************************************/
 
 
-char[] encode(ubyte[] data)
+mstring encode(in ubyte[] data)
 in
 {
     assert(data);
@@ -215,7 +215,7 @@ body
 
 *******************************************************************************/
 
-ubyte[] decode(char[] data)
+ubyte[] decode(cstring data)
 in
 {
     assert(data);
@@ -250,7 +250,7 @@ body
 
 *******************************************************************************/
 
-ubyte[] decode(char[] data, ubyte[] buff)
+ubyte[] decode(cstring data, ubyte[] buff)
 in
 {
     assert(data);
@@ -457,4 +457,3 @@ static Const!(ubyte)[] _decodeTable = [
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0,0
 ];
-
