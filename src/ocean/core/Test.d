@@ -215,22 +215,32 @@ class NamedTest : TestException
 
     ****************************************************************************/
 
-    public override cstring message ( ) /* d1to2fix_inject: const */
+    static if (is(typeof(Throwable.message)))
     {
-        if (this.name.length)
+        public override cstring message ( ) /* d1to2fix_inject: const */
         {
-            return Format("[{}] {}", this.name, this.msg);
+            if (this.name.length)
+            {
+                return Format("[{}] {}", this.name, this.msg);
+            }
+            else
+            {
+                return Format("{}", this.msg);
+            }
         }
-        else
+
+        deprecated ("use NamedTest.message() instead")
+        public override istring toString() 
         {
-            return Format("{}", this.msg);
+            return idup(this.message());
         }
     }
-
-    deprecated ("use NamedTest.message() instead")
-    public override istring toString()
+    else
     {
-        return idup(this.message());
+        public override istring toString() /* d1to2fix_inject: const */
+        {
+            return idup(this.message());
+        }
     }
 
     /**************************************************************************

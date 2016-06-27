@@ -23,6 +23,8 @@ module ocean.net.http.HttpException;
 
  ******************************************************************************/
 
+import ocean.transition;
+
 import ocean.core.Array: copy, concat;
 import ocean.core.Enforce;
 import ocean.core.Exception;

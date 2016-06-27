@@ -182,16 +182,19 @@ public template ReusableExceptionImplementation()
             throw this.set(msg, file, line);
     }
 
-    /**************************************************************************
-
-        Returns:
-            currently active exception message
-
-    ***************************************************************************/
-
-    public override cstring message ( ) /* d1to2fix_inject: const */
+    static if (is(typeof(Throwable.message)))
     {
-        return this.msg is null ? this.reused_msg : this.msg;
+        /**************************************************************************
+
+            Returns:
+                currently active exception message
+
+        ***************************************************************************/
+
+        public override cstring message ( ) /* d1to2fix_inject: const */
+        {
+            return this.msg is null ? this.reused_msg : this.msg;
+        }
     }
 
     /**************************************************************************

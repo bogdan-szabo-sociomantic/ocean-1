@@ -1,4 +1,4 @@
-override DFLAGS += -w
+override DFLAGS += -w -version=GLIBC
 
 # Remove deprecated modules from testing:
 TEST_FILTER_OUT += \
