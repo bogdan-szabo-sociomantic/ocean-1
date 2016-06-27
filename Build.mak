@@ -42,6 +42,8 @@ TEST_FILTER_OUT += \
 ifeq ($(DVER),1)
 override DFLAGS := $(filter-out -di,$(DFLAGS)) -v2 -v2=-static-arr-params -v2=-volatile
 else
+# Open source Makd uses dmd by default
+DC = dmd-transitional
 override DFLAGS += -de
 endif
 
