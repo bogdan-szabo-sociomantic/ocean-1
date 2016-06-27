@@ -20,7 +20,7 @@ version (UnitTest)
     import ocean.core.Array: shuffle;
     import ocean.core.Test;
 
-    import ocean.core.Memory;
+    import core.memory;
     import ocean.math.random.Random;
     import ocean.io.Stdout_tango;
     import ocean.stdc.posix.stdlib: srand48, mrand48, drand48;

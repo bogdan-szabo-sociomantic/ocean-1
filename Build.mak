@@ -3,6 +3,7 @@ override DFLAGS += -w
 # Remove deprecated modules from testing:
 TEST_FILTER_OUT += \
 	$(shell find $C/src/tango) \
+	$C/src/ocean/core/Memory.d \
 	$C/src/ocean/util/cipher/RC6.d \
 	$C/src/ocean/util/compress/c/bzlib.d \
 	$C/src/ocean/io/stream/Bzip.d \

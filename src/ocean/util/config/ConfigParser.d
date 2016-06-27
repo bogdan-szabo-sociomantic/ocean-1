@@ -1165,7 +1165,7 @@ class ConfigParser
 version ( UnitTest )
 {
     import ocean.core.Test;
-    import ocean.core.Memory;
+    import core.memory;
 }
 
 unittest

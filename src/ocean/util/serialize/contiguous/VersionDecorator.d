@@ -136,8 +136,8 @@ version(UnitTest):
 
 import ocean.core.Test;
 
-import ocean.core.Array_tango,
-       ocean.core.Memory;
+import ocean.core.Array_tango;
+import core.memory;
 
 /*******************************************************************************
 

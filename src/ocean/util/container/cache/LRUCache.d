@@ -200,7 +200,7 @@ module ocean.util.container.cache.LRUCache;
 import ocean.util.container.cache.PriorityCache;
 import ocean.stdc.time: time_t, time;
 
-import ocean.core.Memory;
+import core.memory;
 import Traits = ocean.core.Traits;
 
 /*******************************************************************************

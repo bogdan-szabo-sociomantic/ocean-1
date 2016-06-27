@@ -15,7 +15,7 @@
 
 module ocean.util.container.Container;
 
-import ocean.core.Memory;
+import core.memory;
 
 import ocean.stdc.stdlib;
 import ocean.stdc.string;

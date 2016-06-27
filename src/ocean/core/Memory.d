@@ -6,7 +6,9 @@
  * License:   BSD style: $(LICENSE)
  * Authors:   Sean Kelly
  */
-module ocean.core.Memory;
+deprecated module ocean.core.Memory;
+
+pragma(msg, "import core.memory instead");
 
 version(D_Version2)
 {

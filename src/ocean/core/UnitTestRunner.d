@@ -62,7 +62,7 @@ import ocean.text.xml.Document: Document;
 import ocean.text.xml.DocPrinter: DocPrinter;
 import ocean.text.convert.Format: Format;
 import ocean.core.Test: TestException, test;
-import ocean.core.Memory: GC;
+import core.memory;
 
 
 

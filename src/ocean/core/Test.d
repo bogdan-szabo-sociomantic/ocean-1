@@ -18,8 +18,8 @@ module ocean.core.Test;
 
 import ocean.transition;
 
+import core.memory;
 import ocean.core.Enforce;
-import ocean.core.Memory;
 import ocean.text.convert.Format;
 
 /******************************************************************************

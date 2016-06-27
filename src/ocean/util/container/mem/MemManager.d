@@ -22,7 +22,7 @@ import ocean.core.Exception_tango : onOutOfMemoryError;
 
 import ocean.stdc.stdlib : malloc, free;
 
-import ocean.core.Memory;
+import core.memory;
 
 import ocean.transition;
 

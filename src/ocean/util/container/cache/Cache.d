@@ -208,7 +208,7 @@ import ocean.util.container.cache.model.Value;
 import ocean.stdc.time: time_t;
 import ocean.core.Test;
 
-import ocean.core.Memory;
+import core.memory;
 
 debug import ocean.io.Stdout;
 

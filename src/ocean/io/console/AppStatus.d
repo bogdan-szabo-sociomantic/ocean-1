@@ -116,7 +116,7 @@ import ocean.util.log.layout.LayoutMessageOnly;
 
 import ocean.stdc.math: lroundf;
 
-import ocean.core.Memory;
+import core.memory;
 
 import ocean.stdc.stdarg;
 

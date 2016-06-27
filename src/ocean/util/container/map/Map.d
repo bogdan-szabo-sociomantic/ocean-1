@@ -1168,7 +1168,7 @@ public abstract class Map ( size_t V, K ) : BucketSet!(V, K)
 
 version (UnitTest)
 {
-    import ocean.core.Memory;
+    import core.memory;
     import ocean.core.Test;
 
     void test_key (T) ()
