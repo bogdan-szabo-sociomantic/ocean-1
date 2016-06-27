@@ -854,7 +854,7 @@ public class AppStatus
     {
         const float Mb = 1024 * 1024;
         size_t used, free;
-        GC.usage(used, free);
+        ocean.transition.gc_usage(used, free);
 
         if (used == 0 && free == 0)
             return false;

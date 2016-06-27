@@ -231,7 +231,7 @@ private scope class UnitTestRunner
             if (collect_gc_usage)
             {
                 GC.collect();
-                GC.usage(gc_usage_before, mem_free);
+                ocean.transition.gc_usage(gc_usage_before, mem_free);
             }
             switch (this.timedTest(m, t, e))
             {
@@ -239,7 +239,7 @@ private scope class UnitTestRunner
                     passed++;
                     if (this.verbose)
                     {
-                        GC.usage(gc_usage_after, mem_free);
+                        ocean.transition.gc_usage(gc_usage_after, mem_free);
                         Stdout.format(" PASS [{}, {} bytes ({} -> {})]",
                                       this.toHumanTime(t),
                                       cast(long)(gc_usage_after - gc_usage_before),

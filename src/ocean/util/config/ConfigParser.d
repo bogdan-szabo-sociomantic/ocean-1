@@ -1444,12 +1444,12 @@ three = teen
         Stdout.blue.formatln("Memory analysis of repeated parsing of the same "
                              "configuration").default_colour;
 
-        GC.usage(memused1, memfree);
+        gc_usage(memused1, memfree);
         Stdout.formatln("before parsing  : memused = {}", memused1);
 
         Config.parseString(str1);
 
-        GC.usage(memused2, memfree);
+        gc_usage(memused2, memfree);
         Stdout.formatln("after parse # 1 : memused = {} (additional mem "
                         "consumed = {})", memused2, (memused2 - memused1));
 
@@ -1460,7 +1460,7 @@ three = teen
             Config.parseString(str1);
         }
 
-        GC.usage(memused2, memfree);
+        gc_usage(memused2, memfree);
         Stdout.formatln("after parse # {} : memused = {} (additional mem "
                         "consumed = {})", num_parses, memused2,
                         (memused2 - memused1));
