@@ -7,9 +7,11 @@ TEST_FILTER_OUT += \
 	$C/src/ocean/util/cipher/RC6.d \
 	$C/src/ocean/util/compress/c/bzlib.d \
 	$C/src/ocean/io/stream/Bzip.d \
+	$C/src/ocean/io/stream/Patterns.d \
 	$C/src/ocean/time/Ctime.d \
 	$C/src/ocean/core/Enforce_tango.d \
 	$C/src/ocean/text/Arguments_tango.d \
+	$C/src/ocean/text/Regex.d \
 	$C/src/ocean/util/VariadicArg.d \
 	$C/src/ocean/util/log/Config_tango.d \
 	$C/src/ocean/util/log/Trace.d \

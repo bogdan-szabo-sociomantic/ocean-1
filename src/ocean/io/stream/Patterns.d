@@ -10,7 +10,11 @@
 
 *******************************************************************************/
 
-module ocean.io.stream.Patterns;
+deprecated module ocean.io.stream.Patterns;
+
+pragma(msg, "ocean.io.stream.Patterns is deprecated, unfortunately there is "
+        "no direct replacement for it, but if needed it could be rewritten "
+        "using ocean.text.regex.PCRE instead of ocean.text.Regex.");
 
 import ocean.transition;
 

@@ -70,7 +70,11 @@
 
     Note that "alphanumeric" only applies to Latin-1.
 *******************************************************************************/
-module ocean.text.Regex;
+
+deprecated module ocean.text.Regex;
+
+pragma(msg, "ocean.text.Regex is deprecated, you should use " ~
+        "ocean.text.regex.PCRE instead.")
 
 import ocean.transition;
 
