@@ -347,7 +347,7 @@ struct MinMax ( T, T min, T max, T init = T.init )
 {
     mixin WrapperStructCore!(T, init);
 
-     /***************************************************************************
+    /***************************************************************************
 
         Checks whether the configuration value is bigger than the smallest
         allowed value and smaller than the biggest allowed value.
@@ -396,7 +396,7 @@ struct Min ( T, T min, T init = T.init )
 {
     mixin WrapperStructCore!(T, init);
 
-     /***************************************************************************
+    /***************************************************************************
 
         Checks whether the configuration value is bigger than the smallest
         allowed value. If not, an exception is thrown
@@ -441,7 +441,7 @@ struct Max ( T, T max, T init = T.init )
 {
     mixin WrapperStructCore!(T, init);
 
-     /***************************************************************************
+    /***************************************************************************
 
         Checks whether the configuration value is smaller than the biggest
         allowed value. If not, an exception is thrown
@@ -505,7 +505,7 @@ struct LimitCmp ( T, T init = T.init, alias comp = defComp!(T), Set... )
 {
     mixin WrapperStructCore!(T, init);
 
-     /***************************************************************************
+    /***************************************************************************
 
         Checks whether the configuration value is within the set of allowed
         values. If not, an exception is thrown
@@ -639,7 +639,7 @@ struct SetInfo ( T )
 
     public bool set;
 
-     /***************************************************************************
+    /***************************************************************************
 
         Sets the set attribute according to whether the variable appeared in
         the configuration or not
@@ -813,7 +813,7 @@ body
     return reference;
 }
 
-/***************************************************************************
+/*******************************************************************************
 
     Checks whether T or any of its super classes contain
     a variable called field
@@ -827,7 +827,7 @@ body
         value of field,
         else false
 
-***************************************************************************/
+*******************************************************************************/
 
 private bool hasField ( T : Object ) ( T reference, cstring field )
 {
@@ -858,11 +858,11 @@ private bool hasField ( T : Object ) ( T reference, cstring field )
     return was_found;
 }
 
-/***************************************************************************
+/*******************************************************************************
 
     Class Iterator. Iterates over variables of a category
 
-***************************************************************************/
+*******************************************************************************/
 
 struct ClassIterator ( T, Source = ConfigParser )
 {
@@ -874,11 +874,11 @@ struct ClassIterator ( T, Source = ConfigParser )
         assert(this.config !is null, "ClassFiller.ClassIterator: Cannot have null config");
     }
 
-    /***********************************************************************
+    /***************************************************************************
 
         Variable Iterator. Iterates over variables of a category
 
-    ***********************************************************************/
+    ***************************************************************************/
 
     public int opApply ( int delegate ( ref istring name, ref T x ) dg )
     {
@@ -905,7 +905,7 @@ struct ClassIterator ( T, Source = ConfigParser )
     }
 }
 
-/***************************************************************************
+/*******************************************************************************
 
     Creates an iterator that iterates over groups that start with
     a common string, filling an instance of the passed class type from
@@ -922,7 +922,7 @@ struct ClassIterator ( T, Source = ConfigParser )
     Returns:
         iterator that iterates over all groups matching the pattern
 
-***************************************************************************/
+*******************************************************************************/
 
 public ClassIterator!(T) iterate ( T, Source = ConfigParser )
                                  ( istring root, Source config )
@@ -936,7 +936,7 @@ body
 }
 
 
-/******************************************************************************
+/*******************************************************************************
 
     Fills the fields of the `reference` from config file's group.
 
@@ -949,7 +949,7 @@ body
         reference = reference to the object to be filled
         config = instance of the source to use
 
-******************************************************************************/
+*******************************************************************************/
 
 protected void readFields ( T, Source )
                           ( cstring group, T reference, Source config )
