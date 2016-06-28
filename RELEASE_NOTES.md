@@ -61,6 +61,16 @@ Deprecations
   suspending a data producing fiber while executing another fiber (it is only
   legal to suspend a fiber from inside itself).
 
+* `ocean.io.text.Regex`
+
+  This module is basically unmaintained and we have a replacement which is
+  probably more efficient, flexible and maintained: `ocean.text.regex.PCRE`
+
+* `ocean.io.stream.Patterns`
+
+  This module was unused and unmaintained, so it is deprecated.
+
+
 New Features
 ============
 
