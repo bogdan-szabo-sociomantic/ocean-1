@@ -235,13 +235,6 @@ class NamedTest : TestException
             return idup(this.message());
         }
     }
-    else
-    {
-        public override istring toString() /* d1to2fix_inject: const */
-        {
-            return idup(this.message());
-        }
-    }
 
     /**************************************************************************
 

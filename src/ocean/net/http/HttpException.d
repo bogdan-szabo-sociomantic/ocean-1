@@ -118,7 +118,7 @@ class HttpException : HttpServerException
         catch
         {
             test!("==")(e.status, StatusCode.OK);
-            test!("==")(e.message(), "Ok Invalid resource");
+            test!("==")(getMsg(e), "Ok Invalid resource");
         }
 
         try
@@ -129,7 +129,7 @@ class HttpException : HttpServerException
         catch
         {
             test!("==")(e.status, StatusCode.NotFound);
-            test!("==")(e.message(), "Not Found Unable to locate URI path: /path/with/errors");
+            test!("==")(getMsg(e), "Not Found Unable to locate URI path: /path/with/errors");
         }
     }
 }
