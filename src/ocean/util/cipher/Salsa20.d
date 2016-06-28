@@ -4,7 +4,10 @@
  * Authors:   Thomas Dixon
  */
 
-module ocean.util.cipher.Salsa20;
+deprecated module ocean.util.cipher.Salsa20;
+
+pragma(msg, "ocean.util.cipher.Salsa20 is deprecated, use "
+        "ocean.util.cipher.gcrypt instead.");
 
 import ocean.transition;
 

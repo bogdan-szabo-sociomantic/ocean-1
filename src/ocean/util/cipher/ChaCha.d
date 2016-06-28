@@ -4,7 +4,10 @@
  * Authors:   Thomas Dixon
  */
 
-module ocean.util.cipher.ChaCha;
+deprecated module ocean.util.cipher.ChaCha;
+
+pragma(msg, "ocean.util.cipher.ChaCha is deprecated, use "
+        "ocean.util.cipher.gcrypt instead.");
 
 import ocean.transition;
 

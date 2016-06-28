@@ -70,6 +70,12 @@ Deprecations
 
   This module was unused and unmaintained, so it is deprecated.
 
+* `ocean.util.cipher: ChaCha, RC4, RC6, Salsa20, TEA, XTEA`
+
+  All deprecated in favour of using the `ocean.util.cipher.gcrypt` package
+  instead. It's planned to gradually remove all the old Tango `cipher` package,
+  so you might want to start replacing other modules too.
+
 
 New Features
 ============

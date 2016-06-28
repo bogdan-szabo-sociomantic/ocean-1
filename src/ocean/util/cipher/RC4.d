@@ -4,7 +4,10 @@
  * Authors:   Thomas Dixon
  */
 
-module ocean.util.cipher.RC4;
+deprecated module ocean.util.cipher.RC4;
+
+pragma(msg, "ocean.util.cipher.RC4 is deprecated, use "
+        "ocean.util.cipher.gcrypt instead.");
 
 import ocean.transition;
 

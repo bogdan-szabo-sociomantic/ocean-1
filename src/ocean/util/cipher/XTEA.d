@@ -4,7 +4,10 @@
  * Authors:   Thomas Dixon
  */
 
-module ocean.util.cipher.XTEA;
+deprecated module ocean.util.cipher.XTEA;
+
+pragma(msg, "ocean.util.cipher.XTEA is deprecated, use "
+        "ocean.util.cipher.gcrypt instead.");
 
 import ocean.transition;
 

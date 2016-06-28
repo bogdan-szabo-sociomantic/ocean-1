@@ -22,6 +22,11 @@ TEST_FILTER_OUT += \
 	$C/src/ocean/util/app/LoggedCliApp.d \
 	$C/src/ocean/util/app/ConfiguredApp.d \
 	$C/src/ocean/util/app/CommandLineApp.d \
+	$C/src/ocean/util/cipher/TEA.d \
+	$C/src/ocean/util/cipher/XTEA.d \
+	$C/src/ocean/util/cipher/RC4.d \
+	$C/src/ocean/util/cipher/Salsa20.d \
+	$C/src/ocean/util/cipher/ChaCha.d \
 	$C/src/ocean/text/util/StringReplace.d \
 	$C/src/ocean/text/utf/UtfConvert.d \
 	$C/src/ocean/io/compress/lzo/c/lzo_crc.d \

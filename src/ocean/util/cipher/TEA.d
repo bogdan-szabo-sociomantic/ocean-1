@@ -4,7 +4,10 @@
  * Authors:   Thomas Dixon
  */
 
-module ocean.util.cipher.TEA;
+deprecated module ocean.util.cipher.TEA;
+
+pragma(msg, "ocean.util.cipher.TEA is deprecated, use "
+        "ocean.util.cipher.gcrypt instead.");
 
 import ocean.transition;
 

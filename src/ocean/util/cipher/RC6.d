@@ -6,6 +6,9 @@
 
 deprecated module ocean.util.cipher.RC6;
 
+pragma(msg, "ocean.util.cipher.RC6 is deprecated, use "
+        "ocean.util.cipher.gcrypt instead.");
+
 import ocean.transition;
 
 import ocean.util.cipher.Cipher;
