@@ -109,51 +109,6 @@ mstring readline(ref mstring prompt, ref mstring buffer)
 
 /*******************************************************************************
 
-    Overloaded method of readline().
-
-    See readline() documentation above.
-
-    Returns:
-        Returns the text of the line read. A blank line returns empty string.
-        If EOF is encountered while reading a line, and the line is empty, null
-        is returned.  If an EOF  is  read  with  a non-empty line, it is treated
-        as a newline.
-
-*******************************************************************************/
-
-deprecated ("Use `readline(ref mstring prompt, ref mstring buffer)` instead")
-mstring readline ()
-{
-    mstring prompt, buffer;
-    return readline(prompt, buffer);
-}
-
-/*******************************************************************************
-
-    Overloaded method of readline().
-
-    See readline() documentation above.
-
-    Params:
-        prompt = the string to be prompted to the user (see the documentation
-            for readline() above for more details).
-
-    Returns:
-        Returns the text of the line read. A blank line returns empty string.
-        If EOF is encountered while reading a line, and the line is empty, null
-        is returned.  If an EOF  is  read  with  a non-empty line, it is treated
-        as a newline.
-
-*******************************************************************************/
-deprecated ("Use `readline(ref mstring prompt, ref mstring buffer)` instead")
-mstring readline(ref mstring prompt)
-{
-    mstring buffer;
-    return readline(prompt, buffer);
-}
-
-/*******************************************************************************
-
     Function signature for functions used with the rl_bind_key functions and
     various other functions.
 

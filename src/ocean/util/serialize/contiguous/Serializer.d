@@ -120,7 +120,7 @@ struct Serializer
     /***************************************************************************
 
         In-place serialization that takes advantage of the fact Contiguous
-        instances already have required data layout. All arrays within 
+        instances already have required data layout. All arrays within
         `src` will be reset to null (and their length to 0) making their data
         unreachable from original struct. This is done to minimize risk of
         dangling array pointers.

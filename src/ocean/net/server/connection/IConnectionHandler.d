@@ -50,11 +50,6 @@ abstract class IConnectionHandler : IConnectionHandlerInfo,
 {
     protected import ocean.sys.socket.model.ISocket;
 
-    // The following 2 imports must be removed when the deprecated constructors
-    // will be removed
-    protected import ocean.sys.socket.AddressIPSocket;
-    protected import ocean.sys.socket.model.IAddressIPSocketInfo;
-
     /***************************************************************************
 
         Object pool index.
@@ -137,42 +132,6 @@ abstract class IConnectionHandler : IConnectionHandlerInfo,
     {
         static private uint connection_count;
         public uint connection_id;
-    }
-
-    /***************************************************************************
-
-        Constructor
-
-        Params:
-            error_dg_    = optional user-specified error handler, called when a
-                           connection error occurs
-
-     ***************************************************************************/
-
-    deprecated("Please use: explicit sockaddr* and ISocket. See release notes.")
-    protected this ( ErrorDg error_dg_ = null )
-    {
-        auto socket = new AddressIPSocket!();
-        this(socket, null, error_dg_);
-    }
-
-    /***************************************************************************
-
-        Constructor
-
-        Params:
-            finalize_dg_ = optional user-specified finalizer, called when the
-                           connection is shut down
-            error_dg_    = optional user-specified error handler, called when a
-                           connection error occurs
-
-     ***************************************************************************/
-
-    deprecated("Please use: explicit sockaddr* and ISocket. See release notes.")
-    protected this ( FinalizeDg finalize_dg_ = null, ErrorDg error_dg_ = null )
-    {
-        auto socket = new AddressIPSocket!();
-        this(socket, finalize_dg_, error_dg_);
     }
 
     /***************************************************************************
@@ -406,25 +365,6 @@ abstract class IConnectionHandler : IConnectionHandlerInfo,
         {
             this.error_dg_(exception, event, this);
         }
-    }
-
-    /***************************************************************************
-
-        Obtains the port number this listener is listening on
-
-        Returns:
-            the current port number.
-
-    ***************************************************************************/
-
-    deprecated("Please use `connected` or `fileHandle` instead. "
-    "If `address` or `port` is needed, define a socket and use "
-    " `socket.address` or `socket.port` instead. See release notes.")
-    public IAddressIPSocketInfo socket_info ( )
-    {
-        auto socket_ip = cast(AddressIPSocket!()) this.socket;
-        assert( socket_ip !is null );
-        return socket_ip;
     }
 
     /***************************************************************************

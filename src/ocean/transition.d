@@ -127,6 +127,47 @@ unittest
 
 /*******************************************************************************
 
+    Same as Const!(T) but for inout
+
+    Example:
+
+    ---
+    Inout!(char[]) foo(Inout!(char[]) arg)
+    {
+        return arg;
+    }
+
+    mstring = foo("aaa"); // error
+    istring = foo("aaa"); // ok
+    mstring = foo("aaa".dup); // ok
+    ---
+
+*******************************************************************************/
+
+template Inout(T)
+{
+    version(D_Version2)
+    {
+        mixin("alias inout(T) Inout;");
+    }
+    else
+    {
+        alias T Inout;
+    }
+}
+
+unittest
+{
+    alias Inout!(char[]) Str;
+
+    Str foo ( Str arg ) { return arg; }
+
+    mstring s1 = foo("aaa".dup);
+    istring s2 = foo("aaa");
+}
+
+/*******************************************************************************
+
     In D1 does nothing. In D2 strips top-most type qualifier.
 
     This is a small helper useful for adapting templated code where template
@@ -862,4 +903,25 @@ unittest
 {
     auto e = new Exception("abcde");
     assert (getMsg(e) == "abcde");
+}
+
+/*******************************************************************************
+
+    Helper which provides stub implementation of GC.usage if it is not present
+    upstream in order to keep ocean compiling and passing tests.
+
+*******************************************************************************/
+
+static import core.memory;
+
+static if (is(typeof(core.memory.GC.usage)))
+{
+    alias core.memory.GC.usage gc_usage;
+}
+else
+{
+    void gc_usage ( out size_t used, out size_t free )
+    {
+        // no-op
+    }
 }

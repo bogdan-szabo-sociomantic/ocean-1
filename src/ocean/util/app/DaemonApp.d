@@ -593,7 +593,7 @@ unittest
 
             // The version info for your app. Normally you get this by importing
             // Version and passing the AA which contains the version info
-            // (called Version) to DaemonApp's constructor.
+            // (called versionInfo) to DaemonApp's constructor.
             auto ver = VersionInfo.init;
 
             // You may also pass an instance of OptionalSettings to DaemonApp's

@@ -21,6 +21,8 @@ module ocean.io.select.protocol.generic.ErrnoIOException;
 
  ******************************************************************************/
 
+import ocean.transition;
+
 import ocean.sys.ErrnoException;
 
 import ocean.io.model.IConduit: ISelectable;

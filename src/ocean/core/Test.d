@@ -25,8 +25,8 @@ module ocean.core.Test;
 
 import ocean.transition;
 
+import core.memory;
 import ocean.core.Enforce;
-import ocean.core.Memory;
 import ocean.text.convert.Format;
 
 /******************************************************************************
@@ -222,22 +222,19 @@ class NamedTest : TestException
 
     ****************************************************************************/
 
-    public override cstring message ( ) /* d1to2fix_inject: const */
+    static if (is(typeof(Throwable.message)))
     {
-        if (this.name.length)
+        public override cstring message ( ) /* d1to2fix_inject: const */
         {
-            return Format("[{}] {}", this.name, this.msg);
+            if (this.name.length)
+            {
+                return Format("[{}] {}", this.name, this.msg);
+            }
+            else
+            {
+                return Format("{}", this.msg);
+            }
         }
-        else
-        {
-            return Format("{}", this.msg);
-        }
-    }
-
-    deprecated ("use NamedTest.message() instead")
-    public override istring toString()
-    {
-        return idup(this.message());
     }
 
     /**************************************************************************
@@ -322,12 +319,12 @@ public void testNoAlloc ( lazy void expr, istring file = __FILE__,
     int line = __LINE__ )
 {
     size_t used1, free1;
-    GC.usage(used1, free1);
+    ocean.transition.gc_usage(used1, free1);
 
     expr();
 
     size_t used2, free2;
-    GC.usage(used2, free2);
+    ocean.transition.gc_usage(used2, free2);
 
     enforceImpl!(TestException, bool)(
         used1 == used2 && free1 == free2,

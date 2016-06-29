@@ -204,8 +204,12 @@ unittest
 
 public template isPrimitiveType ( T )
 {
-    const isPrimitiveType = is(T == void) || is(T == bool) ||
-                 isIntegerType!(T) || isCharType!(T) || isFloatingPointType!(T);
+    const isPrimitiveType =
+        is(Unqual!(T) == void)
+     || is(Unqual!(T) == bool)
+     || isIntegerType!(T)
+     || isCharType!(T)
+     || isFloatingPointType!(T);
 }
 
 /*******************************************************************************
@@ -239,7 +243,7 @@ private bool hasIndirectionsImpl ( T... )()
     }
     else
     {
-        alias StripEnum!(StripTypedef!(T[0])) Type;
+        alias StripEnum!(StripTypedef!(Unqual!(T[0]))) Type;
 
         static if ( isPrimitiveType!(Type) || is(Type == function) )
         {

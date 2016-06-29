@@ -965,7 +965,7 @@ version (UnitTest)
     import ocean.stdc.time;
     import ocean.util.Convert : to;
     import ocean.time.StopWatch;
-    import ocean.core.Memory;
+    import core.memory;
     debug ( OceanPerformanceTest ) import ocean.io.Stdout : Stderr;
 
     /***************************************************************************

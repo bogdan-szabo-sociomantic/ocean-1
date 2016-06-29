@@ -94,7 +94,7 @@ public class SuspendableThrottlerCount : ISuspendableThrottlerCount
     body
     {
         this.count++;
-        super.throttle();
+        super.throttledSuspend();
     }
     
     // WORKAROUND: DMD 2.068 had difficulties  resolving multiple overloads of
@@ -123,7 +123,7 @@ public class SuspendableThrottlerCount : ISuspendableThrottlerCount
     body
     {
         this.count += n;
-        super.throttle();
+        super.throttledSuspend();
     }
 
     public alias add opAddAssign;
@@ -145,7 +145,7 @@ public class SuspendableThrottlerCount : ISuspendableThrottlerCount
     body
     {
         this.count--;
-        super.throttle();
+        super.throttledResume();
     }
 
     // WORKAROUND: DMD 2.068 had difficulties  resolving multiple overloads of
@@ -174,7 +174,7 @@ public class SuspendableThrottlerCount : ISuspendableThrottlerCount
     body
     {
         this.count -= n;
-        super.throttle();
+        super.throttledResume();
     }
 
     public alias add opSubAssign;

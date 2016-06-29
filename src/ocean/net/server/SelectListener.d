@@ -115,12 +115,6 @@ abstract class ISelectListener : ISelectClient
     import ocean.stdc.posix.netinet.in_: SOCK_STREAM;
     import ocean.stdc.posix.unistd:     close;
 
-    // The following 3 imports must be removed when the deprecated constructors
-    // will be removed.
-    import ocean.sys.socket.InetAddress;
-    import ocean.sys.socket.AddressIPSocket;
-    import ocean.core.Enforce;
-
     /**************************************************************************
 
         Socket, memorises the address most recently passed to bind() or
@@ -145,49 +139,6 @@ abstract class ISelectListener : ISelectClient
      **************************************************************************/
 
     private SocketError e;
-
-    /***************************************************************************
-
-        Constructor
-
-        Creates the server socket and registers it for incoming connections.
-
-        Params:
-            address    = server address
-            port       = server port
-            backlog    = (see ctor below)
-
-    ***************************************************************************/
-
-    deprecated("Please use: explicit sockaddr* and ISocket. See release notes.")
-    protected this ( cstring address, ushort port, int backlog = 32 )
-    {
-        InetAddress!(false) addr;
-        auto socket = new AddressIPSocket!();
-        this(addr(address, port), socket, backlog);
-        enforce(!socket.updateAddress(), "socket.updateAddress() failed!");
-    }
-
-    /***************************************************************************
-
-        Constructor
-
-        Creates the server socket and registers it for incoming connections.
-
-        Params:
-            port       = server port
-            backlog    = (see ctor below)
-
-    ***************************************************************************/
-
-    deprecated("Please use: explicit sockaddr* and ISocket. See release notes.")
-    protected this ( ushort port, int backlog = 32 )
-    {
-        InetAddress!(false) addr;
-        auto socket = new AddressIPSocket!();
-        this(addr(port), socket, backlog);
-        enforce(!socket.updateAddress(), "socket.updateAddress() failed!");
-    }
 
     /**************************************************************************
 
@@ -254,23 +205,6 @@ abstract class ISelectListener : ISelectClient
 
         this.e.assertExSock(!this.socket.listen(backlog),
                             "error listening on socket", __FILE__, __LINE__);
-    }
-
-    /***************************************************************************
-
-        Obtains the port number this listener is listening on
-
-        Returns:
-            the current port number.
-
-    ***************************************************************************/
-
-    deprecated("Please define a socket and use socket.port instead. See release notes.")
-    public ushort port ( )
-    {
-        auto socket_ip = cast(AddressIPSocket!()) this.socket;
-        assert( socket_ip !is null );
-        return socket_ip.port();
     }
 
     /**************************************************************************
@@ -523,51 +457,6 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
      **************************************************************************/
 
     private mstring connection_log_buf;
-
-    /***************************************************************************
-
-        Constructor
-
-        Creates the server socket and registers it for incoming connections.
-
-        Params:
-            address    = server address
-            port       = listening port
-            args       = additional T constructor arguments, might be empty
-            backlog    = (see ISelectListener ctor)
-
-    ***************************************************************************/
-
-    deprecated("Please use: explicit sockaddr* and ISocket. See release notes.")
-    public this ( cstring address, ushort port, Args args, int backlog = 32 )
-    {
-        InetAddress!(false) addr;
-        auto socket = new AddressIPSocket!();
-        this(addr(address, port), socket, args, backlog);
-        enforce(!socket.updateAddress(), "socket.updateAddress() failed!");
-    }
-
-    /***************************************************************************
-
-        Constructor
-
-        Creates the server socket and registers it for incoming connections.
-
-        Params:
-            port       = listening port
-            args       = additional T constructor arguments, might be empty
-            backlog    = (see ISelectListener ctor)
-
-    ***************************************************************************/
-
-    deprecated("Please use: explicit sockaddr* and ISocket. See release notes.")
-    public this ( ushort port, Args args, int backlog = 32 )
-    {
-        InetAddress!(false) addr;
-        auto socket = new AddressIPSocket!();
-        this(addr(port), socket, args, backlog);
-        enforce(!socket.updateAddress(), "socket.updateAddress() failed!");
-    }
 
     /**************************************************************************
 

@@ -119,7 +119,7 @@ import ocean.util.log.layout.LayoutMessageOnly;
 
 import ocean.stdc.math: lroundf;
 
-import ocean.core.Memory;
+import core.memory;
 
 import ocean.stdc.stdarg;
 
@@ -814,7 +814,7 @@ public class AppStatus
     {
         const float Mb = 1024 * 1024;
         size_t used, free;
-        GC.usage(used, free);
+        ocean.transition.gc_usage(used, free);
 
         if (used == 0 && free == 0)
             return false;

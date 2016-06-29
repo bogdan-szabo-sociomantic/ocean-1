@@ -115,17 +115,18 @@ class StatsExt : IConfigExtExtension
         Appender newAppender ( istring file, Appender.Layout layout )
         {
             auto stream = new File(file, File.WriteAppending);
+
             if ( auto reopenable_files_ext =
                 (cast(Application)app).getExtension!(ReopenableFilesExt) )
             {
                 reopenable_files_ext.register(stream);
             }
+
             return new AppendStream(stream, true, layout);
         }
 
-        return new StatsLog(stats_config, &newAppender);
+        return new StatsLog(stats_config, &newAppender, stats_config.file_name);
     }
-
 
     /***************************************************************************
 

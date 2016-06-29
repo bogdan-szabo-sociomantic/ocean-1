@@ -132,38 +132,52 @@ class ConfigParser
 {
     /***************************************************************************
 
-        Variable Iterator. Iterates over variables of a category
+        Variable Iterator. Iterates over keys or key/value pairs of a category.
+        The values are converted to T, unless T is istring.
 
     ***************************************************************************/
 
-    public struct VarIterator
+    public struct VarIterator ( T = istring )
     {
         ValueNode[istring]* vars;
 
 
         /***********************************************************************
 
-            Variable Iterator. Iterates over variables of a category
+            Variable Iterator. Iterates over key/value pairs of a category.
+
+        ***********************************************************************/
+
+        public int opApply ( int delegate ( ref istring key, ref T val ) dg )
+        {
+            if ( this.vars !is null )
+            {
+                foreach ( key, valnode; *this.vars )
+                {
+                    auto val = conv!(T)(valnode.value);
+
+                    if ( int result = dg(key, val) )
+                        return result;
+                }
+            }
+
+            return 0;
+        }
+
+
+        /***********************************************************************
+
+            Variable Iterator. Iterates over keys of a category.
 
         ***********************************************************************/
 
         public int opApply ( int delegate ( ref istring x ) dg )
         {
-            int result = 0;
-
-            if ( vars is null )
-            {
-                return result;
-            }
-
-            foreach ( key, val; *vars )
-            {
-                result = dg(key);
-
-                if ( result ) break;
-            }
-
-            return result;
+            return this.opApply(
+                (ref istring key, ref istring val)
+                {
+                    return dg(key);
+                });
         }
     }
 
@@ -295,19 +309,20 @@ class ConfigParser
 
     /***************************************************************************
 
-        Variable Iterator. Iterates over variables of a category
+        Returns an iterator over keys or key/value pairs in a category.
+        The values are converted to T, unless T is istring.
 
         Params:
             category = category to iterate over
 
         Returns:
-            iterator
+            an iterator over the keys or key/value pairs in category.
 
     ***************************************************************************/
 
-    public VarIterator iterateCategory ( cstring category )
+    public VarIterator!(T) iterateCategory ( T = istring ) ( cstring category )
     {
-        return VarIterator(category in this.properties);
+        return VarIterator!(T)(category in this.properties);
     }
 
 
@@ -936,7 +951,7 @@ class ConfigParser
                            || is(Unqual!(U) : dchar)) )
         {
             auto r = fromString8!(Unqual!(U))(property, T.init);
-            return assumeUnique(r);
+            return cast(T) r.dup;
         }
         else static assert(false,
                            Format("{} : get(): type '{}' is not supported",
@@ -1172,7 +1187,7 @@ class ConfigParser
 version ( UnitTest )
 {
     import ocean.core.Test;
-    import ocean.core.Memory;
+    import core.memory;
 }
 
 unittest
@@ -1451,12 +1466,12 @@ three = teen
         Stdout.blue.formatln("Memory analysis of repeated parsing of the same "
                              "configuration").default_colour;
 
-        GC.usage(memused1, memfree);
+        gc_usage(memused1, memfree);
         Stdout.formatln("before parsing  : memused = {}", memused1);
 
         Config.parseString(str1);
 
-        GC.usage(memused2, memfree);
+        gc_usage(memused2, memfree);
         Stdout.formatln("after parse # 1 : memused = {} (additional mem "
                         "consumed = {})", memused2, (memused2 - memused1));
 
@@ -1467,7 +1482,7 @@ three = teen
             Config.parseString(str1);
         }
 
-        GC.usage(memused2, memfree);
+        gc_usage(memused2, memfree);
         Stdout.formatln("after parse # {} : memused = {} (additional mem "
                         "consumed = {})", num_parses, memused2,
                         (memused2 - memused1));

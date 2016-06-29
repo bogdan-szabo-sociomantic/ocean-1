@@ -465,7 +465,7 @@ size_t locatePattern(T, TC) (T[] source, TC[] match, size_t start=0)
 
 ******************************************************************************/
 
-size_t locatePatternPrior(T) (T[] source, T[] match, size_t start=size_t.max)
+size_t locatePatternPrior(T) (in T[] source, in T[] match, size_t start=size_t.max)
 {
         auto len = source.length;
 
@@ -1528,14 +1528,14 @@ unittest
     assert (replace ("abc".dup, 'b', ':') == "a:c");
     assert (substitute ("abc", "bc", "x") == "ax");
 
-    assert (locate ("abc", 'c', 1) is 2);
+    assert (locate ("abc".dup, 'c', 1) is 2);
 
     assert (locate ("abc", 'c') is 2);
     assert (locate ("abc", 'a') is 0);
     assert (locate ("abc", 'd') is 3);
     assert (locate ("", 'c') is 0);
 
-    assert (locatePrior ("abce", 'c') is 2);
+    assert (locatePrior ("abce".dup, 'c') is 2);
     assert (locatePrior ("abce", 'a') is 0);
     assert (locatePrior ("abce", 'd') is 4);
     assert (locatePrior ("abce", 'c', 3) is 2);
@@ -1554,7 +1554,7 @@ unittest
     assert (x.length is 6 && x[0]=="a" && x[1]=="b" && x[2]=="c" &&
             x[3]=="d" && x[4]=="e" && x[5]=="f");
 
-    assert (locatePattern ("abcdefg", "") is 7);
+    assert (locatePattern ("abcdefg".dup, "") is 7);
     assert (locatePattern ("abcdefg", "g") is 6);
     assert (locatePattern ("abcdefg", "abcdefg") is 0);
     assert (locatePattern ("abcdefg", "abcdefgx") is 7);
@@ -1562,7 +1562,7 @@ unittest
     assert (locatePattern ("abcdefg", "cde") is 2);
     assert (locatePattern ("abcdefgcde", "cde", 3) is 7);
 
-    assert (locatePatternPrior ("abcdefg", "") is 7);
+    assert (locatePatternPrior ("abcdefg".dup, "") is 7);
     assert (locatePatternPrior ("abcdefg", "cce") is 7);
     assert (locatePatternPrior ("abcdefg", "cde") is 2);
     assert (locatePatternPrior ("abcdefgcde", "cde", 6) is 2);

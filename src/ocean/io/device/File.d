@@ -232,6 +232,14 @@ class File : Device, Device.Seek, Device.Truncate
 
         /***********************************************************************
 
+                Read from the beginning, append at the end of the file.
+
+        ***********************************************************************/
+
+        const Style ReadWriteAppending = {Access.ReadWrite, Open.Append};
+
+        /***********************************************************************
+
                 Write at the end of the file.
 
         ***********************************************************************/

@@ -123,40 +123,36 @@ abstract public class ISuspendableThrottler
         this.suspended_ = false;
     }
 
-
     /***************************************************************************
 
-        Throttles the suspendables based on the derived class' implementation of
-        the abstract methods suspend() and resume().
-
-        This method must be called whenever the suspension state should
-        be reassessed.
+        Checks if the suspend limit has been reached and the suspendables need
+        to be suspended.
 
     ***************************************************************************/
 
-    public void throttle ( )
+    public void throttledSuspend ( )
     {
-        if ( this.suspended_ )
-        {
-            if (  this.resume() )
-            {
-                this.resumeAll();
-            }
-        }
-        else
-        {
-            if ( this.suspend() )
-            {
-                this.suspendAll();
-            }
-        }
+        if (!this.suspended_ && this.suspend())
+            this.suspendAll();
     }
 
+    /***************************************************************************
+
+        Checks if resume limit has been reached and the suspendables need to be
+        resumed.
+
+    ***************************************************************************/
+
+    public void throttledResume ( )
+    {
+        if (this.suspended_ && this.resume())
+            this.resumeAll();
+    }
 
     /***************************************************************************
 
         Decides whether the suspendables should be suspended. Called by
-        throttle() when not suspended.
+        throttledSuspend() when not suspended.
 
         Returns:
             true if the suspendables should be suspeneded
@@ -169,7 +165,7 @@ abstract public class ISuspendableThrottler
     /***************************************************************************
 
         Decides whether the suspendables should be resumed. Called by
-        throttle() when suspended.
+        throttledResume() when suspended.
 
         Returns:
             true if the suspendables should be resumed

@@ -27,6 +27,7 @@ module ocean.net.http.HttpConnectionHandler;
 
  ******************************************************************************/
 
+import ocean.transition;
 import ocean.net.http.HttpRequest,
        ocean.net.http.HttpResponse,
        ocean.net.http.HttpException;
@@ -209,7 +210,7 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
             {
                 StatusCode status = StatusCode.OK;
 
-                char[] response_msg_body = null;
+                cstring response_msg_body;
 
                 try
                 {
@@ -291,7 +292,7 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
 
      **************************************************************************/
 
-    abstract protected StatusCode handleRequest ( out char[] response_msg_body );
+    abstract protected StatusCode handleRequest ( out cstring response_msg_body );
 
     /***************************************************************************
 
@@ -353,7 +354,7 @@ abstract class HttpConnectionHandler : IFiberConnectionHandler
 
      **************************************************************************/
 
-    private void sendResponse ( StatusCode status, char[] response_msg_body, bool keep_alive )
+    private void sendResponse ( StatusCode status, cstring response_msg_body, bool keep_alive )
     {
         with (this.response)
         {

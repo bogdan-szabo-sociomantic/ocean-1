@@ -1139,7 +1139,7 @@ version ( UnitTest )
 
     import ocean.math.random.Random;
     import ocean.time.StopWatch;
-    import ocean.core.Memory;
+    import core.memory;
     import ocean.io.FilePath_tango;
 }
 

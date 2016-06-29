@@ -291,22 +291,34 @@ template MapIterator ( V, K = hash_t )
 
     int iterate ( Dg dg, ref Element element )
     {
-        static if (is (V == void))
+        // temporary replacement for nested function which purpose is to
+        // prevent allocation of closure in D2 (because it tries to access
+        // host function stack). In the long term will be replaced by better
+        // d1to2fix support.
+
+        static struct Delegate
         {
-            int tmpDg ( ref size_t i, ref Kref k )
+            Dg dg;
+
+            static if (is (V == void))
             {
-                return dg(k);
+                int call ( ref size_t i, ref Kref k )
+                {
+                    return dg(k);
+                }
             }
-        }
-        else
-        {
-            int tmpDg ( ref size_t i, ref Kref k, ref Vref v )
+            else
             {
-                return dg(k, v);
+                int call ( ref size_t i, ref Kref k, ref Vref v )
+                {
+                    return dg(k, v);
+                }
             }
         }
 
-        return iterate(&tmpDg, 0, element);
+        auto tmpDg = Delegate(dg);
+
+        return iterate(&tmpDg.call, 0, element);
     }
 
     /***************************************************************************

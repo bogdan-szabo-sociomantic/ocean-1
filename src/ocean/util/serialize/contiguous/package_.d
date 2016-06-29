@@ -144,6 +144,7 @@ version(UnitTest):
 
 ******************************************************************************/
 
+import ocean.transition;
 import ocean.core.Test;
 import ocean.core.StructConverter;
 
@@ -345,7 +346,7 @@ unittest
     Serializer.serialize(s, buffer);
     auto cont_S = Deserializer.deserialize!(S)(buffer);
 
-    // check that serializations nulls pointers 
+    // check that serializations nulls pointers
     auto serialized = Serializer.serialize(cont_S);
     test!("is")(serialized.ptr, cont_S.ptr);
     test!("is")(cont_S.ptr.s4_dynamic_array.ptr, null);
@@ -598,4 +599,66 @@ unittest
     testNoAlloc(Deserializer.deserialize!(S)(buffer));
     buffer = buffer.dup;
     testNoAlloc(Deserializer.deserialize!(S)(buffer, cont_s));
+}
+
+
+/******************************************************************************
+
+    Array of const elements
+
+******************************************************************************/
+
+unittest
+{
+    static struct CS
+    {
+        cstring s;
+    }
+
+    CS s = CS("Hello world");
+    void[] buffer;
+
+    Serializer.serialize(s, buffer);
+    auto new_s = Deserializer.deserialize!(CS)(buffer);
+    test!("==")(s.s, new_s.ptr.s);
+}
+
+
+/******************************************************************************
+
+    Ensure that immutable elements are rejected
+
+******************************************************************************/
+
+version (D_Version2) unittest
+{
+    static struct IS
+    {
+        istring s;
+    }
+
+    static struct II
+    {
+        Immut!(int) s;
+    }
+
+    IS s1 = IS("Hello world");
+    II s2 = II(42);
+    void[] buffer1, buffer2;
+
+    /*
+     * There is no check for the serializer because it is "okay" to
+     * serialize immutable data.
+     * Obviously they won't be deserializable but that is where
+     * we could break the type system.
+     */
+
+    // Uncomment to check error message
+    //Deserializer.deserialize!(IS)(buffer1);
+    //Deserializer.deserialize!(II)(buffer2);
+
+    static assert(!is(typeof({Deserializer.deserialize!(IS)(buffer1);})),
+                  "Serializer should reject a struct with 'istring'");
+    static assert(!is(typeof({Deserializer.deserialize!(II)(buffer2);})),
+                  "Deserializer should reject a struct with 'immutable' element");
 }

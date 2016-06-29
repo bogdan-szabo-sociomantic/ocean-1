@@ -2,6 +2,16 @@
 
     Epoll-based event scheduler.
 
+    Multiplexes multiple, logical timers into a single timer fd (see
+    ocean.io.select.client.TimerEvent).
+
+    copyright:  Copyright (c) 2011 sociomantic labs.
+                All rights reserved.
+
+    version:    August 2011 : Initial release
+
+    authors:    Gavin Norman
+
     Requires linking with libebtree:
 
     ---
@@ -11,49 +21,11 @@
     ---
 
     Usage example:
-
-    ---
-
-        // Struct associated with each event.
-        struct EventParams
-        {
-            int x;
-        }
-
-        // Delegate called when an event fired. Receives the associated struct.
-        void fired ( ref EventParams p )
-        {
-            Stdout.formatln("{} fired", p.x);
-        }
-
-        // Construct required objects.
-        auto epoll = new EpollSelectDispatcher;
-        auto scheduler = new EpollScheduler!(Params)(epoll, clock);
-
-        // Schedule some events.
-        scheduler.schedule((ref EventParams p){p.x = 0;}, &fired, 2_000_000);
-        scheduler.schedule((ref EventParams p){p.x = 1;}, &fired, 4_000_000);
-        scheduler.schedule((ref EventParams p){p.x = 2;}, &fired, 6_000_000);
-
-        // Set everything going by starting the epoll event loop.
-        Stdout.formatln("Starting eventloop");
-        epoll.eventLoop;
-        Stdout.formatln("Event loop finished");
-
-    ---
-
-    Copyright:
-        Copyright (c) 2009-2016 Sociomantic Labs GmbH.
-        All rights reserved.
-
-    License:
-        Boost Software License Version 1.0. See LICENSE_BOOST.txt for details.
-        Alternatively, this file may be distributed under the terms of the Tango
-        3-Clause BSD License (see LICENSE_BSD.txt for details).
+        See documented unittest of class, below
 
 *******************************************************************************/
 
-module ocean.io.select.client.Scheduler;
+module ocean.io.select.client.TimerSet;
 
 
 
@@ -65,6 +37,7 @@ module ocean.io.select.client.Scheduler;
 
 import ocean.util.container.pool.ObjectPool;
 
+import ocean.task.Scheduler;
 import ocean.io.select.EpollSelectDispatcher;
 
 import ocean.io.select.timeout.TimerEventTimeoutManager;
@@ -79,16 +52,16 @@ debug import ocean.text.convert.Format;
 
 /*******************************************************************************
 
-    Scheduler class template.
+    Timer set class template.
 
-    Each event is added to the scheduler along with a data item (see template
-    parameters). The data item is stored internally to the scheduler, along with
+    Each event is added to the timer set along with a data item (see template
+    parameters). The data item is stored internally to the timer set, along with
     the event delegate, as a convenience to the end-user, who thus does not need
     to maintain an external pool of the data items associated with each event.
 
-    Internally, the scheduler works using a timer event, which is registered to
-    epoll with the time until the soonest scheduled event. When the last
-    scheduled event fires, the timer event is unregistered from epoll.
+    Internally, the timer set works using a single timer event, which is
+    registered to epoll with the time until the soonest scheduled event. When
+    the last scheduled event fires, the timer event is unregistered from epoll.
 
     Template_Params:
         EventData = type of data to be stored along with each event
@@ -98,7 +71,7 @@ debug import ocean.text.convert.Format;
 
 *******************************************************************************/
 
-public class Scheduler ( EventData ) : TimerEventTimeoutManager
+public class TimerSet ( EventData ) : TimerEventTimeoutManager
 {
     /***************************************************************************
 
@@ -268,19 +241,28 @@ public class Scheduler ( EventData ) : TimerEventTimeoutManager
 
     private ObjectPool!(Event) events;
 
+    version (UnitTest)
+    {
+        public size_t allocated_event_count ( )
+        {
+            return events.length();
+        }
+    }
 
     /***************************************************************************
 
         Constructor.
 
         Params:
-            epoll = epoll select dispatcher to use
+            epoll = epoll select dispatcher to use. If null is supplied, the
+                global `theScheduler.epoll()` instance will be used instead
+                (see `schedule()` / `stopTimeout()`)
             max_events = limit on the number of events which can be managed by
                 the scheduler at one time. (0 = no limit)
 
     ***************************************************************************/
 
-    public this ( EpollSelectDispatcher epoll, uint max_events = 0 )
+    public this ( EpollSelectDispatcher epoll = null, uint max_events = 0 )
     {
         this.epoll = epoll;
 
@@ -325,7 +307,10 @@ public class Scheduler ( EventData ) : TimerEventTimeoutManager
         if ( schedule_us )
         {
             event.register(schedule_us);
-            this.epoll.register(this.select_client);
+            if (this.epoll is null)
+                theScheduler.epoll().register(this.select_client);
+            else
+                this.epoll.register(this.select_client);
         }
         else
         {
@@ -376,7 +361,49 @@ public class Scheduler ( EventData ) : TimerEventTimeoutManager
     override protected void stopTimeout ( )
     {
         super.stopTimeout();
-        this.epoll.unregister(this.select_client);
+        if (this.epoll is null)
+            theScheduler.epoll().unregister(this.select_client);
+        else
+            this.epoll.unregister(this.select_client);
+    }
+}
+
+version ( UnitTest )
+{
+    import ocean.io.Stdout;
+    import ocean.io.select.EpollSelectDispatcher;
+}
+
+/// Usage example:
+unittest
+{
+    void timerSetTest ( )
+    {
+        // Struct associated with each event.
+        struct Params
+        {
+            int x;
+        }
+
+        // Delegate called when an event fired. Receives the associated struct.
+        void fired ( ref Params p )
+        {
+            Stdout.formatln("{} fired", p.x);
+        }
+
+        // Construct required objects.
+        auto epoll = new EpollSelectDispatcher;
+        auto timer_set = new TimerSet!(Params)(epoll);
+
+        // Schedule some events.
+        timer_set.schedule((ref Params p){p.x = 0;}, &fired, 2_000_000);
+        timer_set.schedule((ref Params p){p.x = 1;}, &fired, 4_000_000);
+        timer_set.schedule((ref Params p){p.x = 2;}, &fired, 6_000_000);
+
+        // Set everything going by starting the epoll event loop.
+        Stdout.formatln("Starting eventloop");
+        epoll.eventLoop;
+        Stdout.formatln("Event loop finished");
     }
 }
 
@@ -384,5 +411,5 @@ unittest
 {
     // create instance to check if it compiles
     class Dummy { }
-    Scheduler!(Dummy) scheduler;
+    TimerSet!(Dummy) timer_set;
 }

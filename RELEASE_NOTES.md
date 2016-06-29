@@ -1,12 +1,12 @@
 Dependencies
 ============
 
-Based on v1.27.1
+Based on v1.30.0
 
 Dependency | Version
 -----------|---------
 makd       | v1.3.x
-tango      | v1.3.x
+tango      | v1.5.1
 
 Migration Instructions
 ======================

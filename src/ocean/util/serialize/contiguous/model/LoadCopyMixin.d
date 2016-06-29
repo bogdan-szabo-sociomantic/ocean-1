@@ -58,6 +58,7 @@ template LoadCopyMethod(alias exception_field)
         Version.Type input_version;
         auto unversioned = Version.extract(buffer, input_version);
         copy_buffer.data.length = unversioned.length;
+        enableStomping(copy_buffer.data);
         copy_buffer.data[0 .. unversioned.length] = unversioned[];
 
         return this.handleVersion!(S)(copy_buffer.data, input_version);

@@ -58,37 +58,6 @@ public enum SocketFlags
     SOCK_CLOEXEC  = .SOCK_CLOEXEC
 }
 
-// The `enum TcpOptions` must be removed when the SelectLsitener's
-// deprecated constructors will be removed.
-
-/******************************************************************************
-
-    TCP option codes supported by getsockopt()/setsockopt()
-    (from <inet/netinet.h>).
-
- ******************************************************************************/
-
-deprecated ("Please, use `ocean.sys.socket.IPSocket.TcpOptions` instead.")
-public enum TcpOptions
-{
-    None,
-    TCP_NODELAY,       ///  1:  Don't delay send to coalesce packets
-    TCP_MAXSEG,        ///  2:  Set maximum segment size
-    TCP_CORK,          ///  3:  Control sending of partial frames
-    TCP_KEEPIDLE,      ///  4:  Start keeplives after this period
-    TCP_KEEPINTVL,     ///  5:  Interval between keepalives
-    TCP_KEEPCNT,       ///  6:  Number of keepalives before death
-    TCP_SYNCNT,        ///  7:  Number of SYN retransmits
-    TCP_LINGER2,       ///  8:  Life time of orphaned FIN-WAIT-2 state
-    TCP_DEFER_ACCEPT,  ///  9:  Wake up listener only when data arrive
-    TCP_WINDOW_CLAMP,  /// 10:  Bound advertised window
-    TCP_INFO,          /// 11:  Information about this connection.
-    TCP_QUICKACK,      /// 12:  Bock/reenable quick ACKs.
-    TCP_CONGESTION,    /// 13:  Congestion control algorithm.
-    TCP_MD5SIG,        /// 14:  TCP MD5 Signature (RFC2385)
-
-}
-
 /******************************************************************************
 
     Abstract socket class
@@ -97,11 +66,6 @@ public enum TcpOptions
 
 public abstract class ISocket : InputDevice, IOutputDevice
 {
-    // The `alias TcpOptions` must be removed when the SelectLsitener's
-    // deprecated constructors will be removed.
-    deprecated ("Please, use `ocean.sys.socket.IPSocket.TcpOptions` instead.")
-    alias .TcpOptions TcpOptions;
-
     /**************************************************************************
 
         Flags supported by accept4().
