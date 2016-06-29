@@ -13,10 +13,11 @@ Migration Instructions
 
 * `ocean.*`
 
-  All modules have been stripped of any mentions of mutexes and
-  `synchronized`. This shouldn't affect any of our projects as those
-  are exclusively single-threaded and any synchronization is thus
-  wasted time.
+  - All **deprecated symbols** in Ocean v1.x.x have been **completely removed**.
+
+  - All modules have been stripped of any mentions of mutexes and
+    `synchronized`. This shouldn't affect any of our projects as those are
+    exclusively single-threaded and any synchronization is thus wasted time.
 
 * `tango.*`
 
@@ -61,13 +62,6 @@ Migration Instructions
   compilation errors. For example, it won't be possible anymore to rely on
   implicit conversion of `Typedef` values when passing to such functions.
 
-Deprecations
-============
-
-* `ocean.*`
-
-  All symbols deprecated in ocean v1.x.x have been completely removed
-
 New Features
 ============
 
@@ -77,3 +71,4 @@ New Features
   via wrapper struct so that it will keep working the same in D2. When
   compiled in D2 it is also marked as non-copyable to ensure that buffers
   are only ever passed by reference if they need to be resized.
+
