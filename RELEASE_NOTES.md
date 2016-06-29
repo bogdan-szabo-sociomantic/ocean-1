@@ -1,15 +1,32 @@
-Dependencies
-============
 
-Based on v1.30.0
+Release Notes for Ocean v2.0.0
+==============================
+
+These notes are usually structured in 3 sections: **Migration Instructions**,
+which are the mandatory steps a user must do to update to the new version,
+**Deprecated**, which contains deprecated functions which are not recommended to
+be used (and will be removed in the next major release) but will not break any
+old code, and **New Features** which are new features available in the new
+version that users might find interesting.
+
+
+Changes Since Ocean v1.30.x
+---------------------------
+
+**Note:** If you are upgrading from an older version, you have to upgrade
+incrementally, following the instructions in the previous versions' release
+notes.
+
+
+### Dependencies
 
 Dependency | Version
 -----------|---------
 makd       | v1.3.x
 tango      | v1.5.1
 
-Migration Instructions
-======================
+
+### Migration Instructions
 
 * `ocean.*`
 
