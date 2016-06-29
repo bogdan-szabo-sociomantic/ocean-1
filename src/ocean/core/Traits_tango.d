@@ -61,8 +61,7 @@ template isSignedIntegerType( T )
         is( Unqual!(T) == byte )
      || is( Unqual!(T) == short )
      || is( Unqual!(T) == int )
-     || is( Unqual!(T) == long )/+||
-                                     is( T == cent  )+/;
+     || is( Unqual!(T) == long );
 }
 
 unittest
@@ -82,8 +81,7 @@ template isUnsignedIntegerType( T )
         is( Unqual!(T) == ubyte )
      || is( Unqual!(T) == ushort )
      || is( Unqual!(T) == uint )
-     || is( Unqual!(T) == ulong )/+||
-        is( T == ucent  )+/;
+     || is( Unqual!(T) == ulong );
 }
 
 unittest
