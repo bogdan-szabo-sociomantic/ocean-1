@@ -126,7 +126,7 @@ class StreamProcessor ( TaskT : Task )
         if (resume_point == size_t.max)
             resume_point = total / 5;
 
-        enforce(total > max_tasks,
+        enforce(total >= max_tasks,
             Format("Trying to configure StreamProcessor task pool size ({}) " ~
                 " larger than max total task queue size {}", max_tasks, total));
 
