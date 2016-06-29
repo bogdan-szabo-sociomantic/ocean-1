@@ -239,6 +239,13 @@ final class Scheduler
         this.queue_full_e = new TaskQueueFullException;
         this.suspend_queue_full_e = new SuspendQueueFullException;
 
+        enforce(
+            this.sanity_e,
+            config.task_queue_limit >= config.worker_fiber_limit,
+            "Must configure task queue size at least equal to worker fiber " ~
+                "count for optimal task scheduler performance."
+        );
+
         if (epoll is null)
             this._epoll = new EpollSelectDispatcher;
         else
