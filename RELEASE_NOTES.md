@@ -1,4 +1,3 @@
-
 Release Notes for Ocean v2.0.0
 ==============================
 
@@ -88,4 +87,3 @@ New Features
   via wrapper struct so that it will keep working the same in D2. When
   compiled in D2 it is also marked as non-copyable to ensure that buffers
   are only ever passed by reference if they need to be resized.
-
