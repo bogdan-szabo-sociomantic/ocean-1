@@ -1778,6 +1778,8 @@ public class NetHost
 
 *******************************************************************************/
 
+// disabled because it expect working DNS resolver in the environment
+version(none)
 unittest
 {
     NetHost ih = new NetHost;
