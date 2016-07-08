@@ -155,14 +155,15 @@ public void enforceImpl ( T ) ( lazy Exception e, T ok, lazy istring msg,
     if (!ok)
     {
         auto exception = e;
+        auto message = msg;
 
-        if (msg.length)
+        if (message.length)
         {
-            exception.msg = msg;
+            exception.msg = message;
         }
         else
         {
-            if (!exception.msg.length)
+            if (!getMsg(exception).length)
             {
                 exception.msg = "enforcement has failed";
             }
