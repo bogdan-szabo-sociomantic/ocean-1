@@ -160,3 +160,11 @@ New Features
    over the values, too. The type of the values of the category can be
    specified as a template parameter; all values are then converted to that
    type during iteration.
+
+* `ocean.io.serialize.StringStructSerializer`
+
+  Introduced an overload of the `StringStructSerializer` serializer
+  which takes an array of known timestamp field names.
+  If a field matches one of the names and implicitly converts to `ulong`,
+  an ISO formatted string will be emitted in parentheses next to the value of
+  the field (which is assumed to be a unix timestamp).
