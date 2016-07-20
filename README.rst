@@ -9,6 +9,20 @@ low-level infrastructure needed to do real-time applications efficiently. That
 is why memory allocation minimization is a key component in Ocean's design. For
 the same reason a lot of non-portable constructions are used in Ocean.
 
+Versioning
+==========
+
+Ocean uses `Sociomantic's SemVer`_ versioning model.
+
+.. _Sociomantic SemVer: https://github.com/sociomantic/backend/blob/master/doc/structure/versioning.rst
+
+The guaranteed development period for old major versions is 6 months from the
+release of a new major version. At any time, only the last two minor versions of
+each developed major branch are supported; the rest will get bug fixes only
+on-demand (create an issue in the ocean repo to request it).
+
+Currently the default major branch is `v1.x.x`. It will go out of support on
+2016-12-30 and `v2.x.x` will become the default major branch.
 
 Releases
 ========
