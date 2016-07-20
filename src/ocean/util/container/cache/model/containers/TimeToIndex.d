@@ -122,6 +122,18 @@ class TimeToIndex: EBTree128!()
         {
             return &(this.elements.next.node);
         }
+
+        /***********************************************************************
+
+            Marks all pool items as unused.
+
+        ***********************************************************************/
+
+        public void clear ()
+        {
+            this.resetFreeList();
+            this.elements.clear();
+        }
     }
 
     /***************************************************************************
@@ -155,7 +167,7 @@ class TimeToIndex: EBTree128!()
     public override void clear ( )
     {
         super.clear();
-        this.nodes.elements.clear();
+        this.nodes.clear();
     }
 
 
