@@ -12,9 +12,9 @@ the same reason a lot of non-portable constructions are used in Ocean.
 Versioning
 ==========
 
-Ocean uses `Sociomantic's SemVer`_ versioning model.
+Ocean uses Sociomantic's SemVer_ versioning model.
 
-.. _Sociomantic SemVer: https://github.com/sociomantic/backend/blob/master/doc/structure/versioning.rst
+.. _SemVer: https://github.com/sociomantic/backend/blob/master/doc/structure/versioning.rst
 
 The guaranteed development period for old major versions is 6 months from the
 release of a new major version. At any time, only the last two minor versions of
