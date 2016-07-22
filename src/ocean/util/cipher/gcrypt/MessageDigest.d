@@ -49,7 +49,8 @@ class MessageDigest
 
     ***************************************************************************/
 
-    public this ( gcry_md_algos algorithm, gcry_md_flags flags = cast(gcry_md_flags)0 )
+    public this ( gcry_md_algos algorithm, gcry_md_flags flags = cast(gcry_md_flags)0,
+                  istring file = __FILE__, int line = __LINE__ )
     out
     {
         assert(this.md !is null);
@@ -57,7 +58,7 @@ class MessageDigest
     body
     {
         // `gcry_md_open` sets `this.md = null` on failure.
-        throwIfGcryptError(gcry_md_open(&this.md, algorithm, flags));
+        throwIfGcryptError(gcry_md_open(&this.md, algorithm, flags), file, line);
     }
 
     /***************************************************************************
@@ -167,9 +168,10 @@ class HMAC: MessageDigest
 
     ***************************************************************************/
 
-    public this ( gcry_md_algos algorithm, gcry_md_flags flags = cast(gcry_md_flags)0 )
+    public this ( gcry_md_algos algorithm, gcry_md_flags flags = cast(gcry_md_flags)0,
+                  istring file = __FILE__, int line = __LINE__ )
     {
-        super(algorithm, flags | flags.GCRY_MD_FLAG_HMAC);
+        super(algorithm, flags | flags.GCRY_MD_FLAG_HMAC, file, line);
     }
 
     /***************************************************************************
