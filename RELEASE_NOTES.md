@@ -76,6 +76,12 @@ Deprecations
   instead. It's planned to gradually remove all the old Tango `cipher` package,
   so you might want to start replacing other modules too.
 
+* `ocean.util.cipher.gcrypt: MessageDigest`
+
+  `MessageDigest.hash()` and `HMAC.hash(void[][] ...)` are deprecated and
+   replaced with `calculate(`ubyte[][] ...`)`.  This is to avoid an implicit
+   cast from `void[][]` to `void[]` when calling the function, which causes a
+   wrong hash result, and the error is hard to find.
 
 New Features
 ============

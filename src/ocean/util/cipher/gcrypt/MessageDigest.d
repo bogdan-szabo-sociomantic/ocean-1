@@ -71,6 +71,32 @@ public class MessageDigest: MessageDigestCore
 
     ***************************************************************************/
 
+    public ubyte[] calculate ( Const!(ubyte)[][] input_data ... )
+    {
+        gcry_md_reset(this.md);
+        return this.calculate_(input_data);
+    }
+
+    /***************************************************************************
+
+        Calculates the hash a.k.a. message digest from the input data.
+
+        Discards the result of a previous hash calculation, invalidating and
+        overwriting a previously returned result.
+
+        The length of the returned hash is the return value of
+        `gcry_md_get_algo_dlen(algorithm)` for the algorithm passed to the
+        constructor of this class.
+
+        Params:
+            input_data = data to hash; the elements will be concatenated
+
+        Returns:
+            the resuting hash.
+
+    ***************************************************************************/
+
+    deprecated ("use calculate instead")
     public ubyte[] hash ( Const!(void)[][] input_data ... )
     {
         gcry_md_reset(this.md);
@@ -122,6 +148,49 @@ public class HMAC: MessageDigestCore
         If this method does not throw, it is safe to assume it will never throw
         for the same set of constructor parameters.
 
+        The length of the returned hash is the return value of
+        `gcry_md_get_algo_dlen(algorithm)` for the algorithm passed to the
+        constructor of this class.
+
+        An empty `key` and/or empty `input_data` are tolerated.
+
+        Params:
+            key        = the HMAC key
+            input_data = the data to hash, which will be concatenated
+
+        Returns:
+            the resuting HMAC.
+
+        Throws:
+            `GcryptException` on error.
+
+    ***************************************************************************/
+
+    public ubyte[] calculate ( Const!(ubyte)[] key, Const!(ubyte)[][] input_data ... )
+    {
+        gcry_md_reset(this.md);
+
+        if (key.length)
+        {
+            GcryptException.throwNewIfGcryptError(
+                gcry_md_setkey(this.md, key.ptr, key.length)
+            );
+        }
+
+        return this.calculate_(input_data);
+    }
+
+    /***************************************************************************
+
+        Calculates the HMAC from the authentication key and the input data.
+
+        Discards the result of a previous hash calculation, invalidating and
+        overwriting a previously returned result.
+
+        An error can be caused only by the parameters passed to the constructor.
+        If this method does not throw, it is safe to assume it will never throw
+        for the same set of constructor parameters.
+
         `key_and_input_data[0]` is expected to be the authentication key. If
         `key_and_input_data.length == 0` then an empty key and no data are used.
 
@@ -141,6 +210,7 @@ public class HMAC: MessageDigestCore
 
     ***************************************************************************/
 
+    deprecated ("use calculate instead")
     public ubyte[] hash ( Const!(void)[][] key_and_input_data ... )
     {
         gcry_md_reset(this.md);
@@ -181,11 +251,26 @@ unittest
     ];
 
     scope md = new MessageDigest(MessageDigest.gcry_md_algos.GCRY_MD_SHA224);
+
     test!("==")(
-        md.hash(
-            "abcdbcdec", "defdefgefghfghig", "hi",
-            "jhijkijkljklmklmnlmnomno", "pnopq"
+        md.calculate(
+            cast(Immut!(ubyte)[])"abcdbcdec",
+            cast(Immut!(ubyte)[])"defdefgefghfghig",
+            cast(Immut!(ubyte)[])"hi",
+            cast(Immut!(ubyte)[])"jhijkijkljklmklmnlmnomno",
+            cast(Immut!(ubyte)[])"pnopq"
         ),
+        sha224_hash
+    );
+
+    test!("==")(
+        md.calculate([
+            cast(Immut!(ubyte)[])"abcdbcdec",
+            cast(Immut!(ubyte)[])"defdefgefghfghig",
+            cast(Immut!(ubyte)[])"hi",
+            cast(Immut!(ubyte)[])"jhijkijkljklmklmnlmnomno",
+            cast(Immut!(ubyte)[])"pnopq"
+        ]),
         sha224_hash
     );
 
@@ -199,5 +284,25 @@ unittest
 
     Immut!(ubyte)[20] key = 0x0b;
     scope hmacgen = new HMAC(HMAC.gcry_md_algos.GCRY_MD_SHA224);
-    test!("==")(hmacgen.hash(key, "Hi", " ", "There"), sha224_hmac);
+    test!("==")(
+        hmacgen.calculate(
+            key,
+            cast(Immut!(ubyte)[])"Hi",
+            cast(Immut!(ubyte)[])" ",
+            cast(Immut!(ubyte)[])"There"
+        ),
+        sha224_hmac
+    );
+
+    test!("==")(
+        hmacgen.calculate(
+            key,
+            [
+                cast(Immut!(ubyte)[])"Hi",
+                cast(Immut!(ubyte)[])" ",
+                cast(Immut!(ubyte)[])"There"
+            ]
+        ),
+        sha224_hmac
+    );
 }
