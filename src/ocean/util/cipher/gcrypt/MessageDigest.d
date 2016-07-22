@@ -18,12 +18,12 @@
 
 module ocean.util.cipher.gcrypt.MessageDigest;
 
+import ocean.transition;
+
 class MessageDigest
 {
     import ocean.util.cipher.gcrypt.c.md;
     import ocean.util.cipher.gcrypt.core.Gcrypt: GcryptException;
-
-    import ocean.transition;
 
     /***************************************************************************
 
@@ -219,4 +219,43 @@ class HMAC: MessageDigest
             return this.hash_(null);
         }
     }
+}
+
+/******************************************************************************/
+
+version ( UnitTest )
+{
+    import ocean.core.Test;
+}
+
+unittest
+{
+    // http://csrc.nist.gov/groups/ST/toolkit/documents/Examples/SHA224.pdf
+    static Immut!(ubyte)[] sha224_hash = [
+        0x75, 0x38, 0x8B, 0x16, 0x51, 0x27, 0x76,
+        0xCC, 0x5D, 0xBA, 0x5D, 0xA1, 0xFD, 0x89,
+        0x01, 0x50, 0xB0, 0xC6, 0x45, 0x5C, 0xB4,
+        0xF5, 0x8B, 0x19, 0x52, 0x52, 0x25, 0x25
+    ];
+
+    scope md = new MessageDigest(MessageDigest.gcry_md_algos.GCRY_MD_SHA224);
+    test!("==")(
+        md.hash(
+            "abcdbcdec", "defdefgefghfghig", "hi",
+            "jhijkijkljklmklmnlmnomno", "pnopq"
+        ),
+        sha224_hash
+    );
+
+    // https://tools.ietf.org/html/rfc4231#section-4.2
+    static Immut!(ubyte)[] sha224_hmac = [
+        0x89, 0x6f, 0xb1, 0x12, 0x8a, 0xbb, 0xdf,
+        0x19, 0x68, 0x32, 0x10, 0x7c, 0xd4, 0x9d,
+        0xf3, 0x3f, 0x47, 0xb4, 0xb1, 0x16, 0x99,
+        0x12, 0xba, 0x4f, 0x53, 0x68, 0x4b, 0x22
+    ];
+
+    Immut!(ubyte)[20] key = 0x0b;
+    scope hmacgen = new HMAC(HMAC.gcry_md_algos.GCRY_MD_SHA224);
+    test!("==")(hmacgen.hash(key, "Hi", " ", "There"), sha224_hmac);
 }
