@@ -495,8 +495,8 @@ unittest
 public T[] removeShift ( T ) ( ref T[] array, size_t index, size_t remove_elems )
 in
 {
-    assert(index < array.length, "removeShift: index is > array length");
-    assert(index + remove_elems - 1 < array.length, "removeShift: end is > array length");
+    assert(index < array.length, "removeShift: index is >= array length");
+    assert(index + remove_elems - 1 < array.length, "removeShift: end is >= array length");
 }
 body
 {
