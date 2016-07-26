@@ -833,7 +833,11 @@ public abstract class EpollProcess
         if ( this.state == State.Suspended )
         {
             this.state = State.Running;
-            this.epoll.register(this.stdout_handler);
+
+            if ( !this.stdout_finalized )
+            {
+                this.epoll.register(this.stdout_handler);
+            }
         }
     }
 
