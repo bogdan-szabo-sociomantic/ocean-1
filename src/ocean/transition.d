@@ -372,8 +372,13 @@ unittest
 
 *******************************************************************************/
 
-void enableStomping(T)(ref T array)
+void enableStomping(T)(ref T[] array)
 {
+    static assert (
+        is(T == Unqual!(T)),
+        "Must not call `enableStomping` on const/immutable array"
+    );
+
     version(D_Version2)
     {
         assumeSafeAppend(array);

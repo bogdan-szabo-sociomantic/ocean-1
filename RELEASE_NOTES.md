@@ -43,6 +43,13 @@ Migration Instructions
   logs emitted. The number could either increase or decrease depending on the
   configuration.
 
+* `ocean.transition`
+
+  `enableStomping` function now can't be called on arrays of `immutable` or
+  `const` elements. This may cause compilation errors but any code which
+  is subject to it was triggerring undefined behaviour and must be fixed
+  with uttermost importance.
+
 Deprecations
 ============
 
