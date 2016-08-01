@@ -889,6 +889,11 @@ unittest
     char[8] tmp1;
     assert (format(tmp1, 10L, "b12#") == "0b001010");
     assert (format(tmp1, 10L, "o12#") == "0o000012");
+
+    assert(format(tmp, long.min, "d") == "-9223372036854775808", tmp);
+    assert(format(tmp, long.max, "d") ==  "9223372036854775807", tmp);
+    assert(format(tmp, cast(ubyte) -1, "b") ==  "11111111", tmp);
+    assert(format(tmp, -1, "b") ==  "11111111111111111111111111111111", tmp);
 }
 
 /******************************************************************************
@@ -953,6 +958,3 @@ debug (Integer)
         Stdout.formatln (consume("0.123e-10  s", true)).newline;
     }
 }
-
-
-
