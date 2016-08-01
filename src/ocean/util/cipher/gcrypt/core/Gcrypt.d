@@ -426,6 +426,30 @@ public class Gcrypt ( Algorithm algorithm, Mode mode )
         {
             return generateString(typeof(this).required_iv_len);
         }
+
+        /***********************************************************************
+
+            Helper function to generate a char[] suitable for use as a message
+            to encrypt in unittests. For compatibility with certain algorithms,
+            a message of the defined block-length (equal to the IV length) is
+            generated.
+
+            Returns:
+                char[] of the correct length
+
+        ***********************************************************************/
+
+        public static char[] generateMessage ( )
+        {
+            auto length = typeof(this).required_iv_len;
+            auto str = new char[length];
+            char i = 'a';
+            foreach ( ref v; str )
+            {
+                v = i++;
+            }
+            return str;
+        }
     }
 
     /***************************************************************************
@@ -464,8 +488,7 @@ public class Gcrypt ( Algorithm algorithm, Mode mode )
 
         auto crypt = new typeof(this)(key);
 
-        mstring buf;
-        buf.length = 1;
+        auto buf = generateMessage();
 
         // Too short should fail
         testThrown!(GcryptException)(crypt.encrypt(buf, iv[0 .. $-1]));
@@ -492,7 +515,7 @@ public class Gcrypt ( Algorithm algorithm, Mode mode )
 
         auto crypt = new typeof(this)(key);
 
-        istring original = "apabepacepa";
+        auto original = generateMessage();
         mstring buf;
         buf ~= original;
 

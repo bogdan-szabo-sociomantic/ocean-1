@@ -168,3 +168,7 @@ New Features
   If a field matches one of the names and implicitly converts to `ulong`,
   an ISO formatted string will be emitted in parentheses next to the value of
   the field (which is assumed to be a unix timestamp).
+
+* `ocean.util.cipher.gcrypt.AES`
+
+  Added libgcrypt AES (Rijndael) algorithm with a 128 bit key.
