@@ -20,6 +20,15 @@ Migration Instructions
   they write.  This means that the name of the default `StatsLog` instance will change from
   "Stats" to (by default) "log/stats.log".
 
+* `ocean.text.convert.Integer_tango`
+
+  `format` and `formatter` are now templated on the integer type they get as an argument,
+  allowing to properly format negative numbers into their non-decimal
+  (binary, octal, hexadecimal) representation.
+  In addition, passing an `ulong` value which is > `long.max` with format "d" will now
+  be correctly formatted (before it resulted in a negative value and required "u" to be used).
+
+
 Deprecations
 ============
 
