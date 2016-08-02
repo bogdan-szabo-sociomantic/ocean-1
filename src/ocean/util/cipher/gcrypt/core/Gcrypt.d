@@ -88,11 +88,7 @@ public class GcryptException : Exception
     {
         if ( error )
         {
-            this.set(`Error: "`, file, line)
-                .append(fromStringz(gcry_strerror(error)))
-                .append(`" Source: "`)
-                .append(fromStringz(gcry_strsource(error)))
-                .append(`"`);
+            this.setGcryptErrorMsg(error, file, line);
             throw this;
         }
     }
@@ -128,6 +124,55 @@ public class GcryptException : Exception
                 .append(expected);
             throw this;
         }
+    }
+
+    /***************************************************************************
+
+        Throws a new instance of this class if `error` indicates an error. The
+        exception message is set to contain the error from libgcrypt.
+
+        Params:
+            error = error code from gcrypt
+            file = file from which this exception can be thrown
+            line = line from which this exception can be thrown
+
+        Throws:
+            a new instance of this class if error != 0
+
+    ***************************************************************************/
+
+    public static void throwNewIfGcryptError ( gcry_error_t error,
+                                               istring file = __FILE__,
+                                               int line = __LINE__ )
+    {
+        if (error)
+        {
+            auto e = new typeof(this);
+            e.setGcryptErrorMsg(error, file, line);
+            throw e;
+        }
+    }
+
+    /***************************************************************************
+
+        Set the exception message to contain the error from libgcrypt.
+
+        Params:
+            error = error code from gcrypt
+            file = file from which this exception can be thrown
+            line = line from which this exception can be thrown
+
+    ***************************************************************************/
+
+    private void setGcryptErrorMsg ( gcry_error_t error,
+                                     istring file = __FILE__,
+                                     int line = __LINE__  )
+    {
+        this.set(`Error: "`, file, line)
+            .append(fromStringz(gcry_strerror(error)))
+            .append(`" Source: "`)
+            .append(fromStringz(gcry_strsource(error)))
+            .append(`"`);
     }
 }
 
