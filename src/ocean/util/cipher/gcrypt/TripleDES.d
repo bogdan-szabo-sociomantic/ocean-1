@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    Wrapper for libgcrypt with algorithm 3DES and mode CFB
+    libgcrypt with algorithm 3DES and mode CFB
 
     Requires linking with libgcrypt:
             -L-lgcrypt

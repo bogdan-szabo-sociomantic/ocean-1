@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    Base class for gcrypt algorithms which require an initialisation vector.
+    Template for gcrypt algorithms which require an initialisation vector.
 
     Requires linking with libgcrypt:
             -L-lgcrypt
