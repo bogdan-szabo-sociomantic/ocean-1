@@ -9,6 +9,14 @@ tango      | v1.3.x
 Migration Instructions
 ======================
 
+* `ocean.text.convert.Float`
+
+  A new `format` method has been introduced, which formats a floating point value according to
+  a provided format string, which is a subset of the one passed to Layout.
+  It mimics what Layout will do, with the exception that "x" and "X" format string aren't handled
+  anymore as the original output wasn't correct.
+
+
 Deprecations
 ============
 
