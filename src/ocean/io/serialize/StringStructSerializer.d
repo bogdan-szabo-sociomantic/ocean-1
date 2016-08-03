@@ -305,7 +305,8 @@ public class StringStructSerializer ( Char )
 
     public void serializeArray ( T ) ( ref Char[] output, cstring name, T[] array )
     {
-        Layout!(Char).format(output, "{}{}[] {} (length {}): {}\n", this.indent, T.stringof, name, array.length, array);
+        Layout!(Char).format(output, "{}{}[] {} (length {}): {}\n",
+            this.indent, T.stringof, name, array.length, array);
     }
 
 
