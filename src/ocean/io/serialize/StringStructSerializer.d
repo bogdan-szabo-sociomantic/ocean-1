@@ -305,8 +305,9 @@ public class StringStructSerializer ( Char )
 
     public void serializeArray ( T ) ( ref Char[] output, cstring name, T[] array )
     {
-        Layout!(Char).format(output, "{}{}[] {} (length {}): {}\n",
-            this.indent, T.stringof, name, array.length, array);
+        Layout!(Char).format(output, "{}{}[] {} (length {}):{}{}\n",
+            this.indent, T.stringof, name, array.length,
+            array.length ? " " : "", array);
     }
 
 
@@ -433,11 +434,11 @@ unittest
     enableStomping(buffer);
     serializer.serialize(buffer, text_fragment_time, timestamp_fields);
 
-    t.test(buffer.length == 205, "Incorrect string serializer result length");
+    t.test(buffer.length == 204, "Incorrect string serializer result length");
     t.test(buffer == "struct TextFragmentTime:\n"
                      "   char[] text (length 4): eins\n"
                      "   long time : 1456829726\n"
-                     "   char[] lastseen (length 0): \n"
+                     "   char[] lastseen (length 0):\n"
                      "   long timestamp : 0 (1970-01-01 00:00:00)\n"
                      "   long update_time : 0 (1970-01-01 00:00:00)\n",
         "Incorrect string serializer result");
@@ -446,11 +447,11 @@ unittest
     enableStomping(buffer);
     serializer.serialize(buffer, text_fragment_time);
 
-    t.test(buffer.length == 161, "Incorrect string serializer result length");
+    t.test(buffer.length == 160, "Incorrect string serializer result length");
     t.test(buffer == "struct TextFragmentTime:\n"
                      "   char[] text (length 4): eins\n"
                      "   long time : 1456829726\n"
-                     "   char[] lastseen (length 0): \n"
+                     "   char[] lastseen (length 0):\n"
                      "   long timestamp : 0\n"
                      "   long update_time : 0\n",
         "Incorrect string serializer result");
