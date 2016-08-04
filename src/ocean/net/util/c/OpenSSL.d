@@ -895,7 +895,8 @@ void loadOpenSSL()
         _initOpenSSL();
     }
     else
-        throw new Exception("Could not load OpenSSL library.");
+        throw new Exception("Could not load OpenSSL library. " ~
+                "Make sure you have libssl-dev or similar installed");
 }
 
 void closeOpenSSL()
