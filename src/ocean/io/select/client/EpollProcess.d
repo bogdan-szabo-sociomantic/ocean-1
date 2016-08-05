@@ -102,9 +102,9 @@ import ocean.util.container.map.Map;
 
 import ocean.io.select.client.model.ISelectClient;
 
-import ocean.io.select.EpollSelectDispatcher;
+import ocean.io.select.client.SelectEvent;
 
-import ocean.io.select.client.SignalEvent;
+import ocean.io.select.EpollSelectDispatcher;
 
 import ocean.io.model.IConduit;
 
@@ -157,13 +157,13 @@ public abstract class EpollProcess
     {
         /***********************************************************************
 
-            Signal event instance which handles SIGCHLD, indicating that a child
-            process has terminated. Registered with epoll when one or more
-            EpollProcesses are running.
+            Select event instance which is triggered when a SIGCHLD signal is
+            generated, indicating that a child process has terminated.
+            Registered with epoll when one or more EpollProcesses are running.
 
         ***********************************************************************/
 
-        private SignalEvent signal_event;
+        private SelectEvent sigchild_event;
 
 
         /***********************************************************************
@@ -185,7 +185,61 @@ public abstract class EpollProcess
         {
             this.processes = new StandardKeyHashingMap!(EpollProcess, int)(20);
 
-            this.signal_event = new SignalEvent(&this.signalHandler, [SIGCHLD]);
+            this.sigchild_event = new SelectEvent(&this.selectEventHandler);
+
+        }
+
+
+        /***********************************************************************
+
+            Enables or disables the SIGCHLD signal handler.
+
+            If the handler is enabled, then when a SIGCHLD event occurs, the
+            sigchild_event will be triggered.
+
+            Params:
+                enable = true to enable the handler, false to restore default
+                    signal handling
+
+        ***********************************************************************/
+
+        private void enableSigChildHander ( bool enable )
+        {
+
+            sigaction_t sa;
+
+            // SA_RESTART must be specified, to avoid problems with
+            // poorly-written code that does not handle EINTR correctly.
+
+            sa.sa_flags = SA_RESTART;
+            sa.sa_handler = enable ? &this.sigchld_handler : SIG_DFL;
+
+            sigaction(SIGCHLD, &sa, null);
+        }
+
+
+        /***********************************************************************
+
+            Signal handler for SIGCHLD.
+            Triggers the sigchild_event select event when a SIGCHLD signal
+            was received.
+
+            Params:
+                sig = the signal which has happened (always SIGCHLD)
+
+        ***********************************************************************/
+
+        static extern(C) void sigchld_handler ( int sig )
+        {
+            // It is legal to call SignalEvent.trigger() from inside a signal
+            // handler. This is because it is implemented using write(), which
+            // is included in the POSIX,1 2004 list of "safe functions" for
+            // signal handlers.
+
+            if ( EpollProcess.process_monitor.sigchild_event )
+            {
+                EpollProcess.process_monitor.sigchild_event.trigger();
+            }
         }
 
 
@@ -205,29 +259,32 @@ public abstract class EpollProcess
         {
             this.processes[process.process.pid] = process;
 
-            process.epoll.register(this.signal_event);
+            process.epoll.register(this.sigchild_event);
+
+            this.enableSigChildHander(true);
         }
 
 
         /***********************************************************************
 
-            Signal handler, fires when a SIGCHLD signal occurs. Calls waitpid to
-            find out which child process caused the signal to fire, informs the
-            corresponding EpollProcess instance that the process has exited, and
-            removes that process from the set of running signals. If there are
-            no further running processes, the SIGCHLD handler is unregistered
-            from epoll.
+            Event handler for the SIGCHILD SelectEvent.
 
-            Params:
-                siginfo = signal information struct, contains the id of the
-                    process which caused the signal to fire
+            Fired by the signal handler when a SIGCHLD signal occurs. Calls
+            waitpid to find out which child process caused the signal to fire,
+            informs the corresponding EpollProcess instance that the process has
+            exited, and removes that process from the set of running signals.
+            If there are no further running processes, the event is unregistered
+            from epoll and the signal handler is disabled.
+
+            Returns:
+                true if the event should fire again, false if it should be
+                unregistered from epoll
 
         ***********************************************************************/
 
-        private void signalHandler ( SignalEvent.SignalInfo siginfo )
+        private bool selectEventHandler ( )
         {
-            debug ( EpollProcess ) Stdout.formatln("Signal fired in epoll: "
-                                                   "pid = {}", siginfo.ssi_pid);
+            debug ( EpollProcess ) Stdout.formatln("Sigchild fired in epoll: ");
 
             pid_t pid;
             do
@@ -242,7 +299,7 @@ public abstract class EpollProcess
                 {
                     assert( errno() == ECHILD );
                     assert( this.processes.length == 0 );
-                    return;
+                    return false;
                 }
 
                 // waitpid returns 0 in the case where it would hang (if no
@@ -274,8 +331,9 @@ public abstract class EpollProcess
                 }
             }
             while ( pid );
-        }
 
+            return true;
+        }
 
         /***********************************************************************
 
@@ -300,7 +358,15 @@ public abstract class EpollProcess
             // There are no remaining processes using this epoll instance, so
             // unregister the event.
 
-            epoll.unregister(this.signal_event);
+            epoll.unregister(this.sigchild_event);
+
+            // If there are no more processes using _any_ epoll instance,
+            // disconnect the signal handler.
+
+            if ( !this.processes.length )
+            {
+                this.enableSigChildHander(false);
+            }
         }
     }
 
@@ -563,7 +629,7 @@ public abstract class EpollProcess
 
     ***************************************************************************/
 
-    private static GlobalProcessMonitor process_monitor;
+    private mixin(global("static GlobalProcessMonitor process_monitor"));
 
 
     /***************************************************************************
