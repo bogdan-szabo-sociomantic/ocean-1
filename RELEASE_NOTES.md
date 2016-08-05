@@ -109,6 +109,11 @@ Deprecations
    cast from `void[][]` to `void[]` when calling the function, which causes a
    wrong hash result, and the error is hard to find.
 
+* `ocean.io.select.client.EpollProcess.ProcessMonitor`
+
+  All references to the ProcessMonitor class should be removed. It existed
+  only as a workaround for a bug in EpollProcess, but is no longer required.
+
 New Features
 ============
 
