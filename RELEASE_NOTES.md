@@ -218,3 +218,9 @@ New Features
 * `ocean.util.cipher.gcrypt.AES`
 
   Added libgcrypt AES (Rijndael) algorithm with a 128 bit key.
+
+* `ocean.util.config.ClassFiller`
+
+  In the ClassIterator, a new `opApply()` function has been added to provide
+  foreach iteration only over the names of the matching configuration
+  categories.

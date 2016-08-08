@@ -940,6 +940,38 @@ struct ClassIterator ( T, Source = ConfigParser )
 
     /***************************************************************************
 
+        Variable Iterator. Iterates over variables of a category, with the
+        foreach delegate being called with only the name of the category (not
+        including the root string prefix).
+
+        This iterator may be used in cases where iteration over categories
+        prefixed by the root string can be done, with the decision of whether to
+        call 'fill()' or not being made on a case-by-case basis.
+
+    ***************************************************************************/
+
+    public int opApply ( int delegate ( ref istring name ) dg )
+    {
+        int result = 0;
+
+        foreach ( key; this.config )
+        {
+            if ( key.length > this.root.length
+                 && key[0 .. this.root.length] == this.root
+                 && key[this.root.length] == '.' )
+            {
+                auto name = key[this.root.length + 1 .. $];
+                result = dg(name);
+
+                if (result) break;
+            }
+        }
+
+        return result;
+    }
+
+    /***************************************************************************
+
         Fills the properties of the given category into an instance representing
         that category.
 
@@ -1110,7 +1142,7 @@ shoe_size = 42
 
     SolarSystemEntity entity_details;
 
-    foreach ( entity, conf; iter )
+    foreach ( entity; iter )
     {
         test((entity == "earth") || (entity == "earth.moon"),
             "'" ~ entity ~ "' is neither 'earth' nor 'earth.moon'");
