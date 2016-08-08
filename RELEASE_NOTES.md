@@ -28,6 +28,10 @@ Migration Instructions
   In addition, passing an `ulong` value which is > `long.max` with format "d" will now
   be correctly formatted (before it resulted in a negative value and required "u" to be used).
 
+* `ocean.util.serialize.model.VersionDecoratorMixins`
+
+  `VersionHandlingException` has been changed to avoid allocating a
+  new message any time a conversion fails.
 
 Deprecations
 ============
