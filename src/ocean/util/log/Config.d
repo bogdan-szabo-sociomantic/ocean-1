@@ -83,6 +83,7 @@ import ocean.transition;
 
 import ocean.io.Stdout;
 import ocean.core.Array : removePrefix, removeSuffix;
+import ocean.core.Array_tango : sort;
 import ocean.util.config.ClassFiller;
 import ocean.util.config.ConfigParser;
 import ocean.util.log.AppendSysLog;
@@ -386,11 +387,35 @@ public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
 {
     enable_loose_parsing(loose);
 
+    // It is important to ensure that parent loggers are configured before child
+    // loggers. This is because parent loggers will override the settings of
+    // child loggers when the 'propagate' property is enabled, thus preventing
+    // child loggers from customizing their properties via the config file(s).
+    // However, since the parsed configuration is stored in an AA, ordered
+    // iteration of the logging config is not directly possible. For this
+    // reason, the names of all loggers present in the configuration are first
+    // sorted, and the loggers are then configured based on the sorted list. The
+    // sorting is performed in increasing order of the lengths of the logger
+    // names so that parent loggers appear before child loggers.
+
+    istring[] logger_names;
+
     foreach (name, settings; config)
+    {
+        logger_names ~= name;
+    }
+
+    sort(logger_names);
+
+    Config settings;
+
+    foreach(name; logger_names)
     {
         bool console_enabled = false;
         bool syslog_enabled = false;
         Logger log;
+
+        config.fill(name, settings);
 
         if ( name == "Root" )
         {
@@ -454,6 +479,95 @@ public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
 
         setupLoggerLevel(log, name, settings);
     }
+}
+
+version (UnitTest)
+{
+    import ocean.core.Array : copy;
+    import ocean.core.Test : test;
+}
+
+// When the 'propagate' property of a logger is set, its settings get propagated
+// to all child loggers. However, every child logger should be able to define
+// its own settings overriding any automatically propagated setting from the
+// parent logger. Since loggers are stored in an AA, the order in which they are
+// configured is undeterministic. This could potentially result in parent
+// loggers being configured after child loggers and thus overriding any
+// specifically defined setting in the child logger. To avoid this from
+// happening, parent loggers are deliberately configured before child loggers.
+// This unit test block confirms that this strict configuration order is
+// enforced, and parent loggers never override the settings of child loggers.
+unittest
+{
+    class TempAppender : Appender
+    {
+        private mstring latest_log_msg;
+        private Mask mask_;
+
+        final override public void append (LogEvent event)
+        {
+            copy(this.latest_log_msg, event.toString());
+        }
+
+        final override public Mask mask () { return this.mask_; }
+        final override public istring name () { return null; }
+    }
+
+    auto config_parser = new ConfigParser();
+
+    auto config_str =
+`
+[LOG.A]
+level = trace
+propagate = true
+file = dummy
+
+[LOG.A.B]
+level = info
+propagate = true
+file = dummy
+
+[LOG.A.B.C]
+level = warn
+propagate = true
+file = dummy
+
+[LOG.A.B.C.D]
+level = error
+propagate = true
+file = dummy
+`;
+
+    auto temp_appender = new TempAppender;
+
+    Appender appender(istring, Layout)
+    {
+        return temp_appender;
+    }
+
+    config_parser.parseString(config_str);
+
+    auto log_config = iterate!(Config)("LOG", config_parser);
+    auto dummy_meta_config = new MetaConfig();
+
+    configureLoggers(log_config, dummy_meta_config, &appender);
+
+    auto log_D = Log.lookup("A.B.C.D");
+
+    log_D.trace("trace log (shouldn't be sent to appender)");
+    test!("==")(temp_appender.latest_log_msg, "");
+
+    log_D.info("info log (shouldn't be sent to appender)");
+    test!("==")(temp_appender.latest_log_msg, "");
+
+    log_D.warn("warn log (shouldn't be sent to appender)");
+    test!("==")(temp_appender.latest_log_msg, "");
+
+    log_D.error("error log");
+    test!("==")(temp_appender.latest_log_msg, "error log");
+
+    log_D.fatal("fatal log");
+    test!("==")(temp_appender.latest_log_msg, "fatal log");
 }
 
 /*******************************************************************************

@@ -20,6 +20,16 @@ Migration Instructions
   they write.  This means that the name of the default `StatsLog` instance will change from
   "Stats" to (by default) "log/stats.log".
 
+* `ocean.util.log.Config`
+
+  There was a bug in the way loggers were configured during application startup,
+  which could potentially cause parent loggers to override the configuration of
+  child loggers. This bug has now been fixed, but if your application somehow
+  relied on the buggy behaviour (unlikely, because if it did, you would have
+  realised it by now), then this fix could cause a difference in the number of
+  logs emitted. The number could either increase or decrease depending on the
+  configuration.
+
 Deprecations
 ============
 
