@@ -804,6 +804,11 @@ public abstract class EpollProcess
             {
                 this.epoll.unregister(this.stdout_handler);
             }
+
+            if ( !this.stderr_finalized )
+            {
+                this.epoll.unregister(this.stderr_handler);
+            }
         }
     }
 
@@ -837,6 +842,11 @@ public abstract class EpollProcess
             if ( !this.stdout_finalized )
             {
                 this.epoll.register(this.stdout_handler);
+            }
+
+            if ( !this.stderr_finalized )
+            {
+                this.epoll.register(this.stderr_handler);
             }
         }
     }
