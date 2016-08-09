@@ -862,12 +862,42 @@ private bool hasField ( T : Object ) ( T reference, cstring field )
 
     Class Iterator. Iterates over variables of a category
 
+    Params:
+        T = type of the class to iterate upon
+        Source = type of the source of values of the class' members - must
+            provide foreach iteration over its elements
+            (defaults to ConfigParser)
+
 *******************************************************************************/
 
 struct ClassIterator ( T, Source = ConfigParser )
 {
+    /***************************************************************************
+
+        The full parsed configuration. This contains all sections of the
+        configuration, but only those that begin with the root string are
+        iterated upon.
+
+    ***************************************************************************/
+
     Source config;
+
+    /***************************************************************************
+
+        The root string that is used to filter sections of the configuration
+        over which to iterate.
+        For instance, in a config file containing sections 'LOG.a', 'LOG.b',
+        'LOG.a.a1' etc., the root string would be "LOG".
+
+    ***************************************************************************/
+
     istring root;
+
+    /***************************************************************************
+
+        Class invariant.
+
+    ***************************************************************************/
 
     invariant()
     {
@@ -877,7 +907,10 @@ struct ClassIterator ( T, Source = ConfigParser )
 
     /***************************************************************************
 
-        Variable Iterator. Iterates over variables of a category
+        Variable Iterator. Iterates over variables of a category, with the
+        foreach delegate being called with the name of the category (not
+        including the root string prefix) and an instance containing the
+        properties within that category.
 
     ***************************************************************************/
 
@@ -911,7 +944,9 @@ struct ClassIterator ( T, Source = ConfigParser )
         that category.
 
         Params:
-            name = category whose properties are to be filled
+            name = category whose properties are to be filled (this name will be
+                prefixed with the root string and a period to form an actual
+                section name of the parsed configuration)
             instance = instance into which to fill the properties
 
     ***************************************************************************/
