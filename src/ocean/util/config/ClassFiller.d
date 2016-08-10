@@ -871,7 +871,8 @@ struct ClassIterator ( T, Source = ConfigParser )
 
     invariant()
     {
-        assert(this.config !is null, "ClassFiller.ClassIterator: Cannot have null config");
+        assert(this.config !is null,
+            "ClassFiller.ClassIterator: Cannot have null config");
     }
 
     /***************************************************************************
