@@ -25,8 +25,7 @@ import ocean.core.Enforce,
 import ocean.util.serialize.Version,
        ocean.util.serialize.model.Traits;
 
-import ocean.text.convert.Format,
-       ocean.stdc.string;
+import ocean.stdc.string;
 
 
 version (UnitTest) import ocean.core.Test;
