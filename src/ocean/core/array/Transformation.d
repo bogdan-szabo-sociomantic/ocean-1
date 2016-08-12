@@ -12,7 +12,7 @@
         Copyright (C) 2005-2006 Sean Kelly.
         Some parts copyright (c) 2009-2016 Sociomantic Labs GmbH.
         All rights reserved.
-    
+
     License:
         Tango Dual License: 3-Clause BSD License / Academic Free License v3.0.
         See LICENSE_TANGO.txt for details.
@@ -358,7 +358,7 @@ unittest
 {
     auto result = reduce([1, 17, 8, 12][], (int i, int j){ return i * j; });
     test!("==")(result, 1632);
-    
+
     result = reduce("", (char c1, char c2) { return 'X'; });
     test!("==")(result, char.init);
 }
@@ -526,19 +526,23 @@ deprecated unittest
 
 *******************************************************************************/
 
-public T2[][] split ( T1, T2 ) ( T1[] src, T1[] pattern, ref Buffer!(T2[]) result )
+public T3[] split ( T1, T2, T3 ) ( T1[] src, T2[] pattern,
+    ref Buffer!(T3) result )
 {
     result.length = 0;
 
-    do
+    while (true)
     {
         auto index = find(src, pattern);
         result ~= src[0 .. index];
         if (index < src.length)
+        {
             index += pattern.length;
-        src = src[index .. $];
+            src = src[index .. $];
+        }
+        else
+            break;
     }
-    while (src.length);
 
     return result[];
 }
@@ -551,10 +555,21 @@ unittest
     test!("==")(result[], [ "aaa", "bbb", "ccc" ]);
 }
 
-// deprecated ("Must use Buffer as a buffer argument")
-public T2[][] split ( T1, T2 ) ( T1[] src, T1[] pattern, ref T2[][] result )
+unittest
 {
-    auto buffer = cast(Buffer!(T2[])*) &result;
+    Buffer!(cstring) result;
+
+    split(`abc"def"`, `"`, result);
+    test!("==")(result[], [ "abc", "def", "" ]);
+
+    split(`abc"def"`.dup, `"`, result);
+    test!("==")(result[], [ "abc", "def", "" ]);
+}
+
+// deprecated ("Must use Buffer as a buffer argument")
+public T3[][] split ( T1, T2, T3 ) ( T1[] src, T2[] pattern, ref T3[][] result )
+{
+    auto buffer = cast(Buffer!(T3[])*) &result;
     return split(src, pattern, *buffer)[];
 }
 
@@ -563,6 +578,13 @@ deprecated unittest
     istring[] result;
     split("aaa..bbb..ccc", "..", result);
     test!("==")(result, [ "aaa", "bbb", "ccc" ]);
+}
+
+deprecated unittest
+{
+    mstring[] result;
+    split("aaa.bbb.".dup, ".", result);
+    test!("==")(result, [ "aaa", "bbb", "" ]);
 }
 
 /*******************************************************************************
@@ -599,7 +621,7 @@ public T[] substitute ( T ) ( in T[] source, in T[] match,
             result ~= replacement;
             index += match.length;
         }
-        src = src[index .. $]; 
+        src = src[index .. $];
     }
     while (src.length);
 
