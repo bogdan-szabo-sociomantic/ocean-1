@@ -47,6 +47,11 @@ Deprecations
   All references to the ProcessMonitor class should be removed. It existed
   only as a workaround for a bug in EpollProcess, but is no longer required.
 
+* `ocean.task.util.StreamProcessor`
+
+  Constructor that expects `max_tasks`, `suspend_point` and `resume_point` has
+  been deprecated in favor of one that takes a `ThrottlerConfig` struct.
+
 New Features
 ============
 

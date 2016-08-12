@@ -47,6 +47,46 @@ version (UnitTest)
 
 /*******************************************************************************
 
+    Config struct to use when creating a stream processor that should use
+    the default PoolThrottler for throttling.
+
+*******************************************************************************/
+
+public struct ThrottlerConfig
+{
+    /***************************************************************************
+
+        The number of busy tasks to suspend at.
+
+        The default value of `size_t.max` means that the suspend point will be
+        calculated based on the task queue size in the constructor.
+
+    ***************************************************************************/
+
+    size_t suspend_point = size_t.max;
+
+    /***************************************************************************
+
+        The number of busy tasks to resume at.
+
+        The default value of `size_t.max` means that the resume point will be
+        calculated based on the task queue size in the constructor.
+
+    ***************************************************************************/
+
+    size_t resume_point = size_t.max;
+
+    /***************************************************************************
+
+        The maximum number of simultaneous tasks.
+
+    ***************************************************************************/
+
+    size_t max_tasks;
+}
+
+/*******************************************************************************
+
     Class that handles distribution of data read from streams over a set of
     tasks in a task pool. The developer must define their own task class to do
     the work required to handle one record read from the streams; the stream
@@ -95,6 +135,69 @@ class StreamProcessor ( TaskT : Task )
 
     /***************************************************************************
 
+        Constructor
+
+        NB: configure suspend point so that there is always at least one
+            "extra" spare task in the pool available after the limit is
+            reached. This is necessary because throttling happens in the
+            end of the task, not after it finishes and gets recycled.
+
+        Params:
+            throttler_config = The throttler configuration
+
+    ***************************************************************************/
+
+    public this ( ThrottlerConfig throttler_config )
+    {
+        this();
+
+        auto total = theScheduler.getStats().task_queue_total;
+
+        if (throttler_config.suspend_point == size_t.max)
+            throttler_config.suspend_point = total / 3 * 2;
+        else
+        {
+            enforce(
+                this.throttler_failure_e,
+                throttler_config.suspend_point < total,
+                Format(
+                    "Trying to configure StreamProcessor with suspend point ({}) " ~
+                        "larger or equal to task queue size {}",
+                    throttler_config.suspend_point, total
+                )
+            );
+        }
+
+        if (throttler_config.resume_point == size_t.max)
+            throttler_config.resume_point = total / 5;
+        {
+            enforce(
+                this.throttler_failure_e,
+                throttler_config.resume_point < total,
+                Format(
+                    "Trying to configure StreamProcessor with resume point ({}) " ~
+                        "larger or equal to task queue size {}",
+                    throttler_config.resume_point, total
+                )
+            );
+        }
+
+        enforce(
+            this.throttler_failure_e,
+            throttler_config.max_tasks < total,
+            Format(
+                "Trying to configure StreamProcessor task pool size ({}) " ~
+                    " larger than max total task queue size {}",
+                throttler_config.max_tasks, total
+            )
+        );
+
+        this.task_pool = new ThrottledTaskPool!(TaskT)(throttler_config.suspend_point, throttler_config.resume_point);
+        this.task_pool.setLimit(throttler_config.max_tasks);
+    }
+
+    /***************************************************************************
+
         Constructor which accepts a custom throttler. (For standard throttling
         behaviour, based on the number of busy tasks, use the other ctor.)
 
@@ -133,6 +236,7 @@ class StreamProcessor ( TaskT : Task )
 
     ***************************************************************************/
 
+    deprecated("Use constructor that accepts a ThrottlerConfig struct")
     public this ( size_t max_tasks, size_t suspend_point = size_t.max,
         size_t resume_point = size_t.max )
     {
@@ -291,8 +395,9 @@ unittest
         }
     }
 
-    const max_tasks = 5;
-    auto stream_processor = new StreamProcessor!(MyProcessingTask)(max_tasks);
+    ThrottlerConfig throttler_config;
+    throttler_config.max_tasks = 5;
+    auto stream_processor = new StreamProcessor!(MyProcessingTask)(throttler_config);
 
     // Set of input streams. In this example there are none. In your application
     // there should be more than none.
@@ -311,6 +416,57 @@ unittest
 }
 
 unittest
+{
+    SchedulerConfiguration config;
+    initScheduler(config);
+
+    static class DummyTask : Task
+    {
+        override public void run ( ) { }
+        public void copyArguments ( ) { }
+    }
+
+    {
+        // pool size > task queue
+        ThrottlerConfig throttler_config;
+        throttler_config.max_tasks = config.task_queue_limit + 1;
+        testThrown!(ThrottlerFailureException)(new StreamProcessor!(DummyTask)(
+            throttler_config));
+    }
+
+    {
+        // suspend point >= task queue
+        ThrottlerConfig throttler_config;
+        throttler_config = throttler_config.init;
+        throttler_config.max_tasks = config.task_queue_limit;
+        throttler_config.suspend_point = config.task_queue_limit;
+        testThrown!(ThrottlerFailureException)(new StreamProcessor!(DummyTask)(
+            throttler_config));
+    }
+
+    {
+        // resume point >= task queue
+        ThrottlerConfig throttler_config;
+        throttler_config = throttler_config.init;
+        throttler_config.max_tasks = config.task_queue_limit;
+        throttler_config.suspend_point = config.task_queue_limit - 1;
+        throttler_config.resume_point = config.task_queue_limit;
+        testThrown!(ThrottlerFailureException)(new StreamProcessor!(DummyTask)(
+            throttler_config));
+    }
+
+    {
+        // works
+        ThrottlerConfig throttler_config;
+        throttler_config = throttler_config.init;
+        throttler_config.max_tasks = config.task_queue_limit - 1;
+        throttler_config.suspend_point = config.task_queue_limit - 1;
+        throttler_config.resume_point = config.task_queue_limit - 2;
+        auto processor = new StreamProcessor!(DummyTask)(throttler_config);
+    }
+}
+
+deprecated unittest
 {
     SchedulerConfiguration config;
     initScheduler(config);
