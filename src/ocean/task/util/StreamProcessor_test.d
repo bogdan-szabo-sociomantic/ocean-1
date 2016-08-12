@@ -85,8 +85,7 @@ unittest
     config.task_queue_limit = 30;
     initScheduler(config);
 
-    ThrottlerConfig throttler_config;
-    throttler_config.max_tasks = 10;
+    auto throttler_config = ThrottlerConfig(10, 1);
     auto stream_processor = new StreamProcessor!(ProcessingTask)(throttler_config);
     auto generator = new Generator(&stream_processor.process);
     stream_processor.addStream(generator);

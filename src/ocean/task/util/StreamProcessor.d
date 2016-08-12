@@ -82,6 +82,7 @@ public struct ThrottlerConfig
 
     ***************************************************************************/
 
+    deprecated("Use getTaskPool().setLimit() to manually set max tasks limit")
     size_t max_tasks;
 }
 
@@ -135,6 +136,22 @@ class StreamProcessor ( TaskT : Task )
 
     /***************************************************************************
 
+        Constructor which accepts a custom throttler. (For standard throttling
+        behaviour, based on the number of busy tasks, use the other ctor.)
+
+        Params:
+            throttler = custom throttler to use.
+
+    ***************************************************************************/
+
+    public this ( ISuspendableThrottler throttler )
+    {
+        this();
+        this.task_pool = new ThrottledTaskPool!(TaskT)(throttler);
+    }
+
+    /***************************************************************************
+
         Constructor
 
         NB: configure suspend point so that there is always at least one
@@ -182,18 +199,7 @@ class StreamProcessor ( TaskT : Task )
             );
         }
 
-        enforce(
-            this.throttler_failure_e,
-            throttler_config.max_tasks < total,
-            Format(
-                "Trying to configure StreamProcessor task pool size ({}) " ~
-                    " larger than max total task queue size {}",
-                throttler_config.max_tasks, total
-            )
-        );
-
         this.task_pool = new ThrottledTaskPool!(TaskT)(throttler_config.suspend_point, throttler_config.resume_point);
-        this.task_pool.setLimit(throttler_config.max_tasks);
     }
 
     /***************************************************************************
@@ -209,6 +215,7 @@ class StreamProcessor ( TaskT : Task )
 
     ***************************************************************************/
 
+    deprecated("Use getTaskPool().setLimit() to manually set max tasks limit")
     public this ( size_t max_tasks, ISuspendableThrottler throttler )
     {
         this();
@@ -395,8 +402,7 @@ unittest
         }
     }
 
-    ThrottlerConfig throttler_config;
-    throttler_config.max_tasks = 5;
+    auto throttler_config = ThrottlerConfig(5, 1);
     auto stream_processor = new StreamProcessor!(MyProcessingTask)(throttler_config);
 
     // Set of input streams. In this example there are none. In your application
@@ -427,41 +433,22 @@ unittest
     }
 
     {
-        // pool size > task queue
-        ThrottlerConfig throttler_config;
-        throttler_config.max_tasks = config.task_queue_limit + 1;
-        testThrown!(ThrottlerFailureException)(new StreamProcessor!(DummyTask)(
-            throttler_config));
-    }
-
-    {
         // suspend point >= task queue
-        ThrottlerConfig throttler_config;
-        throttler_config = throttler_config.init;
-        throttler_config.max_tasks = config.task_queue_limit;
-        throttler_config.suspend_point = config.task_queue_limit;
+        auto throttler_config = ThrottlerConfig(config.task_queue_limit, 1);
         testThrown!(ThrottlerFailureException)(new StreamProcessor!(DummyTask)(
             throttler_config));
     }
 
     {
         // resume point >= task queue
-        ThrottlerConfig throttler_config;
-        throttler_config = throttler_config.init;
-        throttler_config.max_tasks = config.task_queue_limit;
-        throttler_config.suspend_point = config.task_queue_limit - 1;
-        throttler_config.resume_point = config.task_queue_limit;
+        auto throttler_config = ThrottlerConfig(1, config.task_queue_limit);
         testThrown!(ThrottlerFailureException)(new StreamProcessor!(DummyTask)(
             throttler_config));
     }
 
     {
         // works
-        ThrottlerConfig throttler_config;
-        throttler_config = throttler_config.init;
-        throttler_config.max_tasks = config.task_queue_limit - 1;
-        throttler_config.suspend_point = config.task_queue_limit - 1;
-        throttler_config.resume_point = config.task_queue_limit - 2;
+        auto throttler_config = ThrottlerConfig(config.task_queue_limit - 1, 1);
         auto processor = new StreamProcessor!(DummyTask)(throttler_config);
     }
 }

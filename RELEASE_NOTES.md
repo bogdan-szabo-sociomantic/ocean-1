@@ -29,6 +29,11 @@ Migration Instructions
   is subject to it was triggerring undefined behaviour and must be fixed
   with uttermost importance.
 
+* `ocean.task.util.StreamProcessor`
+
+  All uses of `max_tasks` has been deprecated, the task pool is now unlimited by
+  default. Use `getTaskPool` and set a limit manually if you want to limit it.
+
 Deprecations
 ============
 
