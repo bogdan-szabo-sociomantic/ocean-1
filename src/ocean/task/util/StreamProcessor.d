@@ -240,6 +240,20 @@ class StreamProcessor ( TaskT : Task )
     {
         this.task_pool.throttler.removeSuspendable(s);
     }
+
+    /***************************************************************************
+
+        Get the task pool.
+
+        Returns:
+            The task pool
+
+    ***************************************************************************/
+
+    public ThrottledTaskPool!(TaskT) getTaskPool ( )
+    {
+        return this.task_pool;
+    }
 }
 
 ///

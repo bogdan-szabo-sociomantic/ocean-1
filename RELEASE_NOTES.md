@@ -69,3 +69,7 @@ New Features
   In the ClassIterator, a new `opApply()` function has been added to provide
   foreach iteration only over the names of the matching configuration
   categories.
+
+* `ocean.task.util.StreamProcessor`
+
+  Added getter method for the internal task pool.
