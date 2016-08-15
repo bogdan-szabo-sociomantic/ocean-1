@@ -91,3 +91,11 @@ New Features
 * `ocean.util.cipher.gcrypt.AES`
 
   Additional aliases for 192- and 256-bit AES ciphers have been added.
+
+* `ocean.time.timeout.TimeoutManager`
+
+  TimeoutManager now has a constructor that takes an optional bucket element
+  allocator. The intended usage is to allow the use of an alternative allocator,
+  e.g. BucketElementFreeList. This can reduce the number of GC allocations
+  performed. The existing constructor uses the default bucket allocator of
+  map (BucketElementGCAllocator), which will cause garbage collections.
