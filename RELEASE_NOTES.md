@@ -69,3 +69,45 @@ New Features
   In the ClassIterator, a new `opApply()` function has been added to provide
   foreach iteration only over the names of the matching configuration
   categories.
+
+* `ocean.task.util.StreamProcessor`
+
+  Added getter method for the internal task pool.
+
+* `ocean.net.collectd.{Collectd,Identifier,SocketReader}`
+
+  A new package to interact with a collectd UnixSocket has been added.
+  It currently contains 3 modules:
+
+  - Collectd: Defines the `Collectd` class which is the main interface to interact
+              with the socket. The interface is currently limited to sending data
+              to Collectd via the `putval` method
+
+  - Identifier: Defines the `Identifier` struct used to model collectd's identifier
+                consisting of 5 fields defining a unique identifier.
+
+  - SocketReader: Allocation-free rotating buffer used internally by the `Collectd` class
+                  to interact with the socket.
+
+  Those modules are not meant to be used directly; `StatsLog` presents a higher level
+  user interface for application developers to use (see below).
+
+* `ocean.util.app.ext.StatsExt` and `ocean.util.log.Stats`
+
+  Support for directly writing to the collectd socket has been added. This support is
+  an addition to the existing functionality, rather than a replacement: even when
+  writing to collectd is activated, the usual stats log file will still be written.
+  Collectd logging is enabled by setting the `socket_path`, `app_name`, and `app_instance`
+  variables in the config file (all three are required). Once set, several other settings
+  can be overriden (most likely, you will be interested in the `default_type`). Read the
+  `StatsExt` module documentation and the configuration documentation in `StatsLog` for
+  more information.
+
+  Example stats config setting to write to collectd as well as a file:
+
+  ```
+  [Stats]
+  socket_path = /var/run/collectd.socket
+  app_name = MyApp
+  app_instance = 1
+  ```
