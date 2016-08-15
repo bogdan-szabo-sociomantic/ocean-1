@@ -66,18 +66,6 @@ version (UnitTest)
 
 /*******************************************************************************
 
-    Module logger
-
-*******************************************************************************/
-
-private Logger log;
-static this ()
-{
-    log = Log.lookup("ocean.util.log.Stats");
-}
-
-/*******************************************************************************
-
     Wrapper around a StatsLog to periodically writes values of an aggregate
     to a logger using a timer event registered with epoll.
 
@@ -511,8 +499,8 @@ public class StatsLog
             is provided through `default_collectd_socket`, `StatsLog` will
             write to the Collectd socket.
 
-            When this is set, it is required that `collectd_name` and
-            `collectd_instance` be set.
+            When this is set, it is required that `app_name` and
+            `app_instance` be set.
 
         ***********************************************************************/
 
@@ -648,7 +636,16 @@ public class StatsLog
 
     /***************************************************************************
 
-        Logger instance
+        Logger instance via which error messages can be emitted
+
+    ***************************************************************************/
+
+    private Logger error_log;
+
+
+    /***************************************************************************
+
+        Logger instance via which stats should be output
 
     ***************************************************************************/
 
@@ -736,6 +733,10 @@ public class StatsLog
     }
     body
     {
+        // logger via which error messages can be emitted
+        this.error_log = Log.lookup("ocean.util.log.Stats.StatsLog");
+
+        // logger to which stats should be written
         this.logger = Log.lookup(name);
         this.logger.clear();
         this.logger.additive(false);
@@ -1009,9 +1010,9 @@ public class StatsLog
         try
             this.collectd.putval!(T)(id, values, this.options);
         catch (CollectdException e)
-            log.error("Sending stats to Collectd failed: {}", e);
+            this.error_log.error("Sending stats to Collectd failed: {}", e);
         catch (ErrnoException e)
-            log.error("I/O error while sending stats: {}", e);
+            this.error_log.error("I/O error while sending stats: {}", e);
     }
 
 
