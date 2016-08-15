@@ -499,8 +499,8 @@ public class StatsLog
             is provided through `default_collectd_socket`, `StatsLog` will
             write to the Collectd socket.
 
-            When this is set, it is required that `collectd_name` and
-            `collectd_instance` be set.
+            When this is set, it is required that `app_name` and
+            `app_instance` be set.
 
         ***********************************************************************/
 
