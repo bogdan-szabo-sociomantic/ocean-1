@@ -70,6 +70,9 @@ class StringC
     public const char  Term  = '\0';
     public const Wchar Wterm = '\0';
 
+    deprecated("please use 'toCString' (note uppercase 'S') instead")
+    public alias toCString toCstring;
+
     /***************************************************************************
 
         Converts str to a C string, that is, if a null terminator is not
@@ -84,7 +87,7 @@ class StringC
 
     ***************************************************************************/
 
-    public static char* toCstring ( ref mstring str )
+    public static char* toCString ( ref mstring str )
     {
         if (str.length && !!str[$ - 1])
         {
@@ -108,7 +111,7 @@ class StringC
 
     ***************************************************************************/
 
-    public static Wchar* toCstring ( ref Wchar[] str )
+    public static Wchar* toCString ( ref Wchar[] str )
     {
         if (str.length && !!str[$ - 1])
         {

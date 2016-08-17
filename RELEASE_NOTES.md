@@ -23,6 +23,11 @@ Deprecations
   want to limit the maximum number of tasks in the pool, use `getTaskPool` and
   set a limit manually.
 
+* `ocean.text.util.StringC`
+
+  The function `toCstring()` is now deprecated in favour of `toCString()` (note
+  the uppercase `S`).
+
 New Features
 ============
 
