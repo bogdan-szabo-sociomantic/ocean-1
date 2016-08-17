@@ -159,3 +159,30 @@ class StringC
         return str ? str[0 .. wcslen(str)] : "";
     }
 }
+
+version ( UnitTest )
+{
+    import ocean.core.Test;
+}
+
+unittest
+{
+    mstring str;
+
+    str = "".dup;
+    StringC.toCString(str);
+    test!("==")(str, "");
+
+    str = "Already null-terminated\0".dup;
+    StringC.toCString(str);
+    test!("==")(str, "Already null-terminated\0");
+
+    str = "Regular D string".dup;
+    StringC.toCString(str);
+    test!("==")(str, "Regular D string\0");
+
+    test!("==")(StringC.toDString(cast(char *)null), "");
+
+    str = "Hello\0".dup;
+    test!("==")(StringC.toDString(str.ptr), "Hello");
+}
