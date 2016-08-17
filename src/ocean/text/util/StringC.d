@@ -84,7 +84,7 @@ class StringC
 
     ***************************************************************************/
 
-    public static char* toCstring ( ref char[] str )
+    public static char* toCstring ( ref mstring str )
     {
         if (str.length && !!str[$ - 1])
         {
