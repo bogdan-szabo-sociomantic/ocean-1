@@ -9,18 +9,19 @@ tango      | v1.3.x
 Migration Instructions
 ======================
 
-* `ocean.task.util.StreamProcessor`
-
-  All uses of `max_tasks` has been deprecated, the task pool is now unlimited by
-  default. Use `getTaskPool` and set a limit manually if you want to limit it.
-
 Deprecations
 ============
 
 * `ocean.task.util.StreamProcessor`
 
-  Constructor that expects `max_tasks`, `suspend_point` and `resume_point` has
+  * Constructor that expects `max_tasks`, `suspend_point` and `resume_point` has
   been deprecated in favor of one that takes a `ThrottlerConfig` struct.
+
+  * `ThrottlerConfig.max_tasks` and the constructors which accept a `max_tasks`
+  argument have been deprecated. New constructors have been added which do not
+  expect or use `max_tasks`, instead creating an unlimited task pool. If you
+  want to limit the maximum number of tasks in the pool, use `getTaskPool` and
+  set a limit manually.
 
 New Features
 ============
