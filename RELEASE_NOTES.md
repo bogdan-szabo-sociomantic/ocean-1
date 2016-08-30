@@ -28,6 +28,13 @@ Deprecations
   The function `toCstring()` is now deprecated in favour of `toCString()` (note
   the uppercase `S`).
 
+
+* `ocean.text.convert.Float`
+
+  `parse` overloads for `version = float_dtoa` and `format` overload
+  for `version = float_old` have been deprecated.
+
+
 New Features
 ============
 

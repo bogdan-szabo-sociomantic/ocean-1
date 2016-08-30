@@ -438,6 +438,7 @@ version (float_dtoa)
 
      **********************************************************************/
 
+    deprecated("version = float_dtoa is deprecated")
     NumType parse (char[] src, uint* ate=null)
     {
         char* end;
@@ -456,6 +457,7 @@ version (float_dtoa)
 
      **********************************************************************/
 
+    deprecated("version = float_dtoa is deprecated")
     NumType parse (wchar[] src, uint* ate=null)
     {
         // cheesy hack to avoid pre-parsing :: max digits == 100
@@ -480,6 +482,7 @@ version (float_dtoa)
 
      **********************************************************************/
 
+    deprecated("version = float_dtoa is deprecated")
     NumType parse (dchar[] src, uint* ate=null)
     {
         // cheesy hack to avoid pre-parsing :: max digits == 100
@@ -699,6 +702,7 @@ TODO: this should be replaced, as it is not sufficiently accurate
 
      ******************************************************************************/
 
+    deprecated("version = float_old is deprecated")
     T[] format(T) (T[] dst, NumType x, uint decimals=Dec, int e=Exp, bool pad=Pad)
     {
         static T[] inf = "-inf";
