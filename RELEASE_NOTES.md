@@ -99,3 +99,9 @@ New Features
   e.g. BucketElementFreeList. This can reduce the number of GC allocations
   performed. The existing constructor uses the default bucket allocator of
   map (BucketElementGCAllocator), which will cause garbage collections.
+
+* `ocean.task.ThrottledTaskPool`
+
+  ThrottledTaskPool has been moved out of `ocean.task.util.StreamProcessor` and
+  made public.
+  

@@ -25,7 +25,7 @@ module ocean.task.util.StreamProcessor;
 import ocean.transition;
 
 import ocean.task.Task;
-import ocean.task.TaskPool;
+import ocean.task.ThrottledTaskPool;
 import ocean.task.Scheduler;
 
 import ocean.core.Traits;
@@ -309,8 +309,6 @@ class StreamProcessor ( TaskT : Task )
 
     public void process ( ParameterTupleOf!(TaskT.copyArguments) args )
     {
-        this.task_pool.throttler.throttledSuspend();
-
         if (!this.task_pool.start(args))
         {
             enforce(this.throttler_failure_e, false,
@@ -479,191 +477,6 @@ deprecated unittest
     // works
     auto processor = new StreamProcessor!(DummyTask)(config.task_queue_limit - 1,
         config.task_queue_limit -1, config.task_queue_limit - 2);
-}
-
-/*******************************************************************************
-
-    Special modified version of task pool used in StreamProcessor to enhance
-    `outer` context of task with reference to throttler. Inheriting from
-    TaskPool is necessary here because class can't have multiple `outer`
-    contexts but inheriting `StreamProcessor` itself from task pool would
-    expose all its public methods (which is not good).
-
-*******************************************************************************/
-
-private class ThrottledTaskPool ( TaskT ) : TaskPool!(TaskT)
-{
-   /***************************************************************************
-
-        Throttler used to control tempo of data consumption from streams. By
-        default internally defined PoolThrottler is used which is bound by
-        task pool size limit.
-
-    ***************************************************************************/
-
-    private ISuspendableThrottler throttler;
-
-    /***************************************************************************
-
-        Task class used to process stream data. It inherits from user-supplied
-        task type to insert throttling hooks before and after its main fiber
-        method. Everything else is kept as is.
-
-    ***************************************************************************/
-
-    private class ProcessingTask : OwnedTask
-    {
-        override protected void run ( )
-        {
-            // Bug? Deduces type of `this.outer` as one of base class.
-            auto pool = cast(ThrottledTaskPool) this.outer;
-            assert (pool !is null);
-
-            super.run();
-
-            pool.throttler.throttledResume();
-        }
-    }
-
-    /***************************************************************************
-
-        Default throttler implementation used if no external one is supplied
-        via constructor. It throttles on amount of busy tasks in internal
-        task pool.
-
-    ***************************************************************************/
-
-    private class PoolThrottler : ISuspendableThrottler
-    {
-        /***********************************************************************
-
-          When amount of total queued tasks is >= this value, the input
-          will be suspended.
-
-        ***********************************************************************/
-
-        private size_t suspend_point;
-
-        /***********************************************************************
-
-          When amount of total queued tasks is <= this value, the input
-          will be resumed.
-
-        ***********************************************************************/
-
-        private size_t resume_point;
-
-        /***********************************************************************
-
-            Constructor
-
-            Params:
-                suspend_point = when number of busy tasks reaches this count,
-                    processing will get suspended
-                resume_point = when number of busy tasks reaches this count,
-                    processing will get resumed
-
-        ***********************************************************************/
-
-        public this ( size_t suspend_point, size_t resume_point )
-        {
-            assert(suspend_point > resume_point);
-            assert(suspend_point < this.outer.limit());
-
-            this.suspend_point = suspend_point;
-            this.resume_point = resume_point;
-        }
-
-        /**********************************************************************/
-
-        override protected bool suspend ( )
-        {
-            auto stats = theScheduler.getStats();
-            auto total = stats.task_queue_total;
-            auto used = stats.task_queue_busy;
-
-            debug_trace("Throttler.suspend({}) : used = {}, total = {}, " ~
-                "pool.busy = {}, pool.limit = {}", this.suspend_point, used,
-                total, this.outer.num_busy(), this.outer.limit());
-
-            return used >= this.suspend_point
-                || (this.outer.num_busy() >= this.outer.limit() - 1);
-        }
-
-        /**********************************************************************/
-
-        override protected bool resume ( )
-        {
-            auto stats = theScheduler.getStats();
-            auto total = stats.task_queue_total;
-            auto used = stats.task_queue_busy;
-
-            debug_trace("Throttler.resume({}) : used = {}, total = {}, " ~
-                "pool.busy = {}, pool.limit = {}", this.resume_point, used,
-                total, this.outer.num_busy(), this.outer.limit());
-
-            return used <= this.resume_point
-                && (this.outer.num_busy() < this.outer.limit());
-        }
-    }
-
-    /***************************************************************************
-
-        Constructor
-
-        Params:
-            throttler = custom throttler to use.
-
-    ***************************************************************************/
-
-    private this ( ISuspendableThrottler throttler )
-    {
-        assert(throttler !is null);
-        this.throttler = throttler;
-    }
-
-    /***************************************************************************
-
-        Constructor
-
-        Params:
-            suspend_point = when number of busy tasks reaches this count,
-                processing will get suspended
-            resume_point = when number of busy tasks reaches this count,
-                processing will get resumed
-
-    ***************************************************************************/
-
-    private this ( size_t suspend_point, size_t resume_point )
-    {
-        this.throttler = new PoolThrottler(suspend_point, resume_point);
-    }
-
-    /***************************************************************************
-
-        Rewrite of TaskPool.start changed to use `ProcessingTask` as actual
-        task type instead of plain OwnedTask. Right now it is done by dumb
-        copy-paste, if that pattern will appear more often, TaskPool base
-        class may need a slight refactoring to support it.
-
-        Params:
-            args = same set of args as defined by `copyArguments` method of
-                user-supplied task class, will be forwarded to it.
-
-    ***************************************************************************/
-
-    override protected bool start ( ParameterTupleOf!(TaskT.copyArguments) args )
-    {
-        if (this.num_busy() >= this.limit())
-            return false;
-
-        auto task = cast(TaskT) this.get(new ProcessingTask);
-        assert (task !is null);
-        task.copyArguments(args);
-        theScheduler.schedule(task);
-
-        return true;
-    }
 }
 
 /*******************************************************************************
