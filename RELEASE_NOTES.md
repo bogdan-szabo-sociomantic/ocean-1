@@ -9,11 +9,6 @@ tango      | v1.3.x
 Migration Instructions
 ======================
 
-* `ocean.io.select.client.Scheduler`
-
-  This module has been moved to `ocean.io.select.client.TimerSet`. The class
-  template `Scheduler` has likewise been renamed to `TimerSet`.
-
 * `ocean.util.app.ext.StatsExt`
 
   StatsLog instances created by `newStatsLog` will be named according to the file to which
@@ -32,6 +27,12 @@ Migration Instructions
 
 Deprecations
 ============
+
+* `ocean.io.select.client.Scheduler`
+
+  This module has been moved to `ocean.io.select.client.TimerSet`. The class
+  template `Scheduler` has likewise been renamed to `TimerSet`. The original
+  module and symbols are deprecated.
 
 * `ocean.time.Ctime`
 
