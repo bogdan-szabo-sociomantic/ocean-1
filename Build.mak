@@ -1,5 +1,9 @@
 override DFLAGS += -w -version=GLIBC
 
+# Makd auto-detects if Ocean's test runner should be used based on submodules,
+# but we -or course- don't have Ocean as a submodule, so we set it explicitly.
+TEST_RUNNER_MODULE := ocean.core.UnitTestRunner
+
 # Remove deprecated modules from testing:
 TEST_FILTER_OUT += \
 	$(shell find $C/src/tango) \
