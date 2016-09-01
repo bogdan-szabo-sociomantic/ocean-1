@@ -35,6 +35,13 @@ Deprecations
   for `version = float_old` have been deprecated.
 
 
+* `ocean.util.serialize.contiguous.VersionDecorator`
+
+  The `VersionDecorator` defined in this module is deprecated.
+  The `VersionDecorator` in the `MultiVersionDecorator` module of the same package
+  should be prefered, as it handles multiple version jump without runtime performance.
+
+
 New Features
 ============
 
