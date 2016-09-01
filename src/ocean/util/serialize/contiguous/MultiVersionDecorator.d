@@ -204,7 +204,7 @@ class VersionDecorator
 
 version(UnitTest)
 {
-    struct Test1
+    struct Multi_Test1
     {
         static struct Version0
         {
@@ -249,13 +249,13 @@ unittest
     // loadCopy
 
     auto loader = new VersionDecorator();
-    auto ver0 = Test1.Version0(42, 43, ["version0".dup]);
+    auto ver0 = Multi_Test1.Version0(42, 43, ["version0".dup]);
     void[] serialized;
-    Contiguous!(Test1.Version2) buffer;
+    Contiguous!(Multi_Test1.Version2) buffer;
 
     loader.store(ver0, serialized);
     auto ver2 = loader.loadCopy(serialized, buffer);
-    
+
     testNoAlloc({
         auto ver2 = loader.loadCopy(serialized, buffer);
     } ());
@@ -272,11 +272,11 @@ unittest
 
     auto loader = new VersionDecorator();
 
-    auto ver0 = Test1.Version0(42, 43, ["version0".dup]);
+    auto ver0 = Multi_Test1.Version0(42, 43, ["version0".dup]);
     void[] buffer;
 
     loader.store(ver0, buffer);
-    auto ver2 = loader.load!(Test1.Version2)(buffer);
+    auto ver2 = loader.load!(Multi_Test1.Version2)(buffer);
 
     test!("==")(ver2.ptr.a, ver0.a);
     test!("==")(ver2.ptr.b, ver0.b);
@@ -285,7 +285,7 @@ unittest
 
     void[] buffer2;
     loader.store(*ver2.ptr, buffer2);
-    auto ver0_again = loader.load!(Test1.Version0)(buffer2);
+    auto ver0_again = loader.load!(Multi_Test1.Version0)(buffer2);
 
 }
 
@@ -293,7 +293,7 @@ unittest
 
 version (UnitTest)
 {
-    struct Test2
+    struct Multi_Test2
     {
         static struct Version3
         {
