@@ -28,12 +28,16 @@ Deprecations
   The function `toCstring()` is now deprecated in favour of `toCString()` (note
   the uppercase `S`).
 
-
 * `ocean.text.convert.Float`
 
   `parse` overloads for `version = float_dtoa` and `format` overload
   for `version = float_old` have been deprecated.
 
+* `ocean.util.cipher.gcrypt.core.Gcrypt`
+
+  The `Gcrypt` template has been deprecated, either `GcryptWithIV` or
+  `GcryptNoIV` should be used, depending on if your desired encryption mode
+  requires initialization vectors or not.
 
 * `ocean.util.serialize.contiguous.VersionDecorator`
 

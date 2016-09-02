@@ -26,7 +26,7 @@ import ocean.transition;
 
 *******************************************************************************/
 
-public alias Gcrypt!(Algorithm.GCRY_CIPHER_AES, Mode.GCRY_CIPHER_MODE_ECB) AES;
+public alias GcryptNoIV!(Algorithm.GCRY_CIPHER_AES, Mode.GCRY_CIPHER_MODE_ECB) AES;
 
 version ( UnitTest )
 {
@@ -38,9 +38,6 @@ unittest
 {
     // AES requires a key of length 16 bytes.
     auto key = cast(Immut!(ubyte)[])"asdfghjklqwertyu";
-
-    // AES requires an initialization vector of length 16 bytes.
-    auto iv = cast(Immut!(ubyte)[])"ivector 16 bytes";
 
     // AES requires the text of 16-bytes blocks.
     istring text = "Length divide 16";
@@ -54,14 +51,14 @@ unittest
     encrypted_text ~= text;
 
     // The actual encryption.
-    two.encrypt(encrypted_text, iv);
+    two.encrypt(encrypted_text);
 
     // Since decryption is done in place we copy the decrypted string to a new
     // buffer.
     decrypted_text ~= encrypted_text;
 
     // The decryption call.
-    two.decrypt(decrypted_text, iv);
+    two.decrypt(decrypted_text);
 
     // We have now successfully encrypted and decrypted a string.
     test!("==")(text, decrypted_text);
