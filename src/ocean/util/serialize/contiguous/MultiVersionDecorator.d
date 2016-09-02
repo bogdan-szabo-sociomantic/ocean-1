@@ -206,7 +206,7 @@ version(UnitTest)
 {
     struct Test1
     {
-        struct Version0
+        static struct Version0
         {
             const StructVersion = 0;
             alias Version1 StructNext;
@@ -216,7 +216,7 @@ version(UnitTest)
             mstring[] strarr;
         }
 
-        struct Version1
+        static struct Version1
         {
             const StructVersion = 1;
             alias Version0 StructPrevious;
@@ -227,7 +227,7 @@ version(UnitTest)
             mstring[] strarr;
         }
 
-        struct Version2
+        static struct Version2
         {
             const StructVersion = 2;
             alias Version1 StructPrevious;
@@ -295,13 +295,13 @@ version (UnitTest)
 {
     struct Test2
     {
-        struct Version3
+        static struct Version3
         {
             int a, b;
             const StructVersion = 3;
         }
 
-        struct VersionHuge
+        static struct VersionHuge
         {
             const StructVersion = 100;
         }
