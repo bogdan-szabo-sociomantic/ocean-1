@@ -53,6 +53,9 @@ Deprecations
   The `VersionDecorator` in the `MultiVersionDecorator` module of the same package
   should be prefered, as it handles multiple version jump without runtime performance.
 
+* `ocean.io.serialize.XmlStructSerializer`
+
+  This unmaintained module is deprecated.
 
 New Features
 ============

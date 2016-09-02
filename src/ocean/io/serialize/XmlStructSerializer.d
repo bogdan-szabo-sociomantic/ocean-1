@@ -72,7 +72,7 @@
 
 *******************************************************************************/
 
-module ocean.io.serialize.XmlStructSerializer;
+deprecated module ocean.io.serialize.XmlStructSerializer;
 
 
 
@@ -105,6 +105,7 @@ import Float = ocean.text.convert.Float;
 
 *******************************************************************************/
 
+deprecated("This class is unmaintained so is being removed")
 class XmlStructSerializer ( Char )
 {
     static assert ( isCharType!(Char), typeof(this).stringof ~ " - this class can only handle {char, wchar, dchar}, not " ~ Char.stringof );
@@ -359,7 +360,7 @@ class XmlStructSerializer ( Char )
     }
 }
 
-unittest
+deprecated unittest
 {
     auto srlz = new XmlStructSerializer!(char);
 }
