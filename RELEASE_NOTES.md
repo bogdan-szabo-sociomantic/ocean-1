@@ -60,3 +60,8 @@ New Features
 * `ocean.task.util.StreamProcessor`
 
   Added getter method for the internal task pool.
+
+* `ocean.io.select.client.TimerSet`
+
+  The `schedule()` method now returns an interface to the newly scheduled event
+  (`IEvent`), allowing it to be cancelled.
