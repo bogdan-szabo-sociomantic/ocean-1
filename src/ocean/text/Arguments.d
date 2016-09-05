@@ -873,7 +873,7 @@ public class Arguments
             this.usage = usage;
         }
 
-        get(null).params; // set null argument to consume params
+        this.get(null).params; // set null argument to consume params
     }
 
 
@@ -928,7 +928,7 @@ public class Arguments
         bool done;
         int error;
 
-        stack.push(get(null));
+        stack.push(this.get(null));
 
         foreach ( s; input )
         {
@@ -938,7 +938,7 @@ public class Arguments
                 {
                     done = true;
 
-                    stack.clear.push(get(null));
+                    stack.clear.push(this.get(null));
 
                     continue;
                 }
@@ -1365,7 +1365,7 @@ public class Arguments
                 }
                 else
                 {
-                    get(null).append(p, true);
+                    this.get(null).append(p, true);
                 }
             }
 
@@ -1429,7 +1429,7 @@ public class Arguments
         {
             if ( (a = elem in aliases) is null )
             {
-                return get(elem).params.enable(!sloppy);
+                return this.get(elem).params.enable(!sloppy);
             }
         }
 
