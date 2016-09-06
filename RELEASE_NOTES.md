@@ -73,3 +73,8 @@ New Features
 
   The `schedule()` method now returns an interface to the newly scheduled event
   (`IEvent`), allowing it to be cancelled.
+
+* `ocean.task.Task`
+
+  Task has gained methods `registerOnKillHook`/`unregisterOnKillHook` that can be
+  used to register/unregister callback hooks to be called when the Task is killed.
