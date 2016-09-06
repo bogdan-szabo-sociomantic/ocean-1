@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    Wrapper for libgcrypt with algorithm Twofish and mode CFB
+    libgcrypt with algorithm Twofish and mode CFB
 
     Requires linking with libgcrypt:
             -L-lgcrypt

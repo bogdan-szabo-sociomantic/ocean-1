@@ -12,6 +12,9 @@ endif
 TEST_FILTER_OUT += \
 	$C/src/ocean/core/Array_tango.d
 
+# This is an integration test that depends on Collectd -- Don't run it
+TEST_FILTER_OUT += $C/test/collectd/main.d
+
 $O/test-filesystemevent: override LDFLAGS += -lrt
 
 $O/test-selectlistener: override LDFLAGS += -lebtree

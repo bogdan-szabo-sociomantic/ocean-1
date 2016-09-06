@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    Base class for gcrypt algorithms which require an initialisation vector.
+    Template for gcrypt algorithms which require an initialisation vector.
 
     Requires linking with libgcrypt:
             -L-lgcrypt
@@ -96,11 +96,7 @@ public class GcryptException : Exception
     {
         if ( error )
         {
-            this.set(`Error: "`, file, line)
-                .append(fromStringz(gcry_strerror(error)))
-                .append(`" Source: "`)
-                .append(fromStringz(gcry_strsource(error)))
-                .append(`"`);
+            this.setGcryptErrorMsg(error, file, line);
             throw this;
         }
     }
@@ -136,6 +132,55 @@ public class GcryptException : Exception
                 .append(expected);
             throw this;
         }
+    }
+
+    /***************************************************************************
+
+        Throws a new instance of this class if `error` indicates an error. The
+        exception message is set to contain the error from libgcrypt.
+
+        Params:
+            error = error code from gcrypt
+            file = file from which this exception can be thrown
+            line = line from which this exception can be thrown
+
+        Throws:
+            a new instance of this class if error != 0
+
+    ***************************************************************************/
+
+    public static void throwNewIfGcryptError ( gcry_error_t error,
+                                               istring file = __FILE__,
+                                               int line = __LINE__ )
+    {
+        if (error)
+        {
+            auto e = new typeof(this);
+            e.setGcryptErrorMsg(error, file, line);
+            throw e;
+        }
+    }
+
+    /***************************************************************************
+
+        Set the exception message to contain the error from libgcrypt.
+
+        Params:
+            error = error code from gcrypt
+            file = file from which this exception can be thrown
+            line = line from which this exception can be thrown
+
+    ***************************************************************************/
+
+    private void setGcryptErrorMsg ( gcry_error_t error,
+                                     istring file = __FILE__,
+                                     int line = __LINE__  )
+    {
+        this.set(`Error: "`, file, line)
+            .append(fromStringz(gcry_strerror(error)))
+            .append(`" Source: "`)
+            .append(fromStringz(gcry_strsource(error)))
+            .append(`"`);
     }
 }
 
@@ -434,6 +479,30 @@ public class Gcrypt ( Algorithm algorithm, Mode mode )
         {
             return generateString(typeof(this).required_iv_len);
         }
+
+        /***********************************************************************
+
+            Helper function to generate a char[] suitable for use as a message
+            to encrypt in unittests. For compatibility with certain algorithms,
+            a message of the defined block-length (equal to the IV length) is
+            generated.
+
+            Returns:
+                char[] of the correct length
+
+        ***********************************************************************/
+
+        public static char[] generateMessage ( )
+        {
+            auto length = typeof(this).required_iv_len;
+            auto str = new char[length];
+            char i = 'a';
+            foreach ( ref v; str )
+            {
+                v = i++;
+            }
+            return str;
+        }
     }
 
     /***************************************************************************
@@ -472,8 +541,7 @@ public class Gcrypt ( Algorithm algorithm, Mode mode )
 
         auto crypt = new typeof(this)(key);
 
-        mstring buf;
-        buf.length = 1;
+        auto buf = generateMessage();
 
         // Too short should fail
         testThrown!(GcryptException)(crypt.encrypt(buf, iv[0 .. $-1]));
@@ -500,7 +568,7 @@ public class Gcrypt ( Algorithm algorithm, Mode mode )
 
         auto crypt = new typeof(this)(key);
 
-        istring original = "apabepacepa";
+        auto original = generateMessage();
         mstring buf;
         buf ~= original;
 
