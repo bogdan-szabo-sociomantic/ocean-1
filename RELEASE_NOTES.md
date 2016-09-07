@@ -57,6 +57,11 @@ Deprecations
 
   This unmaintained module is deprecated.
 
+* `ocean.text.xml.Xslt`, `ocean.text.xml.c.LibXslt`, `ocean.text.xml.c.LibXml2`
+
+  The XSLT processor implemented here is not generic and is thus being removed
+  from ocean. It will be moved to another repository.
+
 New Features
 ============
 

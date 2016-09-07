@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module ocean.text.xml.c.LibXslt;
+deprecated module ocean.text.xml.c.LibXslt;
 
 
 
@@ -139,6 +139,7 @@ extern (C) extern private mixin(global("int xsltMaxDepth"));
 
 *******************************************************************************/
 
+deprecated("This function is to be moved into another repository")
 public void xsltSetMaxDepth ( int max_depth )
 {
     xsltMaxDepth = max_depth;
@@ -154,6 +155,7 @@ public void xsltSetMaxDepth ( int max_depth )
 
 *******************************************************************************/
 
+deprecated("This function is to be moved into another repository")
 public int xsltGetMaxDepth ( )
 {
     return xsltMaxDepth;
@@ -179,6 +181,7 @@ public int xsltGetMaxDepth ( )
 
 *******************************************************************************/
 
+deprecated("This function is to be moved into another repository")
 public int xsltRequiredStackSpace ( int recursion_depth )
 {
     // The stack requirements of libxslt are not documented. The values below

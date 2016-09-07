@@ -32,6 +32,9 @@ TEST_FILTER_OUT += \
 	$C/src/ocean/util/cipher/Salsa20.d \
 	$C/src/ocean/util/cipher/ChaCha.d \
 	$C/src/ocean/text/util/StringReplace.d \
+	$C/src/ocean/text/xml/Xslt.d \
+	$C/src/ocean/text/xml/c/LibXslt.d \
+	$C/src/ocean/text/xml/c/LibXml2.d \
 	$C/src/ocean/text/utf/UtfConvert.d \
 	$C/src/ocean/io/compress/lzo/c/lzo_crc.d \
 	$C/src/ocean/io/selector/model/ISelector.d \

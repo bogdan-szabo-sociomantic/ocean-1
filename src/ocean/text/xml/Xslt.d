@@ -20,7 +20,7 @@
 
 *******************************************************************************/
 
-module ocean.text.xml.Xslt;
+deprecated module ocean.text.xml.Xslt;
 
 
 
@@ -85,6 +85,7 @@ private void throwXmlErrors ( Exception exception )
 
 *******************************************************************************/
 
+deprecated("This class is to be moved into another repository")
 class XsltStylesheet
 {
     /***************************************************************************
@@ -191,6 +192,7 @@ class XsltStylesheet
 
 *******************************************************************************/
 
+deprecated("This class is to be moved into another repository")
 public class XsltResult
 {
     /***************************************************************************
@@ -282,6 +284,7 @@ public class XsltResult
 
 *******************************************************************************/
 
+deprecated("This class is to be moved into another repository")
 public class XsltParameters
 {
     /***************************************************************************
@@ -360,6 +363,7 @@ extern ( C )
 
 ***************************************************************************/
 
+deprecated("This function is to be moved into another repository")
 public void suppressXsltStderrOutput ( )
 {
     xmlSetGenericErrorFunc(null, &silentXmlErrorHandler);
@@ -374,6 +378,7 @@ public void suppressXsltStderrOutput ( )
 
 *******************************************************************************/
 
+deprecated("This class is to be moved into another repository")
 public class XsltProcessor
 {
     /***************************************************************************
