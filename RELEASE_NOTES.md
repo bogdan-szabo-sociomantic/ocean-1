@@ -62,6 +62,10 @@ Deprecations
   The XSLT processor implemented here is not generic and is thus being removed
   from ocean. It will be moved to another repository.
 
+* `ocean.util.cipher.gcrypt.AES`
+
+  The `AES` alias has been deprecated in favor of the equivalent `AES128`.
+
 New Features
 ============
 
@@ -78,3 +82,7 @@ New Features
 
   Task has gained methods `registerOnKillHook`/`unregisterOnKillHook` that can be
   used to register/unregister callback hooks to be called when the Task is killed.
+
+* `ocean.util.cipher.gcrypt.AES`
+
+  Additional aliases for 192- and 256-bit AES ciphers have been added.
