@@ -443,8 +443,7 @@ abstract class IConnectionHandler : IConnectionHandlerInfo,
 
     public void formatInfo ( ref char[] buf )
     {
-        Format.format(buf, "fd={}, ioerr={}",
-            this.fileHandle, this.io_error);
+        this.socket.formatInfo(buf, this.io_error);
     }
 
     /***************************************************************************

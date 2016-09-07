@@ -69,6 +69,11 @@ Deprecations
 New Features
 ============
 
+* `ocean.sys.socket.model.ISocket`
+
+  Add `formatInfo` method which formats information about the socket into the
+  provided buffer
+
 * `ocean.task.util.StreamProcessor`
 
   Added getter method for the internal task pool.
