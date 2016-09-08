@@ -1208,6 +1208,10 @@ version (UnitTest)
             test!("==")(*p, i);
         }
     }
+
+    import MallocAllocator = ocean.util.container.map.model.BucketElementMallocAllocator;
+    import GCAllocator = ocean.util.container.map.model.BucketElementGCAllocator;
+    import FreeListAllocator = ocean.util.container.map.model.BucketElementFreeList;
 }
 
 unittest
@@ -1221,4 +1225,17 @@ unittest
     test_val!(short);
     test_val!(int);
     test_val!(long);
+}
+
+/*******************************************************************************
+
+    Instantiate the bucket element allocator templates.
+
+*******************************************************************************/
+
+unittest
+{
+    MallocAllocator.instantiateAllocator!(StandardKeyHashingMap!(int, int));
+    GCAllocator.instantiateAllocator!(StandardKeyHashingMap!(int, int));
+    FreeListAllocator.instantiateAllocator!(StandardKeyHashingMap!(int, int));
 }
