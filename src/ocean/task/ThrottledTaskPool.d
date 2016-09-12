@@ -23,8 +23,10 @@ import ocean.transition;
 public class ThrottledTaskPool ( TaskT ) : TaskPool!(TaskT)
 {
     import ocean.core.Traits;
+    import ocean.core.Enforce;
     import ocean.io.model.ISuspendableThrottler;
     import ocean.task.Scheduler;
+    import ocean.text.convert.Format;
 
     /***************************************************************************
 
@@ -231,6 +233,50 @@ public class ThrottledTaskPool ( TaskT ) : TaskPool!(TaskT)
 
         return true;
     }
+
+    static if( hasMethod!(TaskT, "deserialize", void delegate(void[])) )
+    {
+        /***********************************************************************
+
+            Starts a task in the same manner as `start` but instead calls
+            a restore method on the derived task with a serialized buffer of the
+            state. This is to support dumping and loading tasks from disk.
+
+            Params:
+                serialized = same set of args as defined by `serialized` method
+                    of user-supplied task class, will be forwarded to it.
+
+            Returns:
+                'false' if new task can't be started because pool limit is
+                reached for now, 'true' otherwise
+
+        ***********************************************************************/
+
+        override public bool restore ( void[] serialized )
+        {
+            if (this.num_busy() >= this.limit())
+                return false;
+
+            auto task = cast(TaskT) this.get(new ProcessingTask);
+            assert (task !is null);
+            task.deserialize(serialized);
+            theScheduler.schedule(task);
+
+            this.throttler.throttledSuspend();
+
+            return true;
+        }
+    }
+
+    /***************************************************************************
+
+        Debug trace output when builing with the TaskScheduler debug flag.
+
+        Params:
+            format = Format for variadic argument output.
+            args = Variadic arguments for output.
+
+    ***************************************************************************/
 
     private void debug_trace ( T... ) ( cstring format, T args )
     {

@@ -104,4 +104,15 @@ New Features
 
   ThrottledTaskPool has been moved out of `ocean.task.util.StreamProcessor` and
   made public.
-  
+
+* `ocean.task.util.TaskPoolSerializer`
+
+  Added methods to dump and restore tasks inside of a task pool to disk to
+  facilitate preserving tasks between application restarts.
+
+  To use the serialization and deserialization funtionality the derived task
+  must implement `serialize` and `deserialize`.
+  `public void serialize ( ref void[] buffer )`
+  `public void deserialize ( void[] buffer )`
+
+  See usage example in the unit test for example implementation.
