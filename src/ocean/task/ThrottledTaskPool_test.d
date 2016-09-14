@@ -7,7 +7,7 @@
 
 *******************************************************************************/
 
-module ocean.task.util.StreamProcessor_test;
+module ocean.task.ThrottledTaskPool_test;
 
 /*******************************************************************************
 
@@ -17,7 +17,7 @@ module ocean.task.util.StreamProcessor_test;
 
 import ocean.task.Task;
 import ocean.task.Scheduler;
-import ocean.task.util.StreamProcessor;
+import ocean.task.ThrottledTaskPool;
 import ocean.task.util.Timer;
 
 import ocean.io.model.ISuspendable;
@@ -35,7 +35,7 @@ static import core.thread;
 
 class Generator : Task
 {
-    void delegate(int) process_dg;
+    bool delegate(int) process_dg;
 
     this ( typeof(this.process_dg) dg )
     {
@@ -46,7 +46,7 @@ class Generator : Task
     {
         int i;
         while (++i)
-            process_dg(i);
+            assert(process_dg(i));
     }
 }
 
@@ -85,10 +85,9 @@ unittest
     config.task_queue_limit = 30;
     initScheduler(config);
 
-    auto throttler_config = ThrottlerConfig(10, 1);
-    auto stream_processor = new StreamProcessor!(ProcessingTask)(throttler_config);
-    auto generator = new Generator(&stream_processor.process);
-    stream_processor.addStream(generator);
+    auto task_pool = new ThrottledTaskPool!(ProcessingTask)(10, 0);
+    auto generator = new Generator(&task_pool.start);
+    task_pool.throttler.addSuspendable(generator);
 
     theScheduler.schedule(generator);
     theScheduler.eventLoop();
@@ -97,4 +96,5 @@ unittest
     // may vary but it must always be at most 1000 + task_queue_limit
     test!(">=")(ProcessingTask.total, 1000);
     test!("<=")(ProcessingTask.total, 1000 + config.task_queue_limit);
+
 }

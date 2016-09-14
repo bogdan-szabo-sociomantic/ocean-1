@@ -26,43 +26,70 @@ import ocean.transition;
 
 *******************************************************************************/
 
-public alias Gcrypt!(Algorithm.GCRY_CIPHER_AES, Mode.GCRY_CIPHER_MODE_ECB) AES;
+deprecated("Use the equivalent AES128 instead")
+public alias GcryptNoIV!(Algorithm.GCRY_CIPHER_AES, Mode.GCRY_CIPHER_MODE_ECB) AES;
+
+public alias GcryptNoIV!(Algorithm.GCRY_CIPHER_AES, Mode.GCRY_CIPHER_MODE_ECB) AES128;
+public alias GcryptNoIV!(Algorithm.GCRY_CIPHER_AES192, Mode.GCRY_CIPHER_MODE_ECB) AES192;
+public alias GcryptNoIV!(Algorithm.GCRY_CIPHER_AES256, Mode.GCRY_CIPHER_MODE_ECB) AES256;
 
 version ( UnitTest )
 {
     import ocean.core.Test;
+
+    void testAES ( Cipher, istring str_key ) ( )
+    {
+        auto key = cast(Immut!(ubyte)[])str_key;
+
+        // AES operates on 16-byte blocks.
+        istring text = "Length divide 16";
+        mstring encrypted_text, decrypted_text;
+
+        // Create the class.
+        auto cipher = new Cipher(key);
+
+        // encryption/decryption is done in place so first copy the plain text
+        // to a buffer.
+        encrypted_text ~= text;
+
+        // The actual encryption
+        cipher.encrypt(encrypted_text);
+
+        // Since decryption is done in place we copy the decrypted string to a
+        // new buffer.
+        decrypted_text ~= encrypted_text;
+
+        // The decryption call.
+        cipher.decrypt(decrypted_text);
+
+        // We have now successfully encrypted and decrypted a string.
+        test!("==")(text, decrypted_text);
+    }
 }
 
-/// Usage example
+/// Usage example of AES with 128-bit keys
 unittest
 {
-    // AES requires a key of length 16 bytes.
-    auto key = cast(Immut!(ubyte)[])"asdfghjklqwertyu";
+    // AES128 requires a key of length 16 bytes.
+    const KEY = "asdfghjklqwertyu";
 
-    // AES requires an initialization vector of length 16 bytes.
-    auto iv = cast(Immut!(ubyte)[])"ivector 16 bytes";
+    testAES!(AES128, KEY)();
+}
 
-    // AES requires the text of 16-bytes blocks.
-    istring text = "Length divide 16";
-    mstring encrypted_text, decrypted_text;
+/// Usage example of AES with 192-bit keys
+unittest
+{
+    // AES192 requires a key of length 24 bytes.
+    const KEY = "abcdefghijklmnopqrstuvwx";
 
-    // Create the class.
-    auto two = new AES(key);
+    testAES!(AES192, KEY);
+}
 
-    // encryption/decryption is done in place so first copy the plain text to a
-    // buffer.
-    encrypted_text ~= text;
+/// Usage example of AES with 256-bit keys
+unittest
+{
+    // AES256 requires a key of length 32 bytes.
+    const KEY = "abcdefghijklmnopqrstuvwxyz012345";
 
-    // The actual encryption.
-    two.encrypt(encrypted_text, iv);
-
-    // Since decryption is done in place we copy the decrypted string to a new
-    // buffer.
-    decrypted_text ~= encrypted_text;
-
-    // The decryption call.
-    two.decrypt(decrypted_text, iv);
-
-    // We have now successfully encrypted and decrypted a string.
-    test!("==")(text, decrypted_text);
+    testAES!(AES256, KEY);
 }

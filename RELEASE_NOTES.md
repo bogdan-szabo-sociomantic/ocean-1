@@ -20,9 +20,6 @@ Dependency                | Version
 makd                      | v1.3.x
 tango runtime (for D1)    | v1.5.1
 
-Migration Instructions
-======================
-
 Deprecations
 ============
 
