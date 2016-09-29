@@ -30,8 +30,87 @@ deprecated("Use the equivalent AES128 instead")
 public alias GcryptNoIV!(Algorithm.GCRY_CIPHER_AES, Mode.GCRY_CIPHER_MODE_ECB) AES;
 
 public alias GcryptNoIV!(Algorithm.GCRY_CIPHER_AES, Mode.GCRY_CIPHER_MODE_ECB) AES128;
+
+/// Usage example of AES with 128-bit keys
+unittest
+{
+    // AES128 requires a key of length 16 bytes.
+    const KEY = "asdfghjklqwertyu";
+
+    testAES!(AES128, KEY)();
+}
+
 public alias GcryptNoIV!(Algorithm.GCRY_CIPHER_AES192, Mode.GCRY_CIPHER_MODE_ECB) AES192;
+
+/// Usage example of AES with 192-bit keys
+unittest
+{
+    // AES192 requires a key of length 24 bytes.
+    const KEY = "abcdefghijklmnopqrstuvwx";
+
+    testAES!(AES192, KEY);
+}
+
 public alias GcryptNoIV!(Algorithm.GCRY_CIPHER_AES256, Mode.GCRY_CIPHER_MODE_ECB) AES256;
+
+/// Usage example of AES with 256-bit keys
+unittest
+{
+    // AES256 requires a key of length 32 bytes.
+    const KEY = "abcdefghijklmnopqrstuvwxyz012345";
+
+    testAES!(AES256, KEY);
+}
+
+/*******************************************************************************
+
+    Gcrypt with AES with mode CBC.
+
+    See usage example in unittest below.
+
+*******************************************************************************/
+
+public alias GcryptWithIV!(Algorithm.GCRY_CIPHER_AES, Mode.GCRY_CIPHER_MODE_CBC) AES128_CBC;
+
+/// Usage example of AES-CBC with 128-bit keys
+unittest
+{
+    // AES128-CBC requires a key of length 16 bytes.
+    const KEY = "asdfghjklqwertyu";
+
+    // AES128-CBC requires an IV of length 16 bytes.
+    const IV = "0123456789ABCDEF";
+
+    testAES_IV!(AES128_CBC, KEY, IV);
+}
+
+public alias GcryptWithIV!(Algorithm.GCRY_CIPHER_AES192, Mode.GCRY_CIPHER_MODE_CBC) AES192_CBC;
+
+/// Usage example of AES-CBC with 192-bit keys
+unittest
+{
+    // AES192-CBC requires a key of length 24 bytes.
+    const KEY = "abcdefghijklmnopqrstuvwx";
+
+    // AES192-CBC requires an IV of length 16 bytes.
+    const IV = "0123456789ABCDEF";
+
+    testAES_IV!(AES192_CBC, KEY, IV);
+}
+
+public alias GcryptWithIV!(Algorithm.GCRY_CIPHER_AES256, Mode.GCRY_CIPHER_MODE_CBC) AES256_CBC;
+
+/// Usage example of AES-CBC with 256-bit keys
+unittest
+{
+    // AES256-CBC requires a key of length 32 bytes.
+    const KEY = "abcdefghijklmnopqrstuvwxyz012345";
+
+    // AES256-CBC requires an IV of length 16 bytes.
+    const IV = "0123456789ABCDEF";
+
+    testAES_IV!(AES256_CBC, KEY, IV);
+}
 
 version ( UnitTest )
 {
@@ -65,31 +144,34 @@ version ( UnitTest )
         // We have now successfully encrypted and decrypted a string.
         test!("==")(text, decrypted_text);
     }
-}
 
-/// Usage example of AES with 128-bit keys
-unittest
-{
-    // AES128 requires a key of length 16 bytes.
-    const KEY = "asdfghjklqwertyu";
+    void testAES_IV ( Cipher, istring str_key, istring str_iv ) ( )
+    {
+        auto key = cast(Immut!(ubyte)[])str_key;
+        auto iv = cast(Immut!(ubyte)[])str_iv;
 
-    testAES!(AES128, KEY)();
-}
+        // AES operates on 16-byte blocks;
+        istring text = "Length divide 16";
+        mstring encrypted_text, decrypted_text;
 
-/// Usage example of AES with 192-bit keys
-unittest
-{
-    // AES192 requires a key of length 24 bytes.
-    const KEY = "abcdefghijklmnopqrstuvwx";
+        // Create the class.
+        auto cipher = new Cipher(key);
 
-    testAES!(AES192, KEY);
-}
+        // encryption/decryption is done in place so first copy the plain text
+        // to a buffer
+        encrypted_text ~= text;
 
-/// Usage example of AES with 256-bit keys
-unittest
-{
-    // AES256 requires a key of length 32 bytes.
-    const KEY = "abcdefghijklmnopqrstuvwxyz012345";
+        // The actual encryption
+        cipher.encrypt(encrypted_text, iv);
 
-    testAES!(AES256, KEY);
+        // Since decryption is done in place we copy the decrypted string to a
+        // new buffer.
+        decrypted_text ~= encrypted_text;
+
+        // The decryption call.
+        cipher.decrypt(decrypted_text, iv);
+
+        // We have now successfully encrypted and decrypted a string.
+        test!("==")(text, decrypted_text);
+    }
 }

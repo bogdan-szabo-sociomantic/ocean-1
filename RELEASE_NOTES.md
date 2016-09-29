@@ -20,9 +20,10 @@ Dependency                | Version
 makd                      | v1.3.x
 tango runtime (for D1)    | v1.5.1
 
-Deprecations
-============
-
-
 New Features
 ============
+
+This release includes all new features added in the following v1.x.x releases:
+
+* [v1.31.0](https://github.com/sociomantic/ocean/releases/tag/v1.33.0)
+
