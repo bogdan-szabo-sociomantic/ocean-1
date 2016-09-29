@@ -20,6 +20,13 @@ Dependency                | Version
 makd                      | v1.3.x
 tango runtime (for D1)    | v1.5.1
 
+Bugs fixed
+==========
+
+* Add missing licensing information to new modules
+  (https://github.com/sociomantic/ocean/pull/1383,
+  https://github.com/sociomantic/ocean/pull/1382)
+
 New Features
 ============
 
