@@ -24,8 +24,9 @@ Bugs fixed
 ==========
 
 * Add missing licensing information to new modules
-  (https://github.com/sociomantic/ocean/pull/1383,
-  https://github.com/sociomantic/ocean/pull/1382)
+  (https://github.com/sociomantic/ocean/pull/1382,
+  https://github.com/sociomantic/ocean/pull/1383,
+  https://github.com/sociomantic/ocean/pull/1384)
 
 New Features
 ============
