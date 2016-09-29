@@ -1,4 +1,4 @@
-Release Notes for Ocean v2.1.0
+Release Notes for Ocean v2.2.0
 ==============================
 
 Note: If you are upgrading from an older version, you have to upgrade
@@ -24,9 +24,7 @@ Bugs fixed
 ==========
 
 * Add missing licensing information to new modules
-  (https://github.com/sociomantic/ocean/pull/1382,
-  https://github.com/sociomantic/ocean/pull/1383,
-  https://github.com/sociomantic/ocean/pull/1384)
+  (https://github.com/sociomantic/ocean/pull/1384)
 
 New Features
 ============
