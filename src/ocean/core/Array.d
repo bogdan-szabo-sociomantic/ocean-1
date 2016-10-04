@@ -43,8 +43,8 @@ import ocean.transition;
 import ocean.core.Test;
 import ocean.core.Buffer;
 
-public import ocean.core.array.Mutation;;
-public import ocean.core.array.Transformation;;
+public import ocean.core.array.Mutation;
+public import ocean.core.array.Transformation;
 public import ocean.core.array.Search;
 
 /*******************************************************************************
