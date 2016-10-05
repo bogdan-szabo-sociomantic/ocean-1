@@ -20,5 +20,14 @@ Dependency                | Version
 makd                      | v1.3.x
 tango runtime (for D1)    | v1.5.1
 
+Deprecations
+============
+
+* `ocean.core.array.Mutation.remove`
+
+  The function `remove()` is now deprecated due to it causes function clashes
+  in the module `ocean.core.Array`. The function `moveToEnd()` should be used
+  instead.
+
 New Features
 ============
