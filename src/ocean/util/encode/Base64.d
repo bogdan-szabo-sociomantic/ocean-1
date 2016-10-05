@@ -1,31 +1,26 @@
 /*******************************************************************************
 
-        copyright:      Copyright (c) 2008 Jeff Davey. All rights reserved
+    This module is used to decode and encode base64 `cstring` / `ubyte[]` arrays
 
-        license:        BSD style: $(LICENSE)
-
-        author:         Jeff Davey
-
-        standards:      rfc3548, rfc2045
-
-        Since:          0.99.7
-
-*******************************************************************************/
-
-/*******************************************************************************
-
-    This module is used to decode and encode base64 char[] arrays.
-
-    Example:
     ---
     istring blah = "Hello there, my name is Jeff.";
-    scope encodebuf = new char[allocateEncodeSize(cast(ubyte[])blah)];
-    mstring encoded = encode(cast(ubyte[])blah, encodebuf);
+    scope encodebuf = new char[allocateEncodeSize(blah.length)];
+    mstring encoded = encode(cast(Const!(ubyte)[])blah, encodebuf);
 
     scope decodebuf = new ubyte[encoded.length];
     if (cast(cstring)decode(encoded, decodebuf) == "Hello there, my name is Jeff.")
-        Stdout("yay").newline;
+      Stdout("yay").newline;
     ---
+
+    copyright:      Copyright (c) 2008 Jeff Davey. All rights reserved
+
+    license:        BSD style: $(LICENSE)
+
+    author:         Jeff Davey
+
+    standards:      rfc4648, rfc2045
+
+    Since:          0.99.7
 
 *******************************************************************************/
 
@@ -37,53 +32,69 @@ version (UnitTest) import ocean.core.Test;
 
 /*******************************************************************************
 
-    calculates and returns the size needed to encode the length of the
-    array passed.
+    Provide the size of the data once base64 encoded
+
+    When data is encoded in Base64, it is packed in groups of 3 bytes, which
+    are then encoded in 4 bytes (by groups of 6 bytes).
+    In case length is not a multiple of 3, we add padding.
+    It means we need `length / 3 * 4` + `length % 3 ? 4 : 0`.
 
     Params:
-    data = An array that will be encoded
+      data = An array that will be encoded
+
+    Returns:
+      The size needed to encode `data` in base64
 
 *******************************************************************************/
 
 
-size_t allocateEncodeSize(in ubyte[] data)
+public size_t allocateEncodeSize (in ubyte[] data)
 {
     return allocateEncodeSize(data.length);
 }
 
 /*******************************************************************************
 
-    calculates and returns the size needed to encode the length passed.
+    Provide the size of the data once base64 encoded
+
+    When data is encoded in Base64, it is packed in groups of 3 bytes, which
+    are then encoded in 4 bytes (by groups of 6 bytes).
+    In case length is not a multiple of 3, we add padding.
+    It means we need `length / 3 * 4` + `length % 3 ? 4 : 0`.
 
     Params:
-    length = Number of bytes to be encoded
+      length = Number of bytes to be encoded
+
+    Returns:
+      The size needed to encode a data of the provided length
 
 *******************************************************************************/
 
-size_t allocateEncodeSize(size_t length)
+public size_t allocateEncodeSize (size_t length)
 {
     size_t tripletCount = length / 3;
     size_t tripletFraction = length % 3;
-    return (tripletCount + (tripletFraction ? 1 : 0)) * 4; // for every 3 bytes we need 4 bytes to encode, with any fraction needing an additional 4 bytes with padding
+    return (tripletCount + (tripletFraction ? 1 : 0)) * 4;
 }
 
 
 /*******************************************************************************
 
-    encodes data into buff and returns the number of bytes encoded.
-    this will not terminate and pad any "leftover" bytes, and will instead
+    Encodes `data` into `buff` and returns the number of bytes encoded.
+    This will not terminate and pad any "leftover" bytes, and will instead
     only encode up to the highest number of bytes divisible by three.
 
-    returns the number of bytes left to encode
-
     Params:
-    data = what is to be encoded
-    buff = buffer large enough to hold encoded data
-    bytesEncoded = ref that returns how much of the buffer was filled
+      data = what is to be encoded
+      buff = buffer large enough to hold encoded data
+      bytesEncoded = ref that returns how much of the buffer was filled
+
+    Returns:
+      The number of bytes left to encode
 
 *******************************************************************************/
 
-int encodeChunk(in ubyte[] data, mstring buff, ref int bytesEncoded)
+public int encodeChunk (in ubyte[] data, mstring buff, ref int bytesEncoded)
 {
     size_t tripletCount = data.length / 3;
     int rtn = 0;
@@ -109,23 +120,22 @@ int encodeChunk(in ubyte[] data, mstring buff, ref int bytesEncoded)
 
 /*******************************************************************************
 
-    encodes data and returns as an ASCII base64 string.
+    Encodes data and returns as an ASCII base64 string.
 
     Params:
-    data = what is to be encoded
-    buff = buffer large enough to hold encoded data
+      data = what is to be encoded
+      buff = buffer large enough to hold encoded data
 
     Example:
     ---
     char[512] encodebuf;
-    char[] myEncodedString = encode(cast(ubyte[])"Hello, how are you today?", encodebuf);
+    mstring myEncodedString = encode(cast(Const!(ubyte)[])"Hello, how are you today?", encodebuf);
     Stdout(myEncodedString).newline; // SGVsbG8sIGhvdyBhcmUgeW91IHRvZGF5Pw==
     ---
 
-
 *******************************************************************************/
 
-mstring encode(in ubyte[] data, mstring buff)
+public mstring encode (in ubyte[] data, mstring buff)
 in
 {
     assert(data);
@@ -166,12 +176,13 @@ body
     return rtn;
 }
 
+
 /*******************************************************************************
 
-    encodes data and returns as an ASCII base64 string.
+    Encodes data and returns as an ASCII base64 string
 
     Params:
-    data = what is to be encoded
+      data = what is to be encoded
 
     Example:
     ---
@@ -179,11 +190,9 @@ body
     Stdout(myEncodedString).newline; // SGVsbG8sIGhvdyBhcmUgeW91IHRvZGF5Pw==
     ---
 
-
 *******************************************************************************/
 
-
-mstring encode(in ubyte[] data)
+public mstring encode (in ubyte[] data)
 in
 {
     assert(data);
@@ -194,30 +203,27 @@ body
     return encode(data, rtn);
 }
 
+
 /*******************************************************************************
 
-    decodes an ASCCI base64 string and returns it as ubyte[] data. Pre-allocates
-    the size of the array.
+    Decodes an ASCII base64 string and returns it as ubyte[] data.
+    Allocates the size of the array.
 
-    This decoder will ignore non-base64 characters. So:
-    SGVsbG8sIGhvd
-    yBhcmUgeW91IH
-    RvZGF5Pw==
-
-    Is valid.
+    This decoder will ignore non-base64 characters, so for example data with
+    newline in it is valid.
 
     Params:
-    data = what is to be decoded
+      data = what is to be decoded
 
     Example:
     ---
-    char[] myDecodedString = cast(char[])decode("SGVsbG8sIGhvdyBhcmUgeW91IHRvZGF5Pw==");
+    mstring myDecodedString = cast(mstring)decode("SGVsbG8sIGhvdyBhcmUgeW91IHRvZGF5Pw==");
     Stdout(myDecodedString).newline; // Hello, how are you today?
     ---
 
 *******************************************************************************/
 
-ubyte[] decode(cstring data)
+public ubyte[] decode (cstring data)
 in
 {
     assert(data);
@@ -230,29 +236,25 @@ body
 
 /*******************************************************************************
 
-    decodes an ASCCI base64 string and returns it as ubyte[] data.
+    Decodes an ASCCI base64 string and returns it as ubyte[] data.
 
-    This decoder will ignore non-base64 characters. So:
-    SGVsbG8sIGhvd
-    yBhcmUgeW91IH
-    RvZGF5Pw==
-
-    Is valid.
+    This decoder will ignore non-base64 characters, so for example data with
+    newline in it is valid.
 
     Params:
-    data = what is to be decoded
-    buff = a big enough array to hold the decoded data
+      data = what is to be decoded
+      buff = a big enough array to hold the decoded data
 
     Example:
     ---
     ubyte[512] decodebuf;
-    char[] myDecodedString = cast(char[])decode("SGVsbG8sIGhvdyBhcmUgeW91IHRvZGF5Pw==", decodebuf);
+    mstring myDecodedString = cast(mstring)decode("SGVsbG8sIGhvdyBhcmUgeW91IHRvZGF5Pw==", decodebuf);
     Stdout(myDecodedString).newline; // Hello, how are you today?
     ---
 
 *******************************************************************************/
 
-ubyte[] decode(cstring data, ubyte[] buff)
+public ubyte[] decode (cstring data, ubyte[] buff)
 in
 {
     assert(data);
