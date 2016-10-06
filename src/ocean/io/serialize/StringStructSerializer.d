@@ -534,4 +534,26 @@ unittest
                      "   struct s:\n" ~
                      "      int inner_a : 200\n",
         "Incorrect string serializer result");
+
+    struct StructWithFloatingPoints
+    {
+        float a;
+        double b;
+        real c;
+    }
+
+    StructWithFloatingPoints sf;
+    sf.a = 10.00;
+    sf.b = 23.42;
+
+    buffer.length = 0;
+    enableStomping(buffer);
+    serializer.serialize(buffer, sf);
+
+    t.test!("==")(buffer.length, 85);
+    t.test(buffer == "struct StructWithFloatingPoints:\n" ~
+                     "   float a : 10\n" ~
+                     "   double b : 23.42\n" ~
+                     "   real c : nan\n",
+        "Incorrect string serializer result");
 }
