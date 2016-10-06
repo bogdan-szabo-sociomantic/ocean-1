@@ -421,8 +421,8 @@ unittest
     serializer.serialize(buffer, text_fragment);
 
     t.test!("==")(buffer.length, 69);
-    t.test(buffer == "struct TextFragment:\n"
-                     "   char[] text (length 4): eins\n"
+    t.test(buffer == "struct TextFragment:\n" ~
+                     "   char[] text (length 4): eins\n" ~
                      "   int type : 1\n",
         "Incorrect string serializer result");
 
@@ -446,11 +446,11 @@ unittest
     serializer.serialize(buffer, text_fragment_time, timestamp_fields);
 
     t.test!("==")(buffer.length, 204);
-    t.test(buffer == "struct TextFragmentTime:\n"
-                     "   char[] text (length 4): eins\n"
-                     "   long time : 1456829726\n"
-                     "   char[] lastseen (length 0):\n"
-                     "   long timestamp : 0 (1970-01-01 00:00:00)\n"
+    t.test(buffer == "struct TextFragmentTime:\n" ~
+                     "   char[] text (length 4): eins\n" ~
+                     "   long time : 1456829726\n" ~
+                     "   char[] lastseen (length 0):\n" ~
+                     "   long timestamp : 0 (1970-01-01 00:00:00)\n" ~
                      "   long update_time : 0 (1970-01-01 00:00:00)\n",
         "Incorrect string serializer result");
 
@@ -459,11 +459,11 @@ unittest
     serializer.serialize(buffer, text_fragment_time);
 
     t.test!("==")(buffer.length, 160);
-    t.test(buffer == "struct TextFragmentTime:\n"
-                     "   char[] text (length 4): eins\n"
-                     "   long time : 1456829726\n"
-                     "   char[] lastseen (length 0):\n"
-                     "   long timestamp : 0\n"
+    t.test(buffer == "struct TextFragmentTime:\n" ~
+                     "   char[] text (length 4): eins\n" ~
+                     "   long time : 1456829726\n" ~
+                     "   char[] lastseen (length 0):\n" ~
+                     "   long timestamp : 0\n" ~
                      "   long update_time : 0\n",
         "Incorrect string serializer result");
 
@@ -481,18 +481,18 @@ unittest
     serializer.serialize(buffer, multi_dimensional_array);
 
     t.test!("==")(buffer.length, 461);
-    t.test(buffer == "struct MultiDimensionalArray:\n"
-                     "   TextFragment[][] text_fragments (length 2):\n"
-                     "      TextFragment[] text_fragments (length 1):\n"
-                     "         struct TextFragment:\n"
-                     "            char[] text (length 4): eins\n"
-                     "            int type : 1\n"
-                     "      TextFragment[] text_fragments (length 2):\n"
-                     "         struct TextFragment:\n"
-                     "            char[] text (length 4): zwei\n"
-                     "            int type : 2\n"
-                     "         struct TextFragment:\n"
-                     "            char[] text (length 4): drei\n"
+    t.test(buffer == "struct MultiDimensionalArray:\n" ~
+                     "   TextFragment[][] text_fragments (length 2):\n" ~
+                     "      TextFragment[] text_fragments (length 1):\n" ~
+                     "         struct TextFragment:\n" ~
+                     "            char[] text (length 4): eins\n" ~
+                     "            int type : 1\n" ~
+                     "      TextFragment[] text_fragments (length 2):\n" ~
+                     "         struct TextFragment:\n" ~
+                     "            char[] text (length 4): zwei\n" ~
+                     "            int type : 2\n" ~
+                     "         struct TextFragment:\n" ~
+                     "            char[] text (length 4): drei\n" ~
                      "            int type : 3\n",
         "Incorrect string serializer result");
 }
