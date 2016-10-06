@@ -509,4 +509,29 @@ unittest
                      "            char[] text (length 4): drei\n" ~
                      "            int type : 3\n",
         "Incorrect string serializer result");
+
+    struct OuterStruct
+    {
+        int outer_a;
+        struct InnerStruct
+        {
+            int inner_a;
+        }
+        InnerStruct s;
+    }
+
+    OuterStruct s;
+    s.outer_a = 100;
+    s.s.inner_a = 200;
+
+    buffer.length = 0;
+    enableStomping(buffer);
+    serializer.serialize(buffer, s);
+
+    t.test!("==")(buffer.length, 78);
+    t.test(buffer == "struct OuterStruct:\n" ~
+                     "   int outer_a : 100\n" ~
+                     "   struct s:\n" ~
+                     "      int inner_a : 200\n",
+        "Incorrect string serializer result");
 }
