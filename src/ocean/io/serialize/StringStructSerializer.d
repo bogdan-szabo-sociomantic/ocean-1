@@ -420,7 +420,7 @@ unittest
     char[] buffer;
     serializer.serialize(buffer, text_fragment);
 
-    t.test(buffer.length == 69, "Incorrect string serializer result length");
+    t.test!("==")(buffer.length, 69);
     t.test(buffer == "struct TextFragment:\n"
                      "   char[] text (length 4): eins\n"
                      "   int type : 1\n",
@@ -445,7 +445,7 @@ unittest
     enableStomping(buffer);
     serializer.serialize(buffer, text_fragment_time, timestamp_fields);
 
-    t.test(buffer.length == 204, "Incorrect string serializer result length");
+    t.test!("==")(buffer.length, 204);
     t.test(buffer == "struct TextFragmentTime:\n"
                      "   char[] text (length 4): eins\n"
                      "   long time : 1456829726\n"
@@ -458,7 +458,7 @@ unittest
     enableStomping(buffer);
     serializer.serialize(buffer, text_fragment_time);
 
-    t.test(buffer.length == 160, "Incorrect string serializer result length");
+    t.test!("==")(buffer.length, 160);
     t.test(buffer == "struct TextFragmentTime:\n"
                      "   char[] text (length 4): eins\n"
                      "   long time : 1456829726\n"
@@ -480,7 +480,7 @@ unittest
     enableStomping(buffer);
     serializer.serialize(buffer, multi_dimensional_array);
 
-    t.test(buffer.length == 461, "Incorrect string serializer result length");
+    t.test!("==")(buffer.length, 461);
     t.test(buffer == "struct MultiDimensionalArray:\n"
                      "   TextFragment[][] text_fragments (length 2):\n"
                      "      TextFragment[] text_fragments (length 1):\n"
