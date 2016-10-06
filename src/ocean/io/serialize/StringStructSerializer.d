@@ -556,4 +556,39 @@ unittest
                      "   double b : 23.42\n" ~
                      "   real c : nan\n",
         "Incorrect string serializer result");
+
+    struct StructWithUnion
+    {
+        union U
+        {
+            int a;
+            char b;
+            double c;
+        }
+
+        U u;
+    }
+
+    StructWithUnion su;
+    su.u.a = 100;
+
+    buffer.length = 0;
+    enableStomping(buffer);
+    serializer.serialize(buffer, su);
+
+    t.test!("==")(buffer.length, 66);
+    t.test(buffer == "struct StructWithUnion:\n" ~
+                     "   union U u : [100, 0, 0, 0, 0, 0, 0, 0]\n",
+        "Incorrect string serializer result");
+
+    su.u.b = 'a';
+
+    buffer.length = 0;
+    enableStomping(buffer);
+    serializer.serialize(buffer, su);
+
+    t.test!("==")(buffer.length, 65);
+    t.test(buffer == "struct StructWithUnion:\n" ~
+                     "   union U u : [97, 0, 0, 0, 0, 0, 0, 0]\n",
+        "Incorrect string serializer result");
 }
