@@ -33,7 +33,6 @@ import ocean.core.Exception;
 import ocean.io.model.IConduit: IOStream, InputStream, OutputStream;
 
 import ocean.core.Traits;
-import ocean.core.Traits;
 
 
 /*******************************************************************************
@@ -961,7 +960,6 @@ version (UnitTest)
 
     ***************************************************************************/
 
-    import ocean.core.Traits;
     import ocean.stdc.time;
     import ocean.util.Convert : to;
     import ocean.time.StopWatch;

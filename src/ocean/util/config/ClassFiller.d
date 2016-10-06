@@ -132,8 +132,6 @@ import ocean.transition;
 
 public import ocean.util.config.ConfigParser: ConfigException;
 
-import ocean.core.Traits;
-
 import ocean.core.Exception_tango, ocean.core.Enforce;
 
 import ocean.core.Traits;
@@ -141,9 +139,6 @@ import ocean.core.Traits;
 import ocean.util.config.ConfigParser;
 
 import ocean.util.Convert;
-
-import ocean.core.Traits : DynamicArrayType, isStringType,
-                           isIntegerType, isRealType;
 
 import ocean.io.Stdout;
 
