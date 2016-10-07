@@ -87,7 +87,9 @@ import ocean.core.Traits;
 
 public class StringStructSerializer ( Char )
 {
-    static assert ( isCharType!(Char), typeof(this).stringof ~ " - this class can only handle {char, wchar, dchar}, not " ~ Char.stringof );
+    static assert(isCharType!(Char), typeof(this).stringof ~
+        " - this class can only handle {char, wchar, dchar}, not " ~
+        Char.stringof);
 
 
     /***************************************************************************
@@ -116,6 +118,7 @@ public class StringStructSerializer ( Char )
 
     private cstring fp_format;
 
+
     /***************************************************************************
 
         Known list of common timestamp field names
@@ -123,6 +126,7 @@ public class StringStructSerializer ( Char )
     ***************************************************************************/
 
     private StandardHashingSet!(cstring) known_timestamp_fields;
+
 
     /***************************************************************************
 
@@ -232,18 +236,20 @@ public class StringStructSerializer ( Char )
         // TODO: temporary support for unions by casting them to ubyte[]
         static if ( is(T == union) )
         {
-            Layout!(Char).format(output, "{}union {} {} : {}\n", this.indent, T.stringof, name, (cast(ubyte*)&item)[0..item.sizeof]);
+            Layout!(Char).format(output, "{}union {} {} : {}\n", this.indent,
+                T.stringof, name, (cast(ubyte*)&item)[0..item.sizeof]);
         }
         else static if ( isFloatingPointType!(T) )
         {
-            Layout!(Char).format(output, this.fp_format, this.indent, T.stringof, name, item);
+            Layout!(Char).format(output, this.fp_format, this.indent,
+                T.stringof, name, item);
         }
         else
         {
             Layout!(Char).format(output, "{}{} {} : {}", this.indent,
                 T.stringof, name, item);
 
-            if (is(T : ulong) && name in this.known_timestamp_fields)
+            if ( is(T : ulong) && name in this.known_timestamp_fields )
             {
                 Char[20] tmp;
                 Layout!(Char).format(output, " ({})\n", formatTime(item, tmp));
@@ -303,7 +309,8 @@ public class StringStructSerializer ( Char )
 
     ***************************************************************************/
 
-    public void serializeArray ( T ) ( ref Char[] output, cstring name, T[] array )
+    public void serializeArray ( T ) ( ref Char[] output, cstring name,
+        T[] array )
     {
         Layout!(Char).format(output, "{}{}[] {} (length {}):{}{}\n",
             this.indent, T.stringof, name, array.length,
@@ -325,9 +332,11 @@ public class StringStructSerializer ( Char )
 
     ***************************************************************************/
 
-    public void openStructArray ( T ) ( ref Char[] output, cstring name, T[] array )
+    public void openStructArray ( T ) ( ref Char[] output, cstring name,
+        T[] array )
     {
-        Layout!(Char).format(output, "{}{}[] {} (length {}):\n", this.indent, T.stringof, name, array.length);
+        Layout!(Char).format(output, "{}{}[] {} (length {}):\n", this.indent,
+            T.stringof, name, array.length);
         this.increaseIndent();
     }
 
@@ -346,7 +355,8 @@ public class StringStructSerializer ( Char )
 
     ***************************************************************************/
 
-    public void closeStructArray ( T ) ( ref Char[] output, cstring name, T[] array )
+    public void closeStructArray ( T ) ( ref Char[] output, cstring name,
+        T[] array )
     {
         this.decreaseIndent();
     }
@@ -375,7 +385,8 @@ public class StringStructSerializer ( Char )
     private void decreaseIndent ( )
     in
     {
-        assert(this.indent.length >= indent_size, typeof(this).stringof ~ ".decreaseIndent - indentation cannot be decreased");
+        assert(this.indent.length >= indent_size, typeof(this).stringof ~
+            ".decreaseIndent - indentation cannot be decreased");
     }
     body
     {

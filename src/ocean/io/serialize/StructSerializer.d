@@ -85,7 +85,7 @@
             - finally the array content raw data is read and the array populated
               with it.
 
- ******************************************************************************/
+*******************************************************************************/
 
 module ocean.io.serialize.StructSerializer;
 
@@ -160,7 +160,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
     static:
 
-    /**************************************************************************
+    /***************************************************************************
 
         Calculates the serialized byte length of s, including array fields.
 
@@ -170,7 +170,7 @@ struct StructSerializer ( bool AllowUnions = false )
         Returns:
             serialized byte length of s
 
-     **************************************************************************/
+    ***************************************************************************/
 
     deprecated("For binary serialization, use ocean.util.serialize")
     size_t length ( S ) ( S* s )
@@ -183,7 +183,7 @@ struct StructSerializer ( bool AllowUnions = false )
         return S.sizeof + subArrayLength(s);
     }
 
-    /**************************************************************************
+    /***************************************************************************
 
         Dumps/serializes the content of s and its array members.
         THe method will resize the output array to fit the size of the content.
@@ -195,7 +195,7 @@ struct StructSerializer ( bool AllowUnions = false )
         Returns:
             amount of data written to the buffer
 
-     **************************************************************************/
+    ***************************************************************************/
 
     deprecated("For binary serialization, use ocean.util.serialize")
     size_t dump ( S, D ) ( S* s, ref D[] data )
@@ -222,7 +222,7 @@ struct StructSerializer ( bool AllowUnions = false )
     }
 
 
-    /**************************************************************************
+    /***************************************************************************
 
         Dumps/serializes the content of s and its array members.
         THe method won't resize the output array to fit the content, it will
@@ -236,7 +236,7 @@ struct StructSerializer ( bool AllowUnions = false )
         Returns:
             amount of data written to the buffer
 
-     **************************************************************************/
+    ***************************************************************************/
 
     deprecated("For binary serialization, use ocean.util.serialize")
     size_t dumpStatic ( S, D ) ( S* s, D[] data )
@@ -256,7 +256,7 @@ struct StructSerializer ( bool AllowUnions = false )
     }
 
 
-    /**************************************************************************
+    /***************************************************************************
 
         Loads/deserializes the content of s and its array members.
 
@@ -270,7 +270,7 @@ struct StructSerializer ( bool AllowUnions = false )
         Returns:
             number of bytes consumed from data
 
-     **************************************************************************/
+    ***************************************************************************/
 
     deprecated("For binary serialization, use ocean.util.serialize")
     size_t load ( S, D ) ( S* s, D[] data )
@@ -291,7 +291,7 @@ struct StructSerializer ( bool AllowUnions = false )
         });
     }
 
-    /**************************************************************************
+    /***************************************************************************
 
         Sets s to reference data and the array members of s to slice the
         corresponding data sections. As a result, no data are moved and s can
@@ -307,7 +307,7 @@ struct StructSerializer ( bool AllowUnions = false )
         Throws:
             Exception if data is too short
 
-     **************************************************************************/
+    ***************************************************************************/
 
     deprecated("For binary serialization, use ocean.util.serialize")
     size_t loadSlice ( D, S ) ( out S* s, D[] data )
@@ -323,11 +323,11 @@ struct StructSerializer ( bool AllowUnions = false )
         return sliceArrays(s, (cast (void[]) data)[pos .. $]) + pos;
     }
 
-    /**************************************************************************
+    /***************************************************************************
 
         Use loadSlice() instead.
 
-     **************************************************************************/
+    ***************************************************************************/
 
     deprecated size_t load ( S, D ) ( S* s, D[] data, bool slice )
     {
@@ -336,7 +336,7 @@ struct StructSerializer ( bool AllowUnions = false )
     }
 
 
-    /**************************************************************************
+    /***************************************************************************
 
         Sets s to reference data and the array members of s to slice the
         corresponding data sections. As a result, no data are moved and s can
@@ -352,7 +352,7 @@ struct StructSerializer ( bool AllowUnions = false )
         Throws:
             Exception if data is too short
 
-     **************************************************************************/
+    ***************************************************************************/
 
     deprecated("For binary serialization, use ocean.util.serialize")
     S loadSlice ( S, D ) ( D[] data, out size_t n )
@@ -381,7 +381,7 @@ struct StructSerializer ( bool AllowUnions = false )
         return s;
     }
 
-    /**************************************************************************
+    /***************************************************************************
 
         Dumps/serializes the content of s and its array members, writing
         serialized data to output.
@@ -393,14 +393,14 @@ struct StructSerializer ( bool AllowUnions = false )
         Returns:
             number of bytes written
 
-     **************************************************************************/
+    ***************************************************************************/
 
     size_t dump ( S ) ( S* s, OutputStream output )
     {
         return dump(s, (void[] data) {SimpleSerializer.transmit(output, data);});
     }
 
-    /**************************************************************************
+    /***************************************************************************
 
         Dumps/serializes the content of s and its array members.
 
@@ -414,7 +414,7 @@ struct StructSerializer ( bool AllowUnions = false )
         Returns:
             number of bytes written
 
-     **************************************************************************/
+    ***************************************************************************/
 
     size_t dump ( S ) ( S* s, void delegate ( void[] data ) receive )
     in
@@ -426,7 +426,7 @@ struct StructSerializer ( bool AllowUnions = false )
         return transmit!(false)(s, receive);
     }
 
-    /**************************************************************************
+    /***************************************************************************
 
         Loads/deserializes the content of s and its array members, reading
         serialized data from input.
@@ -438,14 +438,14 @@ struct StructSerializer ( bool AllowUnions = false )
         Returns:
             number of bytes read
 
-     **************************************************************************/
+    ***************************************************************************/
 
     size_t load ( S ) ( S* s, InputStream input )
     {
         return load(s, (void[] data) {SimpleSerializer.transmit(input, data);});
     }
 
-    /**************************************************************************
+    /***************************************************************************
 
         Loads/deserializes the content of s and its array members.
 
@@ -461,7 +461,7 @@ struct StructSerializer ( bool AllowUnions = false )
         Returns:
             number of bytes read
 
-     **************************************************************************/
+    ***************************************************************************/
 
     size_t load ( S ) ( S* s, void delegate ( void[] data ) receive )
     in
@@ -473,7 +473,7 @@ struct StructSerializer ( bool AllowUnions = false )
         return transmit!(true)(s, receive);
     }
 
-    /**************************************************************************
+    /***************************************************************************
 
         Dumps/serializes or loads/deserializes the content of s and its
         members.
@@ -493,7 +493,7 @@ struct StructSerializer ( bool AllowUnions = false )
         Returns:
             number of bytes read or written
 
-     **************************************************************************/
+    ***************************************************************************/
 
     size_t transmit ( bool receive, S ) ( S* s, void delegate ( void[] data ) transmit_data )
     in
@@ -525,7 +525,7 @@ struct StructSerializer ( bool AllowUnions = false )
     }
 
 
-    /**************************************************************************
+    /***************************************************************************
 
         Dumps/serializes the content of s and its array members, using the given
         serializer object. The serializer object needs the following methods:
@@ -568,7 +568,7 @@ struct StructSerializer ( bool AllowUnions = false )
             serializer = object to do the serialization
             data = parameters for serializer
 
-     **************************************************************************/
+    ***************************************************************************/
 
     public void serialize ( S, Serializer, D ... ) ( S* s, Serializer serializer, ref D data )
     {
@@ -578,7 +578,7 @@ struct StructSerializer ( bool AllowUnions = false )
     }
 
 
-    /**************************************************************************
+    /***************************************************************************
 
         Loads/deserializes the content of s and its array members, using the
         given deserializer object. The deserializer object needs the following
@@ -609,7 +609,7 @@ struct StructSerializer ( bool AllowUnions = false )
             deserializer = object to do the deserialization
             data = input buffer to read serialized data from
 
-     **************************************************************************/
+    ***************************************************************************/
 
     public void deserialize ( S, Deserializer, D ) ( S* s, Deserializer deserializer, D[] data )
     {
@@ -619,7 +619,7 @@ struct StructSerializer ( bool AllowUnions = false )
     }
 
 
-    /**************************************************************************
+    /***************************************************************************
 
         Calculates the sum of the serialized byte length of all array fields of
         s.
@@ -630,7 +630,7 @@ struct StructSerializer ( bool AllowUnions = false )
         Returns:
             byte length of all array fields of s
 
-     **************************************************************************/
+    ***************************************************************************/
 
     deprecated("For binary serialization, use ocean.util.serialize")
     public size_t subArrayLength ( S ) ( S* s )
@@ -658,7 +658,7 @@ struct StructSerializer ( bool AllowUnions = false )
     }
 
 
-    /**************************************************************************
+    /***************************************************************************
 
         Calculates the sum of the serialized byte length array which may be
         multidimensional.
@@ -669,7 +669,7 @@ struct StructSerializer ( bool AllowUnions = false )
         Returns:
             byte length of array
 
-     **************************************************************************/
+    ***************************************************************************/
 
     deprecated("For binary serialization, use ocean.util.serialize")
     public size_t arrayLength ( T ) ( T[] array )
@@ -698,14 +698,14 @@ struct StructSerializer ( bool AllowUnions = false )
         return len;
     }
 
-    /**************************************************************************
+    /***************************************************************************
 
         Resets all references in s to null.
 
         Params:
             s = struct instance (pointer)
 
-     **************************************************************************/
+    ***************************************************************************/
 
     S* resetReferences ( S ) ( S* s )
     {
@@ -726,7 +726,7 @@ struct StructSerializer ( bool AllowUnions = false )
         return s;
     }
 
-    /**************************************************************************
+    /***************************************************************************
 
         Copies all references from dst to src.
 
@@ -734,7 +734,7 @@ struct StructSerializer ( bool AllowUnions = false )
             src = source struct instance (pointer)
             dst = destination struct instance (pointer)
 
-     **************************************************************************/
+    ***************************************************************************/
 
     S* copyReferences ( S ) ( S* src, S* dst )
     {
@@ -757,7 +757,7 @@ struct StructSerializer ( bool AllowUnions = false )
         return dst;
     }
 
-    /**************************************************************************
+    /***************************************************************************
 
         Transmits (sends or receives) the serialized data of all array fields in
         s.
@@ -788,7 +788,7 @@ struct StructSerializer ( bool AllowUnions = false )
              }
          ---
 
-     **************************************************************************/
+    ***************************************************************************/
 
     size_t transmitArrays ( bool receive, S ) ( S* s, void delegate ( void[] array ) transmit )
     {
@@ -832,7 +832,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
         TODO: array needs to be duped
 
-     **************************************************************************/
+    ***************************************************************************/
 
     size_t transmitArray ( bool receive, T ) ( ref T[] array, void delegate ( void[] data ) transmit_dg )
     {
@@ -906,7 +906,7 @@ struct StructSerializer ( bool AllowUnions = false )
         Throws:
             Exception if data is too short
 
-     **************************************************************************/
+    ***************************************************************************/
 
     deprecated("For binary serialization, use ocean.util.serialize")
     size_t sliceArrays ( S ) ( S* s, void[] data )
@@ -950,7 +950,7 @@ struct StructSerializer ( bool AllowUnions = false )
         Throws:
             Exception if data is too short
 
-     **************************************************************************/
+    ***************************************************************************/
 
     deprecated("For binary serialization, use ocean.util.serialize")
     size_t sliceArray ( T ) ( out T[] array, void[] data )
@@ -1003,7 +1003,7 @@ struct StructSerializer ( bool AllowUnions = false )
         return array;
     }
 
-    /**************************************************************************
+    /***************************************************************************
 
         Dumps/serializes the content of s and its array members, using the given
         serializer object. See the description of the dump() method above for a
@@ -1019,7 +1019,7 @@ struct StructSerializer ( bool AllowUnions = false )
             serializer = object to do the serialization
             data = parameters for serializer
 
-     **************************************************************************/
+    ***************************************************************************/
 
     private void serialize_ ( S, Serializer, D ... ) ( S* s, Serializer serializer, ref D data )
     {
@@ -1078,7 +1078,7 @@ struct StructSerializer ( bool AllowUnions = false )
         }
     }
 
-    /**************************************************************************
+    /***************************************************************************
 
         Dumps/serializes array which is expected to be a one- or multi-
         dimensional array of structs, using the given serializer object. See the
@@ -1097,7 +1097,7 @@ struct StructSerializer ( bool AllowUnions = false )
             serializer = object to do the serialization
             data = parameters for serializer
 
-     **************************************************************************/
+    ***************************************************************************/
 
     private void serializeStructArray ( T, Serializer, D ... ) ( T[] array,
         cstring field_name, Serializer serializer, ref D data )
@@ -1122,7 +1122,7 @@ struct StructSerializer ( bool AllowUnions = false )
         serializer.closeStructArray(data, field_name, array);
     }
 
-    /**************************************************************************
+    /***************************************************************************
 
         Loads/deserializes the content of s and its array members, using the
         given deserializer object. See the description of the load() method
@@ -1134,7 +1134,7 @@ struct StructSerializer ( bool AllowUnions = false )
             deserializer = object to do the deserialization
             data = input buffer to read serialized data from
 
-     **************************************************************************/
+    ***************************************************************************/
 
     private void deserialize_ ( S, Deserializer, D ) ( S* s, Deserializer deserializer, D[] data )
     {
@@ -1199,7 +1199,7 @@ struct StructSerializer ( bool AllowUnions = false )
         }
     }
 
-    /**************************************************************************
+    /***************************************************************************
 
         Asserts pos <= data.length; pos is assumed to be the element index in an
         input data array of length data_length. This checking is always done,
@@ -1212,7 +1212,7 @@ struct StructSerializer ( bool AllowUnions = false )
         Throws:
             Exception if not pos <= data_length
 
-     **************************************************************************/
+    ***************************************************************************/
 
     deprecated("For binary serialization, use ocean.util.serialize")
     private void assertLongEnough ( size_t pos, size_t data_length )
@@ -1220,7 +1220,7 @@ struct StructSerializer ( bool AllowUnions = false )
         enforce(pos <= data_length, typeof (*this).stringof ~ " input data too short");
     }
 
-    /**************************************************************************
+    /***************************************************************************
 
         Asserts s != null; s is assumed to be the struct source or destination
         pointer. In addition a warning message is printed at compile time if
@@ -1237,7 +1237,7 @@ struct StructSerializer ( bool AllowUnions = false )
         Throws:
             Exception if s is null
 
-     **************************************************************************/
+    ***************************************************************************/
 
     private void assertStructPtr ( istring func, S ) ( S* s )
     {
@@ -1252,7 +1252,7 @@ struct StructSerializer ( bool AllowUnions = false )
                 "pointer of type '" ~ S.stringof ~ "*' is null");
     }
 
-    /**************************************************************************
+    /***************************************************************************
 
         Evaluates to true if T contains a reference type. If T contains a
         struct, the struct and its sub-structs, if any, are recursively scanned
@@ -1265,7 +1265,7 @@ struct StructSerializer ( bool AllowUnions = false )
             true if T or a sub-struct of an element of T contains a reference
             type or false otherwise
 
-     **************************************************************************/
+    ***************************************************************************/
 
     deprecated("For binary serialization, use ocean.util.serialize")
     template ContainsReferenceType ( T ... )
@@ -1294,7 +1294,7 @@ struct StructSerializer ( bool AllowUnions = false )
         }
     }
 
-    /**************************************************************************
+    /***************************************************************************
 
         Tells whether T is a reference type. That is
 
@@ -1308,7 +1308,7 @@ struct StructSerializer ( bool AllowUnions = false )
         Evaluates to:
             true if T is a reference type or false otherwise
 
-     **************************************************************************/
+    ***************************************************************************/
 
     template isReferenceType ( T )
     {
@@ -1326,7 +1326,7 @@ struct StructSerializer ( bool AllowUnions = false )
         }
     }
 
-    /**************************************************************************
+    /***************************************************************************
 
         Asserts that T is a single-byte type; T is assumed to be the element
         type for a serialized data array.
@@ -1335,7 +1335,7 @@ struct StructSerializer ( bool AllowUnions = false )
             T       = type which shall be of single byte size
             context = context where T is used (for message generation)
 
-     **************************************************************************/
+    ***************************************************************************/
 
     deprecated("For binary serialization, use ocean.util.serialize")
     template AssertSingleByteType ( T, istring context )
@@ -1345,7 +1345,7 @@ struct StructSerializer ( bool AllowUnions = false )
 
     }
 
-    /**************************************************************************
+    /***************************************************************************
 
         Asserts that T, which is the type of the i-th field of S, is a supported
         field type for struct serialization; typedefs and unions are currently
@@ -1357,7 +1357,7 @@ struct StructSerializer ( bool AllowUnions = false )
             S = struct type (for message generation)
             i = struct field index (for message generation)
 
-     **************************************************************************/
+    ***************************************************************************/
 
     template AssertSupportedType ( T, S, size_t i )
     {
@@ -1371,7 +1371,7 @@ struct StructSerializer ( bool AllowUnions = false )
                                              "(affects " ~ FieldInfo!(T, S, i) ~ ')');
     }
 
-    /**************************************************************************
+    /***************************************************************************
 
         Asserts that T, which is an array of U and the type of the i-th field of
         S, is a supported array field type for struct serialization;
@@ -1384,7 +1384,7 @@ struct StructSerializer ( bool AllowUnions = false )
             S = struct type (for message generation)
             i = struct field index (for message generation)
 
-     **************************************************************************/
+    ***************************************************************************/
 
     template AssertSupportedArray ( T, U, S, size_t i )
     {
@@ -1402,11 +1402,11 @@ struct StructSerializer ( bool AllowUnions = false )
        }
     }
 
-    /**************************************************************************
+    /***************************************************************************
 
         Generates a struct field information string for messages
 
-     **************************************************************************/
+    ***************************************************************************/
 
     template FieldInfo ( T, S, size_t i )
     {
@@ -1838,7 +1838,7 @@ deprecated unittest
 
         buf.length = length(&sm);
 
-        /****************************************************************************
+        /***********************************************************************
 
           Performance Test
 
@@ -1846,7 +1846,7 @@ deprecated unittest
           Writing with 4049768.36/s (worst 3.6m)
           Reading with 7587750.42/s
 
-        ****************************************************************************/
+        ***********************************************************************/
 
 
 

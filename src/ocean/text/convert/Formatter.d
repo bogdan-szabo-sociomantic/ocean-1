@@ -18,7 +18,7 @@
         Tango Dual License: 3-Clause BSD License / Academic Free License v3.0.
         See LICENSE_TANGO.txt for details.
 
-******************************************************************************/
+*******************************************************************************/
 
 module ocean.text.convert.Formatter;
 
@@ -276,7 +276,7 @@ private size_t widthSink (Sink sink, cstring str, ref Const!(FormatInfo) f)
 }
 
 
-/***************************************************************************
+/*******************************************************************************
 
     Converts a value of a given type to its string representation
 
@@ -440,7 +440,8 @@ private void handle (T) (T v, FormatInfo f, Sink sf, ElementSink se)
     // Unsigned integer
     else static if (is(typeof(T.min)) && T.min == 0)
     {
-        // Needs to support base 2 at most, plus an optional prefix of 2 chars max
+        // Needs to support base 2 at most, plus an optional prefix of 2 chars
+        // max
         char[T.sizeof * 8 + 2] buff = void;
         se(Integer.format(buff, v, (f.format.length ? f.format : "u")), f);
     }
@@ -484,8 +485,8 @@ private void handle (T) (T v, FormatInfo f, Sink sf, ElementSink se)
         This bears the same name as the template in `ocean.core.Traits`.
         However, the definition in `Traits` unconditionally returns `false`
         in D2.
-        While it might be suitable for most use cases, here we have to explicitly
-        handle `typedef`.
+        While it might be suitable for most use cases, here we have to
+        explicitly handle `typedef`.
 
         Params:
             T   = Type to check
@@ -506,8 +507,8 @@ private template IsTypedef (T)
 
         This bears the same name as the template in `ocean.core.Traits`.
         However, the definition in `Traits` unconditionally returns `T` in D2.
-        While it might be suitable for most use cases, here we have to explicitly
-        handle `typedef`.
+        While it might be suitable for most use cases, here we have to
+        explicitly handle `typedef`.
 
         Params:
             T   = Typedef for which to get the underlying type
@@ -1061,8 +1062,8 @@ unittest
     }
 
 
-    // snformat is supposed to overwrite the provided buffer without changing its
-    // length and ignore any remaining formatted data that does not fit
+    // snformat is supposed to overwrite the provided buffer without changing
+    // its length and ignore any remaining formatted data that does not fit
     mstring target;
     snformat(target, "{}", 42);
     assert(target.ptr is null);
