@@ -406,6 +406,19 @@ unittest
 {
     auto t = new NamedTest("struct serializer test");
     auto serializer = new StringStructSerializer!(char);
+    char[] buffer;
+
+    struct EmptyStruct
+    {
+    }
+
+    EmptyStruct e;
+
+    serializer.serialize(buffer, e);
+
+    t.test!("==")(buffer.length, 20);
+    t.test(buffer == "struct EmptyStruct:\n",
+        "Incorrect string serializer result");
 
     struct TextFragment
     {
@@ -417,7 +430,8 @@ unittest
     text_fragment.text = "eins".dup;
     text_fragment.type = 1;
 
-    char[] buffer;
+    buffer.length = 0;
+    enableStomping(buffer);
     serializer.serialize(buffer, text_fragment);
 
     t.test!("==")(buffer.length, 69);
