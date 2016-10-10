@@ -392,7 +392,6 @@ public class StringStructSerializer ( Char )
     {
         this.indent.length = this.indent.length - indent_size;
         enableStomping(this.indent);
-        this.indent[] = ' ';
     }
 }
 
