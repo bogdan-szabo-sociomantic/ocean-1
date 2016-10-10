@@ -193,6 +193,8 @@ public class StringStructSerializer ( Char )
 
     public void open ( ref Char[] output, cstring name )
     {
+        assert(this.indent.length == 0, "Non-zero indentation in open");
+
         Layout!(Char).format(output, "{}struct {}:\n", this.indent, name);
         this.increaseIndent();
     }
@@ -233,6 +235,8 @@ public class StringStructSerializer ( Char )
 
     public void serialize ( T ) ( ref Char[] output, ref T item, cstring name )
     {
+        assert(this.indent.length > 0, "Incorrect indentation in serialize");
+
         // TODO: temporary support for unions by casting them to ubyte[]
         static if ( is(T == union) )
         {
@@ -274,6 +278,8 @@ public class StringStructSerializer ( Char )
 
     public void openStruct ( ref Char[] output, cstring name )
     {
+        assert(this.indent.length > 0, "Incorrect indentation in openStruct");
+
         Layout!(Char).format(output, "{}struct {}:\n", this.indent, name);
         this.increaseIndent();
     }
@@ -312,6 +318,9 @@ public class StringStructSerializer ( Char )
     public void serializeArray ( T ) ( ref Char[] output, cstring name,
         T[] array )
     {
+        assert(this.indent.length > 0,
+            "Incorrect indentation in serializeArray");
+
         Layout!(Char).format(output, "{}{}[] {} (length {}):{}{}\n",
             this.indent, T.stringof, name, array.length,
             array.length ? " " : "", array);
@@ -335,6 +344,9 @@ public class StringStructSerializer ( Char )
     public void openStructArray ( T ) ( ref Char[] output, cstring name,
         T[] array )
     {
+        assert(this.indent.length > 0,
+            "Incorrect indentation in openStructArray");
+
         Layout!(Char).format(output, "{}{}[] {} (length {}):\n", this.indent,
             T.stringof, name, array.length);
         this.increaseIndent();
