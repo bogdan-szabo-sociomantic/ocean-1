@@ -11,7 +11,7 @@
 module ocean.util.app.ext.DropPrivilegesExt;
 
 import ocean.util.app.model.IApplicationExtension;
-import ClassFiller = ocean.util.config.ClassFiller;
+import ConfigFiller = ocean.util.config.ConfigFiller;
 import ocean.util.app.ext.model.IConfigExtExtension;
 
 import ocean.transition;
@@ -52,7 +52,7 @@ class DropPrivilegesExt : IConfigExtExtension
 
         ***********************************************************************/
 
-        ClassFiller.Required!(istring) user;
+        ConfigFiller.Required!(istring) user;
 
         /***********************************************************************
 
@@ -60,7 +60,7 @@ class DropPrivilegesExt : IConfigExtExtension
 
         ***********************************************************************/
 
-        ClassFiller.Required!(istring) group;
+        ConfigFiller.Required!(istring) group;
     }
 
 
@@ -92,7 +92,7 @@ class DropPrivilegesExt : IConfigExtExtension
 
     override void processConfig ( IApplication app, ConfigParser config )
     {
-        auto conf = ClassFiller.fill!(Config)("PERMISSIONS", config);
+        auto conf = ConfigFiller.fill!(Config)("PERMISSIONS", config);
 
         if ( conf.group() == "root" ) throw new Exception("Group can not be root!");
         if ( conf.user()  == "root" ) throw new Exception("User can not be root!");

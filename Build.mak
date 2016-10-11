@@ -26,6 +26,7 @@ TEST_FILTER_OUT += \
 	$C/src/ocean/util/app/LoggedCliApp.d \
 	$C/src/ocean/util/app/ConfiguredApp.d \
 	$C/src/ocean/util/app/CommandLineApp.d \
+	$C/src/ocean/util/config/ClassFiller.d \
 	$C/src/ocean/util/cipher/TEA.d \
 	$C/src/ocean/util/cipher/XTEA.d \
 	$C/src/ocean/util/cipher/RC4.d \
