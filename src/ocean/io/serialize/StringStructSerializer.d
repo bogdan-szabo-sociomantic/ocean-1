@@ -395,13 +395,10 @@ public class StringStructSerializer ( Char )
     ***************************************************************************/
 
     private void decreaseIndent ( )
-    in
     {
         assert(this.indent.length >= indent_size, typeof(this).stringof ~
             ".decreaseIndent - indentation cannot be decreased");
-    }
-    body
-    {
+
         this.indent.length = this.indent.length - indent_size;
         enableStomping(this.indent);
     }
