@@ -640,12 +640,12 @@ class AES : BlockCipher
         uint ROUNDS, // Number of rounds depends on keysize
              s0, s1, s2, s3; // State
         uint[] w; // Expanded key
-        ubyte[] workingKey;
+        Const!(ubyte)[] workingKey;
 
     } // end private
 
     this() {}
-    this(bool encrypt, ubyte[] key) {
+    this(bool encrypt, in ubyte[] key) {
         init(encrypt, key);
     }
 
@@ -666,7 +666,7 @@ class AES : BlockCipher
         return BLOCK_SIZE;
     }
 
-    final void init(bool encrypt, ubyte[] key)
+    final void init(bool encrypt, in ubyte[] key)
     {
         _encrypt = encrypt;
 
@@ -810,13 +810,13 @@ class AES : BlockCipher
                        RS[cast(ubyte) t0];
     }
 
-    final override uint update(void[] input_, void[] output_)
+    final override uint update (in void[] input_, void[] output_)
     {
         if (!_initialized)
             invalid(name()~": Cipher not initialized.");
 
-        ubyte[] input = cast(ubyte[]) input_,
-                output = cast(ubyte[]) output_;
+        auto input = cast(Const!(ubyte)[]) input_;
+        auto output = cast(ubyte[]) output_;
 
         if (input.length < BLOCK_SIZE)
             invalid(name()~": Input buffer too short");
@@ -849,7 +849,7 @@ class AES : BlockCipher
                 (S[cast(ubyte)x]));
     }
 
-    private void setup(ubyte[] key)
+    private void setup (in ubyte[] key)
     {
         uint nk = cast(uint) key.length / 4;
         ROUNDS = nk + 6;

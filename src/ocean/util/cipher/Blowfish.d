@@ -210,11 +210,11 @@ class Blowfish : BlockCipher
                    MIN_KEY_SIZE = 4; // 32 bits
         uint[18] P;
         uint[256] S0, S1, S2, S3;
-        ubyte[] workingKey;
+        Const!(ubyte)[] workingKey;
     } // end private
 
     this() {}
-    this(bool encrypt, ubyte[] key) {
+    this (bool encrypt, Const!(ubyte)[] key) {
         init(encrypt, key);
     }
 
@@ -228,7 +228,7 @@ class Blowfish : BlockCipher
         return BLOCK_SIZE;
     }
 
-    final void init(bool encrypt, ubyte[] key)
+    final void init (bool encrypt, Const!(ubyte)[] key)
     {
         _encrypt = encrypt;
 
@@ -255,13 +255,13 @@ class Blowfish : BlockCipher
                 + S3[cast(ubyte)x]);
     }
 
-    final override uint update(void[] input_, void[] output_)
+    final override uint update (in void[] input_, void[] output_)
     {
         if (!_initialized)
             invalid(name()~": Cipher not initialized.");
 
-        ubyte[] input = cast(ubyte[]) input_,
-                output = cast(ubyte[]) output_;
+        auto input = cast(Const!(ubyte)[]) input_;
+        auto output = cast(ubyte[]) output_;
 
         if (input.length < BLOCK_SIZE)
             invalid (name()~": Input buffer too short");
@@ -292,7 +292,7 @@ class Blowfish : BlockCipher
         setup(workingKey);
     }
 
-    private void setup(ubyte[] key)
+    private void setup (Const!(ubyte)[] key)
     {
         S0[] = S_INIT[0..256];
         S1[] = S_INIT[256..512];

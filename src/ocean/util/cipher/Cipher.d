@@ -29,7 +29,7 @@ abstract class Cipher
      *
      * Returns: The amount of encrypted data processed.
      */
-    abstract uint update(void[] input_, void[] output_);
+    abstract uint update (in void[] input_, void[] output_);
 
     /** Returns: The name of the algorithm of this cipher. */
     abstract istring name();
@@ -153,9 +153,9 @@ struct ByteConverter
          *     A integral of type T created with the supplied bytes placed
          *     in the specified byte order.
          */
-        static T to(T)(void[] x_)
+        static T to (T) (in void[] x_)
         {
-            ubyte[] x = cast(ubyte[])x_;
+            auto x = cast(Const!(ubyte)[])x_;
 
             T result = ((cast(T)x[0])       |
                        ((cast(T)x[1]) << 8));
@@ -213,9 +213,9 @@ struct ByteConverter
     struct BigEndian
     {
 
-        static T to(T)(void[] x_)
+        static T to (T) (in void[] x_)
         {
-            ubyte[] x = cast(ubyte[])x_;
+            auto x = cast(Const!(ubyte)[])x_;
 
             static if (is(T == ushort) || is(T == short))
             {
@@ -270,10 +270,10 @@ struct ByteConverter
         }
     }
 
-    static istring hexEncode(void[] input_)
+    static istring hexEncode (in void[] input_)
     {
-        ubyte[] input = cast(ubyte[])input_;
-        char[] output = new char[input.length<<1];
+        auto input = cast(Const!(ubyte)[])input_;
+        mstring output = new char[input.length<<1];
 
         int i = 0;
         foreach (ubyte j; input)
@@ -282,15 +282,15 @@ struct ByteConverter
             output[i++] = hexits[j&0xf];
         }
 
-        return cast(istring)output;
+        return assumeUnique(output);
     }
 
-    static istring base32Encode(void[] input_, bool doPad=true)
+    static istring base32Encode (in void[] input_, bool doPad = true)
     {
         if (!input_)
-            return "";
-        ubyte[] input = cast(ubyte[])input_;
-        char[] output;
+            return null;
+        auto input = cast(Const!(ubyte)[])input_;
+        mstring output;
         auto inputbits = input.length*8;
         auto inputquantas = inputbits / 40;
         if (inputbits % 40)
