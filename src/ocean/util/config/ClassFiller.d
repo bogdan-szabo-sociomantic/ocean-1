@@ -114,7 +114,7 @@
 
 deprecated module ocean.util.config.ClassFiller;
 
-pragma (msg, "Deprecated. Please use `ocean.util.config.ConfigFiller` instead.")
+pragma (msg, "Deprecated. Please use `ocean.util.config.ConfigFiller` instead.");
 
 /*******************************************************************************
 
