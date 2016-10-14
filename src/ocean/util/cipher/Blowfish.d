@@ -358,7 +358,7 @@ class Blowfish : BlockCipher
 /** Some Blowfish test vectors from Schneier's site. */
 unittest
 {
-    static istring[] test_keys = [
+    const istring[] test_keys = [
         "0000000000000000",
         "ffffffffffffffff",
         "57686f206973204a6f686e2047616c743f", // I don't know, do you?
@@ -368,7 +368,7 @@ unittest
         "fedcba9876543210"
     ];
 
-    static istring[] test_plaintexts = [
+    const istring[] test_plaintexts = [
         "0000000000000000",
         "ffffffffffffffff",
         "fedcba9876543210",
@@ -378,7 +378,7 @@ unittest
         "0123456789abcdef"
     ];
 
-    static istring[] test_ciphertexts = [
+    const istring[] test_ciphertexts = [
         "4ef997456198dd78",
         "51866fd5b85ecb8a",
         "cc91732b8022f684",
@@ -389,22 +389,24 @@ unittest
     ];
 
     Blowfish t = new Blowfish();
-    foreach (uint i, istring test_key; test_keys)
+    foreach (i, test_key; test_keys)
     {
         ubyte[] buffer = new ubyte[t.blockSize];
         istring result;
-        auto key = ByteConverter.hexDecode(test_key);
+        Const!(ubyte)[] key = ByteConverter.hexDecode(test_key);
+        Const!(ubyte)[] hex_plain = ByteConverter.hexDecode(test_plaintexts[i]);
+        Const!(ubyte)[] hex_cipher = ByteConverter.hexDecode(test_ciphertexts[i]);
 
         // Encryption
         t.init(true, key);
-        t.update(ByteConverter.hexDecode(test_plaintexts[i]), buffer);
+        t.update(hex_plain, buffer);
         result = ByteConverter.hexEncode(buffer);
         assert(result == test_ciphertexts[i],
                 t.name~": ("~result~") != ("~test_ciphertexts[i]~")");
 
         // Decryption
         t.init(false, key);
-        t.update(ByteConverter.hexDecode(test_ciphertexts[i]), buffer);
+        t.update(hex_cipher, buffer);
         result = ByteConverter.hexEncode(buffer);
         assert(result == test_plaintexts[i],
                 t.name~": ("~result~") != ("~test_plaintexts[i]~")");

@@ -10,6 +10,11 @@ import ocean.transition;
 
 import ocean.core.Exception_tango : IllegalArgumentException;
 
+version (UnitTest)
+{
+    import ocean.core.Test;
+}
+
 /** Base symmetric cipher class */
 abstract class Cipher
 {
@@ -383,5 +388,26 @@ struct ByteConverter
             output[i] = cast(char) ((c >= 'a' && c <= 'z') ? c-32 : c);
 
         return cast(istring)output;
+    }
+}
+
+unittest
+{
+    const ubyte[8] data = [ 0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80 ];
+
+    {
+        auto res = ByteConverter.LittleEndian.to!(ulong)(data);
+        test!("==")(res, 0x8070_6050_4030_2010);
+        ubyte[8] resf;
+        ByteConverter.LittleEndian.from!(ulong)(res, resf);
+        test!("==")(resf, data);
+    }
+
+    {
+        auto res = ByteConverter.BigEndian.to!(ulong)(data);
+        test!("==")(res, 0x1020_3040_5060_7080);
+        ubyte[8] resf;
+        ByteConverter.BigEndian.from!(ulong)(res, resf);
+        test!("==")(resf, data);
     }
 }
