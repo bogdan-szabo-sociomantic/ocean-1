@@ -35,6 +35,10 @@
         ; looking for more appenders?
         additive  = true
 
+    Note that `LOG.Root` will be treated specially: it will configure the
+    'root' logger, which is the parent of all loggers.
+    `Root` is case insensitive, so `LOG.root` or `LOG.ROOT` will work as well.
+
     See the class Config for further options and documentation.
 
     There are global logger configuration options as well:
