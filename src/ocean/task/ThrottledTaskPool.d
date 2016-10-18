@@ -231,9 +231,11 @@ public class ThrottledTaskPool ( TaskT ) : TaskPool!(TaskT)
 
         auto task = cast(TaskT) this.get(new ProcessingTask);
         assert (task !is null);
+        scope(failure)
+            this.recycle(task);
+
         task.copyArguments(args);
         theScheduler.schedule(task);
-
         this.throttler.throttledSuspend();
 
         return true;
@@ -264,9 +266,11 @@ public class ThrottledTaskPool ( TaskT ) : TaskPool!(TaskT)
 
             auto task = cast(TaskT) this.get(new ProcessingTask);
             assert (task !is null);
+            scope(failure)
+                this.recycle(task);
+
             task.deserialize(serialized);
             theScheduler.schedule(task);
-
             this.throttler.throttledSuspend();
 
             return true;
