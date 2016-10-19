@@ -14,6 +14,11 @@ New Features
   Provides the same functionality as the old `ClassFiller`, but it's
   extended to support `struct`s too.
 
+* `ocean.util.container.queue.LinkedListQueue`
+
+  Added the ability to walk over a `LinkedListQueue` with a foreach statement.
+  It will walk in order from head to tail.
+
 Deprecations
 ============
 
