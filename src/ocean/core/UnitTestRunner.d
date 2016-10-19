@@ -614,7 +614,7 @@ private scope class UnitTestRunner
 
     ***************************************************************************/
 
-    private Result timedTest ( ModuleInfoPtr m, out timeval tv, out mstring err )
+    private Result timedTest ( ModuleInfoPtr m, out timeval tv, ref mstring err )
     {
         timeval start = this.now();
         scope (exit) tv = elapsedTime(start);
