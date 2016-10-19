@@ -460,12 +460,6 @@ private scope class UnitTestRunner
                     this.prog, this.xml_file, getMsg(e), e.file, e.line);
             return false;
         }
-        catch
-        {
-            Stderr.formatln("{}: error: unknown error writing XML file '{}'",
-                    this.prog, this.xml_file);
-            return false;
-        }
 
         return true;
     }
@@ -642,10 +636,6 @@ private scope class UnitTestRunner
         {
             err = format(err, "{}:{}: unexpected exception {}: {}",
                     e.file, e.line, e.classinfo.name, getMsg(e));
-        }
-        catch
-        {
-            err = format(err, "{}: unexpected unknown exception", m.name);
         }
 
         return Result.Error;
