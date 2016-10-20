@@ -625,17 +625,26 @@ private scope class UnitTestRunner
         }
         catch (TestException e)
         {
-            err = format(err, "{}:{}: test error: {}", e.file, e.line, getMsg(e));
+            version (D_Version2)
+                e.toString((d) { err ~= d; });
+            else
+                err = format(err, "{}:{}: test error: {}", e.file, e.line, getMsg(e));
             return Result.Fail;
         }
         catch (AssertException e)
         {
-            err = format(err, "{}:{}: assert error: {}", e.file, e.line, getMsg(e));
+            version (D_Version2)
+                e.toString((d) { err ~= d; });
+            else
+                err = format(err, "{}:{}: assert error: {}", e.file, e.line, getMsg(e));
         }
         catch (Exception e)
         {
-            err = format(err, "{}:{}: unexpected exception {}: {}",
-                    e.file, e.line, e.classinfo.name, getMsg(e));
+            version (D_Version2)
+                e.toString((d) { err ~= d; });
+            else
+                err = format(err, "{}:{}: unexpected exception {}: {}",
+                             e.file, e.line, e.classinfo.name, getMsg(e));
         }
 
         return Result.Error;
