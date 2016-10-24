@@ -28,6 +28,11 @@ public class ThrottledTaskPool ( TaskT ) : TaskPool!(TaskT)
     import ocean.task.Scheduler;
     import ocean.text.convert.Format;
 
+    debug (TaskScheduler)
+    {
+        import ocean.io.Stdout;
+    }
+
     /***************************************************************************
 
         Throttler used to control tempo of data consumption from streams. By
@@ -226,9 +231,11 @@ public class ThrottledTaskPool ( TaskT ) : TaskPool!(TaskT)
 
         auto task = cast(TaskT) this.get(new ProcessingTask);
         assert (task !is null);
+        scope(failure)
+            this.recycle(task);
+
         task.copyArguments(args);
         theScheduler.schedule(task);
-
         this.throttler.throttledSuspend();
 
         return true;
@@ -259,9 +266,11 @@ public class ThrottledTaskPool ( TaskT ) : TaskPool!(TaskT)
 
             auto task = cast(TaskT) this.get(new ProcessingTask);
             assert (task !is null);
+            scope(failure)
+                this.recycle(task);
+
             task.deserialize(serialized);
             theScheduler.schedule(task);
-
             this.throttler.throttledSuspend();
 
             return true;
@@ -282,7 +291,8 @@ public class ThrottledTaskPool ( TaskT ) : TaskPool!(TaskT)
     {
         debug ( TaskScheduler )
         {
-            Stdout.formatln( "[{}] " ~ format, typeof(this), args ).flush();
+            Stdout.formatln( "[{}] " ~ format, typeof(this).stringof, args )
+                .flush();
         }
     }
 }
