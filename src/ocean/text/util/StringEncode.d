@@ -69,7 +69,6 @@ class IconvException : Exception
         super(msg, file, line);
     }
 
-
     alias .InvalidMbSeq InvalidMbSeq;
     alias .IncompleteMbSeq IncompleteMbSeq;
 }
