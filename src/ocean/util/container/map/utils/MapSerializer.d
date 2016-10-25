@@ -51,6 +51,8 @@ import ocean.util.serialize.contiguous.MultiVersionDecorator,
        ocean.util.serialize.contiguous.Serializer,
        ocean.util.serialize.Version;
 
+import ocean.text.convert.Formatter;
+
 /*******************************************************************************
 
     Temporary solution to expose protected `convert` method of version
@@ -827,7 +829,9 @@ class MapSerializer
 
         if ( fh_actual.marker != fh_expected.marker )
         {
-            throw new Exception("Magic Marker mismatch");
+            throw new Exception(format("Expected Magic Marker {}, got {}",
+                                       fh_expected.marker, fh_actual.marker),
+                                __FILE__, __LINE__);
         }
         else if ( fh_actual.versionNumber != fh_expected.versionNumber )
         {
@@ -845,8 +849,11 @@ class MapSerializer
             }
             else
             {
-                throw new Exception("Version of file header "
-                                    " does not match our version, aborting!");
+                throw new Exception(
+                    format("Expected version of file header to be {}, but got"
+                           ~ " {}, aborting!", fh_expected.versionNumber,
+                           fh_actual.versionNumber),
+                    __FILE__, __LINE__);
             }
         }
 
@@ -881,8 +888,11 @@ class MapSerializer
         {
             if ( fh_expected.hash != fh_actual.hash )
             {
-                throw new Exception("File struct differ from struct used to "
-                                    "load!", __FILE__, __LINE__);
+                throw new Exception(
+                    format("File struct differ from struct used to load "
+                           ~ "(expected 0x{:X} but got 0x{:X})!",
+                           fh_expected.hash, fh_actual.hash),
+                    __FILE__, __LINE__);
             }
         }
 
@@ -1033,7 +1043,8 @@ class MapSerializer
         }
         else static if ( throw_if_unable )
         {
-            throw new Exception("Cannot convert to new version!");
+            throw new Exception("Cannot convert to new version!",
+                                __FILE__, __LINE__);
         }
         else
         {
