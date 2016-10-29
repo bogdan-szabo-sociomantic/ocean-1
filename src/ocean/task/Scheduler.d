@@ -166,6 +166,7 @@ final class Scheduler
 
     public EpollSelectDispatcher epoll ( )
     {
+        assert (this._epoll !is null);
         return this._epoll;
     }
 
