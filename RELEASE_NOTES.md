@@ -40,7 +40,7 @@ New Features
    and responding with the appropriate actions on the given commands. Users can connect to the application on
    the desired unix socket, send a command, and wait for the application to perform the action and/or write
    back the response on the same connection.
-   
+
 * `ocean.io.serialize.StringStructSerializer`
 
   A new optional boolean flag has been added to the `serialize()` function. If
@@ -50,6 +50,12 @@ New Features
   For example, the string '\n' will be generated for the newline character, '\t'
   for the tab character and so on.
 
+* `ocean.io.select.EpollSelectDispatcher`
+
+  Optional delegate argument of `eventLoop` method now can return `bool`,
+  indicating if there is any pending work left at the call
+  site. This is likely to only be relevant for `ocean.task.Scheduler` internals
+
 Deprecations
 ============
 
@@ -57,3 +63,8 @@ Deprecations
 
   Deprecated in favour of the new `ConfigFiller` which provides the
   same interface.
+
+* `ocean.io.select.EpollSelectDispatcher`
+
+  Old overload of `eventLoop` was deprecated. If your app call `eventLoop` with
+  no arguments, it won't be affected.

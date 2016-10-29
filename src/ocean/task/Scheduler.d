@@ -510,9 +510,13 @@ final class Scheduler
         finishes. It takes care of suspended task queue
         ensuring everything will get resumed/run eventually.
 
+        Returns:
+            'true' if there are any pending tasks suspended via `processEvents`
+            left, 'false' otherwise.
+
     ***************************************************************************/
 
-    private void select_cycle_hook ( )
+    private bool select_cycle_hook ( )
     {
         // resuming queued tasks may result in more tasks being queued
         // to avoid `select_cycle_hook()` call being infinite, remember
@@ -532,6 +536,8 @@ final class Scheduler
             else
                 task.resume();
         }
+
+        return this.suspended_tasks.length > 0;
     }
 }
 
