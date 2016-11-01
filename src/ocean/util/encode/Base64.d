@@ -30,6 +30,19 @@ import ocean.transition;
 
 version (UnitTest) import ocean.core.Test;
 
+
+/*******************************************************************************
+
+    Default base64 encode table
+
+    This manifest constant is the default set of characters used by base64
+    encoding, according to RFC4648.
+
+*******************************************************************************/
+
+public const istring defaultEncodeTable = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+
+
 /*******************************************************************************
 
     Provide the size of the data once base64 encoded
@@ -107,10 +120,10 @@ public int encodeChunk (in ubyte[] data, mstring buff, ref int bytesEncoded)
         bytesEncoded = cast(int) tripletCount * 4;
         for (size_t i; i < tripletCount; i++)
         {
-            *rtnPtr++ = _encodeTable[((dataPtr[0] & 0xFC) >> 2)];
-            *rtnPtr++ = _encodeTable[(((dataPtr[0] & 0x03) << 4) | ((dataPtr[1] & 0xF0) >> 4))];
-            *rtnPtr++ = _encodeTable[(((dataPtr[1] & 0x0F) << 2) | ((dataPtr[2] & 0xC0) >> 6))];
-            *rtnPtr++ = _encodeTable[(dataPtr[2] & 0x3F)];
+            *rtnPtr++ = defaultEncodeTable[((dataPtr[0] & 0xFC) >> 2)];
+            *rtnPtr++ = defaultEncodeTable[(((dataPtr[0] & 0x03) << 4) | ((dataPtr[1] & 0xF0) >> 4))];
+            *rtnPtr++ = defaultEncodeTable[(((dataPtr[1] & 0x0F) << 2) | ((dataPtr[2] & 0xC0) >> 6))];
+            *rtnPtr++ = defaultEncodeTable[(dataPtr[2] & 0x3F)];
             dataPtr += 3;
         }
     }
@@ -156,14 +169,14 @@ body
         switch (tripletFraction)
         {
             case 2:
-                *rtnPtr++ = _encodeTable[((dataPtr[0] & 0xFC) >> 2)];
-                *rtnPtr++ = _encodeTable[(((dataPtr[0] & 0x03) << 4) | ((dataPtr[1] & 0xF0) >> 4))];
-                *rtnPtr++ = _encodeTable[((dataPtr[1] & 0x0F) << 2)];
+                *rtnPtr++ = defaultEncodeTable[((dataPtr[0] & 0xFC) >> 2)];
+                *rtnPtr++ = defaultEncodeTable[(((dataPtr[0] & 0x03) << 4) | ((dataPtr[1] & 0xF0) >> 4))];
+                *rtnPtr++ = defaultEncodeTable[((dataPtr[1] & 0x0F) << 2)];
                 *rtnPtr++ = '=';
                 break;
             case 1:
-                *rtnPtr++ = _encodeTable[((dataPtr[0] & 0xFC) >> 2)];
-                *rtnPtr++ = _encodeTable[((dataPtr[0] & 0x03) << 4)];
+                *rtnPtr++ = defaultEncodeTable[((dataPtr[0] & 0xFC) >> 2)];
+                *rtnPtr++ = defaultEncodeTable[((dataPtr[0] & 0x03) << 4)];
                 *rtnPtr++ = '=';
                 *rtnPtr++ = '=';
                 break;
@@ -386,7 +399,6 @@ private:
     encode and decode data.
 */
 const ubyte BASE64_PAD = 64;
-static istring _encodeTable = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 
 static Const!(ubyte)[] _decodeTable = [
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
