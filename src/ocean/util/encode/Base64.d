@@ -453,3 +453,46 @@ unittest
         test!("==")(result, payload);
     }
 }
+
+
+/*******************************************************************************
+
+    Helper function, called only at CTFE, to validate that the encode table
+    passed to `encode` is valid
+
+    Params:
+      s = Input string to `encode` to check for base64 compliance
+
+    Returns:
+      An error message if there is an error, `null` otherwise
+
+*******************************************************************************/
+
+private istring validateEncodeTable (istring s)
+{
+    if (s.length != 65)
+        return "Base64 expects a 65-chars string for encoding, not: " ~ s;
+
+    bool[char.max + 1] v;
+    foreach (char c; s)
+    {
+        if (v[c])
+            return "Base64 expects 65 unique chars, but '" ~  s
+                ~ "' contains duplicated entry: " ~ c;
+        v[c] = true;
+    }
+    return null;
+}
+
+unittest
+{
+    test!("is")(validateEncodeTable(defaultEncodeTable), istring.init);
+    test!("is")(validateEncodeTable(urlSafeEncodeTable), istring.init);
+    istring too_long = defaultEncodeTable ~ 'A';
+    test!("!is")(validateEncodeTable(too_long), istring.init);
+    mstring _dupes = defaultEncodeTable.dup;
+    _dupes[1] = 'A';
+    istring dupes = assumeUnique(_dupes);
+    assert(dupes[0] == dupes[1]);
+    test!("!is")(validateEncodeTable(dupes), istring.init);
+}
