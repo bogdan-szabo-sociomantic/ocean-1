@@ -608,3 +608,39 @@ unittest
     assert(table['='] == table['*']);
     test!("!is")(validateDecodeTable(table), istring.init);
 }
+
+
+// base64url tests
+unittest
+{
+    istring str = "Why so serious?";
+    Const!(ubyte)[] payload = cast(Const!(ubyte)[]) str;
+
+    // encodeChunktest
+    {
+        mstring encoded = new char[allocateEncodeSize(payload)];
+        int bytesEncoded = 0;
+        int numBytesLeft = encodeChunk!(urlSafeEncodeTable)(payload, encoded, bytesEncoded);
+        cstring result = encoded[0..bytesEncoded] ~ encode!(urlSafeEncodeTable)(payload[numBytesLeft..$], encoded[bytesEncoded..$]);
+        test!("==")(result, "V2h5IHNvIHNlcmlvdXM_");
+    }
+
+    // encodeTest
+    {
+        mstring encoded = new char[allocateEncodeSize(payload)];
+        cstring result = encode!(urlSafeEncodeTable)(payload, encoded);
+        test!("==")(result, "V2h5IHNvIHNlcmlvdXM_");
+
+        cstring result2 = encode!(urlSafeEncodeTable)(payload);
+        test!("==")(result, "V2h5IHNvIHNlcmlvdXM_");
+    }
+
+    // decodeTest
+    {
+        ubyte[1024] decoded;
+        ubyte[] result = decode!(urlSafeDecodeTable)("V2h5IHNvIHNlcmlvdXM_", decoded);
+        test!("==")(result, payload);
+        result = decode!(urlSafeDecodeTable)("V2h5IHNvIHNlcmlvdXM_");
+        test!("==")(result, payload);
+    }
+}
