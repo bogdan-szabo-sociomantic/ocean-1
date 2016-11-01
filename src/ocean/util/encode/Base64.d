@@ -211,6 +211,7 @@ public int encodeChunk (istring table = defaultEncodeTable)
               for padding
       data = what is to be encoded
       buff = buffer large enough to hold encoded data
+      pad  = Whether or not to pad the output - default to `true`
 
     Example:
     ---
@@ -222,7 +223,7 @@ public int encodeChunk (istring table = defaultEncodeTable)
 *******************************************************************************/
 
 public mstring encode (istring table = defaultEncodeTable)
-    (in ubyte[] data, mstring buff)
+    (in ubyte[] data, mstring buff, bool pad = true)
 in
 {
     assert(data);
@@ -249,13 +250,17 @@ body
                 *rtnPtr++ = table[((dataPtr[0] & 0xFC) >> 2)];
                 *rtnPtr++ = table[(((dataPtr[0] & 0x03) << 4) | ((dataPtr[1] & 0xF0) >> 4))];
                 *rtnPtr++ = table[((dataPtr[1] & 0x0F) << 2)];
-                *rtnPtr++ = table[BASE64_PAD];
+                if (pad)
+                    *rtnPtr++ = table[BASE64_PAD];
                 break;
             case 1:
                 *rtnPtr++ = table[((dataPtr[0] & 0xFC) >> 2)];
                 *rtnPtr++ = table[((dataPtr[0] & 0x03) << 4)];
-                *rtnPtr++ = table[BASE64_PAD];
-                *rtnPtr++ = table[BASE64_PAD];
+                if (pad)
+                {
+                    *rtnPtr++ = table[BASE64_PAD];
+                    *rtnPtr++ = table[BASE64_PAD];
+                }
                 break;
             default:
                 break;
@@ -275,6 +280,7 @@ body
       table = The encode table to use, either `defaultEncodeTable` (the default)
               or `urlSafeEncodeTable`, or one's own encode table.
       data = what is to be encoded
+      pad  = Whether or not to pad the output - default to `true`
 
     Example:
     ---
@@ -284,7 +290,8 @@ body
 
 *******************************************************************************/
 
-public mstring encode (istring table = defaultEncodeTable) (in ubyte[] data)
+public mstring encode (istring table = defaultEncodeTable)
+    (in ubyte[] data, bool pad = true)
 in
 {
     assert(data);
@@ -292,7 +299,7 @@ in
 body
 {
     auto rtn = new char[allocateEncodeSize(data)];
-    return encode!(table)(data, rtn);
+    return encode!(table)(data, rtn, pad);
 }
 
 
@@ -492,6 +499,15 @@ unittest
         result = decode("SGVsbG8sIGhvdyBhcmUgeW91IHRvZGF5Pw==");
         test!("==")(result, payload);
     }
+}
+
+// Encode without padding
+unittest
+{
+    istring str = "Hello, how are you today?";
+    Const!(ubyte)[] payload = cast(Const!(ubyte)[]) str;
+    cstring result = encode(payload, false);
+    test!("==")(result, "SGVsbG8sIGhvdyBhcmUgeW91IHRvZGF5Pw");
 }
 
 
