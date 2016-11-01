@@ -33,14 +33,38 @@ version (UnitTest) import ocean.core.Test;
 
 /*******************************************************************************
 
-    Default base64 encode table
+    Default base64 encode/decode table
 
     This manifest constant is the default set of characters used by base64
-    encoding, according to RFC4648.
+    encoding/decoding, according to RFC4648.
 
 *******************************************************************************/
 
 public const istring defaultEncodeTable = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+
+/// Ditto
+public const ubyte[char.max + 1] defaultDecodeTable = [
+    'A' :  0, 'B' :  1, 'C' :  2, 'D' :  3, 'E' :  4,
+    'F' :  5, 'G' :  6, 'H' :  7, 'I' :  8, 'J' :  9,
+    'K' : 10, 'L' : 11, 'M' : 12, 'N' : 13, 'O' : 14,
+    'P' : 15, 'Q' : 16, 'R' : 17, 'S' : 18, 'T' : 19,
+    'U' : 20, 'V' : 21, 'W' : 22, 'X' : 23, 'Y' : 24,
+    'Z' : 25,
+
+    'a' : 26, 'b' : 27, 'c' : 28, 'd' : 29, 'e' : 30,
+    'f' : 31, 'g' : 32, 'h' : 33, 'i' : 34, 'j' : 35,
+    'k' : 36, 'l' : 37, 'm' : 38, 'n' : 39, 'o' : 40,
+    'p' : 41, 'q' : 42, 'r' : 43, 's' : 44, 't' : 45,
+    'u' : 46, 'v' : 47, 'w' : 48, 'x' : 49, 'y' : 50,
+    'z' : 51,
+
+    '0' : 52, '1' : 53, '2' : 54, '3' : 55, '4' : 56,
+    '5' : 57, '6' : 58, '7' : 59, '8' : 60, '9' : 61,
+
+    '+' : 62, '/' : 63,
+
+    '=' : BASE64_PAD
+];
 
 
 /*******************************************************************************
@@ -53,6 +77,10 @@ public const istring defaultEncodeTable = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijk
 *******************************************************************************/
 
 public const istring urlSafeEncodeTable = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_=";
+
+
+/// Value set to the padding
+private const ubyte BASE64_PAD = 64;
 
 /*******************************************************************************
 
@@ -301,7 +329,7 @@ body
         foreach_reverse(char piece; data)
         {
             paddedPos++;
-            ubyte current = _decodeTable[piece];
+            ubyte current = defaultDecodeTable[piece];
             if (current || piece == 'A')
             {
                 endCount++;
@@ -320,7 +348,7 @@ body
         auto nonPadded = data[0..($ - paddedPos)];
         foreach(piece; nonPadded)
         {
-            ubyte next = _decodeTable[piece];
+            ubyte next = defaultDecodeTable[piece];
             if (next || piece == 'A')
                 *quadPtr++ = next;
             if (quadPtr is endPtr)
@@ -340,7 +368,7 @@ body
             auto padded = data[($ - paddedPos) .. $];
             foreach(char piece; padded)
             {
-                ubyte next = _decodeTable[piece];
+                ubyte next = defaultDecodeTable[piece];
                 if (next || piece == 'A')
                     *quadPtr++ = next;
                 if (quadPtr is endPtr)
@@ -401,30 +429,3 @@ unittest
         test!("==")(result, payload);
     }
 }
-
-
-private:
-
-/*
-    Static immutable tables used for fast lookups to
-    encode and decode data.
-*/
-const ubyte BASE64_PAD = 64;
-
-static Const!(ubyte)[] _decodeTable = [
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,62,0,0,0,63,52,53,54,55,56,57,58,
-    59,60,61,0,0,0,BASE64_PAD,0,0,0,0,1,2,3,
-    4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,
-    19,20,21,22,23,24,25,0,0,0,0,0,0,26,27,
-    28,29,30,31,32,33,34,35,36,37,38,39,40,
-    41,42,43,44,45,46,47,48,49,50,51,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,0,0,0,0,0
-];
