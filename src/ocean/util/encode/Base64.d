@@ -305,6 +305,9 @@ body
     newline in it is valid.
 
     Params:
+      Table = The decode table to use. Variadic template parameter is used to
+              allow passing it as an expression in D1, but a single `ubyte[256]`
+              is expected.
       data = what is to be decoded
 
     Example:
@@ -315,7 +318,13 @@ body
 
 *******************************************************************************/
 
-public ubyte[] decode (cstring data)
+public ubyte[] decode () (cstring data)
+{
+    return decode!(defaultDecodeTable)(data);
+}
+
+/// Ditto
+public ubyte[] decode (Table...) (cstring data)
 in
 {
     assert(data);
@@ -323,7 +332,7 @@ in
 body
 {
     auto rtn = new ubyte[data.length];
-    return decode(data, rtn);
+    return decode!(Table)(data, rtn);
 }
 
 /*******************************************************************************
@@ -334,6 +343,9 @@ body
     newline in it is valid.
 
     Params:
+      Table = The decode table to use. Variadic template parameter is used to
+              allow passing it as an expression in D1, but a single `ubyte[256]`
+              is expected.
       data = what is to be decoded
       buff = a big enough array to hold the decoded data
 
@@ -346,13 +358,25 @@ body
 
 *******************************************************************************/
 
-public ubyte[] decode (cstring data, ubyte[] buff)
+public ubyte[] decode () (cstring data, ubyte[] buff)
+{
+    return decode!(defaultDecodeTable)(data, buff);
+}
+
+/// Ditto
+public ubyte[] decode (Table...) (cstring data, ubyte[] buff)
 in
 {
     assert(data);
 }
 body
 {
+    static assert(Table.length == 1,
+                  "A single argument is expected, not: " ~ Table.stringof);
+    static assert(validateDecodeTable(Table[0]) == null,
+                  validateDecodeTable(Table[0]));
+
+    const table = Table[0];
     ubyte[] rtn;
 
     if (data.length > 0)
@@ -369,7 +393,7 @@ body
         foreach_reverse(char piece; data)
         {
             paddedPos++;
-            ubyte current = defaultDecodeTable[piece];
+            ubyte current = table[piece];
             if (current || piece == 'A')
             {
                 endCount++;
@@ -388,7 +412,7 @@ body
         auto nonPadded = data[0..($ - paddedPos)];
         foreach(piece; nonPadded)
         {
-            ubyte next = defaultDecodeTable[piece];
+            ubyte next = table[piece];
             if (next || piece == 'A')
                 *quadPtr++ = next;
             if (quadPtr is endPtr)
@@ -408,7 +432,7 @@ body
             auto padded = data[($ - paddedPos) .. $];
             foreach(char piece; padded)
             {
-                ubyte next = defaultDecodeTable[piece];
+                ubyte next = table[piece];
                 if (next || piece == 'A')
                     *quadPtr++ = next;
                 if (quadPtr is endPtr)
