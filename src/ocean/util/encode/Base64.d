@@ -496,3 +496,75 @@ unittest
     assert(dupes[0] == dupes[1]);
     test!("!is")(validateEncodeTable(dupes), istring.init);
 }
+
+
+/*******************************************************************************
+
+    Helper function, called only at CTFE, to validate that the decode table
+    passed to `decode` is valid
+
+    Params:
+      table = Input encode table to `decode` to check for base64 compliance
+
+    Returns:
+      An error message if there is an error, `null` otherwise
+
+*******************************************************************************/
+
+private istring validateDecodeTable (T) (in T table)
+{
+    static if (!is(T : ubyte[char.max + 1]))
+    {
+        return "Expected an decode table of type `ubyte[char.max+1]`, got: "
+            ~ T.stringof;
+    }
+    else
+    {
+        // The char we find might not be printable, hence we print it as number
+        istring asNumber(ubyte c)
+        {
+            char[3] ret;
+            ret[0] = ('0' + (c / 100));
+            ret[1] = ('0' + (c % 100 / 10));
+            ret[2] = ('0' + (c % 10));
+            return idup(ret);
+        }
+
+        char[65] encode = 0;
+        // DMD BUG: Using foreach here iterates over the same index twice...
+        for (size_t i; i < table.length; ++i)
+        {
+            char decodedChar = cast(char) i;
+            ubyte encodedValue = table[i];
+
+            if (encodedValue > BASE64_PAD)
+                return "Decode table cannot contain values > 64";
+            // Unused entries have values 0, so that's the only one we cannot
+            // validate
+            if (encodedValue == 0)
+                continue;
+            if (encode[encodedValue])
+                return "Multiple values (char) found for decoding "
+                    ~ asNumber(encodedValue)
+                    ~ " previous index: " ~ asNumber(encode[encodedValue])
+                    ~ " new index: " ~ asNumber(decodedChar);
+            encode[encodedValue] = decodedChar;
+        }
+        return null;
+    }
+}
+
+unittest
+{
+    test!("is")(validateDecodeTable(defaultDecodeTable), istring.init);
+    test!("is")(validateDecodeTable(urlSafeDecodeTable), istring.init);
+
+    ubyte[] notATable = new ubyte[char.max + 1];
+    test!("!is")(validateDecodeTable(notATable), istring.init);
+
+    ubyte[char.max + 1] table = defaultDecodeTable;
+    assert(validateDecodeTable(table) is null);
+    table['*'] = BASE64_PAD;
+    assert(table['='] == table['*']);
+    test!("!is")(validateDecodeTable(table), istring.init);
+}
