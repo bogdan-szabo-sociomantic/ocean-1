@@ -45,6 +45,17 @@ public const istring defaultEncodeTable = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijk
 
 /*******************************************************************************
 
+    URL-safe base64 encode table
+
+    This manifest constant exposes the url-safe ("base64url") variant of the
+    encode table, according to RFC4648.
+
+*******************************************************************************/
+
+public const istring urlSafeEncodeTable = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_=";
+
+/*******************************************************************************
+
     Provide the size of the data once base64 encoded
 
     When data is encoded in Base64, it is packed in groups of 3 bytes, which
