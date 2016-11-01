@@ -161,6 +161,8 @@ public size_t allocateEncodeSize (size_t length)
     only encode up to the highest number of bytes divisible by three.
 
     Params:
+      table = The encode table to use, either `defaultEncodeTable` (the default)
+              or `urlSafeEncodeTable`, or one's own encode table.
       data = what is to be encoded
       buff = buffer large enough to hold encoded data
       bytesEncoded = ref that returns how much of the buffer was filled
@@ -170,8 +172,12 @@ public size_t allocateEncodeSize (size_t length)
 
 *******************************************************************************/
 
-public int encodeChunk (in ubyte[] data, mstring buff, ref int bytesEncoded)
+public int encodeChunk (istring table = defaultEncodeTable)
+    (in ubyte[] data, mstring buff, ref int bytesEncoded)
 {
+    static assert(validateEncodeTable(table) is null,
+                  validateEncodeTable(table));
+
     size_t tripletCount = data.length / 3;
     int rtn = 0;
     char *rtnPtr = buff.ptr;
@@ -183,10 +189,10 @@ public int encodeChunk (in ubyte[] data, mstring buff, ref int bytesEncoded)
         bytesEncoded = cast(int) tripletCount * 4;
         for (size_t i; i < tripletCount; i++)
         {
-            *rtnPtr++ = defaultEncodeTable[((dataPtr[0] & 0xFC) >> 2)];
-            *rtnPtr++ = defaultEncodeTable[(((dataPtr[0] & 0x03) << 4) | ((dataPtr[1] & 0xF0) >> 4))];
-            *rtnPtr++ = defaultEncodeTable[(((dataPtr[1] & 0x0F) << 2) | ((dataPtr[2] & 0xC0) >> 6))];
-            *rtnPtr++ = defaultEncodeTable[(dataPtr[2] & 0x3F)];
+            *rtnPtr++ = table[((dataPtr[0] & 0xFC) >> 2)];
+            *rtnPtr++ = table[(((dataPtr[0] & 0x03) << 4) | ((dataPtr[1] & 0xF0) >> 4))];
+            *rtnPtr++ = table[(((dataPtr[1] & 0x0F) << 2) | ((dataPtr[2] & 0xC0) >> 6))];
+            *rtnPtr++ = table[(dataPtr[2] & 0x3F)];
             dataPtr += 3;
         }
     }
@@ -199,6 +205,10 @@ public int encodeChunk (in ubyte[] data, mstring buff, ref int bytesEncoded)
     Encodes data and returns as an ASCII base64 string.
 
     Params:
+      table = The encode table to use, either `defaultEncodeTable` (the default)
+              or `urlSafeEncodeTable`, or one's own encode table.
+              An array of 65 chars is expected, where the last char is used
+              for padding
       data = what is to be encoded
       buff = buffer large enough to hold encoded data
 
@@ -211,7 +221,8 @@ public int encodeChunk (in ubyte[] data, mstring buff, ref int bytesEncoded)
 
 *******************************************************************************/
 
-public mstring encode (in ubyte[] data, mstring buff)
+public mstring encode (istring table = defaultEncodeTable)
+    (in ubyte[] data, mstring buff)
 in
 {
     assert(data);
@@ -219,12 +230,15 @@ in
 }
 body
 {
+    static assert(validateEncodeTable(table) is null,
+                  validateEncodeTable(table));
+
     mstring rtn = null;
 
     if (data.length > 0)
     {
         int bytesEncoded = 0;
-        int numBytes = encodeChunk(data, buff, bytesEncoded);
+        int numBytes = encodeChunk!(table)(data, buff, bytesEncoded);
         char *rtnPtr = buff.ptr + bytesEncoded;
         Const!(ubyte)* dataPtr = data.ptr + numBytes;
         auto tripletFraction = data.length - (dataPtr - data.ptr);
@@ -232,16 +246,16 @@ body
         switch (tripletFraction)
         {
             case 2:
-                *rtnPtr++ = defaultEncodeTable[((dataPtr[0] & 0xFC) >> 2)];
-                *rtnPtr++ = defaultEncodeTable[(((dataPtr[0] & 0x03) << 4) | ((dataPtr[1] & 0xF0) >> 4))];
-                *rtnPtr++ = defaultEncodeTable[((dataPtr[1] & 0x0F) << 2)];
-                *rtnPtr++ = '=';
+                *rtnPtr++ = table[((dataPtr[0] & 0xFC) >> 2)];
+                *rtnPtr++ = table[(((dataPtr[0] & 0x03) << 4) | ((dataPtr[1] & 0xF0) >> 4))];
+                *rtnPtr++ = table[((dataPtr[1] & 0x0F) << 2)];
+                *rtnPtr++ = table[BASE64_PAD];
                 break;
             case 1:
-                *rtnPtr++ = defaultEncodeTable[((dataPtr[0] & 0xFC) >> 2)];
-                *rtnPtr++ = defaultEncodeTable[((dataPtr[0] & 0x03) << 4)];
-                *rtnPtr++ = '=';
-                *rtnPtr++ = '=';
+                *rtnPtr++ = table[((dataPtr[0] & 0xFC) >> 2)];
+                *rtnPtr++ = table[((dataPtr[0] & 0x03) << 4)];
+                *rtnPtr++ = table[BASE64_PAD];
+                *rtnPtr++ = table[BASE64_PAD];
                 break;
             default:
                 break;
@@ -258,6 +272,8 @@ body
     Encodes data and returns as an ASCII base64 string
 
     Params:
+      table = The encode table to use, either `defaultEncodeTable` (the default)
+              or `urlSafeEncodeTable`, or one's own encode table.
       data = what is to be encoded
 
     Example:
@@ -268,7 +284,7 @@ body
 
 *******************************************************************************/
 
-public mstring encode (in ubyte[] data)
+public mstring encode (istring table = defaultEncodeTable) (in ubyte[] data)
 in
 {
     assert(data);
@@ -276,7 +292,7 @@ in
 body
 {
     auto rtn = new char[allocateEncodeSize(data)];
-    return encode(data, rtn);
+    return encode!(table)(data, rtn);
 }
 
 
