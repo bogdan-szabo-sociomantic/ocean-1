@@ -9,6 +9,11 @@ tango      | v1.3.x
 New Features
 ============
 
+* `ocean.core.Traits`
+  A new symbol, `TemplateInstanceArgs` was introduced.
+  It allows to get the arguments of a template instance in a D1-friendly manner.
+  It can also be used to check if a type is an instance of a given template.
+
 * `ocean.util.config.ConfigFiller`
 
   Provides the same functionality as the old `ClassFiller`, but it's
