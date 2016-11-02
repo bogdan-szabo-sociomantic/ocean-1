@@ -29,6 +29,12 @@ New Features
     used for base64 encoding / decoding. By default `default{Encode,Decode}Table` are used to keep the old behavior.
   - `encode` now takes a 3rd argument, `bool pad` which defaults to `true`, to tell the encoder whether to pad or not.
 
+* `ocean.net.server.unix.UnixListener`, `ocean.net.server.unix.UnixConnectionHandler`
+
+  `UnixListener` and `UnixConnectionHandler` classes are added with support for listening on the unix socket
+   and responding with the appropriate actions on the given commands. Users can connect to the application on
+   the desired unix socket, send a command, and wait for the application to perform the action and/or write
+   back the response on the same connection.
 
 Deprecations
 ============
