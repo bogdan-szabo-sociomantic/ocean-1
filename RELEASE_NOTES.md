@@ -40,6 +40,15 @@ New Features
    and responding with the appropriate actions on the given commands. Users can connect to the application on
    the desired unix socket, send a command, and wait for the application to perform the action and/or write
    back the response on the same connection.
+   
+* `ocean.io.serialize.StringStructSerializer`
+
+  A new optional boolean flag has been added to the `serialize()` function. If
+  this flag is set, then single character fields in structs will be serialized
+  into equivalent friendly string representations if the fields contain
+  whitespace or other unprintable characters.
+  For example, the string '\n' will be generated for the newline character, '\t'
+  for the tab character and so on.
 
 Deprecations
 ============

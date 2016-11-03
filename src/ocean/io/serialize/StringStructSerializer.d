@@ -130,6 +130,29 @@ public class StringStructSerializer ( Char )
 
     /***************************************************************************
 
+        Flag that is set to true if single character fields in structs should be
+        serialized into equivalent friendly string representations (applicable
+        only if these fields contain whitespace or other unprintable
+        characters).
+        e.g. the newline character will be serialized to the string '\n' instead
+        of to an actual new line.
+
+    ***************************************************************************/
+
+    private bool turn_ws_char_to_str;
+
+
+    /***************************************************************************
+
+        Temporary formatting buffer.
+
+    ***************************************************************************/
+
+    private mstring buf;
+
+
+    /***************************************************************************
+
         Constructor, sets the maximum number of decimal digits to show for
         floating point types.
 
@@ -163,12 +186,17 @@ public class StringStructSerializer ( Char )
             output           = string to serialize struct data to
             item             = item to append
             timestamp_fields = (optional) an array of timestamp field names
+            turn_ws_char_to_str = true if individual whitespace or unprintable
+                character fields should be serialized into a friendlier string
+                representation, e.g. tab character into '\t' (defaults to false)
 
     ***************************************************************************/
 
     public void serialize ( T ) ( ref Char[] output, ref T item,
-        cstring[] timestamp_fields = null )
+        cstring[] timestamp_fields = null, bool turn_ws_char_to_str = false )
     {
+        this.turn_ws_char_to_str = turn_ws_char_to_str;
+
         this.known_timestamp_fields.clear();
 
         foreach (field_name; timestamp_fields)
@@ -247,6 +275,15 @@ public class StringStructSerializer ( Char )
         {
             Layout!(Char).format(output, this.fp_format, this.indent,
                 T.stringof, name, item);
+        }
+        else static if ( is(T == char) )
+        {
+            // Individual character fields are handled in a special manner so
+            // that friendly string representations can be generated for them if
+            // necessary
+
+            Layout!(Char).format(output, "{}{} {} : {}\n", this.indent,
+                T.stringof, name, this.getCharAsString(item));
         }
         else
         {
@@ -401,6 +438,88 @@ public class StringStructSerializer ( Char )
 
         this.indent.length = this.indent.length - indent_size;
         enableStomping(this.indent);
+    }
+
+
+    /***************************************************************************
+
+        Gets the string equivalent of a character. For most characters, the
+        string contains just the character itself; but in case of whitespace or
+        other unprintable characters, a friendlier string representation is
+        generated (provided the flag requesting this generation has been set).
+        For example, the string '\n' will be generated for the newline
+        character, '\t' for the tab character and so on.
+
+        Params:
+            c = character whose string equivalent is to be got
+
+        Returns:
+            string equivalent of the character
+
+    ***************************************************************************/
+
+    private mstring getCharAsString ( char c )
+    {
+        this.buf.length = 0;
+        enableStomping(this.buf);
+
+        if ( !this.turn_ws_char_to_str )
+        {
+            Layout!(Char).format(this.buf, "{}", c);
+            return this.buf;
+        }
+
+        // The set of characters to use for creating cases within the following
+        // switch block. These are just whitepace or unprintable characters but
+        // without their preceding backslashes.
+        const letters = ['0', 'a', 'b', 'f', 'n', 'r', 't', 'v'];
+
+        switch ( c )
+        {
+            case c.init:
+                Layout!(Char).format(this.buf, "{}", "''");
+                break;
+
+            mixin(ctfeCreateCases(letters));
+
+            default:
+                Layout!(Char).format(this.buf, "{}", c);
+                break;
+        }
+
+        return this.buf;
+    }
+
+
+    /***************************************************************************
+
+        Creates a string containing all the necessary case statements to be
+        mixed-in into the switch block that generates friendly string
+        representations of whitespace or unprintable characters. This function
+        is evaluated at compile-time.
+
+        Params:
+            letters = string containing all the characters corresponding to the
+                various case statements
+
+        Returns:
+            string containing all case statements to be mixed-in
+
+    ***************************************************************************/
+
+    private static istring ctfeCreateCases ( istring letters )
+    {
+        istring mixin_str;
+
+        foreach ( c; letters )
+        {
+            mixin_str ~=
+                `case '\` ~ c ~ `':` ~
+                    `Layout!(Char).format(this.buf, "{}", "'\\` ~ c ~ `'");` ~
+                    `break;`;
+        }
+
+        return mixin_str;
     }
 }
 
@@ -598,5 +717,69 @@ unittest
     t.test!("==")(buffer.length, 65);
     t.test(buffer == "struct StructWithUnion:\n" ~
                      "   union U u : [97, 0, 0, 0, 0, 0, 0, 0]\n",
+        "Incorrect string serializer result");
+
+    struct StructWithChars
+    {
+        char c0;
+        char c1;
+        char c2;
+        char c3;
+        char c4;
+        char c5;
+        char c6;
+        char c7;
+        char c8;
+        char c9;
+    }
+
+    StructWithChars sc;
+    sc.c0 = 'g';
+    sc.c1 = 'k';
+    sc.c2 = '\0';
+    sc.c3 = '\a';
+    sc.c4 = '\b';
+    sc.c5 = '\f';
+    sc.c6 = '\n';
+    sc.c7 = '\r';
+    sc.c8 = '\t';
+    sc.c9 = '\v';
+
+    // Generation of friendly string representations of characters disabled
+    buffer.length = 0;
+    enableStomping(buffer);
+    serializer.serialize(buffer, sc);
+
+    t.test!("==")(buffer.length, 174);
+    t.test(buffer == "struct StructWithChars:\n" ~
+                     "   char c0 : g\n" ~
+                     "   char c1 : k\n" ~
+                     "   char c2 : \0\n" ~
+                     "   char c3 : \a\n" ~
+                     "   char c4 : \b\n" ~
+                     "   char c5 : \f\n" ~
+                     "   char c6 : \n\n" ~
+                     "   char c7 : \r\n" ~
+                     "   char c8 : \t\n" ~
+                     "   char c9 : \v\n",
+        "Incorrect string serializer result");
+
+    // Generation of friendly string representations of characters enabled
+    buffer.length = 0;
+    enableStomping(buffer);
+    serializer.serialize(buffer, sc, [""], true);
+
+    t.test!("==")(buffer.length, 198);
+    t.test(buffer == "struct StructWithChars:\n" ~
+                     "   char c0 : g\n" ~
+                     "   char c1 : k\n" ~
+                     "   char c2 : '\\0'\n" ~
+                     "   char c3 : '\\a'\n" ~
+                     "   char c4 : '\\b'\n" ~
+                     "   char c5 : '\\f'\n" ~
+                     "   char c6 : '\\n'\n" ~
+                     "   char c7 : '\\r'\n" ~
+                     "   char c8 : '\\t'\n" ~
+                     "   char c9 : '\\v'\n",
         "Incorrect string serializer result");
 }
