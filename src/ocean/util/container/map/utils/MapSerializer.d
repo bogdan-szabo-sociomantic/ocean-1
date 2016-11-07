@@ -82,7 +82,7 @@ private class Converter : VersionDecorator
         key / value must be v0 and the layout must be the same,
         otherwise loading will fail.
 
-    Template_Params:
+    Params:
         V = type of the value
         K = type of the key
 
@@ -139,7 +139,7 @@ abstract class SerializingMap ( V, K ) : Map!(V, K)
 
     See SerializingMap for an usage example
 
-    Template_Params:
+    Params:
         K = key type of the map
         V = value type of the map
 
@@ -369,7 +369,7 @@ class MapSerializer
 
         Only works with tuples of length 2
 
-        Template_Params:
+        Params:
             index = index of the type that will be made into StructPrevious
             T...  = tuple of the types
 
@@ -395,8 +395,8 @@ class MapSerializer
         Takes a type tuple and transforms it into the same type tuple but with
         the types being pointers to the original types.
 
-        Template_Params:
-            T... = tuple to convert
+        Params:
+            T = tuple to convert
 
     ***************************************************************************/
 
@@ -429,7 +429,7 @@ class MapSerializer
         Evaluates to the fnv1 hash of the types that make up the struct.
         If S is no struct, mangled name of the type is used.
 
-        Template_Params:
+        Params:
             S = struct containing key & value
 
     ***************************************************************************/
@@ -667,12 +667,10 @@ class MapSerializer
 
         Internal dump function
 
-        Template_Params:
+        Params:
             K = Key type of the map
             V = Value type of the map
             HeaderVersion = version of the file header we're trying to load
-
-        Params:
             buffered = stream to write to
             adder    = function called with a delegate that can be used to add
                        elements that aare to be dumped. Once the delegate
@@ -723,11 +721,9 @@ class MapSerializer
             Exception when the file has not the expected fileheader and
             other Exceptions for various kinds of errors (file not found, etc)
 
-        Template_Params:
+        Params:
             K = key of the array map
             V = value of the corresponding key
-
-        Params:
             map       = instance of the array map
             file_path = path to the file to load from
 
@@ -770,11 +766,9 @@ class MapSerializer
             Exception when the file has not the expected fileheader and
             other Exceptions for various kinds of errors (file not found, etc)
 
-        Template_Params:
+        Params:
             K = key of the array map
             V = value of the corresponding key
-
-        Params:
             file_path = path to the file to load from
             putter    = function called for each entry to insert it into the map
 
@@ -800,12 +794,10 @@ class MapSerializer
             Exception when the file has not the expected fileheader and
             other Exceptions for various kinds of errors (file not found, etc)
 
-        Template_Params:
+        Params:
             K = key of the array map
             V = value of the corresponding key
             HeaderVersion = version of the file header we're trying to load
-
-        Params:
             buffered  = input stream to read from
             putter    = function called for each entry to insert it into the map
 
@@ -936,13 +928,11 @@ class MapSerializer
 
         Checks if a struct needs to be converted and converts it if required
 
-        Template_Params:
+        Params:
             loadFunc = function to use to load older version of the struct
             index    = index of the type in the tuple that should be
                        checked/converted
-            T...     = tuple of key/value types
-
-        Params:
+            T        = tuple of key/value types
             actual   = version that was found in the data
             expected = version that is desired
             buffer   = conversion buffer to use
@@ -978,15 +968,13 @@ class MapSerializer
 
         Checks if a struct needs to be converted and converts it if required
 
-        Template_Params:
+        Params:
             throw_if_unable = if true, an exception is thrown if we can't
                               convert this struct
             loadFunc = function to use to load older version of the struct
             index    = index of the type in the tuple that should be
                        checked/converted
-            T...     = tuple of key/value types
-
-        Params:
+            T        = tuple of key/value types
             buffer   = conversion buffer to use
             putter   = delegate to use to put the data into the map
             buffered = buffered input stream
@@ -1057,11 +1045,9 @@ class MapSerializer
 
         Previous load function, kept so that old versions can still be loaded
 
-        Template_Params:
+        Params:
             K = type of the key
             V = type of the value
-
-        Params:
             buffered = stream to read from
             putter   = delegate used to write loaded records to the map
 
@@ -1204,11 +1190,9 @@ version ( UnitTest )
         Dump function that dumps in the old format, to test whether we can still
         read it (and convert it)
 
-        Template_Params:
+        Params:
             K = type of key
             V = type of value
-
-        Params:
             buffered = output stream to write to
             adder    = delegate called with a delegate that can be used to add
                        values
@@ -1260,7 +1244,7 @@ version ( UnitTest )
 
         The value structs should offer only a compare function.
 
-        Template_Params:
+        Params:
             K = type of the key to write
             V = type of the value to write
             KNew = type of the key to read, automatic conversion will happen
