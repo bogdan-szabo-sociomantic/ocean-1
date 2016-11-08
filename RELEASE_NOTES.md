@@ -1,4 +1,4 @@
-Release Notes for Ocean v2.2.0
+Release Notes for Ocean v2.3.0
 ==============================
 
 Note: If you are upgrading from an older version, you have to upgrade
@@ -31,3 +31,7 @@ Deprecations
 
 New Features
 ============
+
+This release includes all new features added in the following v1.x.x release:
+
+* [v1.34.0](https://github.com/sociomantic/ocean/releases/tag/v1.34.0)
