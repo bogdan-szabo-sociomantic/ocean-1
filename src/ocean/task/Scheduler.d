@@ -337,6 +337,9 @@ final class Scheduler
             task = derivative from `ocean.task.Task` defining some application
                 task to execute
 
+        Throws:
+            TaskQueueFullException if task queue is at full capacity
+
     ***************************************************************************/
 
     public void schedule ( Task task )
