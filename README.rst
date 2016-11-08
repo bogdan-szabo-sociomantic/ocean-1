@@ -14,7 +14,7 @@ Versioning
 
 Ocean uses Sociomantic's SemVer_ versioning model.
 
-.. _SemVer: https://github.com/sociomantic/backend/blob/master/doc/structure/versioning.rst
+.. _SemVer: https://github.com/sociomantic/backend/blob/master/doc/structure/semver-user.rst
 
 The guaranteed development period for old major versions is 6 months from the
 release of a new major version. At any time, only the last two minor versions of
@@ -30,7 +30,7 @@ Releases
 `Latest stable release notes
 <https://github.com/sociomantic/ocean/releases/latest>`_ | `Current, in
 development, release notes
-<https://github.com/sociomantic/ocean/blob/master/RELEASE_NOTES.md>`_ | `All
+<https://github.com/sociomantic/ocean/blob/v1.x.x/RELEASE_NOTES.md>`_ | `All
 releases <https://github.com/sociomantic/ocean/releases>`_
 
 Releases are handled using `GitHub releases
