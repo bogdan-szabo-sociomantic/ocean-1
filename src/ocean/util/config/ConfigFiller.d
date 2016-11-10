@@ -163,7 +163,7 @@ private bool loose_parsing = false;
 
     If T is not a struct, T itself is returned
 
-    Template_Params:
+    Params:
         T = struct or type to find the basetype for
 
 *******************************************************************************/
@@ -186,7 +186,7 @@ template BaseType ( T )
 
     If value is not a struct, the value itself is returned
 
-    Template_Params:
+    Params:
         v = instance of a struct the value itself
 
 *******************************************************************************/
@@ -208,7 +208,7 @@ BaseType!(T) Value ( T ) ( T v )
     Contains methods used in all WrapperStructs to access and set the value
     variable
 
-    Template_Params:
+    Params:
         T = type of the value
 
 *******************************************************************************/
@@ -295,7 +295,7 @@ template WrapperStructCore ( T, T init = T.init )
 
     The value can be accessed with the opCall method
 
-    Template_Params:
+    Params:
         T = the original type of the variable
 
 *******************************************************************************/
@@ -335,7 +335,7 @@ struct Required ( T )
 
     The value can be accessed with the opCall method
 
-    Template_Params:
+    Params:
         T    = the original type of the variable (can be another struct)
         min  = smallest allowed value
         max  = biggest allowed value
@@ -385,7 +385,7 @@ struct MinMax ( T, T min, T max, T init = T.init )
 
     The value can be accessed with the opCall method
 
-    Template_Params:
+    Params:
         T    = the original type of the variable (can be another struct)
         min  = smallest allowed value
         init = default value when it is not given in the configuration file
@@ -430,7 +430,7 @@ struct Min ( T, T min, T init = T.init )
 
     The value can be accessed with the opCall method
 
-    Template_Params:
+    Params:
         T    = the original type of the variable (can be another struct)
         max  = biggest allowed value
         init = default value when it is not given in the configuration file
@@ -493,7 +493,7 @@ bool defComp ( T ) ( T a, T b )
 
     The value can be accessed with the opCall method
 
-    Template_Params:
+    Params:
         T    = the original type of the variable (can be another struct)
         init = default value when it is not given in the configuration file
         comp = compare function to be used to compare two values from the set
@@ -561,7 +561,7 @@ unittest
 
     Simplified version of LimitCmp that uses default comparison
 
-    Template_Params:
+    Params:
         T = type of the value
         init = default initial value if config value wasn't set
         Set = set of allowed values
@@ -585,7 +585,7 @@ unittest
     Simplified version of LimitCmp that uses default comparison and default
     initializer
 
-    Template_Params:
+    Params:
         T = type of the value
         Set = set of allowed values
 
@@ -602,7 +602,7 @@ template Limit ( T, Set... )
     Adds the information of whether the filler actually set the value
     or whether it was left untouched.
 
-    Template_Params:
+    Params:
         T = the original type
 
 *******************************************************************************/
@@ -662,7 +662,7 @@ struct SetInfo ( T )
 
     Template that evaluates to true when T is a supported type
 
-    Template_Params:
+    Params:
         T = type to check for
 
 *******************************************************************************/
@@ -1000,11 +1000,9 @@ struct ClassIterator ( T, Source = ConfigParser )
     a common string, filling an instance of the passed class type from
     the variables of each matching group and calling the delegate.
 
-    TemplateParams:
+    Params:
         T = type of the class to fill
         Source = source to use
-
-    Params:
         root = start of the group name
         config = instance of the source to use
 
@@ -1029,18 +1027,16 @@ body
 
     Fills the fields of the `reference` from config file's group.
 
-    Template Params:
+    Params:
         T  = type of the class to fill
         Source = source to use
-
-    Params:
         group = group to read fields from
         reference = reference to the object to be filled
         config = instance of the source to use
 
 *******************************************************************************/
 
-protected void readFields ( T, Source )
+private void readFieldsImpl ( T, Source )
                           ( cstring group, ref T reference, Source config )
 in
 {
@@ -1104,6 +1100,45 @@ body
     }
 }
 
+/*******************************************************************************
+
+    Fills the fields of the `reference` from config file's group.
+
+    Params:
+        T  = type of the class to fill
+        Source = source to use
+        group = group to read fields from
+        reference = reference to the object to be filled
+        config = instance of the source to use
+
+*******************************************************************************/
+
+private void readFields ( T : Object, Source )
+                          ( cstring group, T reference, Source config )
+{
+    // Workaround to work on both l- and r-values
+    T tmp = reference;
+    readFieldsImpl(group, tmp, config);
+}
+
+/*******************************************************************************
+
+    Fills the fields of the `reference` from config file's group.
+
+    Params:
+        T  = type of the aggregate to fill
+        Source = source to use
+        group = group to read fields from
+        reference = reference to the object to be filled
+        config = instance of the source to use
+
+*******************************************************************************/
+
+private void readFields ( T, Source )
+                          ( cstring group, ref T reference, Source config )
+{
+    readFieldsImpl(group, reference, config);
+}
 
 version ( UnitTest )
 {
@@ -1316,6 +1351,15 @@ float_arr = 10.2
     float[] float_array = [10.2, -25.3, 90, 0.000000001];
     test!("==")(array_values.float_arr, float_array);
 
+    // Make sure it works on lvalues as well
+    Object o = new ArrayValues();
+    readFields("SectionArray", cast(ArrayValues)o, config_parser);
+
+    array_values = cast(ArrayValues)o;
+    test!("==")(array_values.string_arr, ["Hello", "World"]);
+    test!("==")(array_values.int_arr, [30, 40, -60, 1111111111, 0x10]);
+    test!("==")(array_values.ulong_arr, ulong_array);
+    test!("==")(array_values.float_arr, float_array);
 
     struct ArrayValuesStruct
     {
