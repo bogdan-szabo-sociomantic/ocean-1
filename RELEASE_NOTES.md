@@ -1,17 +1,3 @@
-Release Notes for Ocean v2.3.0
-==============================
-
-Note: If you are upgrading from an older version, you have to upgrade
-incrementally, following the instructions in the previous versions' release
-notes.
-
-These notes are usually structured in 3 sections: **Migration Instructions**,
-which are the mandatory steps a user must do to update to the new version,
-**Deprecated**, which contains deprecated functions which are not recommended to
-be used (and will be removed in the next major release) but will not break any
-old code, and **New Features** which are new features available in the new
-version that users might find interesting.
-
 Dependencies
 ============
 
@@ -20,18 +6,21 @@ Dependency                | Version
 makd                      | v1.3.x
 tango runtime (for D1)    | v1.5.1
 
-Deprecations
-============
+New Release Notes Procedure (from v1.35.0)
+==========================================
 
-* `ocean.core.array.Mutation.remove`
+Instead of each change being noted in this file (and the subsequent conflict
+hell), in release v1.35.0, we're trying a new approach:
+* Release notes will be added to individual files, one (or more) per pull
+  request.
+* Release notes files will be collected in the `relnotes` folder of this repo.
+* The files should be named as follows: `<name>.<change-type>.md`:
+  - `<name>` can be whatever you want, but should indicate the change made.
+  - `<change-type>` is one of `migration`, `feature`, `deprecation`.
+  - e.g. `add-suspendable-throttler.feature.md`,
+    `change-epoll-selector.migration.md`.
+* If a subsequent commit needs to modify previously added release notes, the PR
+  can simply edit the corresponding release notes file.
+* When the release is ready, the notes from all the files will be collated into
+  the final release notes document and the release notes folder cleared.
 
-  The function `remove()` is now deprecated due to it causes function clashes
-  in the module `ocean.core.Array`. The function `moveToEnd()` should be used
-  instead.
-
-New Features
-============
-
-This release includes all new features added in the following v1.x.x release:
-
-* [v1.34.0](https://github.com/sociomantic/ocean/releases/tag/v1.34.0)
