@@ -30,6 +30,9 @@ TEST_FILTER_OUT += \
 	$C/src/ocean/util/app/ConfiguredApp.d \
 	$C/src/ocean/util/app/CommandLineApp.d \
 	$C/src/ocean/util/config/ClassFiller.d \
+	$C/src/ocean/util/container/HashMap.d \
+	$C/src/ocean/util/container/more/CacheMap.d \
+	$C/src/ocean/util/container/more/StackMap.d \
 	$C/src/ocean/util/cipher/TEA.d \
 	$C/src/ocean/util/cipher/XTEA.d \
 	$C/src/ocean/util/cipher/RC4.d \

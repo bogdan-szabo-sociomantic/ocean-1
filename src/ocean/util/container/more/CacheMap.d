@@ -1,5 +1,9 @@
 /*******************************************************************************
 
+    This cache map is based on Tango's hash map implementation and is now
+    deprecated. No suitable replacement exists at this time, as there is no use
+    case for it.
+
         copyright:      Copyright (c) 2008 Kris Bell. All rights reserved
 
         license:        BSD style: $(LICENSE)
@@ -12,7 +16,8 @@
 
 *******************************************************************************/
 
-module ocean.util.container.more.CacheMap;
+deprecated module ocean.util.container.more.CacheMap;
+pragma(msg, "`ocean.util.container.more.CacheMap` is deprecated. No replacement exists");
 
 import ocean.stdc.stdlib;
 
