@@ -32,8 +32,8 @@ releases <https://github.com/sociomantic/ocean/releases>`_
 Releases are handled using `GitHub releases
 <https://github.com/sociomantic/ocean/releases>`_. The release notes provided
 there are usually structured in 3 sections, a **Migration Instructions**, which
-are the mandatory steps the users have to do to update to a new version,
-**Deprecated** which contains deprecated functions which is recommended not to
+are the mandatory steps that users have to do to update to a new version,
+**Deprecated** which contains deprecated functions that are recommended not to
 use but will not break any old code, and the **New Features** which are optional
 new features available in the new version that users might find interesting.
 Using them is optional, but encouraged.
