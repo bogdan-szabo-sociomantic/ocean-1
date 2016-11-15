@@ -30,7 +30,7 @@ Releases
 `Latest stable release notes
 <https://github.com/sociomantic/ocean/releases/latest>`_ | `Current, in
 development, release notes
-<https://github.com/sociomantic/ocean/blob/v1.x.x/RELEASE_NOTES.md>`_ | `All
+<https://github.com/sociomantic/ocean/tree/v1.x.x/relnotes>`_ | `All
 releases <https://github.com/sociomantic/ocean/releases>`_
 
 Releases are handled using `GitHub releases
