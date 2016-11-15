@@ -14,11 +14,23 @@ Versioning
 
 Ocean uses Sociomantic's SemVer_ versioning model.
 
-.. _SemVer: https://github.com/sociomantic/backend/blob/master/doc/structure/semver-user.rst
+Support Guarantees
+------------------
 
 * Major branch development period: 6 months
 * Maintained minor versions: 2 most recent
-* Current default major branch: v1.x.x (until 2016-12-30)
+
+Maintained Major Branches
+-------------------------
+
+====== ==================== ===============
+Major  Initial release date Supported until
+====== ==================== ===============
+v1.x.x v1.0.0: dawn of time 30/12/2016
+v2.x.x v2.0.0_: 30/06/2016  TBD
+====== ==================== ===============
+.. _SemVer: https://github.com/sociomantic/backend/blob/master/doc/structure/semver-user.rst
+.. _v2.0.0: https://github.com/sociomantic/ocean/releases/tag/v2.0.0
 
 Releases
 ========
@@ -30,22 +42,17 @@ development, release notes
 releases <https://github.com/sociomantic/ocean/releases>`_
 
 Releases are handled using `GitHub releases
-<https://github.com/sociomantic/ocean/releases>`_. The release notes provided
-there are usually structured in 3 sections, a **Migration Instructions**, which
-are the mandatory steps that users have to do to update to a new version,
+<https://github.com/sociomantic/ocean/releases>`_. The notes associated with a
+major or minor github release are designed to help developers to migrate from
+one version to another. The changes listed are the steps you need to take to
+move from the previous version to the one listed.
+
+The release notes are structured in 3 sections, a **Migration Instructions**,
+which are the mandatory steps that users have to do to update to a new version,
 **Deprecated** which contains deprecated functions that are recommended not to
 use but will not break any old code, and the **New Features** which are optional
 new features available in the new version that users might find interesting.
 Using them is optional, but encouraged.
-
-Release notes should help developers to migrate from one version to another. The
-changes listed are the steps you need to take to move from the previous version
-to the one being listed. For example, all the steps described in version
-**v1.5.x** are the steps required to move from **v1.4.x** to **v1.5.x**. If you
-need to jump several versions at once, you should read all the steps from all
-the intermediate versions. For example, to jump from **v1.2.x** to **v1.5.x**,
-you need to first follow the steps in version **v1.3.x**, then the steps in
-version **v1.4.x** and finally the steps in version **v1.5.x**.
 
 .. |BuildStatus| image:: https://ci.sociomantic.com/buildStatus/icon?job=core-team/ocean
 .. _BuildStatus: https://ci.sociomantic.com/job/core-team/job/ocean/
