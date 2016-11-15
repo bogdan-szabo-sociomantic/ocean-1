@@ -41,8 +41,7 @@ development, release notes
 <https://github.com/sociomantic/ocean/tree/v1.x.x/relnotes>`_ | `All
 releases <https://github.com/sociomantic/ocean/releases>`_
 
-Releases are handled using `GitHub releases
-<https://github.com/sociomantic/ocean/releases>`_. The notes associated with a
+Releases are handled using GitHub releases. The notes associated with a
 major or minor github release are designed to help developers to migrate from
 one version to another. The changes listed are the steps you need to take to
 move from the previous version to the one listed.
