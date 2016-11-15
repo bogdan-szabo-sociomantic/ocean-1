@@ -16,13 +16,9 @@ Ocean uses Sociomantic's SemVer_ versioning model.
 
 .. _SemVer: https://github.com/sociomantic/backend/blob/master/doc/structure/semver-user.rst
 
-The guaranteed development period for old major versions is 6 months from the
-release of a new major version. At any time, only the last two minor versions of
-each developed major branch are supported; the rest will get bug fixes only
-on-demand (create an issue in the ocean repo to request it).
-
-Currently the default major branch is `v1.x.x`. It will go out of support on
-2016-12-30 and `v2.x.x` will become the default major branch.
+* Major branch development period: 6 months
+* Maintained minor versions: 2 most recent
+* Current default major branch: v1.x.x (until 2016-12-30)
 
 Releases
 ========
