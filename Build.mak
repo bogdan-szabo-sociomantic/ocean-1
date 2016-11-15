@@ -50,7 +50,7 @@ TEST_FILTER_OUT += \
 	$C/src/ocean/io/selector/SelectorException.d \
 	$C/src/ocean/io/select/client/IntervalClock.d \
 	$C/src/ocean/io/select/client/Scheduler.d \
-        $C/src/ocean/io/serialize/XmlStructSerializer.d \
+	$C/src/ocean/io/serialize/XmlStructSerializer.d \
 	$C/src/tango/io/selector/model/ISelector.d \
 	$C/src/tango/io/selector/AbstractSelector.d \
 	$C/src/tango/io/selector/EpollSelector.d \
