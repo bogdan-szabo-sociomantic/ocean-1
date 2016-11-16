@@ -1618,15 +1618,17 @@ public class Arguments
 
     ***************************************************************************/
 
-    private mstring space ( size_t width )
+    private cstring space ( size_t width )
     {
+        if ( width == 0 )
+        {
+            return "";
+        }
+
         this.spaces.length = width;
         enableStomping(this.spaces);
 
-        if ( width > 0 )
-        {
-            this.spaces[0 .. $] = ' ';
-        }
+        this.spaces[] = ' ';
 
         return this.spaces;
     }
