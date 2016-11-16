@@ -1176,7 +1176,7 @@ public class Arguments
         Displays the full help message for the application.
 
         Params:
-            output = stream where to print the errors (Stderr by default)
+            output = stream where to print the help message (Stderr by default)
 
     ***************************************************************************/
 
