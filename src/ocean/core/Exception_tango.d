@@ -91,9 +91,9 @@ public alias SwitchError SwitchException;
  */
 class PlatformException : Exception
 {
-    this( istring msg )
+    this( istring msg, istring file = __FILE__, long line = __LINE__ )
     {
-        super( msg );
+        super(msg, file, line);
     }
 }
 
@@ -103,9 +103,9 @@ class PlatformException : Exception
  */
 class ThreadPoolException : Exception
 {
-    this( istring msg )
+    this( istring msg, istring file = __FILE__, long line = __LINE__ )
     {
-        super( msg );
+        super(msg, file, line);
     }
 }
 
@@ -115,9 +115,9 @@ class ThreadPoolException : Exception
  */
 class SyncException : PlatformException
 {
-    this( istring msg )
+    this( istring msg, istring file = __FILE__, long line = __LINE__ )
     {
-        super( msg );
+        super(msg, file, line);
     }
 }
 
@@ -129,9 +129,9 @@ class SyncException : PlatformException
  */
 class IOException : PlatformException
 {
-    this( istring msg )
+    this( istring msg, istring file = __FILE__, long line = __LINE__ )
     {
-        super( msg );
+        super(msg, file, line);
     }
 }
 
@@ -140,9 +140,9 @@ class IOException : PlatformException
  */
 class VfsException : IOException
 {
-    this( istring msg )
+    this( istring msg, istring file = __FILE__, long line = __LINE__ )
     {
-        super( msg );
+        super(msg, file, line);
     }
 }
 
@@ -151,9 +151,9 @@ class VfsException : IOException
  */
 class ClusterException : IOException
 {
-    this( istring msg )
+    this( istring msg, istring file = __FILE__, long line = __LINE__ )
     {
-        super( msg );
+        super(msg, file, line);
     }
 }
 
@@ -162,9 +162,9 @@ class ClusterException : IOException
  */
 class SocketException : IOException
 {
-    this( istring msg )
+    this( istring msg, istring file = __FILE__, long line = __LINE__ )
     {
-        super( msg );
+        super(msg, file, line);
     }
 }
 
@@ -174,9 +174,9 @@ class SocketException : IOException
  */
 class HostException : IOException
 {
-    this( istring msg )
+    this( istring msg, istring file = __FILE__, long line = __LINE__ )
     {
-        super( msg );
+        super(msg, file, line);
     }
 }
 
@@ -186,9 +186,9 @@ class HostException : IOException
  */
 class AddressException : IOException
 {
-    this( istring msg )
+    this( istring msg, istring file = __FILE__, long line = __LINE__ )
     {
-        super( msg );
+        super(msg, file, line);
     }
 }
 
@@ -198,9 +198,9 @@ class AddressException : IOException
  */
 class SocketAcceptException : SocketException
 {
-    this( istring msg )
+    this( istring msg, istring file = __FILE__, long line = __LINE__ )
     {
-        super( msg );
+        super(msg, file, line);
     }
 }
 
@@ -209,9 +209,9 @@ class SocketAcceptException : SocketException
  */
 class ProcessException : PlatformException
 {
-    this( istring msg )
+    this( istring msg, istring file = __FILE__, long line = __LINE__ )
     {
-        super( msg );
+        super(msg, file, line);
     }
 }
 
@@ -221,9 +221,9 @@ class ProcessException : PlatformException
  */
 class TextException : Exception
 {
-    this( istring msg )
+    this( istring msg, istring file = __FILE__, long line = __LINE__ )
     {
-        super( msg );
+        super(msg, file, line);
     }
 }
 
@@ -233,9 +233,9 @@ class TextException : Exception
  */
 class RegexException : TextException
 {
-    this( istring msg )
+    this( istring msg, istring file = __FILE__, long line = __LINE__ )
     {
-        super( msg );
+        super(msg, file, line);
     }
 }
 
@@ -245,9 +245,9 @@ class RegexException : TextException
  */
 class LocaleException : TextException
 {
-    this( istring msg )
+    this( istring msg, istring file = __FILE__, long line = __LINE__ )
     {
-        super( msg );
+        super(msg, file, line);
     }
 }
 
@@ -257,9 +257,9 @@ class LocaleException : TextException
  */
 class XmlException : TextException
 {
-    this( istring msg )
+    this( istring msg, istring file = __FILE__, long line = __LINE__ )
     {
-        super( msg );
+        super(msg, file, line);
     }
 }
 
@@ -271,9 +271,9 @@ class XmlException : TextException
  */
 class RegistryException : Exception
 {
-    this( istring msg )
+    this( istring msg, istring file = __FILE__, long line = __LINE__ )
     {
-        super( msg );
+        super(msg, file, line);
     }
 }
 
@@ -283,9 +283,9 @@ class RegistryException : Exception
  */
 class IllegalArgumentException : Exception
 {
-    this( istring msg )
+    this( istring msg, istring file = __FILE__, long line = __LINE__ )
     {
-        super( msg );
+        super(msg, file, line);
     }
 }
 
@@ -299,9 +299,9 @@ class IllegalArgumentException : Exception
  */
 class IllegalElementException : IllegalArgumentException
 {
-    this( istring msg )
+    this( istring msg, istring file = __FILE__, long line = __LINE__ )
     {
-        super( msg );
+        super(msg, file, line);
     }
 }
 
@@ -311,9 +311,9 @@ class IllegalElementException : IllegalArgumentException
  */
 class NoSuchElementException : Exception
 {
-    this( istring msg )
+    this( istring msg, istring file = __FILE__, long line = __LINE__ )
     {
-        super( msg );
+        super(msg, file, line);
     }
 }
 
@@ -323,8 +323,8 @@ class NoSuchElementException : Exception
  */
 class CorruptedIteratorException : NoSuchElementException
 {
-    this( istring msg )
+    this( istring msg, istring file = __FILE__, long line = __LINE__ )
     {
-        super( msg );
+        super(msg, file, line);
     }
 }
