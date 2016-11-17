@@ -330,15 +330,28 @@ class File : Device, Device.Seek, Device.Truncate
 
         /***********************************************************************
 
+            Reusable exception instance
+
+        ***********************************************************************/
+
+        private IOException exception;
+
+        /***********************************************************************
+
                 Create a File for use with open().
 
                 Note that File is unbuffered by default - wrap an instance
                 within ocean.io.stream.Buffered for buffered I/O.
 
+                Params:
+                    exception = reusable exception instance to use, or null
+                    to create a fresh one.
+
         ***********************************************************************/
 
-        this ()
+        this (IOException exception = null)
         {
+            this.exception = exception;
         }
 
         /***********************************************************************
@@ -348,10 +361,16 @@ class File : Device, Device.Seek, Device.Truncate
                 Note that File is unbuffered by default - wrap an instance
                 within ocean.io.stream.Buffered for buffered I/O.
 
+                Params:
+                    exception = reusable exception instance to use, or null
+                    to create a fresh one.
+
         ***********************************************************************/
 
-        this (cstring path, Style style = ReadExisting)
+        this (cstring path, Style style = ReadExisting,
+                IOException exception = null)
         {
+                this(exception);
                 open (path, style);
         }
 
