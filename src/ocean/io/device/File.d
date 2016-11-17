@@ -530,7 +530,7 @@ class File : Device, Device.Seek, Device.Truncate
 
         ***********************************************************************/
 
-         void truncate ()
+        void truncate ()
         {
             truncate (position);
         }
