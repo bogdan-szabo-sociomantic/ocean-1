@@ -215,7 +215,7 @@ class Process
 
     private cstring[]        _args;
     private istring[istring] _env;
-    private char[]           _workDir;
+    private cstring          _workDir;
     private PipeConduit      _stdin;
     private PipeConduit      _stdout;
     private PipeConduit      _stderr;
@@ -411,7 +411,7 @@ class Process
     /**
      * Set the process' executable filename, return 'this' for chaining
      */
-    public Process setProgramName(char[] name)
+    public Process setProgramName(cstring name)
     {
         programName = name;
         return this;
@@ -558,7 +558,7 @@ class Process
      * Returns: the env set.
      * Examples:
      * ---
-     * char[][char[]] env;
+     * istring[istring] env;
      *
      * env["MYVAR1"] = "first";
      * env["MYVAR2"] = "second";
@@ -638,7 +638,7 @@ class Process
      * Returns: a string with the working directory; null if the working
      *          directory is the current directory.
      */
-    public char[] workDir()
+    public cstring workDir()
     {
         return _workDir;
     }
@@ -652,7 +652,7 @@ class Process
      *
      * Returns: the directory set.
      */
-    public char[] workDir(char[] dir)
+    public cstring workDir(cstring dir)
     {
         return _workDir = dir;
     }
@@ -667,7 +667,7 @@ class Process
      *
      * Returns: a reference to this process.
      */
-    public Process setWorkDir(char[] dir)
+    public Process setWorkDir(cstring dir)
     {
         _workDir = dir;
         return this;
@@ -1660,20 +1660,24 @@ class Process
             if (!contains(filename, FileConst.PathSeparatorChar) &&
                 (str = getenv("PATH".ptr)) !is null)
             {
-                char[][] pathList = delimit(str[0 .. strlen(str)], ":");
+                auto pathList = delimit(str[0 .. strlen(str)], ":");
 
-                char[] path_buf;
+                mstring path_buf;
 
                 foreach (path; pathList)
                 {
                     if (path[$-1] != FileConst.PathSeparatorChar)
                     {
                         path_buf.length = path.length + 1 + filename.length + 1;
+                        enableStomping(path_buf);
+
                         path_buf[] = path ~ FileConst.PathSeparatorChar ~ filename ~ '\0';
                     }
                     else
                     {
                         path_buf.length = path.length +filename.length + 1;
+                        enableStomping(path_buf);
+
                         path_buf[] = path ~ filename ~ '\0';
                     }
 
@@ -1764,7 +1768,7 @@ class ProcessWaitException: ProcessException
 /**
  *  append an int argument to a message
 */
-private char[] format (cstring msg, int value)
+private mstring format (cstring msg, int value)
 {
     char[10] tmp;
 
