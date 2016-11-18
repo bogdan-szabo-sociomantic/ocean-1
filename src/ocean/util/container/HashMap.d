@@ -18,7 +18,7 @@
 *******************************************************************************/
 
 deprecated module ocean.util.container.HashMap;
-pragma(msg, "`ocean.util.container.more.CacheMap` is deprecated. Use `ocean.util.container.map.HashMap` instead.");
+pragma(msg, "`ocean.util.container.HashMap` is deprecated. Use `ocean.util.container.map.HashMap` instead.");
 
 import ocean.util.container.Slink;
 
