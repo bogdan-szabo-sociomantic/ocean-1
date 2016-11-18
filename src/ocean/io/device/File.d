@@ -24,6 +24,7 @@ import ocean.sys.Common;
 import ocean.io.device.Device;
 
 import stdc = ocean.stdc.stringz;
+import ocean.stdc.errno;
 
 /*******************************************************************************
 
@@ -130,8 +131,65 @@ import ocean.stdc.posix.unistd;
 
 class File : Device, Device.Seek, Device.Truncate
 {
+        import TangoException = ocean.core.Exception_tango;
+
         public alias Device.read  read;
         public alias Device.write write;
+
+        /***********************************************************************
+
+            Exception class thrown on errors.
+
+        ***********************************************************************/
+
+        public static class IOException: TangoException.IOException
+        {
+            import ocean.core.Exception: ReusableExceptionImplementation;
+
+            mixin ReusableExceptionImplementation!() ReusableImpl;
+
+            /*******************************************************************
+
+                Sets the exception instance.
+
+                Params:
+                    error_num = error code (defaults to .errno)
+                    func_name = name of the method that failed
+                    msg = message description of the error (uses stderr if empty)
+                    file = file where exception is thrown
+                    line = line where exception is thrown
+
+            *******************************************************************/
+
+
+            public typeof(this) set ( int error_num, istring func_name = "",
+                    istring msg = "",
+                    istring file = __FILE__, long line = __LINE__)
+            {
+                this.error_num = error_num;
+                this.func_name = func_name;
+
+                this.ReusableImpl.set(this.func_name, file, line);
+
+                if (this.func_name.length)
+                    this.ReusableImpl.append(": ");
+
+                if (msg.length == 0)
+                {
+                    char[256] buf;
+                    auto errmsg = fromStringz(strerror_r(this.error_num, buf.ptr,
+                                buf.length));
+
+                    this.ReusableImpl.append(errmsg);
+                }
+                else
+                {
+                    this.ReusableImpl.append(msg);
+                }
+
+                return this;
+            }
+        }
 
         /***********************************************************************
 
