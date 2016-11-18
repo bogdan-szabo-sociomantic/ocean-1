@@ -153,6 +153,7 @@ class File : Device, Device.Seek, Device.Truncate
                 Sets the exception instance.
 
                 Params:
+                    file_path = path of the file
                     error_num = error code (defaults to .errno)
                     func_name = name of the method that failed
                     msg = message description of the error (uses stderr if empty)
@@ -162,7 +163,8 @@ class File : Device, Device.Seek, Device.Truncate
             *******************************************************************/
 
 
-            public typeof(this) set ( int error_num, istring func_name = "",
+            public typeof(this) set ( cstring file_path,
+                    int error_num, istring func_name = "",
                     istring msg = "",
                     istring file = __FILE__, long line = __LINE__)
             {
@@ -186,6 +188,8 @@ class File : Device, Device.Seek, Device.Truncate
                 {
                     this.ReusableImpl.append(msg);
                 }
+
+                this.ReusableImpl.append(" on ").append(file_path);
 
                 return this;
             }
@@ -648,7 +652,7 @@ class File : Device, Device.Seek, Device.Truncate
                 this.exception = new IOException;
             }
 
-            throw this.exception.set(error_code, func_name, msg, file, line);
+            throw this.exception.set(this.path_, error_code, func_name, msg, file, line);
         }
 
         /***********************************************************************
