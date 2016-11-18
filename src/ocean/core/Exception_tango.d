@@ -129,9 +129,88 @@ class SyncException : PlatformException
  */
 class IOException : PlatformException
 {
+    import ocean.stdc.stringz;
+    import ocean.stdc.string;
+    import core.stdc.errno;
+
+    /*******************************************************************
+
+        Constructor
+
+        Params:
+            msg = message description of the error (uses stderr if empty)
+            file = file where exception is thrown
+            line = line where exception is thrown
+
+    *******************************************************************/
+
     this( istring msg, istring file = __FILE__, long line = __LINE__ )
     {
         super(msg, file, line);
+    }
+
+    /*******************************************************************
+
+        Constructor
+
+        Params:
+            msg = message description of the error (uses stderr if empty)
+            error_num = error code
+            func_name = name of the method that failed
+            file = file where exception is thrown
+            line = line where exception is thrown
+
+    *******************************************************************/
+
+    public this ( istring msg, int error_code, istring func_name,
+        istring file = __FILE__, long line = __LINE__ )
+    {
+        super(msg, file, line);
+
+        this.error_num = error_num;
+        this.func_name = func_name;
+        this.line = line;
+        this.file = file;
+    }
+
+    /*******************************************************************
+
+        Error code
+
+    *******************************************************************/
+
+    protected int error_num;
+
+    /*******************************************************************
+
+        Last failed function name.
+
+    *******************************************************************/
+
+    protected istring func_name;
+
+    /*******************************************************************
+
+        Returns:
+            error code of the exception
+
+    *******************************************************************/
+
+    public int errorNumber ()
+    {
+        return this.error_num;
+    }
+
+    /*******************************************************************
+
+        Returns:
+            function name where the exception is thrown
+
+    *******************************************************************/
+
+    public istring failedFunctionName ()
+    {
+        return this.func_name;
     }
 }
 
