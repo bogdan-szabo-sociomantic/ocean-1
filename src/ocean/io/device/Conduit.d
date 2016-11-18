@@ -181,7 +181,7 @@ class Conduit : IConduit
 
         ***********************************************************************/
 
-        final void error (istring msg)
+        void error (istring msg)
         {
                 throw new IOException (msg);
         }
