@@ -625,6 +625,47 @@ class File : Device, Device.Seek, Device.Truncate
             if (fsync (handle))
                 error;
         }
+
+        /*******************************************************************
+
+            Throw a potentially reusable IOException, with the provided
+            message, function name and error code.
+
+            Params:
+                error_num = error code
+                func_name = name of the method that failed
+                msg = message description of the error (uses stderr if empty)
+                file = file where exception is thrown
+                line = line where exception is thrown
+
+        *******************************************************************/
+
+        public override void error ( int error_code, istring func_name,
+                istring msg = "", istring file = __FILE__, long line = __LINE__ )
+        {
+            if (this.exception is null)
+            {
+                this.exception = new IOException;
+            }
+
+            throw this.exception.set(error_code, func_name, msg, file, line);
+        }
+
+        /***********************************************************************
+
+                Throw an IOException, with the provided message.
+
+        ***********************************************************************/
+
+        public alias Conduit.error error;
+
+        /***********************************************************************
+
+                Throw an IOException noting the last error.
+
+        ***********************************************************************/
+
+        public alias Device.error error;
 }
 
 debug (File)
