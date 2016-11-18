@@ -539,7 +539,7 @@ class File : Device, Device.Seek, Device.Truncate
         void open (cstring path, Style style = ReadExisting)
         {
             if (! open (path, style, 0))
-                error;
+                error(.errno, "open");
         }
 
         /***********************************************************************
@@ -565,7 +565,7 @@ class File : Device, Device.Seek, Device.Truncate
         {
             // set filesize to be current seek-position
             if (posix.ftruncate (handle, cast(off_t) size) is -1)
-                error;
+                error(.errno, "ftruncate");
         }
 
         /***********************************************************************
@@ -579,7 +579,7 @@ class File : Device, Device.Seek, Device.Truncate
         {
             long result = posix.lseek (handle, cast(off_t) offset, anchor);
             if (result is -1)
-                error;
+                error(.errno, "seek");
             return result;
         }
 
@@ -604,7 +604,7 @@ class File : Device, Device.Seek, Device.Truncate
         {
             stat_t stats = void;
             if (posix.fstat (handle, &stats))
-                error;
+                error(.errno, "fstat");
             return cast(long) stats.st_size;
         }
 
@@ -623,7 +623,7 @@ class File : Device, Device.Seek, Device.Truncate
         void sync ()
         {
             if (fsync (handle))
-                error;
+                error(.errno, "fsync");
         }
 
         /*******************************************************************
