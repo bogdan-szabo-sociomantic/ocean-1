@@ -12,3 +12,8 @@
   The pid-lock file contains pid of the application that locked the file, and
   it's meant for the user inspection - the locking doesn't depend on this
   data.
+
+* `ocean.util.app.DaemonApp`
+
+  `PidLockExt` extension is added to the `DaemonApp`. See release notes for
+  `ocean.util.app.ext.PidLockExt` for more info.
