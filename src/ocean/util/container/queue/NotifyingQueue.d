@@ -107,6 +107,8 @@ import ocean.core.Array;
 
 import ocean.util.container.AppendBuffer;
 
+import ocean.io.serialize.StructSerializer;
+
 version ( UnitTest )
 {
     import ocean.core.Test;
@@ -523,8 +525,6 @@ class NotifyingByteQueue : ISuspendable, IQueueInfo
 
 class NotifyingQueue ( T ) : NotifyingByteQueue
 {
-    import ocean.io.serialize.StructSerializer;
-
     /***************************************************************************
 
         Constructor
