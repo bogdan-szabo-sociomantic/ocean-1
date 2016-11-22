@@ -316,6 +316,23 @@ public class LinkedListQueue ( T, alias gc_tracking_policy = GCTrackingPolicy.re
 
     /**************************************************************************
 
+        Returns:
+            A pointer to the item at the bottom of the queue, null if the queue
+            is empty
+
+    ***************************************************************************/
+
+    public T* bottom ( )
+    {
+        if ( this.count == 0 )
+            return null;
+
+        return &this.tail.value;
+    }
+
+
+    /**************************************************************************
+
         Checks whether a value exists in queue in O(n).
 
         Params:
@@ -772,6 +789,8 @@ unittest
                 test(_this.int_queue.empty(), name ~ ": queue should be mepty");
                 test(_this.int_queue.top() == null,
                     name ~ ": queue is empty. Top should have returned null");
+                test(_this.int_queue.bottom() == null,
+                    name ~ ": queue is empty. Bottom should have returned null");
             }
 
             LinkedListQueue!(int).QueueItem* iterator = _this.int_queue.head;
@@ -801,6 +820,7 @@ unittest
             {
                 .push(this.int_queue, value);
                 this.expected_values ~= value;
+                test!("==")(*this.int_queue.bottom, value);
             }
         }
 
