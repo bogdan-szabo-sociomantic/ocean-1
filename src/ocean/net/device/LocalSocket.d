@@ -27,6 +27,7 @@ import ocean.stdc.posix.sys.un; // : sockaddr_un, UNIX_PATH_MAX;
 
 *******************************************************************************/
 
+deprecated ("Please use UnixSocket instead")
 class LocalSocket : Socket
 {
         /***********************************************************************
@@ -80,6 +81,7 @@ class LocalSocket : Socket
 
 *******************************************************************************/
 
+deprecated ("Please use UnixSocket instead")
 class LocalServerSocket : LocalSocket
 {
         /***********************************************************************
@@ -122,6 +124,7 @@ class LocalServerSocket : LocalSocket
 
 *******************************************************************************/
 
+deprecated ("Please use sockaddr_un instead")
 class LocalAddress : Address
 {
         alias .sockaddr_un sockaddr_un;
@@ -227,7 +230,7 @@ version (UnitTest)
     import ocean.stdc.posix.sys.socket; // : AF_UNIX
 }
 
-unittest
+deprecated unittest
 {
     istring path = "I do not exist";
     auto addr = new LocalAddress(path);
