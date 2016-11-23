@@ -17,6 +17,12 @@ TEST_FILTER_OUT += \
 	$C/src/ocean/io/stream/Patterns.d \
 	$C/src/ocean/time/Ctime.d \
 	$C/src/ocean/core/Enforce_tango.d \
+	$C/src/ocean/net/device/SSLSocket.d \
+	$C/src/ocean/net/device/Datagram.d \
+	$C/src/ocean/net/device/Multicast.d \
+	$C/src/ocean/net/http/HttpClient.d \
+	$C/src/ocean/net/http/HttpGet.d \
+	$C/src/ocean/net/http/HttpPost.d \
 	$C/src/ocean/text/Arguments_tango.d \
 	$C/src/ocean/text/Regex.d \
 	$C/src/ocean/util/VariadicArg.d \
@@ -29,6 +35,8 @@ TEST_FILTER_OUT += \
 	$C/src/ocean/util/app/LoggedCliApp.d \
 	$C/src/ocean/util/app/ConfiguredApp.d \
 	$C/src/ocean/util/app/CommandLineApp.d \
+	$C/src/ocean/util/log/AppendMail.d \
+	$C/src/ocean/util/log/AppendSocket.d \
 	$C/src/ocean/util/config/ClassFiller.d \
 	$C/src/ocean/util/container/HashMap.d \
 	$C/src/ocean/util/container/more/CacheMap.d \

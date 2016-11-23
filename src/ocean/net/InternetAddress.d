@@ -21,6 +21,7 @@ import ocean.net.device.Berkeley;
 
 *******************************************************************************/
 
+deprecated("Use ocean.sys.socket.InetAddress instead.")
 class InternetAddress : IPv4Address
 {
         /***********************************************************************

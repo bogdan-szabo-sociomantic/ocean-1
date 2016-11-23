@@ -11,7 +11,7 @@
 
 *******************************************************************************/
 
-module ocean.net.device.Multicast;
+deprecated module ocean.net.device.Multicast;
 
 public  import ocean.net.InternetAddress;
 public  import ocean.net.device.Datagram;
@@ -53,7 +53,7 @@ import ocean.net.device.Berkeley;
 
 *******************************************************************************/
 
-class Multicast : Datagram
+deprecated class Multicast : Datagram
 {
         private InternetAddress group;
 

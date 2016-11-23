@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module ocean.net.http.HttpPost;
+deprecated module ocean.net.http.HttpPost;
 
 public import ocean.net.Uri;
 
@@ -34,7 +34,7 @@ import ocean.net.http.HttpClient,
 
 *******************************************************************************/
 
-class HttpPost : HttpClient
+deprecated class HttpPost : HttpClient
 {
         /***********************************************************************
 

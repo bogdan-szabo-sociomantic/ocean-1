@@ -8,7 +8,7 @@
 
 *******************************************************************************/
 
-module ocean.net.device.SSLSocket;
+deprecated module ocean.net.device.SSLSocket;
 
 import ocean.transition;
 

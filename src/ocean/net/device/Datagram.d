@@ -11,7 +11,7 @@
 
 *******************************************************************************/
 
-module ocean.net.device.Datagram;
+deprecated module ocean.net.device.Datagram;
 
 import ocean.transition;
 
@@ -40,7 +40,7 @@ import ocean.net.device.Berkeley;
 
 *******************************************************************************/
 
-class Datagram : Socket
+deprecated class Datagram : Socket
 {
         /***********************************************************************
 

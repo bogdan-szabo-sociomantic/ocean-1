@@ -30,7 +30,7 @@ import ocean.net.device.Berkeley;
 
 *******************************************************************************/
 
-class Socket : Conduit, ISelectable
+deprecated class Socket : Conduit, ISelectable
 {
         public alias native socket;             // backward compatibility
 
@@ -316,7 +316,7 @@ class Socket : Conduit, ISelectable
 
 *******************************************************************************/
 
-class ServerSocket : Socket
+deprecated class ServerSocket : Socket
 {
         /***********************************************************************
 

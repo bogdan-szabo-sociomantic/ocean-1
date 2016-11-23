@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module ocean.util.log.AppendMail;
+deprecated module ocean.util.log.AppendMail;
 
 import ocean.transition;
 
@@ -28,7 +28,7 @@ import ocean.net.device.Socket,
 
 *******************************************************************************/
 
-public class AppendMail : Appender
+deprecated public class AppendMail : Appender
 {
         private char[]          to,
                                 from,
