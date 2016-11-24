@@ -268,7 +268,9 @@ private class GcryptBase ( Algorithm algorithm, Mode mode )
     /***************************************************************************
 
         Returns:
-            required length of encryption key (in bytes) for this algorithm
+            required length of encryption key (in bytes) for this algorithm.
+            If the algorithm supports multiple key lengths, the maximum
+            supported value is returned.
 
     ***************************************************************************/
 
@@ -327,9 +329,6 @@ private class GcryptBase ( Algorithm algorithm, Mode mode )
 
     protected void setKey ( in void[] key )
     {
-        this.exception.throwIfLenMismatch("key", key.length,
-            this.required_key_len);
-
         auto err = gcry_cipher_setkey(this.handle, key.ptr, key.length);
         this.exception.throwIfGcryptError(err);
     }
