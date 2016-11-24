@@ -295,12 +295,9 @@ struct Serializer
                         }
                     }
                 }
-                else static if (is (T == union))
+                else
                 {
-                    static assert (!ContainsDynamicArray!(T),
-                                   T.stringof ~ " " ~ s.tupleof[i].stringof ~
-                                   " - unions containing dynamic arrays are is not "
-                                   "allowed, sorry");
+                    alias ensureValueTypeMember!(S, i) evt;
                 }
             }
         }
@@ -494,14 +491,9 @@ struct Serializer
                         data = This.dumpStaticArray(s.tupleof[i][], data);
                     }
                 }
-                else static if (is (T == union))
+                else
                 {
-                    static assert (
-                        !ContainsDynamicArrays!(T),
-                        T.stringof ~ " " ~ s.tupleof[i].stringof ~
-                            " - unions containing dynamic arrays are is not " ~
-                            "allowed, sorry"
-                    );
+                    alias ensureValueTypeMember!(S, i) evt;
                 }
             }
         }
@@ -770,14 +762,9 @@ struct Serializer
                     resetArrayReferences(s.tupleof[i]);
                 }
             }
-            else static if (is (T == union))
+            else
             {
-                static assert (
-                    !ContainsDynamicArrays!(T),
-                    T.stringof ~ " " ~ s.tupleof[i].stringof ~
-                        " - unions containing dynamic arrays are is not " ~
-                        "allowed, sorry"
-                );
+                alias ensureValueTypeMember!(S, i) evt;
             }
         }
 
@@ -841,7 +828,6 @@ struct Serializer
 
         return array;
     }
-
 }
 
 unittest
