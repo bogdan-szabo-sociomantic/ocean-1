@@ -27,12 +27,12 @@ import ocean.transition;
 import ocean.core.Enforce;
 import ocean.sys.socket.model.ISocket;
 
-import ocean.net.device.LocalSocket;
 import ocean.stdc.posix.sys.socket;
 import ocean.stdc.posix.sys.un: UNIX_PATH_MAX;
 import ocean.stdc.posix.unistd;
 import ocean.text.convert.Format;
 
+import ocean.stdc.posix.sys.un;
 
 /*******************************************************************************
 
@@ -69,7 +69,7 @@ public class UnixSocket : ISocket
 
     public this ()
     {
-        super(LocalAddress.sockaddr_un.sizeof);
+        super(sockaddr_un.sizeof);
     }
 
 
@@ -121,20 +121,14 @@ public class UnixSocket : ISocket
 
     ***************************************************************************/
 
-    public int bind ( LocalAddress address )
-    in
+    public int bind ( sockaddr_un* address )
     {
-        assert(address !is null);
-    }
-    body
-    {
-        auto path = address.path;
+        auto path = address.sun_path;
         this.path_len = path.length;
         this.path[0 .. this.path_len] = path;
 
-        // note: cast due to duplicate but separate definitions of sockaddr
-        // in Tango
-        return super.bind(cast(sockaddr*)address.name());
+        // note: cast due to that bind accepts generic `sockaddr*` pointer`
+        return super.bind(cast(sockaddr*)address);
     }
 
 
@@ -147,20 +141,14 @@ public class UnixSocket : ISocket
 
     ***************************************************************************/
 
-    public int connect ( LocalAddress address )
-    in
+    public int connect ( sockaddr_un* address )
     {
-        assert(address !is null);
-    }
-    body
-    {
-        auto path = address.path;
+        auto path = address.sun_path;
         this.path_len = path.length;
         this.path[0 .. this.path_len] = path;
 
-        // note: cast due to duplicate but separate definitions of sockaddr
-        // in Tango
-        return super.connect(cast(sockaddr*)address.name());
+        // note: cast due to that connect accepts generic `sockaddr*` pointer`
+        return super.connect(cast(sockaddr*)address);
     }
 
 
