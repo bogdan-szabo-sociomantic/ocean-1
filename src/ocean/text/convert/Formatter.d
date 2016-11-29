@@ -766,7 +766,7 @@ private bool readNumber (out size_t f, ref Const!(char)* s)
 
 *******************************************************************************/
 
-private void writePointer (void* v, ref FormatInfo f, ElementSink se)
+private void writePointer (in void* v, ref FormatInfo f, ElementSink se)
 {
     alias void* T;
 
