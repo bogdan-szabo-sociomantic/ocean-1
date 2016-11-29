@@ -1253,3 +1253,26 @@ unittest
     assert(format("{}", dg)
            == "int delegate(void[], char, int): { funcptr: 0X1111222233334444, ptr: 0X5555666677778888 }");
 }
+
+// Const tests
+unittest
+{
+    const int ai = 42;
+    const double ad = 42.00;
+    static struct Answer_struct { int value; }
+    static class Answer_class
+    {
+        public override istring toString () /* d1to2fix_inject: const */
+        {
+            return "42";
+        }
+    }
+
+    Const!(Answer_struct) as = Answer_struct(42);
+    auto ac = new Const!(Answer_class);
+
+    assert(format("{}", ai) == "42");
+    assert(format("{:f2}", ad) == "42.00", format("{:f2}", ad));
+    assert(format("{}", as) == "{ value: 42 }");
+    assert(format("{}", ac) == "42");
+}
