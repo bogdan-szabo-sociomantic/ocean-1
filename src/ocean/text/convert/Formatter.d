@@ -374,7 +374,8 @@ private void handle (T) (T v, FormatInfo f, Sink sf, ElementSink se)
 
     // Floating point values - Explicitly typed because we don't want
     // to support imaginary and complex FP types
-    else static if (is(T == float) || is(T == double) || is(T == real))
+    else static if (is(Unqual!(T) == float) || is(Unqual!(T) == double)
+                    || is(Unqual!(T) == real))
     {
         char[T.sizeof * 8] buff = void;
         se(Float.format(buff, v, f.format), f);
