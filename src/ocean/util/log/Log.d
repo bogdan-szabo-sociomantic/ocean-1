@@ -732,10 +732,12 @@ public class Logger : ILogger
         final Logger level (Level level, bool propagate)
         {
                 level_ = level;
+
                 if (propagate)
-                    foreach (log; host_)
-                             if (log.isChildOf (name_))
-                                 log.level_ = level;
+                {
+                    this.host_.propagateValue!("level_")(this.name_, level);
+                }
+
                 return this;
         }
 
@@ -1273,6 +1275,30 @@ public class Hierarchy : Logger.Context
         {
                 foreach (logger; this)
                          propagate (logger, changed, force);
+        }
+
+        /***********************************************************************
+
+            Propagates the property to all child loggers.
+
+            Params:
+                Property = property to set
+                T = type of the property
+                parent_name = name of the parent logger
+                value = value to set
+
+        ***********************************************************************/
+
+        private void propagateValue (istring property, T)(istring parent_name,
+                T value)
+        {
+            foreach (log; this)
+            {
+                if (log.isChildOf (parent_name))
+                {
+                    mixin("log." ~ property ~ " = value;");
+                }
+            }
         }
 
         /***********************************************************************
