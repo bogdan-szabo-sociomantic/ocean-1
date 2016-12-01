@@ -1313,15 +1313,17 @@ public class Hierarchy : Logger.Context
         {
                 // is the changed instance a better match for our parent?
                 if (logger.isCloserAncestor (changed))
-                   {
-                   // update parent (might actually be current parent)
-                   logger.parent = changed;
+                {
+                    // update parent (might actually be current parent)
+                    logger.parent = changed;
 
-                   // if we don't have an explicit level set, inherit it
-                   // Be careful to avoid recursion, or other overhead
-                   if (force)
-                       logger.level_ = changed.level;
-                   }
+                    // if we don't have an explicit level set, inherit it
+                    // Be careful to avoid recursion, or other overhead
+                    if (force)
+                    {
+                        logger.level_ = changed.level;
+                    }
+                }
         }
 }
 
