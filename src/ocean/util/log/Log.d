@@ -551,14 +551,18 @@ public class Logger : ILogger
                 given hierarchy. By default, logger instances are additive
                 and are set to emit all events.
 
+                Params:
+                    host = Hierarchy instance that is hosting this logger
+                    name = name of this Logger
+
         ***********************************************************************/
 
         private this (Hierarchy host, istring name)
         {
-                host_ = host;
-                level_ = Level.Trace;
-                additive_ = true;
-                name_ = name;
+                this.host_ = host;
+                this.level_ = Level.Trace;
+                this.additive_ = true;
+                this.name_ = name;
         }
 
         /***********************************************************************
