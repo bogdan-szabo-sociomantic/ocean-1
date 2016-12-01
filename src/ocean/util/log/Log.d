@@ -147,6 +147,88 @@ alias ILogger.Level Level;
 
 public struct Log
 {
+        /***********************************************************************
+
+            Structure for accumulating number of log events issued.
+
+            Note:
+                this takes the logging level in account, so calls that are not
+                logged because of the minimum logging level are not counted.
+
+        ***********************************************************************/
+
+        public static struct Stats
+        {
+            mixin TypeofThis!();
+
+            /// Number of trace log events issued
+            public uint logged_trace;
+
+            /// Number of info log events issued
+            public uint logged_info;
+
+            /// Number of warn log events issued
+            public uint logged_warn;
+
+            /// Number of error log events issued
+            public uint logged_error;
+
+            /// Number of fatal log events issue
+            public uint logged_fatal;
+
+            static assert(Level.max == This.tupleof.length,
+                    "Number of members doesn't match Levels");
+
+            /*******************************************************************
+
+                Resets the counters.
+
+            *******************************************************************/
+
+            private void reset ()
+            {
+                foreach (ref field; this.tupleof)
+                {
+                    field = field.init;
+                }
+            }
+
+            /*******************************************************************
+
+                Accumulate the LogEvent into the stats.
+
+                Params:
+                    event_level = level of the event that has been logged.
+
+            *******************************************************************/
+
+            private void accumulate (Level event_level)
+            {
+                with (Level) switch (event_level)
+                {
+                    case Trace:
+                        this.logged_trace++;
+                        break;
+                    case Info:
+                        this.logged_info++;
+                        break;
+                    case Warn:
+                        this.logged_warn++;
+                        break;
+                    case Error:
+                        this.logged_error++;
+                        break;
+                    case Fatal:
+                        this.logged_fatal++;
+                        break;
+                    case None:
+                        break;
+                    default:
+                        assert(false, "Non supported log level");
+                }
+            }
+        }
+
         // support for old API
         public alias lookup getLogger;
 
@@ -188,6 +270,14 @@ public struct Log
         [
                 "Trace", "Info", "Warn", "Error", "Fatal", "None"
         ];
+
+        /***********************************************************************
+
+            Logger stats.
+
+        ***********************************************************************/
+
+        private static Stats logger_stats;
 
         /***********************************************************************
 
@@ -315,6 +405,26 @@ public struct Log
         static void config (OutputStream stream, bool flush = true)
         {
                 root.add (new AppendStream (stream, flush));
+        }
+
+        /***********************************************************************
+
+            Gets the stats of the logger system between two calls to this
+            method.
+
+            Returns:
+                number of log events issued after last call to stats, aggregated
+                per logger level
+
+        ***********************************************************************/
+
+        public static Stats stats ()
+        {
+            // Make a copy to return
+            Stats s = logger_stats;
+            logger_stats.reset();
+
+            return s;
         }
 }
 
@@ -741,6 +851,10 @@ public class Logger : ILogger
 
         private void append (LogEvent event)
         {
+                // indicator if the event was at least once emmited to the
+                // appender (to use for global stats)
+                bool event_emmited;
+
                 // combine appenders from all ancestors
                 auto links = this;
                 Appender.Mask masks = 0;
@@ -760,12 +874,20 @@ public class Logger : ILogger
                                  // append message and update mask
                                  appender.append (event);
                                  masks |= mask;
+                                 event_emmited = true;
                                  }
                          // process all appenders for this node
                          appender = appender.next;
                          }
                      // process all ancestors
                    } while (links.additive_ && ((links = links.parent) !is null));
+
+                // If the event was emitted to at least one appender, increment
+                // the stats counters
+                if (event_emmited)
+                {
+                    Log.logger_stats.accumulate(event.level);
+                }
         }
 
         /***********************************************************************
