@@ -181,6 +181,15 @@ class Config
 
     /***************************************************************************
 
+        Whether this logger should be part of the global logging stats
+        mechanism
+
+    ***************************************************************************/
+
+    bool collect_stats = true;
+
+    /***************************************************************************
+
         Buffer size of the buffer output, overwrites the global setting
         given in MetaConfig
 
@@ -493,6 +502,8 @@ public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
                 log.add(new AppendStderrStdout(Level.Warn, console_log_layout));
             }
         }
+
+        log.collectStats(settings.collect_stats, settings.propagate);
 
         setupLoggerLevel(log, name, settings);
     }

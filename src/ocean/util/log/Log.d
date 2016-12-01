@@ -547,6 +547,15 @@ public class Logger : ILogger
 
         /***********************************************************************
 
+            Indicator if the log emits should be counted towards global
+            stats.
+
+        ***********************************************************************/
+
+        private bool            collect_stats;
+
+        /***********************************************************************
+
                 Construct a LoggerInstance with the specified name for the
                 given hierarchy. By default, logger instances are additive
                 and are set to emit all events.
@@ -562,6 +571,7 @@ public class Logger : ILogger
                 this.host_ = host;
                 this.level_ = Level.Trace;
                 this.additive_ = true;
+                this.collect_stats = true;
                 this.name_ = name;
         }
 
@@ -821,6 +831,29 @@ public class Logger : ILogger
 
         /***********************************************************************
 
+            Toggles the stats collecting for this logger and optionally
+            for all its descentends.
+
+            Params:
+                value = indicator if the stats collection for this logger
+                    should happen
+                propagate = should we propagate this change to all children
+                    loggers
+
+        ***********************************************************************/
+
+        void collectStats (bool value, bool propagate)
+        {
+            this.collect_stats = value;
+
+            if (propagate)
+            {
+                this.host_.propagateValue!("collect_stats")(this.name_, value);
+            }
+        }
+
+        /***********************************************************************
+
                 Get time since this application started
 
         ***********************************************************************/
@@ -888,9 +921,10 @@ public class Logger : ILogger
                      // process all ancestors
                    } while (links.additive_ && ((links = links.parent) !is null));
 
-                // If the event was emitted to at least one appender, increment
-                // the stats counters
-                if (event_emmited)
+                // If the event was emitted to at least one appender, and the
+                // collecting stats for this log is enabled, increment the
+                // stats counters
+                if (this.collect_stats && event_emmited)
                 {
                     Log.logger_stats.accumulate(event.level);
                 }
@@ -1322,6 +1356,7 @@ public class Hierarchy : Logger.Context
                     if (force)
                     {
                         logger.level_ = changed.level;
+                        logger.collect_stats = changed.collect_stats;
                     }
                 }
         }
