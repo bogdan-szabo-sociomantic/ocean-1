@@ -6,8 +6,7 @@
  * Authors:   Thomas Dixon
  */
 
-deprecated module ocean.util.cipher.misc.ByteConverter;
-pragma(msg, "ocean.util.cipher is deprecated, use ocean.util.cipher.gcrypt instead.");
+module ocean.util.cipher.misc.ByteConverter;
 
 import ocean.transition;
 

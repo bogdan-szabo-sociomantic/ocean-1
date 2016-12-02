@@ -46,8 +46,6 @@ TEST_FILTER_OUT += \
 	$C/src/ocean/util/cipher/Cipher.d \
 	$C/src/ocean/util/cipher/HMAC.d \
 	$C/src/ocean/util/cipher/misc/Bitwise.d \
-	$C/src/ocean/util/cipher/misc/ByteConverter.d \
-	$C/src/ocean/util/cipher/misc/Padding.d \
 	$C/src/ocean/util/cipher/TEA.d \
 	$C/src/ocean/util/cipher/XTEA.d \
 	$C/src/ocean/util/cipher/RC4.d \
