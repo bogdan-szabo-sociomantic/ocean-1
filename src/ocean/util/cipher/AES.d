@@ -4,7 +4,8 @@
  * Authors:   Thomas Dixon
  */
 
-module ocean.util.cipher.AES;
+deprecated module ocean.util.cipher.AES;
+pragma(msg, "ocean.util.cipher is deprecated, use ocean.util.cipher.gcrypt instead.");
 
 import ocean.transition;
 import ocean.core.Array_tango;

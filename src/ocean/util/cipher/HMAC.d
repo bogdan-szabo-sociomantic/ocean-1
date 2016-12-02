@@ -34,7 +34,8 @@
 
 *******************************************************************************/
 
-module ocean.util.cipher.HMAC;
+deprecated module ocean.util.cipher.HMAC;
+pragma(msg, "ocean.util.cipher is deprecated, use ocean.util.cipher.gcrypt instead.");
 
 
 

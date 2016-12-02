@@ -6,7 +6,8 @@
 
 *******************************************************************************/
 
-module ocean.util.cipher.misc.Padding;
+deprecated module ocean.util.cipher.misc.Padding;
+pragma(msg, "ocean.util.cipher is deprecated, use ocean.util.cipher.gcrypt instead.");
 
 /*******************************************************************************
 

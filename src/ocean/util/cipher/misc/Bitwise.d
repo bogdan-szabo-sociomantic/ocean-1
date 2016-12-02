@@ -6,7 +6,8 @@
  * Authors:   Thomas Dixon
  */
 
-module ocean.util.cipher.misc.Bitwise;
+deprecated module ocean.util.cipher.misc.Bitwise;
+pragma(msg, "ocean.util.cipher is deprecated, use ocean.util.cipher.gcrypt instead.");
 
 /** Common bitwise operations */
 struct Bitwise

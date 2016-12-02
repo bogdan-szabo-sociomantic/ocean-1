@@ -41,6 +41,13 @@ TEST_FILTER_OUT += \
 	$C/src/ocean/util/container/HashMap.d \
 	$C/src/ocean/util/container/more/CacheMap.d \
 	$C/src/ocean/util/container/more/StackMap.d \
+	$C/src/ocean/util/cipher/AES.d \
+	$C/src/ocean/util/cipher/Blowfish.d \
+	$C/src/ocean/util/cipher/Cipher.d \
+	$C/src/ocean/util/cipher/HMAC.d \
+	$C/src/ocean/util/cipher/misc/Bitwise.d \
+	$C/src/ocean/util/cipher/misc/ByteConverter.d \
+	$C/src/ocean/util/cipher/misc/Padding.d \
 	$C/src/ocean/util/cipher/TEA.d \
 	$C/src/ocean/util/cipher/XTEA.d \
 	$C/src/ocean/util/cipher/RC4.d \
