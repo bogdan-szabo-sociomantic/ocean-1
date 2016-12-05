@@ -632,7 +632,8 @@ struct Serializer
                         T.stringof ~ " doesn't have"
                 );
 
-                data = This.dumpAllArrays(element, data);
+                auto ptr = cast(Unqual!(T)*) &element;
+                data = This.dumpAllArrays(*ptr, data);
             }
         }
 
@@ -681,7 +682,8 @@ struct Serializer
         {
             foreach (ref element; array)
             {
-                data = This.dumpAllArrays(element, data);
+                auto ptr = cast(Unqual!(T)*) &element;
+                data = This.dumpAllArrays(*ptr, data);
                 This.resetReferences(element);
             }
         }
