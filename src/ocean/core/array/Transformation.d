@@ -308,12 +308,6 @@ U[] map ( T, MapFunc, U = ReturnTypeOf!(MapFunc) )
     return map(array, func, tmp_buffer);
 }
 
-deprecated unittest
-{
-    auto arr = map([1, 17, 8, 12][], (int i) { return i * 2L; });
-    test(arr == [2L, 34L, 16L, 24L]);
-}
-
 /*******************************************************************************
 
     Reduce an array of elements to a single element, using a user-supplied
@@ -425,12 +419,6 @@ T[] filter ( T, Pred )
     return filter(array, pred, buffer)[];
 }
 
-deprecated unittest
-{
-    test!("==")(filter("aabbaab",
-        (char c) { return c == 'a'; }), "aaaa");
-}
-
 unittest
 {
     void test( cstring array, bool delegate( char ) dg, size_t num )
@@ -497,12 +485,6 @@ public T[] remove ( T ) ( in T[] source, in T[] match, ref T[] result )
     return remove(source, match, *cast(Buffer!(T)*) &result);
 }
 
-deprecated unittest
-{
-    mstring result;
-    remove("aaabbbaaa"[], "bbb"[], result);
-    test!("==")(result, "aaaaaa"[]);
-}
 /*******************************************************************************
 
     Split the provided array wherever a pattern instance is found, and return
@@ -573,20 +555,6 @@ public T3[][] split ( T1, T2, T3 ) ( T1[] src, T2[] pattern, ref T3[][] result )
     return split(src, pattern, *buffer)[];
 }
 
-deprecated unittest
-{
-    istring[] result;
-    split("aaa..bbb..ccc", "..", result);
-    test!("==")(result, [ "aaa", "bbb", "ccc" ]);
-}
-
-deprecated unittest
-{
-    mstring[] result;
-    split("aaa.bbb.".dup, ".", result);
-    test!("==")(result, [ "aaa", "bbb", "" ]);
-}
-
 /*******************************************************************************
 
     Substitute all instances of match from source. Set replacement to null in
@@ -642,13 +610,6 @@ public T[] substitute ( T ) ( in T[] source, in T[] match,
 {
     return substitute(source, match, replacement,
         * cast(Buffer!(char)*) &result);
-}
-
-deprecated unittest
-{
-    mstring result;
-    substitute("some string", "ring", "oops", result);
-    test!("==")(result[], "some stoops");
 }
 
 /*******************************************************************************

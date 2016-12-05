@@ -225,14 +225,6 @@ size_t moveToEnd ( T, Pred = DefaultPredicates.IsEqual!(T) )
     return array.length - cnt;
 }
 
-/// ditto
-deprecated ("Use `moveToEnd()` instead")
-size_t remove ( T, Pred = DefaultPredicates.IsEqual!(T) )
-    ( T[] array, in T element, Pred pred = Pred.init )
-{
-    return moveToEnd(array, element, pred);
-}
-
 ///
 unittest
 {
@@ -243,14 +235,6 @@ unittest
 
 /// ditto
 size_t moveToEnd ( T, Pred = DefaultPredicates.IsEqual!(T) )
-    ( ref Buffer!(T) array, in T element, Pred pred = Pred.init )
-{
-    return moveToEnd(array[0..array.length], element, pred);
-}
-
-/// ditto
-deprecated ("Use `moveToEnd()` instead")
-size_t remove ( T, Pred = DefaultPredicates.IsEqual!(T) )
     ( ref Buffer!(T) array, in T element, Pred pred = Pred.init )
 {
     return moveToEnd(array[0..array.length], element, pred);
@@ -908,13 +892,6 @@ public DE[] concat ( DE, T... ) ( ref DE[] dest, T arrays )
     return concat(*(cast(Buffer!(DE)*) &dest), arrays);
 }
 
-deprecated unittest
-{
-    mstring dest;
-    concat(dest, "hello "[], "world"[]);
-    test!("==")(dest, "hello world");
-}
-
 /*******************************************************************************
 
     Copies the contents of one array to another, setting the length of the
@@ -954,14 +931,6 @@ unittest
 public T[] copy ( T ) ( ref T[] dest, in T[] src )
 {
     return copy(*(cast(Buffer!(T)*) &dest), src);
-}
-
-deprecated unittest
-{
-    mstring dest;
-    cstring src = "hello";
-    copy(dest, src);
-    test!("==")(dest[], "hello"[]);
 }
 
 /*******************************************************************************
@@ -1006,15 +975,6 @@ public T[] copyExtend ( T ) ( ref T[] dest, in T[] src )
     return copyExtend(*(cast(Buffer!(T)*) &dest), src);
 }
 
-deprecated unittest
-{
-    auto dst = "aa".dup;
-    copyExtend(dst, "bbbb");
-    test!("==")(dst[], "bbbb");
-    copyExtend(dst, "ccc");
-    test!("==")(dst[], "cccb");
-}
-
 /*******************************************************************************
 
     Appends an element to a list of arrays, and copies the contents of the
@@ -1054,15 +1014,6 @@ unittest
 public void appendCopy ( T ) ( ref T[][] dest, in T[] src )
 {
     appendCopy(*(cast(Buffer!(T)[]*) &dest), src);
-}
-
-///
-deprecated unittest
-{
-    mstring[] dest;
-    cstring src = "hello";
-    appendCopy(dest, src);
-    test!("==")(dest[0][], "hello");
 }
 
 /*******************************************************************************
@@ -1106,15 +1057,6 @@ unittest
 public bool pop ( T ) ( ref T[] array, out T popped )
 {
     return pop (* cast(Buffer!(T)*) &array, popped);
-}
-
-deprecated unittest
-{
-    auto buffer = "something".dup;
-    char elem;
-    test(pop(buffer, elem));
-    test!("==")(buffer, "somethin"[]);
-    test!("==")(elem, 'g');
 }
 
 /*******************************************************************************
@@ -1178,13 +1120,6 @@ public T[] removeShift ( T ) ( ref T[] buffer, size_t index,
     size_t remove_elems = 1 )
 {
     return removeShift(*cast(Buffer!(T)*) &buffer, index, remove_elems);
-}
-
-deprecated unittest
-{
-    mstring arr = "something".dup;
-    removeShift(arr, 3, 4);
-    test!("==")(arr, "somng"[]);
 }
 
 /*******************************************************************************

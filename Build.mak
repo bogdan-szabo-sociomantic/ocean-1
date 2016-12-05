@@ -15,18 +15,6 @@ DC = dmd-transitional
 override DFLAGS += -de
 endif
 
-# Remove deprecated modules from testing:
-TEST_FILTER_OUT += \
-	$C/src/ocean/core/Array_tango.d \
-	$C/src/ocean/util/config/ClassFiller.d \
-	$C/src/ocean/text/xml/Xslt.d \
-	$C/src/ocean/text/xml/c/LibXslt.d \
-	$C/src/ocean/text/xml/c/LibXml2.d \
-	$C/src/ocean/io/serialize/XmlStructSerializer.d \
-	$C/src/ocean/util/container/HashMap.d \
-	$C/src/ocean/util/container/more/CacheMap.d \
-	$C/src/ocean/util/container/more/StackMap.d
-
 # This is an integration test that depends on Collectd -- Don't run it
 TEST_FILTER_OUT += $C/test/collectd/main.d
 
