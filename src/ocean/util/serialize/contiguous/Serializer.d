@@ -268,15 +268,17 @@ struct Serializer
 
                     len += This.countAllArraySize(field);
                 }
+                else static if (is (T Base == Base[]))
+                {
+                    // Dump dynamic array.
+
+                    len += This.countArraySize(field);
+                }
                 else static if (is (T Base : Base[]))
                 {
-                    static if (is (Base[] == T))
-                    {
-                        // Dump dynamic array.
+                    // Static array
 
-                        len += This.countArraySize(field);
-                    }
-                    else static if (ContainsDynamicArray!(Base))
+                    static if (ContainsDynamicArray!(Base))
                     {
                         // Recurse into static array elements which contain a
                         // dynamic array.
@@ -460,19 +462,22 @@ struct Serializer
                 {
                     // Recurse into struct field.
 
-                    data = This.dumpAllArrays(s.tupleof[i], data);
+                    auto ptr = cast(Unqual!(typeof(s.tupleof[i]))*) &s.tupleof[i];
+                    data = This.dumpAllArrays(*ptr, data);
+                }
+                else static if (is (T Base == Base[]))
+                {
+                    // Dump dynamic array.
+
+                    data = This.dumpArray(s.tupleof[i], data);
+
+                    s.tupleof[i] = null;
                 }
                 else static if (is (T Base : Base[]))
                 {
-                    static if (is (Base[] == T))
-                    {
-                        // Dump dynamic array.
+                    // Dump static array
 
-                        data = This.dumpArray(s.tupleof[i], data);
-
-                        s.tupleof[i] = null;
-                    }
-                    else static if (ContainsDynamicArray!(Base))
+                    static if (ContainsDynamicArray!(Base))
                     {
                         // Recurse into static array elements which contain a
                         // dynamic array.
@@ -746,15 +751,17 @@ struct Serializer
                     This.resetReferences(s.tupleof[i]);
                 }
             }
+            else static if (is (T Base == Base[]))
+            {
+                // Reset field of dynamic array type.
+
+                s.tupleof[i] = null;
+            }
             else static if (is (T Base : Base[]))
             {
-                static if (is (Base[] == T))
-                {
-                    // Reset field of dynamic array type.
+                // Static array
 
-                    s.tupleof[i] = null;
-                }
-                else static if (ContainsDynamicArray!(Base))
+                static if (ContainsDynamicArray!(Base))
                 {
                     // Field of static array that contains a dynamic array:
                     // Recurse into field array elements.
