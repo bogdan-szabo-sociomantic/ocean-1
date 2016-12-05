@@ -94,13 +94,12 @@ struct Serializer
         void[]* dst_untyped = cast (void[]*) &dst;
         auto data = This.resize(*dst_untyped, This.countRequiredSize(src));
 
-        S* s_dumped = cast (S*) data[0 .. S.sizeof];
-
-        *s_dumped = src;
+        data[0 .. S.sizeof] = (cast(void*) &src)[0 .. S.sizeof];
+        auto s_root = cast(Unqual!(S)*) data.ptr;
 
         static if (ContainsDynamicArray!(S))
         {
-            void[] remaining = This.dumpAllArrays(*s_dumped, data[S.sizeof .. $]);
+            void[] remaining = This.dumpAllArrays(*s_root, data[S.sizeof .. $]);
 
             return data[0 .. $ - remaining.length];
         }
