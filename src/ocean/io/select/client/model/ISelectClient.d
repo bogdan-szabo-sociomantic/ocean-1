@@ -402,25 +402,20 @@ public abstract class ISelectClient : ITimeoutClient, ISelectable, ISelectClient
 
     ***************************************************************************/
 
-    debug
+    debug public override istring toString ( )
     {
-        private mstring to_string_buf;
-
-        public override istring toString ( )
+        mstring to_string_buf;
+        Format.format(to_string_buf, "{} fd={} events=", this.id,
+        this.fileHandle);
+        foreach ( event, name; epoll_event_t.event_to_name )
         {
-            this.to_string_buf.length = 0;
-            Format.format(this.to_string_buf, "{} fd={} events=", this.id,
-                this.fileHandle);
-            foreach ( event, name; epoll_event_t.event_to_name )
+            if ( this.events & event )
             {
-                if ( this.events & event )
-                {
-                    this.to_string_buf ~= name;
-                }
+                to_string_buf ~= name;
             }
-
-            return idup(this.to_string_buf);
         }
+
+        return assumeUnique(to_string_buf);
     }
 }
 
