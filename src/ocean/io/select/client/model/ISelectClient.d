@@ -388,7 +388,7 @@ public abstract class ISelectClient : ITimeoutClient, ISelectable, ISelectClient
 
      **************************************************************************/
 
-    debug public cstring id ( )
+    public cstring id ( )
     {
         return classname(this);
     }
