@@ -46,7 +46,7 @@ import ocean.text.util.ClassName;
 
 debug import ocean.io.Stdout;
 
-debug import ocean.text.convert.Format;
+import ocean.text.convert.Format;
 
 /******************************************************************************
 
@@ -405,17 +405,33 @@ public abstract class ISelectClient : ITimeoutClient, ISelectable, ISelectClient
     debug public override istring toString ( )
     {
         mstring to_string_buf;
-        Format.format(to_string_buf, "{} fd={} events=", this.id,
-        this.fileHandle);
+        this.fmtInfo((cstring chunk) {to_string_buf ~= chunk;});
+        return assumeUnique(to_string_buf);
+    }
+
+    /***************************************************************************
+
+        Produces a string containing information about this instance: Dynamic
+        type, file descriptor and events.
+
+        Params:
+            sink = `Layout.convert()`-style sink of string chunks
+
+    ***************************************************************************/
+
+    public void fmtInfo ( void delegate ( cstring chunk ) sink )
+    {
+        Format.convert(
+            (cstring chunk) {sink(chunk); return chunk.length;},
+            "{} fd={} events=", this.id, this.fileHandle
+        );
         foreach ( event, name; epoll_event_t.event_to_name )
         {
             if ( this.events & event )
             {
-                to_string_buf ~= name;
+                sink(name);
             }
         }
-
-        return assumeUnique(to_string_buf);
     }
 }
 
