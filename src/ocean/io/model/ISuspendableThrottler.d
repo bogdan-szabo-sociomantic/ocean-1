@@ -11,6 +11,8 @@
 
 module ocean.io.model.ISuspendableThrottler;
 
+import ocean.transition;
+
 
 /*******************************************************************************
 
@@ -113,6 +115,7 @@ abstract public class ISuspendableThrottler
     public void clear ( )
     {
         this.suspendables.length = 0;
+        enableStomping(this.suspendables);
         this.suspended_ = false;
     }
 
