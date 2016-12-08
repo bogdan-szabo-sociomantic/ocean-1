@@ -114,7 +114,7 @@ struct Buffer ( T )
     ///
     unittest
     {
-        static if (!is(ElementType == class))
+        static if (!is(ElementType == class) && !(is(ElementType == interface)))
         {
             Buffer!(T) buffer;
             buffer = [ some!(ElementType), some!(ElementType) ];
@@ -139,7 +139,7 @@ struct Buffer ( T )
     ///
     unittest
     {
-        static if (!is(ElementType == class))
+        static if (!is(ElementType == class) && !(is(ElementType == interface)))
         {
             Buffer!(T) buffer;
             buffer = [ some!(ElementType), some!(ElementType), some!(ElementType) ];
@@ -168,7 +168,7 @@ struct Buffer ( T )
     ///
     unittest
     {
-        static if (!is(ElementType == class))
+        static if (!is(ElementType == class) && !(is(ElementType == interface)))
         {
             Buffer!(T) buffer;
             buffer.length = 1;
@@ -200,7 +200,7 @@ struct Buffer ( T )
     ///
     unittest
     {
-        static if (!is(ElementType == class))
+        static if (!is(ElementType == class) && !(is(ElementType == interface)))
         {
             Buffer!(T) buffer;
             buffer.reserve(20);
@@ -233,7 +233,7 @@ struct Buffer ( T )
     ///
     unittest
     {
-        static if (!is(ElementType == class))
+        static if (!is(ElementType == class) && !(is(ElementType == interface)))
         {
             auto buffer = createBuffer([ some!(ElementType), some!(ElementType) ]);
             test!("==")(buffer[0 .. buffer.length],
@@ -258,7 +258,7 @@ struct Buffer ( T )
     ///
     unittest
     {
-        static if (!is(ElementType == class))
+        static if (!is(ElementType == class) && !(is(ElementType == interface)))
         {
             auto buffer = createBuffer([ some!(ElementType), some!(ElementType) ]);
             test!("==")(buffer[],
