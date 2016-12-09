@@ -348,7 +348,7 @@ public abstract class DaemonApp : Application,
 
     public void startEventHandling ( )
     {
-        this.timer_ext.register(&this.statsTimer, StatsLog.default_period);
+        this.timer_ext.register(&this.statsTimer, this.stats_ext.config.interval);
         this.epoll.register(this.signal_ext.selectClient());
     }
 
