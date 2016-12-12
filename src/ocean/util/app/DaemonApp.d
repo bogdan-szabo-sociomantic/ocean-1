@@ -38,12 +38,6 @@
 
 module ocean.util.app.DaemonApp;
 
-/*******************************************************************************
-
-    Imports
-
-*******************************************************************************/
-
 import ocean.util.app.Application : Application;
 import ocean.util.app.ext.model.IArgumentsExtExtension;
 import ocean.util.app.ext.model.IConfigExtExtension;
@@ -52,12 +46,7 @@ import ocean.util.app.ext.model.ISignalExtExtension;
 
 import ocean.transition;
 
-/*******************************************************************************
-
-    DaemonApp class
-
-*******************************************************************************/
-
+/// ditto
 public abstract class DaemonApp : Application,
         IArgumentsExtExtension, IConfigExtExtension, ILogExtExtension,
         ISignalExtExtension
