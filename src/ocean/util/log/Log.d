@@ -583,7 +583,7 @@ public class Logger : ILogger
 
         /***********************************************************************
 
-                Is this logger enabed for the specified Level?
+                Is this logger enabled for the specified Level?
 
         ***********************************************************************/
 
@@ -741,7 +741,7 @@ public class Logger : ILogger
         /***********************************************************************
 
                 Set the current level for this logger, and (optionally) all
-                of its descendents.
+                of its descendants.
 
         ***********************************************************************/
 
@@ -838,7 +838,7 @@ public class Logger : ILogger
         /***********************************************************************
 
             Toggles the stats collecting for this logger and optionally
-            for all its descentends.
+            for all its descendants.
 
             Params:
                 value = indicator if the stats collection for this logger
@@ -896,7 +896,7 @@ public class Logger : ILogger
 
         private void append (LogEvent event)
         {
-                // indicator if the event was at least once emmited to the
+                // indicator if the event was at least once emitted to the
                 // appender (to use for global stats)
                 bool event_emitted;
 
@@ -1043,7 +1043,7 @@ public class Logger : ILogger
         each logger linked to the others in an ordered group. Ordering
         places shortest names at the head and longest ones at the tail,
         making the job of identifying ancestors easier in an orderly
-        fashion. For example, when propagating levels across descendents
+        fashion. For example, when propagating levels across descendants
         it would be a mistake to propagate to a child before all of its
         ancestors were taken care of.
 
