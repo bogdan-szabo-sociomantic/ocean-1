@@ -898,7 +898,7 @@ public class Logger : ILogger
         {
                 // indicator if the event was at least once emmited to the
                 // appender (to use for global stats)
-                bool event_emmited;
+                bool event_emitted;
 
                 // combine appenders from all ancestors
                 auto links = this;
@@ -919,7 +919,7 @@ public class Logger : ILogger
                                  // append message and update mask
                                  appender.append (event);
                                  masks |= mask;
-                                 event_emmited = true;
+                                 event_emitted = true;
                                  }
                          // process all appenders for this node
                          appender = appender.next;
@@ -930,7 +930,7 @@ public class Logger : ILogger
                 // If the event was emitted to at least one appender, and the
                 // collecting stats for this log is enabled, increment the
                 // stats counters
-                if (this.collect_stats && event_emmited)
+                if (this.collect_stats && event_emitted)
                 {
                     Log.logger_stats.accumulate(event.level);
                 }
