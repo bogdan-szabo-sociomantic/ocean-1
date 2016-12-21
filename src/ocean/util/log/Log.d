@@ -1849,38 +1849,3 @@ public class LayoutTimer : Appender.Layout
                 dg (event.toString);
         }
 }
-
-
-/*******************************************************************************
-
-*******************************************************************************/
-
-debug (Log)
-{
-        import ocean.io.Console;
-
-        void main()
-        {
-                Log.config (Cerr.stream);
-                auto log = Log.lookup ("fu.bar");
-                log.level = log.Trace;
-                // traditional usage
-                log.trace ("hello {}", "world");
-
-                char[100] buf;
-                log (log.Trace, log.format(buf, "hello {}", "world"));
-
-                // formatted output
-/*                /
-                auto format = Log.format;
-                log.info (format ("blah{}", 1));
-
-                // snapshot
-                auto snap = Log.snapshot (log, Level.Error);
-                snap.format ("arg{}; ", 1);
-                snap.format ("arg{}; ", 2);
-                //log.trace (snap.format ("error! arg{}", 3));
-                snap.flush;
-*/
-        }
-}
