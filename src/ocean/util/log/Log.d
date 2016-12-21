@@ -99,26 +99,11 @@ import ocean.text.convert.Format;
 
 import ocean.util.log.model.ILogger;
 
-/*******************************************************************************
+import ocean.core.Vararg;
 
-        Platform issues ...
 
-*******************************************************************************/
-
-version (DigitalMars)
-        {
-        import ocean.core.Vararg;
-        alias void* Arg;
-        alias va_list ArgList;
-
-    version(X86_64)  version = DigitalMarsX64;
-
-        }
-     else
-        {
-        alias void* Arg;
-        alias void* ArgList;
-        }
+alias void* Arg;
+alias va_list ArgList;
 
 /*******************************************************************************
 
