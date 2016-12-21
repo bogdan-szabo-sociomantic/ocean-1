@@ -122,17 +122,6 @@ version (DigitalMars)
 
 /*******************************************************************************
 
-        Pull in additional functions from the C library
-
-*******************************************************************************/
-
-extern (C)
-{
-        private int memcmp (Const!(void)*, Const!(void)*, size_t);
-}
-
-/*******************************************************************************
-
         These represent the standard LOG4J event levels. Note that
         Debug is called Trace here, because debug is a reserved word
         in D
@@ -1010,10 +999,12 @@ public class Logger : ILogger
 
                 // possible parent if length is shorter
                 if (len < name_.length)
+                {
                     // does the prefix match? Note we append a "." to each
                     // (the root is a parent of everything)
-                    return (len is 0 ||
-                            memcmp (&candidate[0], &name_[0], len) is 0);
+                    return (len is 0 || candidate == name_[0 .. len]);
+
+                }
                 return false;
         }
 
