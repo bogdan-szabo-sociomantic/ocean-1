@@ -493,25 +493,6 @@ public class Logger : ILogger
 
         /***********************************************************************
 
-                Context for a hierarchy, used for customizing behaviour
-                of log hierarchies. You can use this to implement dynamic
-                log-levels, based upon filtering or some other mechanism
-
-        ***********************************************************************/
-
-        interface Context
-        {
-                /// return a label for this context
-                istring label ();
-
-                /// first arg is the setting of the logger itself, and
-                /// the second arg is what kind of message we're being
-                /// asked to produce
-                bool enabled (Level setting, Level target);
-        }
-
-        /***********************************************************************
-
         ***********************************************************************/
 
         private Logger          next,
