@@ -658,3 +658,125 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
         this.receiver_pool.recycle(cast (T) connection);
     }
 }
+
+///
+unittest
+{
+    // A shared resource, owned by the server. A reference is passed to each
+    // connection handler.
+    class SomeSharedResource
+    {
+    }
+
+    // The connection handler class. The server owns a select listener instance.
+    // The select listener owns a pool of connection handlers. When a new
+    // connection is accepted by the select listener, a connection handler is
+    // taken from the pool (or allocated, if there are no free items in the
+    // pool) and set to handle the incoming connection.
+    // (Connection handler classes must not be nested, in order for the pool to
+    // be able to automatically allocate instances. In this case, it must be
+    // declared static, as the class definition is "nested" inside a unittest.)
+    static class MyConnectionHandler : IConnectionHandler
+    {
+        import ocean.net.server.connection.IConnectionHandlerInfo;
+        import ocean.sys.socket.AddressIPSocket;
+
+        /// Reference to the global shared resource (passed to the ctor).
+        private SomeSharedResource shared_resource;
+
+        /// Flag set when an IO error occurs (see error()).
+        private bool error_occurred;
+
+        /***********************************************************************
+
+            Constructs a connection handler.
+
+            Params:
+                finalize_dg = delegate required by the super class.
+                    Automatically set by SelectListenerPool to be
+                    SelectListener.returnToPool. Called by the super class when
+                    finalize() is called
+                shared_resource = reference to a global shared resource
+
+        ***********************************************************************/
+
+        public this ( FinalizeDg finalize_dg, SomeSharedResource shared_resource )
+        {
+            this.shared_resource = shared_resource;
+
+            super(new AddressIPSocket!(), finalize_dg, &this.error);
+        }
+
+        /// The actual logic for handling a connection.
+        override public void handleConnection ( )
+        {
+            // Do something in here.
+
+            // When you're finished, call finalize(), which recycles this
+            // connection into the pool owned by the select listener.
+            this.finalize();
+        }
+
+        /// Tells the super class whether an I/O error occurred.
+        override protected bool io_error ( )
+        {
+            return this.error_occurred;
+        }
+
+        /// Called by epoll when an I/O error occurs.
+        private void error ( Exception exception, Event event,
+            IConnectionHandlerInfo info )
+        {
+            this.error_occurred = true;
+        }
+    }
+
+    // Top-level server class which owns the select listener and all global
+    // resources.
+    class MyServer
+    {
+        import ocean.sys.socket.AddressIPSocket;
+        import ocean.sys.socket.InetAddress;
+        import ocean.io.select.EpollSelectDispatcher;
+
+        /// Select listener alias.
+        private alias SelectListener!(MyConnectionHandler, SomeSharedResource)
+            MySelectListener;
+
+        /// Select listener instance.
+        private MySelectListener listener;
+
+        /// Epoll instance.
+        private EpollSelectDispatcher epoll;
+
+        /// Constructs a server.
+        public this ( )
+        {
+            InetAddress!(false) addr;
+            auto socket = new AddressIPSocket!();
+            auto shared_resource = new SomeSharedResource;
+
+            this.listener = new MySelectListener(addr("127.0.0.1", 2009),
+                socket, shared_resource);
+
+            this.epoll = new EpollSelectDispatcher;
+        }
+
+        /// Starts the server.
+        public void start ( )
+        {
+            // The listener is an ISelectClient, so must be registered with
+            // epoll in order to do anything.
+            this.epoll.register(this.listener);
+
+            // The event loop must also be running.
+            this.epoll.eventLoop();
+        }
+
+        /// Stops the server.
+        public void stop ( )
+        {
+            this.listener.shutdown();
+        }
+    }
+}
