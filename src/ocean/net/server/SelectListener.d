@@ -8,45 +8,7 @@
     from the pool and assigns the incoming connection to the handler's socket.
 
     Usage example:
-
-    ---
-
-        import ocean.io.select.EpollSelector;
-        import ocean.io.select.SelectDispatcher;
-
-        import ocean.net.server.SelectListener;
-        import ocean.net.server.connection.IConnectionHandler;
-
-        class MyConnectionHandler : IConnectionHandler
-        {
-            this ( SelectDispatcher dispatcher, FinalizeDg finalize_dg,         // for IConnectionHandler constructor
-                   int x, char[] str )                                          // additional for this constructor
-            {
-                super(dispatcher, finalize_dg);                                 // mandatory IConnectionHandler
-                                                                                // constructor call
-                // ...
-            }
-        }
-
-        void main ( )
-        {
-            char[] address = "localhost";
-            ushort port    = 4711;
-
-            int x = 4;
-            char[] str = "Hello World!";
-
-            scope dispatcher = new SelectDispatcher(new EpollSelector,
-                                                    EpollSelector.DefaultSize,
-                                                    EpollSelector.DefaultMaxEvents);
-
-            scope listener = new SelectListener!(MyConnectionHandler,
-                                                 int, char[])                   // types of additional MyConnectionHandler
-                                                (address, port, dispatcher,     // constructor arguments x and str
-                                                 x, str);
-        }
-
-    ---
+        see documented unittest of SelectListener
 
     Copyright:
         Copyright (c) 2009-2016 Sociomantic Labs GmbH.
