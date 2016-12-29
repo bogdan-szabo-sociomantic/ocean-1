@@ -635,11 +635,13 @@ unittest
 
         public this ()
         {
-            super(null, "Test", null, null);
+            super("Test", null, null);
         }
 
         protected override int run (Arguments args, ConfigParser config)
         {
+            auto epoll = new EpollSelectDispatcher;
+            this.startEventHandling(epoll);
             return 0;
         }
 

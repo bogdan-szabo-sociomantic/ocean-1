@@ -20,10 +20,18 @@
     choice, in order to leave the epoll handling up to the user, without
     enforcing any required sequence of events. (This may come in the future.)
 
-    An epoll instance must be passed to the constructor, as this is required by
-    the TimerExt and SignalExt. The user must manually call the
-    startEventHandling() method, which registers the select clients required by
-    the extensions with epoll (see usage example).
+    However, some extensions (namely, the SignalExt and TimerExt) require an
+    epoll instance for their internal event handling. For this reason, an epoll
+    instance must be passed to the DaemonApp. This may be done in one of two
+    ways:
+
+      1. An epoll instance may be passed to the startEventHandling method. (This
+         is more convenient for some application workflows, where the epoll
+         instance does not exist until after config parsing has occurred.)
+      2. An epoll instance may be passed to the constructor. (deprecated)
+
+    Note that you must choose one or the other approach. It is an error to pass
+    an epoll instance *both* to the constructor and to startEventHandling.
 
     Copyright:
         Copyright (c) 2009-2016 Sociomantic Labs GmbH.
@@ -55,6 +63,7 @@ public abstract class DaemonApp : Application,
     import ocean.util.log.Stats;
     import ocean.io.select.EpollSelectDispatcher;
     import ocean.text.Arguments : Arguments;
+    import ocean.task.Scheduler;
 
     import ocean.util.app.ext.ArgumentsExt;
     import ocean.util.app.ext.ConfigExt;
@@ -175,7 +184,7 @@ public abstract class DaemonApp : Application,
 
     /***************************************************************************
 
-        Epoll instance passed to ctor.
+        Epoll instance used internally.
 
     ***************************************************************************/
 
@@ -266,6 +275,9 @@ public abstract class DaemonApp : Application,
         This constructor only sets up the internal state of the class, but does
         not call any extension or user code.
 
+        Note: when calling this constructor, which accepts an epoll instance,
+        you must not pass the epoll instance again to startEventHandling.
+
         Params:
             epoll = epoll instance, required by timer and signal extensions
             name = Name of the application (to show in the help message)
@@ -276,12 +288,43 @@ public abstract class DaemonApp : Application,
 
     ***************************************************************************/
 
+    deprecated("Use the other ctor and pass your epoll instance to "
+        "startEventHandling instead. After making this change, be careful not to "
+        "use the timer_ext member until after calling startEventHandling.")
     public this ( EpollSelectDispatcher epoll, istring name, istring desc,
         VersionInfo ver, OptionalSettings settings = OptionalSettings.init )
     {
-        super(name, desc);
+        this(name, desc, ver, settings);
 
         this.epoll = epoll;
+
+        // Create and register timer extension
+        this.timer_ext = new TimerExt(this.epoll);
+        this.registerExtension(this.timer_ext);
+    }
+
+    /***************************************************************************
+
+        This constructor only sets up the internal state of the class, but does
+        not call any extension or user code.
+
+        Note: when calling this constructor, which does not accept an epoll
+        instance, you must pass the epoll instance to startEventHandling
+        instead.
+
+        Params:
+            name = Name of the application (to show in the help message)
+            desc = Short description of what the program does (should be
+                         one line only, preferably less than 80 characters)
+            ver = application's version information
+            settings = optional settings (see OptionalSettings, above)
+
+    ***************************************************************************/
+
+    public this ( istring name, istring desc,
+        VersionInfo ver, OptionalSettings settings = OptionalSettings.init )
+    {
+        super(name, desc);
 
         // Create and register arguments extension
         this.args_ext = new ArgumentsExt(name, desc, settings.usage,
@@ -315,10 +358,6 @@ public abstract class DaemonApp : Application,
         this.stats_ext = new StatsExt;
         this.config_ext.registerExtension(this.stats_ext);
 
-        // Create and register timer extension
-        this.timer_ext = new TimerExt(this.epoll);
-        this.registerExtension(this.timer_ext);
-
         // Create and register signal extension
         this.signal_ext = new SignalExt(settings.signals);
         this.signal_ext.registerExtension(this);
@@ -336,17 +375,68 @@ public abstract class DaemonApp : Application,
 
     /***************************************************************************
 
-        This method must be called in order for signal and stats event handling
+        This method must be called in order for signal and timer event handling
         to start being processed. As it registers clients (the stats timer and
         signal handler) with epoll which will always reregister themselves after
         firing, you should call this method when you are about to start your
         application's main event loop.
 
+        Note that, as this method constructs the timer extension, it may only be
+        used once this method has been called.
+
     ***************************************************************************/
 
+    deprecated("Pass your epoll instance to the other startEventHandling overload "
+        "and stop passing it to the ctor. After making this change, be careful "
+        "not to use the timer_ext member until after calling startEventHandling.")
     public void startEventHandling ( )
     {
+        assert(this.epoll !is null,
+            "Either pass epoll to the ctor or startEventHandling, not both");
+        assert(this.timer_ext !is null);
+
+        // Register stats timer with epoll
         this.timer_ext.register(&this.statsTimer, this.stats_ext.config.interval);
+
+        // Register signal event handler with epoll
+        this.epoll.register(this.signal_ext.selectClient());
+    }
+
+    /***************************************************************************
+
+        This method must be called in order for signal and timer event handling
+        to start being processed. As it registers clients (the stats timer and
+        signal handler) with epoll which will always reregister themselves after
+        firing, you should call this method when you are about to start your
+        application's main event loop.
+
+        Note that, as this method constructs the timer extension, it may only be
+        used once this method has been called.
+
+        Params:
+            epoll = the epoll instance to use for event handling. If null is
+                passed, then the epoll-accepting-ctor must have been called. If
+                non-null is passed, then the other ctor must have been called.
+
+    ***************************************************************************/
+
+    public void startEventHandling ( EpollSelectDispatcher epoll )
+    {
+        assert(epoll !is null);
+        assert(this.epoll is null,
+            "Either pass epoll to the ctor or startEventHandling, not both");
+        assert(this.timer_ext is null);
+
+        this.epoll = epoll;
+
+        // Create and register timer extension
+        this.timer_ext = new TimerExt(this.epoll);
+        this.registerExtension(this.timer_ext);
+
+        // Register stats timer with epoll
+        this.timer_ext.register(&this.statsTimer, this.stats_ext.config.interval);
+
+        // Register signal event handler with epoll
         this.epoll.register(this.signal_ext.selectClient());
     }
 
@@ -586,12 +676,8 @@ unittest
 
         import ocean.io.select.EpollSelectDispatcher;
 
-        private EpollSelectDispatcher epoll;
-
         this ( )
         {
-            // The timer extension requires an epoll instance
-            this.epoll = new EpollSelectDispatcher;
 
             // The name of your app and a short description of what it does.
             istring name = "my_app";
@@ -610,7 +696,7 @@ unittest
             settings.signals = [SIGINT, SIGTERM];
 
             // Call the super class' ctor.
-            super(this.epoll, name, desc, VersionInfo.init, settings);
+            super(name, desc, VersionInfo.init, settings);
         }
 
         // Called after arguments and config file parsing.
@@ -618,7 +704,7 @@ unittest
         {
             // In order for signal and timer handling to be processed, you must
             // call this method. This registers one or more clients with epoll.
-            this.startEventHandling();
+            this.startEventHandling(new EpollSelectDispatcher);
 
             // Application main logic. Usually you would call the epoll event
             // loop here.
