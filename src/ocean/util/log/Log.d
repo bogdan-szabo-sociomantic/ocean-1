@@ -1009,7 +1009,7 @@ public class Logger : ILogger
 public class Hierarchy : Logger.Context
 {
         private Logger                  root_;
-        private istring                 name_,
+        private istring                 label_,
                                         address_;
         private Logger.Context          context_;
         private Logger[istring]          loggers;
@@ -1021,9 +1021,9 @@ public class Hierarchy : Logger.Context
 
         ***********************************************************************/
 
-        this (istring name)
+        this (istring hlabel)
         {
-                name_ = name;
+                this.label_ = hlabel;
                 address_ = "network";
 
                 // insert a root node; the root has an empty name
@@ -1037,7 +1037,18 @@ public class Hierarchy : Logger.Context
 
         final istring label ()
         {
-                return "";
+                return this.label_;
+        }
+
+        /**********************************************************************
+
+                Set the name of this Hierarchy
+
+        **********************************************************************/
+
+        final void label (istring value)
+        {
+            this.label_ = value;
         }
 
         /**********************************************************************
@@ -1056,9 +1067,10 @@ public class Hierarchy : Logger.Context
 
         **********************************************************************/
 
+        deprecated("Use label instead")
         final istring name ()
         {
-                return name_;
+                return this.label_;
         }
 
         /**********************************************************************
@@ -1067,9 +1079,10 @@ public class Hierarchy : Logger.Context
 
         **********************************************************************/
 
+        deprecated("Use label instead")
         final void name (istring name)
         {
-                name_ = name;
+                this.label_ = name;
         }
 
         /**********************************************************************
