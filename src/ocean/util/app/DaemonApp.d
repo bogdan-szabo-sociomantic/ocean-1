@@ -74,6 +74,7 @@ public abstract class DaemonApp : Application,
     import ocean.util.app.ext.SignalExt;
     import ocean.util.app.ext.ReopenableFilesExt;
     import ocean.util.app.ext.PidLockExt;
+    import ocean.util.app.ext.UnixSocketExt;
     import ocean.util.app.ExitException;
 
     import ocean.util.log.Log;
@@ -181,6 +182,15 @@ public abstract class DaemonApp : Application,
     ***************************************************************************/
 
     public PidLockExt pidlock_ext;
+
+    /***************************************************************************
+
+        Unix socket extension to register commands for the application to
+        respond to.
+
+    ***************************************************************************/
+
+    public UnixSocketExt unix_socket_ext;
 
     /***************************************************************************
 
@@ -371,6 +381,10 @@ public abstract class DaemonApp : Application,
         this.pidlock_ext = new PidLockExt();
         this.config_ext.registerExtension(this.pidlock_ext);
         this.registerExtension(this.pidlock_ext);
+
+        this.unix_socket_ext = new UnixSocketExt();
+        this.config_ext.registerExtension(this.unix_socket_ext);
+        this.registerExtension(this.unix_socket_ext);
     }
 
     /***************************************************************************
@@ -400,6 +414,9 @@ public abstract class DaemonApp : Application,
 
         // Register signal event handler with epoll
         this.epoll.register(this.signal_ext.selectClient());
+
+        /// Initialize the unix socket with epoll.
+        this.unix_socket_ext.initializeSocket(this.epoll);
     }
 
     /***************************************************************************
@@ -438,6 +455,9 @@ public abstract class DaemonApp : Application,
 
         // Register signal event handler with epoll
         this.epoll.register(this.signal_ext.selectClient());
+
+        /// Initialize the unix socket with epoll.
+        this.unix_socket_ext.initializeSocket(this.epoll);
     }
 
     /***************************************************************************
