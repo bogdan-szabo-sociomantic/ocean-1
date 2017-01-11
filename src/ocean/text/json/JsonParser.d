@@ -18,7 +18,7 @@
 module ocean.text.json.JsonParser;
 
 import ocean.transition;
-
+import ocean.core.Exception;
 import ocean.util.container.more.Stack;
 
 /*******************************************************************************
@@ -74,6 +74,7 @@ class JsonParser(T, bool AllowNaN = false)
     private ptrdiff_t               curLen;
     private State                   curState;
     protected Token                 curType;
+    protected JsonParserException   exception;
 
     /***************************************************************************
 
@@ -86,6 +87,7 @@ class JsonParser(T, bool AllowNaN = false)
 
     this (Const!(T)[] text = null)
     {
+        this.exception = new JsonParserException();
         this.reset(text);
     }
 
@@ -168,7 +170,7 @@ class JsonParser(T, bool AllowNaN = false)
     /// Throws: a new exception with "expected `token`" as message
     protected final void expected (cstring token)
     {
-        throw new Exception("expected " ~ idup(token));
+        throw this.exception.set("expected ").append(token);
     }
 
     /***************************************************************************
@@ -186,24 +188,15 @@ class JsonParser(T, bool AllowNaN = false)
 
     protected final void expected (cstring token, Const!(T)* point)
     {
-        static mstring itoa (mstring buf, int i)
-        {
-            auto p = buf.ptr + buf.length;
-            do
-            {
-                *--p = '0' + i % 10;
-            } while (i /= 10);
-            return p[0..(buf.ptr+buf.length)-p];
-        }
-        char[16] tmp = void;
         auto diff = cast(int) (point - this.str.text.ptr);
-        this.expected(token ~ " @input[" ~ itoa(tmp, diff) ~ "]");
+        throw this.exception.set("expected ").append(token).append(" @input[")
+            .append(diff).append("]");
     }
 
     /// Throws: A new expection with "unexpected end-of-input: msg" as message
-    private void unexpectedEOF (istring msg)
+    private void unexpectedEOF (cstring msg)
     {
-        throw new Exception("unexpected end-of-input: " ~ msg);
+        throw this.exception.set("unexpected end-of-input: ").append(msg);
     }
 
 
@@ -455,6 +448,11 @@ class JsonParser(T, bool AllowNaN = false)
             ++i;
         return i & 1;
     }
+}
+
+public class JsonParserException : Exception
+{
+    mixin ReusableExceptionImplementation!() R;
 }
 
 
