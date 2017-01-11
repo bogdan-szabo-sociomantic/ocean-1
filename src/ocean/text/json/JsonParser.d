@@ -458,47 +458,44 @@ class JsonParser(T, bool AllowNaN = false)
 }
 
 
-version (UnitTest)
+unittest
 {
-    static istring json =
-        `{
-            "glossary": {
-                "title": "example glossary",
-                "GlossDiv": {
-                    "title": "S",
-                    "GlossList": {
-                        "GlossEntry": {
-                            "ID": "SGML",
-                            "SortAs": "SGML",
-                            "GlossTerm": "Standard Generalized Markup Language",
-                            "Acronym": "SGML",
-                            "Abbrev": "ISO 8879:1986",
-                            "GlossDef": {
-                                "para": "A meta-markup language, used to create markup languages such as DocBook.",
-                                "GlossSeeAlso": [
-                                    "GML",
-                                    "XML"
-                                ]
-                            },
-                            "GlossSee": "markup",
-                            "ANumber": 12345.6e7
-                            "BNumber": 12345.6e+7
-                            "CNumber": 12345.6e-7
-                            "DNumber": 12345.6E7
-                            "ENumber": 12345.6E+7
-                            "FNumber": 12345.6E-7
-                            "True": true
-                            "False": false
-                            "Null": null
-                        }
+    const istring json =
+    `{
+        "glossary": {
+            "title": "example glossary",
+            "GlossDiv": {
+                "title": "S",
+                "GlossList": {
+                    "GlossEntry": {
+                        "ID": "SGML",
+                        "SortAs": "SGML",
+                        "GlossTerm": "Standard Generalized Markup Language",
+                        "Acronym": "SGML",
+                        "Abbrev": "ISO 8879:1986",
+                        "GlossDef": {
+                            "para": "A meta-markup language, used to create markup languages such as DocBook.",
+                            "GlossSeeAlso": [
+                                "GML",
+                                "XML"
+                            ]
+                        },
+                        "GlossSee": "markup",
+                        "ANumber": 12345.6e7
+                        "BNumber": 12345.6e+7
+                        "CNumber": 12345.6e-7
+                        "DNumber": 12345.6E7
+                        "ENumber": 12345.6E+7
+                        "FNumber": 12345.6E-7
+                        "True": true
+                        "False": false
+                        "Null": null
                     }
                 }
             }
-         }`;
-}
+        }
+     }`;
 
-unittest
-{
     auto p = new JsonParser!(char)(json);
     assert(p);
     assert(p.type == p.Token.BeginObject);
@@ -662,13 +659,4 @@ unittest
     assert(!p.next);
 
     assert(p.state.size == 0);
-
-}
-
-debug (JsonParser)
-{
-    void main()
-    {
-        auto json = new JsonParser!(char);
-    }
 }
