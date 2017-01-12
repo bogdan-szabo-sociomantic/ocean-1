@@ -253,23 +253,25 @@ public void extractTimePeriods ( ulong s, out uint years, out uint days,
 }
 
 
+version ( UnitTest )
+{
+    import ocean.core.Test;
+}
+
 ///
 unittest
 {
     time_t timestamp = 400934249;
     char[20] static_str;
-    formatTime(timestamp, static_str);
 
-    // static_str now contains "1982-09-15 10:37:29"
+    test!("==")(formatTime(timestamp, static_str), "1982-09-15 10:37:29");
 
     mstring str;
     uint seconds = 94523;
 
     formatDuration(seconds, str);
-
-    // str now contains "1 day, 2 hours, 15 minutes, 23 seconds"
+    test!("==")(str, "1 day, 2 hours, 15 minutes, 23 seconds");
 
     formatDurationShort(seconds, str);
-
-    // str now contains "1d2h15m23s"
+    test!("==")(str, "1d2h15m23s");
 }
