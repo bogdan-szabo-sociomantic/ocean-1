@@ -274,4 +274,13 @@ unittest
 
     formatDurationShort(seconds, str);
     test!("==")(str, "1d2h15m23s");
+
+    uint years, days, hours, minutes;
+
+    extractTimePeriods(100000000, years, days, hours, minutes, seconds);
+    test!("==")(years, 3);
+    test!("==")(days, 62);
+    test!("==")(hours, 9);
+    test!("==")(minutes, 46);
+    test!("==")(seconds, 40);
 }
