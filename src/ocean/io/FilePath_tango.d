@@ -614,7 +614,7 @@ class FilePath : PathView
 
         ***********************************************************************/
 
-        static istring join (istring[] paths...)
+        static istring join (Const!(char[][]) paths...)
         {
                 auto s = FS.join (paths);
                 return assumeUnique(s);
