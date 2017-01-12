@@ -37,13 +37,13 @@ class MyApp : DaemonApp
         DaemonApp.OptionalSettings settings;
         settings.signals = [SIGRTMIN];
 
-        super(this.epoll, name, desc, VersionInfo.init, settings);
+        super(name, desc, VersionInfo.init, settings);
     }
 
     // Called after arguments and config file parsing.
     override protected int run ( Arguments args, ConfigParser config )
     {
-        this.startEventHandling();
+        this.startEventHandling(this.epoll);
 
         auto timer = new TimerEvent(
                 {
