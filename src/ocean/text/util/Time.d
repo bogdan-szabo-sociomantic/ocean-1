@@ -2,32 +2,6 @@
 
     Functions to format time strings.
 
-    Usage example:
-
-    ---
-
-        import ocean.text.util.Time;
-        import ocean.stdc.time : time_t;
-
-        time_t timestamp = 23897129;
-        char[20] static_str;
-        formatTime(timestamp, static_str);
-
-        // static_str now contains "1970-10-04 14:05:29"
-
-        char[] str;
-        uint seconds = 94523;
-
-        formatDuration(seconds, str);
-
-        // str now contains "1 day, 2 hours, 15 minutes, 23 seconds"
-
-        formatDurationShort(seconds, str);
-
-        // str now contains "1d2h15m23s"
-
-    ---
-
     Copyright:
         Copyright (c) 2009-2016 Sociomantic Labs GmbH.
         All rights reserved.
@@ -278,3 +252,24 @@ public void extractTimePeriods ( ulong s, out uint years, out uint days,
     minutes    = extract(minute_timespan);
 }
 
+
+///
+unittest
+{
+    time_t timestamp = 400934249;
+    char[20] static_str;
+    formatTime(timestamp, static_str);
+
+    // static_str now contains "1982-09-15 10:37:29"
+
+    mstring str;
+    uint seconds = 94523;
+
+    formatDuration(seconds, str);
+
+    // str now contains "1 day, 2 hours, 15 minutes, 23 seconds"
+
+    formatDurationShort(seconds, str);
+
+    // str now contains "1d2h15m23s"
+}
