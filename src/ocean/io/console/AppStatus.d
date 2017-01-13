@@ -827,7 +827,7 @@ public class AppStatus
         this.heading_line.length = 0;
 
         Format.format(this.heading_line, "[{:d2}/{:d2}/{:d2} "
-            "{:d2}:{:d2}:{:d2}] {}", dt.date.day, dt.date.month, dt.date.year,
+          ~ "{:d2}:{:d2}:{:d2}] {}", dt.date.day, dt.date.month, dt.date.year,
             dt.time.hours, dt.time.minutes, dt.time.seconds, this.app_name);
 
         this.formatUptime();
@@ -876,7 +876,7 @@ public class AppStatus
         uint weeks, days, hours, mins, secs;
         this.getUptime(weeks, days, hours, mins, secs);
         Format.format(this.heading_line, " Uptime: {}w{:d1}d{:d2}:"
-            "{:d2}:{:d2}", weeks, days, hours, mins, secs);
+            ~ "{:d2}:{:d2}", weeks, days, hours, mins, secs);
     }
 
 
