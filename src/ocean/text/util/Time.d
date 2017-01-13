@@ -43,7 +43,7 @@ import ocean.text.convert.Format;
         1970-10-04 14:05:29
 
     Params:
-        utc = timestamp to format
+        timestamp = timestamp to format
         output = slice to destination string buffer, must be long enough to
             contain formatted string (at least 20 characters) -- intended for
             use with a static array
@@ -54,7 +54,7 @@ import ocean.text.convert.Format;
 
 *******************************************************************************/
 
-public mstring formatTime ( time_t utc, mstring output )
+public mstring formatTime ( time_t timestamp, mstring output )
 in
 {
     assert(output.length >= 20);
@@ -62,7 +62,7 @@ in
 body
 {
     tm time;
-    time = *gmtime(&utc);
+    time = *gmtime(&timestamp);
 
     const format = "%F %T\0";
     output.length = strftime(output.ptr, output.length, format.ptr, &time);
