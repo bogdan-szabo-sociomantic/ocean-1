@@ -66,6 +66,7 @@ body
 
     const format = "%F %T\0";
     output.length = strftime(output.ptr, output.length, format.ptr, &time);
+    enableStomping(output);
 
     return output;
 }
