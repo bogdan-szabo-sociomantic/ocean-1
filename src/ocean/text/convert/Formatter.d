@@ -429,9 +429,9 @@ private void handle (T) (T v, FormatInfo f, Sink sf, ElementSink se)
         Unqual!(T)[3] b = "'_'";
         b[1] = v;
         if (f.flags & Flags.Nested)
-            UTF.toString(b, sf);
+            UTF.toString(b, (cstring val) { return se(val, f); });
         else
-            UTF.toString(b[1 .. 2], sf);
+            UTF.toString(b[1 .. 2], (cstring val) { return se(val, f); });
     }
 
     // Pointers need to be at the top because `(int*).min` compiles
@@ -1110,6 +1110,7 @@ unittest
     assert(format("{}", wc) == "4");
     assert(format("{}", dc) == "2");
 
+    assert(format("{,3}", '8') == "  8");
 
     /*
      * Associative array formatting used to be in the form `{key => value, ...}`
