@@ -23,13 +23,15 @@ module ocean.text.util.Time;
 
 *******************************************************************************/
 
+import core.sys.posix.time : gmtime_r;
+
 import ocean.transition;
 
 import ocean.core.Enforce;
 
 import ocean.core.Array : copy;
 
-import ocean.stdc.time : gmtime, strftime, time_t, tm;
+import ocean.stdc.time : strftime, time_t, tm;
 
 import ocean.text.convert.Format;
 
@@ -62,13 +64,15 @@ in
 body
 {
     tm time;
-    time = *gmtime(&timestamp);
+    size_t len;
 
-    const format = "%F %T\0";
-    output.length = strftime(output.ptr, output.length, format.ptr, &time);
-    enableStomping(output);
+    if ( gmtime_r(&timestamp, &time) )
+    {
+        const format = "%F %T\0";
+        len = strftime(output.ptr, output.length, format.ptr, &time);
+    }
 
-    return output;
+    return output[0 .. len];
 }
 
 
