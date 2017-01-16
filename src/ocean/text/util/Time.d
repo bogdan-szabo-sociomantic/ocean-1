@@ -39,27 +39,37 @@ import ocean.text.convert.Format;
 
 /*******************************************************************************
 
-    Formats a string with the human-readable form of the specified unix
-    timestamp. The timestamp is formatted as follows:
+    Formats the given UNIX timestamp into the form specified by the format
+    string. If no format string is given, and the length of the destination
+    output buffer has been set to at least 20 characters, then the timestamp
+    will be formatted into the form `1982-09-15 10:37:29`.
 
-        1970-10-04 14:05:29
+    Refer to the manual page of `strftime` for the various conversion
+    specifications that can be used to construct the format string.
+
+    This function should be preferred when formatting the time into a static
+    array.
 
     Params:
         timestamp = timestamp to format
         output = slice to destination string buffer, must be long enough to
-            contain formatted string (at least 20 characters) -- intended for
-            use with a static array
+            contain the resulting string post-conversion
+        format_string = format string to define how the timestamp should be
+            formatted, must be null-terminated (defaults to "%F %T\0")
+            note that the format string requires an explicit '\0' even if string
+            literals are being passed
 
     Returns:
         slice to the string formatted in 'output', may be an empty slice if the
-        provided buffer is too small
+        provided buffer is too small or if an error occurred
 
 *******************************************************************************/
 
-public mstring formatTime ( time_t timestamp, mstring output )
+public mstring formatTime ( time_t timestamp, mstring output,
+    cstring format_string = "%F %T\0" )
 in
 {
-    assert(output.length >= 20);
+    assert(!format_string[$ - 1], "Format string must be null-terminated");
 }
 body
 {
@@ -68,8 +78,7 @@ body
 
     if ( gmtime_r(&timestamp, &time) )
     {
-        const format = "%F %T\0";
-        len = strftime(output.ptr, output.length, format.ptr, &time);
+        len = strftime(output.ptr, output.length, format_string.ptr, &time);
     }
 
     return output[0 .. len];
@@ -268,8 +277,15 @@ unittest
 {
     time_t timestamp = 400934249;
     char[20] static_str;
+    char[50] big_static_str;
 
     test!("==")(formatTime(timestamp, static_str), "1982-09-15 10:37:29");
+
+    // An empty string is returned if the buffer is not large enough
+    test!("==")(formatTime(timestamp, static_str, "%A, %d %B %Y %T\0"), "");
+
+    test!("==")(formatTime(timestamp, big_static_str, "%A, %d %B %Y %T\0"),
+        "Wednesday, 15 September 1982 10:37:29");
 
     mstring str;
     uint seconds = 94523;
