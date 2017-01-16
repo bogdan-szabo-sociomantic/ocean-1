@@ -87,6 +87,47 @@ body
 
 /*******************************************************************************
 
+    Formats the given UNIX timestamp into the form specified by the format
+    string. If no format string is given, then the timestamp will be formatted
+    into the form `1982-09-15 10:37:29`.
+
+    Refer to the manual page of `strftime` for the various conversion
+    specifications that can be used to construct the format string.
+
+    This function should be preferred when formatting the time into a dynamic
+    array.
+
+    Params:
+        timestamp = timestamp to format
+        output = slice to destination string buffer
+        format_string = format string to define how the timestamp should be
+            formatted, must be null-terminated (defaults to "%F %T\0")
+            note that the format string requires an explicit '\0' even if string
+            literals are being passed
+        max_output_len = maximum length of the resulting string post-conversion
+            (defaults to 50)
+
+    Returns:
+        the formatted string, may be an empty slice if the result exceeds the
+        maximum output length specified or if an error occurred
+
+*******************************************************************************/
+
+public mstring formatTimeRef ( time_t timestamp, ref mstring output,
+    cstring format_string = "%F %T\0", uint max_output_len = 50 )
+{
+    output.length = max_output_len;
+    enableStomping(output);
+
+    output.length = formatTime(timestamp, output, format_string).length;
+    enableStomping(output);
+
+    return output;
+}
+
+
+/*******************************************************************************
+
     Formats a string with the number of years, days, hours, minutes & seconds
     specified.
 
@@ -286,6 +327,25 @@ unittest
 
     test!("==")(formatTime(timestamp, big_static_str, "%A, %d %B %Y %T\0"),
         "Wednesday, 15 September 1982 10:37:29");
+
+    mstring buf;
+
+    formatTimeRef(timestamp, buf);
+    test!("==")(buf, "1982-09-15 10:37:29");
+
+    formatTimeRef(timestamp, buf, "%A, %d %B %Y %T\0");
+    test!("==")(buf, "Wednesday, 15 September 1982 10:37:29");
+
+    // An empty string is returned if the resulting string is longer than the
+    // maximum length
+    formatTimeRef(timestamp, buf,
+        "%d/%m/%y, but Americans would write that as %D\0");
+    test!("==")(buf, "");
+
+    // A larger maximum length can be set if necessary
+    formatTimeRef(timestamp, buf,
+        "%d/%m/%y, but Americans would write that as %D\0", 100);
+    test!("==")(buf, "15/09/82, but Americans would write that as 09/15/82");
 
     mstring str;
     uint seconds = 94523;
