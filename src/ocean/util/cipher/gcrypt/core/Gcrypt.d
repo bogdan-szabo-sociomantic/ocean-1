@@ -666,8 +666,7 @@ public class GcryptWithIV ( Algorithm algorithm, Mode mode )
         }
         crypt.encrypt(buf2, iv2);
 
-        test!("!=")(buf, buf2, "This template is only compatible with algorithm/mode "
-            "combinations that require IVs. Use GcryptNoIV.");
+        test!("!=")(buf, buf2);
     }
 }
 
@@ -803,7 +802,6 @@ public class GcryptNoIV ( Algorithm algorithm, Mode mode )
         buf2 ~= original;
         crypt.encrypt(buf2);
 
-        test!("==")(buf, buf2, "This template is only compatible with algorithm/mode "
-            "combinations that don't require IVs. Use GcryptWithIV.");
+        test!("==")(buf, buf2);
     }
 }

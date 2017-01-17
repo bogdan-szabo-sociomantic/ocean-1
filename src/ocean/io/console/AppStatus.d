@@ -825,9 +825,10 @@ public class AppStatus
         auto dt = MicrosecondsClock.toDateTime(MicrosecondsClock.now(), us);
 
         this.heading_line.length = 0;
+        enableStomping(this.heading_line);
 
         Format.format(this.heading_line, "[{:d2}/{:d2}/{:d2} "
-            "{:d2}:{:d2}:{:d2}] {}", dt.date.day, dt.date.month, dt.date.year,
+          ~ "{:d2}:{:d2}:{:d2}] {}", dt.date.day, dt.date.month, dt.date.year,
             dt.time.hours, dt.time.minutes, dt.time.seconds, this.app_name);
 
         this.formatUptime();
@@ -876,7 +877,7 @@ public class AppStatus
         uint weeks, days, hours, mins, secs;
         this.getUptime(weeks, days, hours, mins, secs);
         Format.format(this.heading_line, " Uptime: {}w{:d1}d{:d2}:"
-            "{:d2}:{:d2}", weeks, days, hours, mins, secs);
+            ~ "{:d2}:{:d2}", weeks, days, hours, mins, secs);
     }
 
 
@@ -912,6 +913,7 @@ public class AppStatus
     private void printVersionInformation ( )
     {
         this.footer_line.length = 0;
+        enableStomping(this.footer_line);
 
         Format.format(this.footer_line, "Version {} built on {} by {}",
             this.app_version, this.app_build_date, this.app_build_author);
@@ -923,6 +925,7 @@ public class AppStatus
         if ( remaining )
         {
             this.footer_line.length = 0;
+            enableStomping(this.footer_line);
             this.printExtraVersionInformation(Stdout, this.footer_line,
                 remaining);
         }
@@ -1041,6 +1044,7 @@ public class AppStatus
         foreach ( ref line; this.static_lines )
         {
             line.length = 0;
+            enableStomping(line);
         }
     }
 

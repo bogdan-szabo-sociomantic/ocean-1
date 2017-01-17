@@ -182,7 +182,7 @@ class FiberSelectReader : IFiberSelectProtocol
         this.input = cast (IInputDevice) this.conduit;
 
         assert (this.input !is null, typeof (this).stringof ~ ": the conduit of "
-                "the other " ~ typeof (super).stringof ~ " instance must be a "
+                ~ "the other " ~ typeof (super).stringof ~ " instance must be a "
                 ~ IInputDevice.stringof);
     }
 
