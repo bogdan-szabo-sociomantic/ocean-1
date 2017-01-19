@@ -28,7 +28,6 @@ Maintained Major Branches
 ====== ==================== ===============
 Major  Initial release date Supported until
 ====== ==================== ===============
-v1.x.x v1.0.0: dawn of time 30/12/2016
 v2.x.x v2.0.0_: 30/06/2016  TBD
 ====== ==================== ===============
 .. _v2.0.0: https://github.com/sociomantic/ocean/releases/tag/v2.0.0
