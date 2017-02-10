@@ -261,8 +261,8 @@ abstract class InputDevice : IInputDevice
             dst = destination data buffer
 
         Returns
-            the number of bytes read and stored in dst on success or -1 on
-            error. On error errno is set appropriately.
+            the number of bytes read and stored in dst on success, 0 on end-of-
+            file condition or -1 on error. On error errno is set appropriately.
 
      **************************************************************************/
 
@@ -274,12 +274,12 @@ abstract class InputDevice : IInputDevice
 
 /******************************************************************************
 
-    Input device base class, may be used to conveniently implement an
-    IOutputDevice.
+    IODevice device base class, may be used to conveniently implement an I/O
+    class that is both an IInputDevice and IOutputDevice.
 
  ******************************************************************************/
 
-abstract class OutputDevice : IOutputDevice
+abstract class IODevice : InputDevice, IOutputDevice
 {
     /**************************************************************************
 
@@ -295,8 +295,5 @@ abstract class OutputDevice : IOutputDevice
 
      **************************************************************************/
 
-    public ssize_t write ( Const!(void)[] src )
-    {
-        return .write(this.fileHandle(), src.ptr, src.length);
-    }
+    abstract public ssize_t write ( Const!(void)[] src );
 }

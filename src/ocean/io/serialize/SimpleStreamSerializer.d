@@ -45,7 +45,7 @@
 
 *******************************************************************************/
 
-module ocean.io.serialize.SimpleSerializer;
+module ocean.io.serialize.SimpleStreamSerializer;
 
 
 
@@ -64,8 +64,8 @@ import ocean.core.Traits;
 import ocean.io.model.IConduit: IOStream, InputStream, OutputStream;
 
 
-public alias SimpleSerializerT!(true) SimpleSerializerArrays;
-public alias SimpleSerializerT!(false) SimpleSerializer;
+public alias SimpleStreamSerializerT!(true) SimpleStreamSerializerArrays;
+public alias SimpleStreamSerializerT!(false) SimpleStreamSerializer;
 
 /*******************************************************************************
 
@@ -77,7 +77,7 @@ public alias SimpleSerializerT!(false) SimpleSerializer;
 
 *******************************************************************************/
 
-struct SimpleSerializerT ( bool SerializeDynArrays = true )
+struct SimpleStreamSerializerT ( bool SerializeDynArrays = true )
 {
 static:
 
@@ -476,7 +476,7 @@ public class EofException : Exception
     {
         auto f = new MemoryDevice;
         int x;
-        testThrown!(typeof(this))(SimpleSerializer.read(f, x));
+        testThrown!(typeof(this))(SimpleStreamSerializer.read(f, x));
     }
 }
 
@@ -493,10 +493,10 @@ version ( UnitTest )
 
         scope file = new MemoryDevice;
 
-        SimpleSerializerArrays.write(file, write);
+        SimpleStreamSerializerArrays.write(file, write);
         file.seek(0);
 
-        SimpleSerializerArrays.read(file, read);
+        SimpleStreamSerializerArrays.read(file, read);
         version ( UnitTestVerbose ) Stdout.formatln("Wrote {} to conduit, read {}", write, read);
         test!("==")(read, write, "Error serializing " ~ T.stringof);
     }
@@ -504,7 +504,8 @@ version ( UnitTest )
 
 unittest
 {
-    version (UnitTestVerbose) Stdout.formatln("Running ocean.io.serialize.SimpleSerializer unittest");
+    version (UnitTestVerbose)
+        Stdout.formatln("Running ocean.io.serialize.SimpleStreamSerializer unittest");
 
     uint an_int = 23;
     testSerialization(an_int);
@@ -539,10 +540,10 @@ unittest
 
         scope file = new MemoryDevice;
 
-        SimpleSerializerArrays.write(file, a_struct);
+        SimpleStreamSerializerArrays.write(file, a_struct);
         file.seek(0);
 
-        SimpleSerializerArrays.read(file, read);
+        SimpleStreamSerializerArrays.read(file, read);
 
         test!("==")(a_struct.arr.length, read.arr.length, "Not equal!");
         test!("!=")(a_struct.arr.ptr, read.arr.ptr,

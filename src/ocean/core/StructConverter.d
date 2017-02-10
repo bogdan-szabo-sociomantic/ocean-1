@@ -32,17 +32,16 @@ import ocean.core.Traits;
 
     Copies members of the same name from <From> to <To>.
 
-    Given a variable in <To> called 'example_var', if a convert function in <To>
-    exists with the name 'convert_example_var', then this function will be
-    called and no automatic conversion will happen for that variable. The
+    Given a variable in <To> called 'example_var', if a static convert function
+    in <To> exists with the name 'convert_example_var', then this function will
+    be called and no automatic conversion will happen for that variable. The
     function must have one of the following signatures:
     ---
-    void delegate ( ref <From>, void[] delegate ( size_t ) )
-    void delegate ( ref <From> )
-    void delegate ( );
+    void function ( ref <From>, ref <To>, void[] delegate ( size_t ) )
+    void function ( ref <From>, ref <To> )
     ---
-    The delegate passed to the first can be used to allocate temporary buffers
-    that the convert function might need to do its converting.
+    The delegate passed to the first version can be used to allocate temporary
+    buffers that the convert function might need in order to do its converting.
 
     If no convert function exists and the types differ, various things happen:
 
@@ -95,7 +94,7 @@ public void structConvert ( From, To ) ( ref From from, out To to,
             else
                 const convFuncName = "convert_" ~ FieldName!(to_index, To);
 
-            static if ( structHasMember!(convFuncName, To)() )
+            static if (hasConvertFunction!(From, convFuncName, To)())
             {
                 callBestOverload!(From, To, convFuncName)(from, to, requestBuffer);
             }
@@ -287,12 +286,10 @@ private bool structHasMember ( istring name, S ) ( )
     void delegate ( );
     ---
 
-    Template_Params:
+    Params:
         From = type of the struct that will be passed to the function
         To   = type of the struct that has to have that function
         function_name = name of the function that To must have
-
-    Params:
         from = struct instance that will be passed to the function
         to   = struct instance that should have said function declared
         requestBuffer = memory request method that the function can use (it
@@ -300,7 +297,7 @@ private bool structHasMember ( istring name, S ) ( )
 
 *******************************************************************************/
 
-private void callBestOverload ( From, To, istring function_name )
+private void callBestOverloadOld ( From, To, istring function_name )
            ( ref From from, ref To to, void[] delegate ( size_t ) requestBuffer )
 {
      mixin (`
@@ -339,6 +336,163 @@ private void callBestOverload ( From, To, istring function_name )
            ~ `'void delegate ( )'" );
         }`);
 
+}
+
+/*******************************************************************************
+
+    Checks if a given type T is of the old convert function style
+
+    Params:
+        From = struct that we convert from
+        T    = function/delegate type that is used
+        t    = pointer to the function/delegate that is used
+
+    Returns:
+        true if the given function/delegate is of the old convert style
+
+*******************************************************************************/
+
+private bool isOldOverload ( From, istring func_name, To ) ( )
+{
+    void delegate ( ref From, void[] delegate ( size_t ) ) longest_convert;
+    void delegate ( ref From ) long_convert;
+    void delegate ( ) convert;
+
+    To to;
+
+    mixin(`
+    static if ( is ( typeof(longest_convert = &to.` ~ func_name ~ `) ))
+    {
+        return true;
+    }
+    else static if ( is ( typeof(long_convert = &to.` ~ func_name ~ `) ))
+    {
+        return true;
+    }
+    else static if ( is ( typeof(convert = &to.` ~ func_name ~ ` )  ))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }`);
+}
+
+version (UnitTest)
+{
+    struct Test ( ubyte Ver )
+    {
+        void old ( ) {}
+
+        static void should_fail1 ( ) {}
+        void should_fail2 ( ref Test!(1) from, ref Test!(2) to ) {}
+    }
+
+    unittest
+    {
+        Test!(2) t;
+
+        static assert(isOldOverload!(Test!(1), "old", Test!(2))());
+        static assert(!isOldOverload!(Test!(1), "should_fail1", Test!(2))());
+        static assert(!isOldOverload!(Test!(1), "should_fail2", Test!(2))());
+    }
+}
+
+/*******************************************************************************
+
+    Checks if a convert function of the given name exists for the given structs
+
+    Params:
+        From = struct that we convert from
+        func_name = name of the function we're looking for
+        To = struct we're converting to
+
+    Returns:
+        true if such a function is found
+
+*******************************************************************************/
+
+private bool hasConvertFunction ( From, istring func_name, To ) ( )
+{
+    static if (is (typeof(isOldOverload!(From, func_name, To)())))
+        if (isOldOverload!(From, func_name, To)())
+            return true;
+
+    void function ( ref From, ref To, void[] delegate ( size_t ) ) longest_convert;
+    void function ( ref From, ref To ) long_convert;
+
+    mixin(`
+    static if ( is ( typeof(longest_convert = &To.` ~ func_name ~ `) ))
+    {
+        return true;
+    }
+    else static if ( is ( typeof(long_convert = &To.` ~ func_name ~ `) ))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }`);
+}
+
+/*******************************************************************************
+
+    Calls the function given in function_name in struct To.
+    The function must have one of the following signatures:
+    ---
+    void function ( ref <From>, ref <To>, void[] delegate ( size_t ) )
+    void function ( ref <From>, ref <To> )
+    ---
+
+    Params:
+        From = type of the struct that will be passed to the function
+        To   = type of the struct that has to have that function
+        function_name = name of the function that To must have
+        from = struct instance that will be passed to the function
+        to   = struct instance that should have said function declared
+        requestBuffer = memory request method that the function can use (it
+                        should not allocate memory itself)
+
+*******************************************************************************/
+
+private void callBestOverload ( From, To, istring function_name )
+           ( ref From from, ref To to, void[] delegate ( size_t ) requestBuffer )
+{
+     mixin (`
+        void function ( ref From, ref To, void[] delegate ( size_t ) ) longest_convert;
+        void function ( ref From, ref To ) long_convert;
+
+        static if (is (typeof(isOldOverload!(From, function_name, To)())))
+            const is_old = isOldOverload!(From, function_name, To)();
+        else
+            const is_old = false;
+
+        static if (is_old)
+        {
+            // None matched, try deprecated signatures
+            callBestOverloadOld!(From, To, function_name)(from, to, requestBuffer);
+        }
+        else static if ( is ( typeof(longest_convert = &To.`~function_name~`)) )
+        {
+            To.`~function_name~`(from, to, requestBuffer);
+        }
+        else static if ( is ( typeof(long_convert = &To.`~function_name~`)) )
+        {
+            To.`~function_name~`(from, to);
+        }
+        else
+        {
+            const convFuncTypeString = typeof(&to.`~function_name~`).stringof;
+            static assert ( false,
+              "Function ` ~
+             To.stringof ~ `.` ~ function_name ~
+             ` (" ~ convFuncTypeString ~ ") doesn't `
+             `have any of the accepted types `
+             `'void function ( ref "~From.stringof~", ref "~To.stringof~", void[] delegate ( size_t ) )' or `
+             `'void function ( ref "~From.stringof~", ref "~To.stringof~" )'");
+        }`);
 }
 
 /*******************************************************************************
@@ -488,20 +642,20 @@ unittest
             int ff;
 
             // verify different conversion signatures...
-            void convert_c () {}
-            void convert_ff ( ref A.C, void[] delegate ( size_t ) ) {}
+            static void convert_c ( ref A.C, ref C ) {}
+            static void convert_ff ( ref A.C, ref C, void[] delegate ( size_t ) ) {}
         }
 
         C srt;
 
-        void convert_b ( ref A structa )
+        static void convert_b ( ref A structa, ref B dst )
         {
-            this.b = cast(short) structa.b;
+            dst.b = cast(short) structa.b;
         }
 
-        void convert_d ( ref A structa)
+        static void convert_d ( ref A structa, ref B dst )
         {
-            this.d = cast(short) structa.a;
+            dst.d = cast(short) structa.a;
         }
     }
 
@@ -534,9 +688,9 @@ version(UnitTest)
     {
         int x;
 
-        void convert_x ( ref B src )
+        static void convert_x ( ref B src, ref A dst )
         {
-            this.x = cast(int) src.x;
+            dst.x = cast(int) src.x;
         }
     }
 
@@ -544,14 +698,14 @@ version(UnitTest)
     {
         uint x;
 
-        void convert_x ( ref A src )
+        static void convert_x ( ref A src, ref B dst )
         {
-            this.x = cast(uint) src.x;
+            dst.x = cast(uint) src.x;
         }
 
-        void convert_x ( ref C src )
+        static void convert_x ( ref C src, ref B dst )
         {
-            this.x = cast(uint) src.x;
+            dst.x = cast(uint) src.x;
         }
     }
 
@@ -559,9 +713,9 @@ version(UnitTest)
     {
         double x;
 
-        void convert_x ( ref B src )
+        static void convert_x ( ref B src, ref C dst )
         {
-            this.x = src.x;
+            dst.x = src.x;
         }
     }
 }

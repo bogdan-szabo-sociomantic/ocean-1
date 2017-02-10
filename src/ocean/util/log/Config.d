@@ -100,6 +100,7 @@ import ocean.text.util.StringSearch;
 import ocean.util.log.Log;
 import ocean.util.log.InsertConsole;
 import ocean.util.log.AppendStderrStdout;
+import ocean.util.log.model.ILogger;
 
 // Log layouts
 import ocean.util.log.layout.LayoutMessageOnly;
@@ -107,6 +108,7 @@ import ocean.util.log.layout.LayoutStatsLog;
 import ocean.util.log.layout.LayoutSimple;
 import ocean.util.log.LayoutDate;
 import ocean.util.log.LayoutChainsaw;
+
 
 
 /*******************************************************************************
@@ -320,90 +322,82 @@ public Layout newLayout ( istring layout_str )
 
 /*******************************************************************************
 
-    Sets up logging configuration. Creates an AppendSysLog appender for each
-    log.
+    Sets up logging configuration for `ocean.util.log.Log`
 
-    Template_Params:
-        Source = the type of the config parser
-        FileLayout = layout to use for logging to file, defaults to LayoutDate
-        ConsoleLayout = layout to use for logging to console, defaults to
-                        LayoutSimple
+    Calls the provided `file_appender` delegate once per log being configured
+    and passes the returned `Appender` to the `Logger.add` method.
 
     Params:
         config   = an instance of an class iterator for Config
         m_config = an instance of the MetaConfig class
-        loose = if true, configuration files will be parsed in a more relaxed
-                manner
+        file_appender = delegate which returns appender instances to write to
+                        a file
         use_insert_appender = true if the InsertConsole appender should be used
                               (needed when using the AppStatus module)
 
-    Throws:
-        Exception if the config for a logger specifies an invalid level
-
 *******************************************************************************/
 
-public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
-                               ConsoleLayout = LayoutSimple )
-                             ( ClassIterator!(Config, Source) config,
-                               MetaConfig m_config, bool loose = false,
-                               bool use_insert_appender = false )
+public void configureOldLoggers (
+    ClassIterator!(Config, ConfigParser) config, MetaConfig m_config,
+    Appender delegate ( istring file, Layout layout ) file_appender,
+    bool use_insert_appender = false)
 {
-    Appender newAppender ( istring file, Appender.Layout layout )
+    // DMD1 cannot infer the common type between both return, we have to work
+    // around it...
+    static Appender console_appender_fn (bool insert_appender, Layout l)
     {
-        return new AppendFile(file, layout);
+        if (insert_appender)
+            return new InsertConsole(l);
+        else
+            return new AppendStderrStdout(Level.Warn, l);
     }
 
-    configureLoggers!(Source, FileLayout, ConsoleLayout)
-        (config, m_config, &newAppender, loose, use_insert_appender);
+    // The type needs to be spelt out loud because DMD2 is clever enough
+    // to see it's a function and not a delegate, but not clever enough
+    // to understand we want a delegate in the end...
+    scope Logger delegate(cstring) lookup
+                     = (cstring n) { return !n.length ? Log.root : Log.lookup(n); };
+    scope Appender delegate(Layout) appender_dg = (Layout l)
+                       { return console_appender_fn(use_insert_appender, l); };
+
+    configureLoggers!(Logger, ConfigParser, LayoutDate, LayoutSimple)
+        (config, m_config, lookup, file_appender, appender_dg);
 }
+
 
 /*******************************************************************************
 
-    Instantiate the template to make sure it compiles but doesn't test it.
-
-*******************************************************************************/
-
-unittest
-{
-    void f ( )
-    {
-        configureLoggers!()(ClassIterator!(Config, ConfigParser).init,
-            MetaConfig.init);
-    }
-}
-
-/*******************************************************************************
-
-    Sets up logging configuration. Calls the provided new_appender delegate once
+    Sets up logging configuration. Calls the provided file_appender delegate once
     per log being configured and passes the returned appender to the log's add()
     method.
 
-    Template_Params:
+    Params:
+        LoggerT = Type of the logger to configure
         Source = the type of the config parser
         FileLayout = layout to use for logging to file, defaults to LayoutDate
         ConsoleLayout = layout to use for logging to console, defaults to
                         LayoutSimple
 
-    Params:
         config   = an instance of an class iterator for Config
         m_config = an instance of the MetaConfig class
-        new_appender = delegate which returns appender instances to be used in
-            the loggers created in this function
-        loose = if true, configuration files will be parsed in a more relaxed
-                manner
-        use_insert_appender = true if the InsertConsole appender should be used
-                              (needed when using the AppStatus module)
+        lookup   = Delegate that maps a name to a logger.
+                   An empty name should return the root logger.
+        file_appender = delegate which returns appender instances to write to
+                        a file
+        console_appender = Delegate which returns an Appender suitable to use
+                           as console appender. Might not be called if console
+                           writing is disabled.
 
 *******************************************************************************/
 
-public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
-    ConsoleLayout = LayoutSimple )
-    ( ClassIterator!(Config, Source) config, MetaConfig m_config,
-    Appender delegate ( istring file, Layout layout ) new_appender,
-    bool loose = false, bool use_insert_appender = false )
+private void configureLoggers
+    (LoggerT : ILogger, Source = ConfigParser,
+     FileLayout = LayoutDate, ConsoleLayout = LayoutSimple)
+    (ClassIterator!(Config, Source) config, MetaConfig m_config,
+     LoggerT delegate (cstring name) lookup,
+     Appender delegate (istring file, Layout layout) file_appender,
+     Appender delegate (Layout) console_appender)
 {
-    enable_loose_parsing(loose);
-
     // It is important to ensure that parent loggers are configured before child
     // loggers. This is because parent loggers will override the settings of
     // child loggers when the 'propagate' property is enabled, thus preventing
@@ -438,78 +432,100 @@ public void configureLoggers ( Source = ConfigParser, FileLayout = LayoutDate,
 
     Config settings;
 
-    foreach(name; logger_names)
+    foreach (name; logger_names)
     {
         bool console_enabled = false;
         bool syslog_enabled = false;
-        Logger log;
 
         config.fill(name, settings);
 
-        if ( root_name == name )
+        if (root_name == name)
         {
-            log = Log.root;
+            name = null;
             console_enabled = settings.console(true);
             syslog_enabled = settings.syslog(false);
         }
         else
         {
-            log = Log.lookup(name);
             console_enabled = settings.console();
             syslog_enabled = settings.syslog();
         }
-
-        size_t buffer_size = m_config.buffer_size;
-        if ( settings.buffer_size )
-        {
-            buffer_size = settings.buffer_size;
-        }
-
-        if ( buffer_size > 0 )
-        {
-            log.buffer(new mstring(buffer_size));
-        }
-
-        log.clear();
-
-        // if console/file/syslog is specifically set, don't inherit other
-        // appenders (unless we have been specifically asked to be additive)
-        log.additive = settings.additive ||
-            !(settings.console.set || settings.file.set || settings.syslog.set);
-
-        if ( settings.file.set )
-        {
-            Layout file_log_layout = (settings.file_layout.length)
-                                         ? newLayout(settings.file_layout)
-                                         : new FileLayout;
-            log.add(new_appender(settings.file(), file_log_layout));
-        }
-
-        if ( syslog_enabled )
-        {
-            log.add(new AppendSysLog);
-        }
-
-        if ( console_enabled )
-        {
-            Layout console_log_layout = (settings.console_layout.length)
-                                            ? newLayout(settings.console_layout)
-                                            : new ConsoleLayout;
-
-            if ( use_insert_appender )
-            {
-                log.add(new InsertConsole(console_log_layout));
-            }
-            else
-            {
-                log.add(new AppendStderrStdout(Level.Warn, console_log_layout));
-            }
-        }
-
-        log.collectStats(settings.collect_stats, settings.propagate);
-
-        setupLoggerLevel(log, name, settings);
+        configureLogger!(FileLayout, ConsoleLayout, LoggerT)
+            (lookup(name), settings, name,
+             file_appender, console_appender,
+             console_enabled, syslog_enabled, m_config.buffer_size);
     }
+}
+
+
+/*******************************************************************************
+
+    Sets up logging configuration. Calls the provided file_appender delegate once
+    per log being configured and passes the returned appender to the log's add()
+    method.
+
+    Params:
+        FileLayout = layout to use for logging to file, defaults to LayoutDate
+        ConsoleLayout = layout to use for logging to console, defaults to
+                        LayoutSimple
+        LoggerT  = Type of logger to configure
+
+        log      = Logger to configure
+        settings = an instance of an class iterator for Config
+        name     = name of this logger
+        file_appender = delegate which returns appender instances to write to
+                        a file
+        console_appender = Delegate which returns an Appender suitable to use
+                           as console appender. Might not be called if console
+                           writing is disabled.
+        console_enabled = `true` if a console appender should be added (by
+                          calling `console_enabled`).
+        syslog_enabled  = `true` if a syslog appender should be added.
+
+*******************************************************************************/
+
+public void configureLogger
+    (FileLayout = LayoutDate, ConsoleLayout = LayoutSimple,
+     LoggerT : ILogger = Logger)
+    (LoggerT log, Config settings, istring name,
+     Appender delegate ( istring file, Layout layout ) file_appender,
+     Appender delegate (Layout) console_appender,
+     bool console_enabled, bool syslog_enabled, size_t buffer_size)
+{
+    if (settings.buffer_size)
+        buffer_size = settings.buffer_size;
+
+    if (buffer_size > 0)
+        log.buffer(new mstring(buffer_size));
+
+    log.clear();
+
+    // if console/file/syslog is specifically set, don't inherit other
+    // appenders (unless we have been specifically asked to be additive)
+    log.additive = settings.additive ||
+        !(settings.console.set || settings.file.set || settings.syslog.set);
+
+    if (settings.file.set)
+    {
+        Layout file_log_layout = (settings.file_layout.length)
+            ? newLayout(settings.file_layout)
+            : new FileLayout;
+        log.add(file_appender(settings.file(), file_log_layout));
+    }
+
+    if (syslog_enabled)
+        log.add(new AppendSysLog);
+
+    if (console_enabled)
+    {
+        Layout console_log_layout = (settings.console_layout.length)
+            ? newLayout(settings.console_layout)
+            : new ConsoleLayout;
+        log.add(console_appender(console_log_layout));
+    }
+
+    log.collectStats(settings.collect_stats, settings.propagate);
+    setupLoggerLevel(log, name, settings);
 }
 
 version (UnitTest)
@@ -586,7 +602,7 @@ file = dummy
     auto log_config = iterate!(Config)("LOG", config_parser);
     auto dummy_meta_config = new MetaConfig();
 
-    configureLoggers(log_config, dummy_meta_config, &appender);
+    configureOldLoggers(log_config, dummy_meta_config, &appender);
 
     auto log_D = Log.lookup("A.B.C.D");
 
@@ -608,22 +624,6 @@ file = dummy
 
 /*******************************************************************************
 
-    Instantiate the template to make sure it compiles but doesn't test it.
-
-*******************************************************************************/
-
-unittest
-{
-    void f ( )
-    {
-        Appender delegate ( istring file, Layout layout ) new_appender;
-        configureLoggers!()(ClassIterator!(Config, ConfigParser).init,
-            MetaConfig.init, new_appender);
-    }
-}
-
-/*******************************************************************************
-
     Sets up the level configuration of a logger.
 
     Params:
@@ -638,13 +638,13 @@ unittest
 
 public void setupLoggerLevel ( Logger log, istring name, Config config )
 {
-    with (config) if ( level.length > 0 )
+    with (config) if (level.length > 0)
     {
         StringSearch!() s;
 
         level = s.strEnsureLower(level);
 
-        switch ( level )
+        switch (level)
         {
             case "trace":
             case "debug":

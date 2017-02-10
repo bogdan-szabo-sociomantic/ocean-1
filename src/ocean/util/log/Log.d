@@ -101,6 +101,9 @@ import ocean.util.log.model.ILogger;
 
 import ocean.core.Vararg;
 
+public import ocean.util.log.Event;
+import ocean.util.log.Hierarchy;
+public import ocean.util.log.Appender;
 
 alias void* Arg;
 alias va_list ArgList;
@@ -217,7 +220,7 @@ public struct Log
 
         // internal use only
         private static Hierarchy base;
-        private static Time beginTime;
+        package static Time beginTime;
 
         private struct  Pair {istring name; Level value;}
 
@@ -246,7 +249,7 @@ public struct Log
                         ];
 
         // logging-level names
-        private static istring[] LevelNames =
+        package static istring[] LevelNames =
         [
                 "Trace", "Info", "Warn", "Error", "Fatal", "None"
         ];
@@ -495,12 +498,12 @@ public class Logger : ILogger
 
         ***********************************************************************/
 
-        private Logger          next,
+        package Logger          next,
                                 parent;
 
-        private Hierarchy       host_;
+        private HierarchyT!(Logger) host_;
         private istring         name_;
-        private Level           level_;
+        package Level           level_;
         private bool            additive_;
         private Appender        appender_;
         private mstring         buffer_;
@@ -513,7 +516,7 @@ public class Logger : ILogger
 
         ***********************************************************************/
 
-        private bool            collect_stats;
+        package bool            collect_stats;
 
         /***********************************************************************
 
@@ -527,7 +530,7 @@ public class Logger : ILogger
 
         ***********************************************************************/
 
-        private this (Hierarchy host, istring name)
+        package this (HierarchyT!(Logger) host, istring name)
         {
                 this.host_ = host;
                 this.level_ = Level.Trace;
@@ -549,17 +552,6 @@ public class Logger : ILogger
 
         /***********************************************************************
 
-                Is trace enabled?
-
-        ***********************************************************************/
-
-        final bool trace ()
-        {
-                return enabled (Level.Trace);
-        }
-
-        /***********************************************************************
-
                 Append a trace message
 
         ***********************************************************************/
@@ -567,17 +559,6 @@ public class Logger : ILogger
         final void trace (cstring fmt, ...)
         {
             format (Level.Trace, fmt, _arguments, _argptr);
-        }
-
-        /***********************************************************************
-
-                Is info enabled?
-
-        ***********************************************************************/
-
-        final bool info ()
-        {
-                return enabled (Level.Info);
         }
 
         /***********************************************************************
@@ -593,17 +574,6 @@ public class Logger : ILogger
 
         /***********************************************************************
 
-                Is warn enabled?
-
-        ***********************************************************************/
-
-        final bool warn ()
-        {
-                return enabled (Level.Warn);
-        }
-
-        /***********************************************************************
-
                 Append a warning message
 
         ***********************************************************************/
@@ -615,17 +585,6 @@ public class Logger : ILogger
 
         /***********************************************************************
 
-                Is error enabled?
-
-        ***********************************************************************/
-
-        final bool error ()
-        {
-                return enabled (Level.Error);
-        }
-
-        /***********************************************************************
-
                 Append an error message
 
         ***********************************************************************/
@@ -633,17 +592,6 @@ public class Logger : ILogger
         final void error (cstring fmt, ...)
         {
             format (Level.Error, fmt, _arguments, _argptr);
-        }
-
-        /***********************************************************************
-
-                Is fatal enabled?
-
-        ***********************************************************************/
-
-        final bool fatal ()
-        {
-                return enabled (Level.Fatal);
         }
 
         /***********************************************************************
@@ -959,7 +907,7 @@ public class Logger : ILogger
 
         ***********************************************************************/
 
-        private final bool isChildOf (istring candidate)
+        package final bool isChildOf (istring candidate)
         {
                 auto len = candidate.length;
 
@@ -969,7 +917,6 @@ public class Logger : ILogger
                     // does the prefix match? Note we append a "." to each
                     // (the root is a parent of everything)
                     return (len is 0 || candidate == name_[0 .. len]);
-
                 }
                 return false;
         }
@@ -982,7 +929,7 @@ public class Logger : ILogger
 
         ***********************************************************************/
 
-        private final bool isCloserAncestor (Logger other)
+        package final bool isCloserAncestor (Logger other)
         {
                 auto name = other.name_;
                 if (isChildOf (name))
@@ -1006,825 +953,4 @@ public class Logger : ILogger
 
 *******************************************************************************/
 
-public class Hierarchy : Logger.Context
-{
-        private Logger                  root_;
-        private istring                 label_,
-                                        address_;
-        private Logger.Context          context_;
-        private Logger[istring]          loggers;
-
-
-        /***********************************************************************
-
-                Construct a hierarchy with the given name.
-
-        ***********************************************************************/
-
-        this (istring hlabel)
-        {
-                this.label_ = hlabel;
-                address_ = "network";
-
-                // insert a root node; the root has an empty name
-                root_ = new Logger (this, "");
-                context_ = this;
-        }
-
-        /**********************************************************************
-
-        **********************************************************************/
-
-        final istring label ()
-        {
-                return this.label_;
-        }
-
-        /**********************************************************************
-
-                Set the name of this Hierarchy
-
-        **********************************************************************/
-
-        final void label (istring value)
-        {
-            this.label_ = value;
-        }
-
-        /**********************************************************************
-
-
-        **********************************************************************/
-
-        final bool enabled (Level level, Level test)
-        {
-                return test >= level;
-        }
-
-        /**********************************************************************
-
-                Return the name of this Hierarchy
-
-        **********************************************************************/
-
-        deprecated("Use label instead")
-        final istring name ()
-        {
-                return this.label_;
-        }
-
-        /**********************************************************************
-
-                Set the name of this Hierarchy
-
-        **********************************************************************/
-
-        deprecated("Use label instead")
-        final void name (istring name)
-        {
-                this.label_ = name;
-        }
-
-        /**********************************************************************
-
-                Return the address of this Hierarchy. This is typically
-                attached when sending events to remote monitors.
-
-        **********************************************************************/
-
-        final istring address ()
-        {
-                return address_;
-        }
-
-        /**********************************************************************
-
-                Set the address of this Hierarchy. The address is attached
-                used when sending events to remote monitors.
-
-        **********************************************************************/
-
-        final void address (istring address)
-        {
-                address_ = address;
-        }
-
-        /**********************************************************************
-
-                Return the diagnostic context.  Useful for setting an
-                override logging level.
-
-        **********************************************************************/
-
-        final Logger.Context context ()
-        {
-        	return context_;
-        }
-
-        /**********************************************************************
-
-                Set the diagnostic context.  Not usually necessary, as a
-                default was created.  Useful when you need to provide a
-                different implementation, such as a ThreadLocal variant.
-
-        **********************************************************************/
-
-        final void context (Logger.Context context)
-        {
-        	context_ = context;
-        }
-
-        /***********************************************************************
-
-                Return the root node.
-
-        ***********************************************************************/
-
-        final Logger root ()
-        {
-                return root_;
-        }
-
-        /***********************************************************************
-
-                Return the instance of a Logger with the provided label. If
-                the instance does not exist, it is created at this time.
-
-                Note that an empty label is considered illegal, and will be
-                ignored.
-
-        ***********************************************************************/
-
-        final Logger lookup (cstring label)
-        {
-                if (label.length)
-                    return inject (label, (cstring name)
-                                          {return new Logger (this, idup(name));});
-                return null;
-        }
-
-        /***********************************************************************
-
-                traverse the set of configured loggers
-
-        ***********************************************************************/
-
-        final int opApply (int delegate(ref Logger) dg)
-        {
-                int ret;
-
-                for (auto log=root; log; log = log.next)
-                     if ((ret = dg(log)) != 0)
-                          break;
-                return ret;
-        }
-
-        /***********************************************************************
-
-                Return the instance of a Logger with the provided label. If
-                the instance does not exist, it is created at this time.
-
-        ***********************************************************************/
-
-        private Logger inject (cstring label, Logger delegate(cstring name) dg)
-        {
-            // try not to allocate unless you really need to
-            char[255] stack_buffer;
-            mstring buffer = stack_buffer;
-
-            if (buffer.length < label.length + 1)
-                buffer.length = label.length + 1;
-
-            buffer[0 .. label.length] = label[];
-            buffer[label.length] = '.';
-
-            auto name_ = buffer[0 .. label.length + 1];
-            cstring name;
-            auto l = name_ in loggers;
-
-            if (l is null)
-               {
-               // don't use the stack allocated buffer
-               if (name_.ptr is stack_buffer.ptr)
-                   name = idup(name_);
-               else
-                   name = assumeUnique(name_);
-               // create a new logger
-               auto li = dg(name);
-               l = &li;
-
-               // insert into linked list
-               insert (li);
-
-               // look for and adjust children. Don't force
-               // property inheritance on existing loggers
-               update (li);
-
-               // insert into map
-               loggers [name] = li;
-               }
-
-            return *l;
-        }
-
-        /***********************************************************************
-
-                Loggers are maintained in a sorted linked-list. The order
-                is maintained such that the shortest name is at the root,
-                and the longest at the tail.
-
-                This is done so that updateLoggers() will always have a
-                known environment to manipulate, making it much faster.
-
-        ***********************************************************************/
-
-        private void insert (Logger l)
-        {
-                Logger prev,
-                       curr = root;
-
-                while (curr)
-                      {
-                      // insert here if the new name is shorter
-                      if (l.name.length < curr.name.length)
-                          if (prev is null)
-                              throw new IllegalElementException ("invalid hierarchy");
-                          else
-                             {
-                             l.next = prev.next;
-                             prev.next = l;
-                             return;
-                             }
-                      else
-                         // find best match for parent of new entry
-                         // and inherit relevant properties (level, etc)
-                         propagate (l, curr, true);
-
-                      // remember where insertion point should be
-                      prev = curr;
-                      curr = curr.next;
-                      }
-
-                // add to tail
-                prev.next = l;
-        }
-
-        /***********************************************************************
-
-                Propagate hierarchical changes across known loggers.
-                This includes changes in the hierarchy itself, and to
-                the various settings of child loggers with respect to
-                their parent(s).
-
-        ***********************************************************************/
-
-        private void update (Logger changed, bool force=false)
-        {
-                foreach (logger; this)
-                         propagate (logger, changed, force);
-        }
-
-        /***********************************************************************
-
-            Propagates the property to all child loggers.
-
-            Params:
-                Property = property to set
-                T = type of the property
-                parent_name = name of the parent logger
-                value = value to set
-
-        ***********************************************************************/
-
-        private void propagateValue (istring property, T)(istring parent_name,
-                T value)
-        {
-            foreach (log; this)
-            {
-                if (log.isChildOf (parent_name))
-                {
-                    mixin("log." ~ property ~ " = value;");
-                }
-            }
-        }
-
-        /***********************************************************************
-
-                Propagate changes in the hierarchy downward to child Loggers.
-                Note that while 'parent' is always changed, the adjustment of
-                'level' is selectable.
-
-        ***********************************************************************/
-
-        private void propagate (Logger logger, Logger changed, bool force=false)
-        {
-                // is the changed instance a better match for our parent?
-                if (logger.isCloserAncestor (changed))
-                {
-                    // update parent (might actually be current parent)
-                    logger.parent = changed;
-
-                    // if we don't have an explicit level set, inherit it
-                    // Be careful to avoid recursion, or other overhead
-                    if (force)
-                    {
-                        logger.level_ = changed.level;
-                        logger.collect_stats = changed.collect_stats;
-                    }
-                }
-        }
-}
-
-
-
-/*******************************************************************************
-
-        Contains all information about a logging event, and is passed around
-        between methods once it has been determined that the invoking logger
-        is enabled for output.
-
-        Note that Event instances are maintained in a freelist rather than
-        being allocated each time, and they include a scratchpad area for
-        EventLayout formatters to use.
-
-*******************************************************************************/
-
-package struct LogEvent
-{
-        private cstring         msg_,
-                                name_;
-        private Time            time_;
-        private Level           level_;
-        private Hierarchy       host_;
-
-        /***********************************************************************
-
-                Set the various attributes of this event.
-
-        ***********************************************************************/
-
-        void set (Hierarchy host, Level level, cstring msg, cstring name)
-        {
-                time_ = Log.time;
-                level_ = level;
-                host_ = host;
-                name_ = name;
-                msg_ = msg;
-        }
-
-        /***********************************************************************
-
-                Return the message attached to this event.
-
-        ***********************************************************************/
-
-        cstring toString ()
-        {
-                return msg_;
-        }
-
-        /***********************************************************************
-
-                Return the name of the logger which produced this event
-
-        ***********************************************************************/
-
-        cstring name ()
-        {
-                return name_;
-        }
-
-        /***********************************************************************
-
-                Return the logger level of this event.
-
-        ***********************************************************************/
-
-        Level level ()
-        {
-                return level_;
-        }
-
-        /***********************************************************************
-
-                Return the hierarchy where the event was produced from
-
-        ***********************************************************************/
-
-        Hierarchy host ()
-        {
-                return host_;
-        }
-
-        /***********************************************************************
-
-                Return the time this event was produced, relative to the
-                start of this executable
-
-        ***********************************************************************/
-
-        TimeSpan span ()
-        {
-                return time_ - Log.beginTime;
-        }
-
-        /***********************************************************************
-
-                Return the time this event was produced relative to Epoch
-
-        ***********************************************************************/
-
-        Time time ()
-        {
-                return time_;
-        }
-
-        /***********************************************************************
-
-                Return time when the executable started
-
-        ***********************************************************************/
-
-        Time started ()
-        {
-                return Log.beginTime;
-        }
-
-        /***********************************************************************
-
-                Return the logger level name of this event.
-
-        ***********************************************************************/
-
-        cstring levelName ()
-        {
-                return Log.LevelNames[level_];
-        }
-
-        /***********************************************************************
-
-                Convert a time value (in milliseconds) to ascii
-
-        ***********************************************************************/
-
-        static mstring toMilli (mstring s, TimeSpan time)
-        {
-                assert (s.length > 0);
-                long ms = time.millis;
-
-                auto len = s.length;
-                do {
-                   s[--len] = cast(char)(ms % 10 + '0');
-                   ms /= 10;
-                   } while (ms && len);
-                return s[len..s.length];
-        }
-}
-
-
-/*******************************************************************************
-
-        Base class for all Appenders. These objects are responsible for
-        emitting messages sent to a particular logger. There may be more
-        than one appender attached to any logger. The actual message is
-        constructed by another class known as an EventLayout.
-
-*******************************************************************************/
-
-public class Appender
-{
-        mixin(Typedef!(int, "Mask"));
-
-        private Appender        next_;
-        private Level           level_;
-        private Layout          layout_;
-        private static Layout   generic;
-
-        /***********************************************************************
-
-                Interface for all logging layout instances
-
-                Implement this method to perform the formatting of
-                message content.
-
-        ***********************************************************************/
-
-        interface Layout
-        {
-                void format (LogEvent event, size_t delegate(Const!(void)[]) dg);
-        }
-
-        /***********************************************************************
-
-                Return the mask used to identify this Appender. The mask
-                is used to figure out whether an appender has already been
-                invoked for a particular logger.
-
-        ***********************************************************************/
-
-        abstract Mask mask ();
-
-        /***********************************************************************
-
-                Return the name of this Appender.
-
-        ***********************************************************************/
-
-        abstract cstring name ();
-
-        /***********************************************************************
-
-                Append a message to the output.
-
-        ***********************************************************************/
-
-        abstract void append (LogEvent event);
-
-        /***********************************************************************
-
-              Create an Appender and default its layout to LayoutTimer.
-
-        ***********************************************************************/
-
-        this ()
-        {
-                layout_ = generic;
-        }
-
-        /***********************************************************************
-
-              Create an Appender and default its layout to LayoutTimer.
-
-        ***********************************************************************/
-
-        static this ()
-        {
-                generic = new LayoutTimer;
-        }
-
-        /***********************************************************************
-
-                Return the current Level setting
-
-        ***********************************************************************/
-
-        final Level level ()
-        {
-                return level_;
-        }
-
-        /***********************************************************************
-
-                Return the current Level setting
-
-        ***********************************************************************/
-
-        final Appender level (Level l)
-        {
-                level_ = l;
-                return this;
-        }
-
-        /***********************************************************************
-
-                Static method to return a mask for identifying the Appender.
-                Each Appender class should have a unique fingerprint so that
-                we can figure out which ones have been invoked for a given
-                event. A bitmask is a simple an efficient way to do that.
-
-        ***********************************************************************/
-
-        protected Mask register (cstring tag)
-        {
-                static Mask mask = 1;
-                static Mask[istring] registry;
-
-                Mask* p = tag in registry;
-                if (p)
-                    return *p;
-                else
-                   {
-                   auto ret = mask;
-                   registry [tag] = mask;
-
-                   if (mask < 0)
-                       throw new IllegalArgumentException ("too many unique registrations");
-
-                   mask <<= 1;
-                   return ret;
-                   }
-        }
-
-        /***********************************************************************
-
-                Set the current layout to be that of the argument, or the
-                generic layout where the argument is null
-
-        ***********************************************************************/
-
-        void layout (Layout how)
-        {
-                layout_ = how ? how : generic;
-        }
-
-        /***********************************************************************
-
-                Return the current Layout
-
-        ***********************************************************************/
-
-        Layout layout ()
-        {
-                return layout_;
-        }
-
-        /***********************************************************************
-
-                Attach another appender to this one
-
-        ***********************************************************************/
-
-        void next (Appender appender)
-        {
-                next_ = appender;
-        }
-
-        /***********************************************************************
-
-                Return the next appender in the list
-
-        ***********************************************************************/
-
-        Appender next ()
-        {
-                return next_;
-        }
-
-        /***********************************************************************
-
-                Close this appender. This would be used for file, sockets,
-                and such like.
-
-        ***********************************************************************/
-
-        void close ()
-        {
-        }
-}
-
-
-/*******************************************************************************
-
-        An appender that does nothing. This is useful for cutting and
-        pasting, and for benchmarking the ocean.log environment.
-
-*******************************************************************************/
-
-public class AppendNull : Appender
-{
-        private Mask mask_;
-
-        /***********************************************************************
-
-                Create with the given Layout
-
-        ***********************************************************************/
-
-        this (Layout how = null)
-        {
-                mask_ = register (name);
-                layout (how);
-        }
-
-        /***********************************************************************
-
-                Return the fingerprint for this class
-
-        ***********************************************************************/
-
-        final override Mask mask ()
-        {
-                return mask_;
-        }
-
-        /***********************************************************************
-
-                Return the name of this class
-
-        ***********************************************************************/
-
-        final override cstring name ()
-        {
-                return this.classinfo.name;
-        }
-
-        /***********************************************************************
-
-                Append an event to the output.
-
-        ***********************************************************************/
-
-        final override void append (LogEvent event)
-        {
-                layout.format (event, (Const!(void)[]){return cast(size_t) 0;});
-        }
-}
-
-
-/*******************************************************************************
-
-        Append to a configured OutputStream
-
-*******************************************************************************/
-
-public class AppendStream : Appender
-{
-        private Mask            mask_;
-        private bool            flush_;
-        private OutputStream    stream_;
-
-        /***********************************************************************
-
-                Create with the given stream and layout
-
-        ***********************************************************************/
-
-        this (OutputStream stream, bool flush = false, Appender.Layout how = null)
-        {
-                assert (stream);
-
-                mask_ = register (name);
-                stream_ = stream;
-                flush_ = flush;
-                layout (how);
-        }
-
-        /***********************************************************************
-
-                Return the fingerprint for this class
-
-        ***********************************************************************/
-
-        final override Mask mask ()
-        {
-                return mask_;
-        }
-
-        /***********************************************************************
-
-                Return the name of this class
-
-        ***********************************************************************/
-
-        override istring name ()
-        {
-                return this.classinfo.name;
-        }
-
-        /***********************************************************************
-
-                Append an event to the output.
-
-        ***********************************************************************/
-
-        final override void append (LogEvent event)
-        {
-                const istring Eol = "\n";
-
-                layout.format (event, (Const!(void)[] content){return stream_.write(content);});
-                stream_.write (Eol);
-                if (flush_)
-                    stream_.flush;
-        }
-}
-
-/*******************************************************************************
-
-        A simple layout comprised only of time(ms), level, name, and message
-
-*******************************************************************************/
-
-public class LayoutTimer : Appender.Layout
-{
-        /***********************************************************************
-
-                Subclasses should implement this method to perform the
-                formatting of the actual message content.
-
-        ***********************************************************************/
-
-        void format (LogEvent event, size_t delegate(Const!(void)[]) dg)
-        {
-                char[20] tmp = void;
-
-                dg (event.toMilli (tmp, event.span));
-                dg (" ");
-                dg (event.levelName);
-                dg (" [");
-                dg (event.name);
-                dg ("] ");
-                dg (event.host.context.label);
-                dg ("- ");
-                dg (event.toString);
-        }
-}
+public alias HierarchyT!(Logger) Hierarchy;
