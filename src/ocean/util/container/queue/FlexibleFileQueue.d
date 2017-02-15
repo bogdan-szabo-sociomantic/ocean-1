@@ -24,36 +24,18 @@
 module ocean.util.container.queue.FlexibleFileQueue;
 
 
-
-/*******************************************************************************
-
-    Imports
-
-*******************************************************************************/
-
 import ocean.transition;
-
-import ocean.util.container.queue.model.IByteQueue;
-
-import ocean.util.container.queue.model.IQueueInfo;
-
+import ocean.core.Buffer;
 import ocean.util.container.queue.FlexibleRingQueue;
-
+import ocean.util.container.queue.model.IByteQueue;
+import ocean.util.container.queue.model.IQueueInfo;
 import ocean.util.log.Log;
-
-import ocean.io.stream.Buffered,
-       ocean.io.device.File,
-       Filesystem = ocean.io.Path;
-
+import ocean.io.device.File;
+import Filesystem = ocean.io.Path;
+import ocean.io.stream.Buffered;
 
 
-/*******************************************************************************
-
-    Static module logger
-
-*******************************************************************************/
-
-static private Logger log;
+private Logger log;
 static this ( )
 {
     log = Log.lookup("ocean.util.container.queue.FlexibleFileQueue");
@@ -85,7 +67,7 @@ public class FlexibleFileQueue : IByteQueue
 
     ***************************************************************************/
 
-    private ubyte[] slice_push_buffer;
+    private Buffer!(ubyte) slice_push_buffer;
 
     /***************************************************************************
 
@@ -222,7 +204,7 @@ public class FlexibleFileQueue : IByteQueue
         this.size = size;
         this.open_existing = open_existing;
 
-        if ( this.open_existing && this.exists(this.path) )
+        if (this.open_existing && this.exists(this.path))
         {
             this.file_out = new File(this.path, File.WriteAppending);
             this.file_index = new File(this.index_path, File.ReadWriteExisting);
@@ -231,7 +213,7 @@ public class FlexibleFileQueue : IByteQueue
         else
         {
             this.file_out = new File(this.path, File.WriteCreate);
-            if ( this.open_existing )
+            if (this.open_existing)
             {
                 this.file_index = new File(this.index_path, File.ReadWriteCreate);
             }
@@ -294,7 +276,7 @@ public class FlexibleFileQueue : IByteQueue
     {
         this.handleSliceBuffer();
 
-        if ( item.length == 0 ) return false;
+        if (item.length == 0) return false;
 
         return this.filePush(item);
     }
@@ -321,7 +303,7 @@ public class FlexibleFileQueue : IByteQueue
 
         this.slice_push_buffer.length = size;
 
-        return this.slice_push_buffer;
+        return this.slice_push_buffer[];
     }
 
 
@@ -341,16 +323,16 @@ public class FlexibleFileQueue : IByteQueue
     {
         this.handleSliceBuffer();
 
-        if ( this.bytes_in_file == 0 && this.files_open )
+        if (this.bytes_in_file == 0 && this.files_open)
         {
             this.closeExternal();
             return null;
         }
 
-        if ( this.bytes_in_file > 0 ) try
+        if (this.bytes_in_file > 0) try
         {
             try this.ext_out.flush();
-            catch ( Exception e )
+            catch (Exception e)
             {
                 log.error("## ERROR: Can't flush file buffer: {}", getMsg(e));
                 return null;
@@ -358,22 +340,22 @@ public class FlexibleFileQueue : IByteQueue
 
             Header h;
 
-            if ( this.ext_in.readable() <= Header.sizeof && this.fill() == 0 )
+            if (this.ext_in.readable() <= Header.sizeof && this.fill() == 0)
             {
                 return null;
             }
 
             h = *Header.fromSlice(this.ext_in.slice(Header.sizeof, false));
 
-            assert ( h.length <= this.size, "Unrealistic size" );
+            assert (h.length <= this.size, "Unrealistic size");
 
-            if ( h.length + Header.sizeof > this.ext_in.readable() &&
-                 this.fill() == 0 )
+            if (h.length + Header.sizeof > this.ext_in.readable() &&
+                this.fill() == 0)
             {
                 return null;
             }
 
-            if ( eat )
+            if (eat)
             {
                 this.items_in_file -= 1;
                 this.bytes_in_file -= Header.sizeof + h.length;
@@ -384,10 +366,10 @@ public class FlexibleFileQueue : IByteQueue
             return cast(ubyte[]) this.ext_in.slice(Header.sizeof + h.length,
                                                    eat)[Header.sizeof .. $];
         }
-        catch ( Exception e )
+        catch (Exception e)
         {
             log.error("## ERROR: Failsafe catch triggered by exception: {} ({}:{})",
-                           getMsg(e), e.file, e.line);
+                      getMsg(e), e.file, e.line);
         }
 
         return null;
@@ -437,8 +419,7 @@ public class FlexibleFileQueue : IByteQueue
         auto bytes    = this.ext_in.populate();
         auto readable = this.ext_in.readable;
 
-        if ( (bytes == 0 || bytes == File.Eof) &&
-             readable == 0 )
+        if ((bytes == 0 || bytes == File.Eof) && readable == 0)
         {
             this.closeExternal();
             return 0;
@@ -558,11 +539,12 @@ public class FlexibleFileQueue : IByteQueue
 
     private void handleSliceBuffer ( )
     {
-        if ( this.slice_push_buffer.length != 0 )
+        if (this.slice_push_buffer.length != 0)
         {
-            (!this.files_open) && this.openExternal();
+            if (!this.files_open)
+                this.openExternal();
 
-            this.filePush(this.slice_push_buffer);
+            this.filePush(this.slice_push_buffer[]);
             this.slice_push_buffer.length = 0;
         }
     }
@@ -585,14 +567,15 @@ public class FlexibleFileQueue : IByteQueue
     private bool filePush ( in ubyte[] item )
     in
     {
-        assert ( item.length <= this.size, "Pushed item will not fit read buffer");
-        assert ( item.length > 0, "denied push of item of size zero");
+        assert(item.length <= this.size, "Pushed item will not fit read buffer");
+        assert(item.length > 0, "denied push of item of size zero");
     }
     body
     {
         try
         {
-            (!this.files_open) && this.openExternal();
+            if (!this.files_open)
+                this.openExternal();
 
             Header h = Header(item.length);
 
@@ -601,7 +584,7 @@ public class FlexibleFileQueue : IByteQueue
             this.ext_out.write(header);
             this.ext_out.write(item);
 
-            if ( this.open_existing )
+            if (this.open_existing)
             {
                 this.ext_out.flush();
             }
@@ -613,7 +596,7 @@ public class FlexibleFileQueue : IByteQueue
 
             return true;
         }
-        catch ( Exception e )
+        catch (Exception e)
         {
             log.error("## ERROR: Exception happened while writing to disk: {}", getMsg(e));
             return false;
@@ -630,7 +613,7 @@ public class FlexibleFileQueue : IByteQueue
 
     private void writeIndex ( )
     {
-        if ( this.open_existing )
+        if (this.open_existing)
         {
             this.file_index.seek(0);
             this.file_index.write(cast(void[])(&this.bytes_in_file)
@@ -652,7 +635,7 @@ public class FlexibleFileQueue : IByteQueue
 
     private void readIndex ( )
     {
-        if ( this.open_existing )
+        if (this.open_existing)
         {
             void[] content;
             content.length = this.bytes_in_file.sizeof +
@@ -660,8 +643,8 @@ public class FlexibleFileQueue : IByteQueue
 
             this.file_index.seek(0);
 
-            if ( this.file_index.read(content) == (this.bytes_in_file.sizeof +
-                this.items_in_file.sizeof) )
+            if (this.file_index.read(content)
+                == (this.bytes_in_file.sizeof + this.items_in_file.sizeof))
             {
                 this.bytes_in_file =
                     *cast(size_t*)content[0..this.bytes_in_file.sizeof].ptr;
@@ -684,7 +667,7 @@ public class FlexibleFileQueue : IByteQueue
         this.file_out.open(this.path, File.WriteCreate);
         this.file_in.open(this.path, File.ReadExisting);
 
-        if ( this.open_existing )
+        if (this.open_existing)
         {
             this.file_index.open(this.index_path, File.WriteCreate);
         }
@@ -702,14 +685,14 @@ public class FlexibleFileQueue : IByteQueue
     private void closeExternal ( )
     in
     {
-        assert ( this.ext_in.readable() == 0,
-                 "Still unread data in input buffer" );
+        assert(this.ext_in.readable() == 0,
+               "Still unread data in input buffer");
 
-        assert ( this.bytes_in_file - this.ext_in.readable() == 0 ,
-                 "Still bytes in the file");
+        assert(this.bytes_in_file - this.ext_in.readable() == 0,
+               "Still bytes in the file");
 
-        assert ( this.items_in_file - this.ext_in.readable() == 0 ,
-                 "Still items in the file");
+        assert(this.items_in_file - this.ext_in.readable() == 0,
+               "Still items in the file");
     }
     body
     {
@@ -720,7 +703,7 @@ public class FlexibleFileQueue : IByteQueue
 
         Filesystem.remove(this.path);
 
-        if ( this.open_existing )
+        if (this.open_existing)
         {
             this.file_index.close();
             Filesystem.remove(this.index_path);
@@ -728,62 +711,4 @@ public class FlexibleFileQueue : IByteQueue
 
         this.files_open = false;
     }
-
 }
-
-/***************************************************************************
-
-    Unit test
-
-***************************************************************************/
-
-version (UnitTest)
-{
-    import ocean.text.util.StringC;
-    import ocean.io.Stdout;
-    import ocean.stdc.posix.unistd;
-    import ocean.stdc.posix.stdlib: mkdtemp;
-}
-
-unittest
-{
-    // TODO Remove I/O from this test
-    auto test_dir = StringC.toDString(mkdtemp("Dunittest-XXXXXX\0".dup.ptr));
-    if (test_dir.length == 0)
-    {
-        Stderr.formatln("{}:{}: Can't create temporary directory "
-              ~ "for unittest, skipping...", __FILE__, __LINE__);
-        return;
-    }
-    scope (exit) rmdir(test_dir.ptr);
-
-    auto test_file = (test_dir ~ "/testfile\0")[0..$-1];
-    scope (exit) unlink(test_file.ptr);
-
-    auto test_file_index = (test_dir ~ "/testfile.index\0")[0..$-1];
-    scope (exit) unlink(test_file_index.ptr);
-
-    for ( int open_existing = 0; open_existing < 2; open_existing++ )
-    {
-        for (ubyte size; size < ubyte.max; size++)
-        {
-            auto queue = new FlexibleFileQueue(test_file, 4, cast(bool)open_existing);
-
-            for ( ubyte i = 0; i < size; i++ )
-            {
-                auto item = [i, cast(ubyte) (ubyte.max-i), i, cast(ubyte) (i*i)];
-                assert( queue.push( item ), "push failed" );
-            }
-
-            for ( ubyte i = 0; i < size; i++ )
-            {
-                auto pop = queue.pop;
-                auto item = [i, ubyte.max-i, i, cast(ubyte) (i*i)];
-                assert( pop == item, "pop failed "~pop.stringof );
-            }
-
-            queue.closeExternal();
-        }
-    }
-}
-

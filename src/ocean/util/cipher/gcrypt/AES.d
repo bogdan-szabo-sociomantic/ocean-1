@@ -124,6 +124,9 @@ version ( UnitTest )
     {
         auto key = cast(Immut!(ubyte)[])str_key;
 
+        // Test that only keys of the provided length are allowed
+        Cipher.testFixedKeyLength(key);
+
         // AES operates on 16-byte blocks.
         istring text = "Length divide 16";
         mstring encrypted_text, decrypted_text;
@@ -153,6 +156,9 @@ version ( UnitTest )
     {
         auto key = cast(Immut!(ubyte)[])str_key;
         auto iv = cast(Immut!(ubyte)[])str_iv;
+
+        // Test that only keys of the provided length are allowed
+        Cipher.testFixedKeyLength(key);
 
         // AES operates on 16-byte blocks;
         istring text = "Length divide 16";

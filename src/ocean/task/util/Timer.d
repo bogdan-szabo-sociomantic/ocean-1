@@ -59,6 +59,9 @@ version (UnitTest)
 
 public void wait ( uint micro_seconds )
 {
+    if (micro_seconds == 0)
+        return;
+
     auto task = Task.getThis();
     assert (task !is null);
 
@@ -84,13 +87,13 @@ public void wait ( uint micro_seconds )
         micro_seconds
     );
 
-    task.registerOnKillHook(&scheduled_event.unregister);
+    task.terminationHook(&scheduled_event.unregister);
 
     debug_trace("Suspending task <{}> for {} microseconds",
         cast(void*) task, micro_seconds);
     task.suspend();
 
-    task.unregisterOnKillHook(&scheduled_event.unregister);
+    task.removeTerminationHook(&scheduled_event.unregister);
 }
 
 ///

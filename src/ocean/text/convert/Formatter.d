@@ -309,7 +309,7 @@ private void handle (T) (T v, FormatInfo f, Sink sf, ElementSink se)
      */
 
     // `typeof(null)` matches way too many things
-    static if (is(T == typeof(null)))
+    static if (IsTypeofNull!(T))
         se("null", f);
 
     /** D1 + D2 support of typedef
@@ -328,6 +328,28 @@ private void handle (T) (T v, FormatInfo f, Sink sf, ElementSink se)
     // Cannot print enum member name in D1, so just print the value
     else static if (is (T V == enum))
              handle!(V)(v, f, sf, se);
+
+    // Delegate / Function pointers
+    else static if (is(T == delegate))
+    {
+        sf(T.stringof ~ ": { funcptr: ");
+        writePointer(v.funcptr, f, se);
+        sf(", ptr: ");
+        writePointer(v.ptr, f, se);
+        sf(" }");
+    }
+    else static if (is(T U == return))
+    {
+        sf(T.stringof ~ ": ");
+        writePointer(v, f, se);
+    }
+
+    // Pointers need to be at the top because `(int*).min` compiles
+    // and hence would match the integer rules
+    // In addition, thanks to automatic dereferencing,
+    // the check `v.toString()` would pass for an `Object` and an `Object*`.
+    else static if (is (T P == P*))
+        writePointer(v, f, se);
 
     // toString hook: Give priority to the non-allocating one
     // Note: sink `toString` overload should take a `scope` delegate
@@ -356,21 +378,6 @@ private void handle (T) (T v, FormatInfo f, Sink sf, ElementSink se)
         }
         sf(v.tupleof.length ? " }" : "{ empty struct }");
         f.flags = old;
-    }
-
-    // Delegate / Function pointers
-    else static if (is(T == delegate))
-    {
-        sf(T.stringof ~ ": { funcptr: ");
-        writePointer(v.funcptr, f, se);
-        sf(", ptr: ");
-        writePointer(v.ptr, f, se);
-        sf(" }");
-    }
-    else static if (is(T U == return))
-    {
-        sf(T.stringof ~ ": ");
-        writePointer(v, f, se);
     }
 
     // Bool
@@ -434,11 +441,6 @@ private void handle (T) (T v, FormatInfo f, Sink sf, ElementSink se)
             UTF.toString(b[1 .. 2], (cstring val) { return se(val, f); });
     }
 
-    // Pointers need to be at the top because `(int*).min` compiles
-    // and hence would match the integer rules
-    else static if (is (T P == P*))
-        writePointer(v, f, se);
-
     // Signed integer
     else static if (is(typeof(T.min)) && T.min < 0)
     {
@@ -485,6 +487,37 @@ private void handle (T) (T v, FormatInfo f, Sink sf, ElementSink se)
     else
         static assert (0, "Type unsupported by ocean.text.convert.Formatter: "
                        ~ T.stringof);
+}
+
+
+/*******************************************************************************
+
+        Helper template to detect `typeof(null)`.
+
+        In D2, `typeof(null)` is a special type, as it has conversion rules like
+        not other type. In D1, it is just `void*`.
+        Since D2 version will match many cases in `handle` because it converts
+        to many different type, we need to single it out, however we cannot
+        just check for `is(T == typeof(null))` as it would mean `== void*` in D1
+
+        Params:
+            T   = Type to check
+
+*******************************************************************************/
+
+private template IsTypeofNull (T)
+{
+    version (D_Version2)
+    {
+        static if (is(T == typeof(null)))
+            public const bool IsTypeofNull = true;
+        else
+            public const bool IsTypeofNull = false;
+    }
+    else
+    {
+        public const bool IsTypeofNull = false;
+    }
 }
 
 
@@ -1288,4 +1321,54 @@ unittest
     assert(format("{:f2}", ad) == "42.00", format("{:f2}", ad));
     assert(format("{}", as) == "{ value: 42 }");
     assert(format("{}", ac) == "42");
+}
+
+// Check that `IsTypeofNull` does its job
+unittest
+{
+    static bool test (bool fatal, istring expected, istring actual)
+    {
+        if (expected == actual)
+            return false;
+        assert(!fatal, "Expected '" ~ expected ~ "' but got: " ~ actual);
+        return true;
+    }
+
+    // The logic here is a bit complicated, because we don't know
+    // where in the stack we are. We could start at address
+    // 0x0000_7000_0000 so growing down we'd go at address
+    // 0x0000_6XXX_XXXX, which obviously would be problematic.
+    // However we know that our stack frame is 68 / 72 (depends
+    // on alignment), and our pointers are 16 bytes appart,
+    // so retrying once should cover all cases.
+    static void doTest (bool fatal)
+    {
+        scope Object o = new Object;
+        scope void* ptr = cast(void*)o;
+
+        istring expected = format("{}", ptr);
+        istring stack_ptr = format("{}", &expected);
+        istring null_str = format("{}", null);
+
+        bool has_error;
+        // Sanity check
+        assert(expected != null_str);
+
+        // Address of a pointer to the stack - can't test the value,
+        // so just make sure it's a stack-ish pointer
+        // We do so by testing the address  / 100
+
+        assert(expected.length == stack_ptr.length, "Length mismatch");
+        has_error = test(fatal, expected[0 .. $ - 2], stack_ptr[0 .. $ - 2]);
+
+        stack_ptr = format("{}", &o);
+        assert(expected.length == stack_ptr.length, "Length mismatch");
+        if (!has_error)
+            has_error = test(fatal, expected[0 .. $ - 2], stack_ptr[0 .. $ - 2]);
+
+        if (has_error)
+            doTest(true);
+    }
+
+    doTest(false);
 }
