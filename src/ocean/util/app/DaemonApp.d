@@ -639,11 +639,6 @@ public abstract class DaemonApp : Application,
                                                   ConfigParser config,
                                                   istring[] files )
     {
-        // Dummy implementation of the interface
-        if (files.length)
-        {
-            return files[$-1 .. $];
-        }
         return files;
     }
 
@@ -754,6 +749,7 @@ unittest
             }
             Treasure loot;
             this.stats_ext.stats_log.add(loot);
+            this.stats_ext.stats_log.flush();
         }
     }
 
