@@ -125,7 +125,7 @@ dchar[] toString32 (Time time)
 
  ******************************************************************************/
 
-T[] format(T, U=Time) (T[] output, U t)
+Const!(T)[] format(T, U=Time) (T[] output, U t)
 {return format!(T)(output, cast(Time) t);}
 
 Const!(T)[] format(T) (T[] output, Time t)
@@ -160,6 +160,15 @@ Const!(T)[] format(T) (T[] output, Time t)
             );
 }
 
+unittest
+{
+    const STR_1970 = "Thu, 01 Jan 1970 00:00:00 GMT";
+    mstring buf;
+    buf.length = 29;
+    assert(format(buf, Time.epoch1970) == STR_1970);
+    char[29] static_buf;
+    assert(format(static_buf, Time.epoch1970) == STR_1970);
+}
 
 /******************************************************************************
 
@@ -169,12 +178,12 @@ Const!(T)[] format(T) (T[] output, Time t)
 
  ******************************************************************************/
 
-T[] format8601(T, U=Time) (T[] output, U t)
+Const!(T)[] format8601(T, U=Time) (T[] output, U t)
 {return format!(T)(output, cast(Time) t);}
 
-T[] format8601(T) (T[] output, Time t)
+Const!(T)[] format8601(T) (T[] output, Time t)
 {
-    T[] convert (T[] tmp, long i)
+    Const!(T)[] convert (T[] tmp, long i)
     {
         return Integer.formatter!(T) (tmp, i, 'u', 0, 8);
     }
@@ -198,6 +207,16 @@ T[] format8601(T) (T[] output, Time t)
             convert (tmp[10..12], time.minutes),
             convert (tmp[12..14], time.seconds)
             );
+}
+
+unittest
+{
+    const STR_1970 = "1970-01-01T00:00:00Z";
+    mstring buf;
+    buf.length = 29;
+    assert(format8601(buf, Time.epoch1970) == STR_1970);
+    char[29] static_buf;
+    assert(format8601(static_buf, Time.epoch1970) == STR_1970);
 }
 
 /******************************************************************************
