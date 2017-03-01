@@ -48,11 +48,11 @@ import ocean.io.select.client.TimerEvent;
 
 import ocean.io.select.client.model.ISelectClient;
 
-import ocean.stdc.posix.time: time_t, timespec;
+import core.sys.posix.time: time_t, timespec;
 
 debug
 {
-    import ocean.stdc.time: ctime;
+    import core.stdc.time: ctime;
     import ocean.io.Stdout_tango;
 }
 
@@ -112,16 +112,7 @@ class TimerEventTimeoutManager : TimeoutManager
         {
             debug ( TimeoutManager ) Stderr("******** " ~ typeof (this.outer).stringof ~ " expired\n").flush();
 
-            try
-            {
-                this.outer.checkTimeouts();
-            }
-            catch ( Exception e )
-            {
-                log.error("Exception caught in TimerEventTimeoutManager event handler: {} @ {}:{}",
-                    getMsg(e), e.file, e.line);
-                throw e;
-            }
+            this.outer.checkTimeouts();
             return true;
         }
     }

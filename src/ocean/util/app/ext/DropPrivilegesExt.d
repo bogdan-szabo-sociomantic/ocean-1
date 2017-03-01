@@ -20,13 +20,13 @@ import ConfigFiller = ocean.util.config.ConfigFiller;
 import ocean.util.app.ext.model.IConfigExtExtension;
 
 import ocean.transition;
-import ocean.stdc.posix.unistd : setuid, setgid;
-import ocean.stdc.posix.pwd;
-import ocean.stdc.string;
+import core.sys.posix.unistd : setuid, setgid;
+import core.sys.posix.pwd;
+import core.stdc.string;
 import ocean.stdc.stringz;
-import ocean.stdc.posix.grp;
-import ocean.stdc.posix.unistd;
-import ocean.stdc.errno;
+import core.sys.posix.grp;
+import core.sys.posix.unistd;
+import core.stdc.errno;
 
 /*******************************************************************************
 

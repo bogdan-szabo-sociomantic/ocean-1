@@ -32,7 +32,7 @@ import ocean.io.device.Device;
 
 import ocean.stdc.stringz;
 import core.stdc.string;
-import ocean.stdc.errno;
+import core.stdc.errno;
 
 /*******************************************************************************
 
@@ -40,7 +40,7 @@ import ocean.stdc.errno;
 
 *******************************************************************************/
 
-import ocean.stdc.posix.unistd;
+import core.sys.posix.unistd;
 
 
 /*******************************************************************************
@@ -529,8 +529,7 @@ class File : Device, Device.Seek, Device.Truncate
             auto name = toStringz (path, zero);
             auto mode = Access[style.access] | Create[style.open];
 
-            // always open as a large file
-            handle = posix.open (name, mode | O_LARGEFILE | addflags, access);
+            handle = posix.open (name, mode | addflags, access);
             if (handle is -1)
                 return false;
 

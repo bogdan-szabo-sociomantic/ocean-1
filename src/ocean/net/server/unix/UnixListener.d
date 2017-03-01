@@ -75,14 +75,16 @@ public class UnixSocketListener ( CommandHandlerType ) : SelectListener!(
     import ocean.stdc.posix.sys.un: sockaddr_un;
     import ocean.stdc.posix.sys.socket: AF_UNIX, sockaddr;
 
-    import ocean.stdc.posix.unistd: unlink;
-    import ocean.stdc.errno: errno;
+    import core.sys.posix.unistd: unlink;
+    import core.stdc.errno: errno;
 
     import ocean.stdc.string: strerror_r, strlen;
 
     import ocean.core.Enforce;
 
     import ocean.util.log.Log;
+
+    import core.sys.posix.sys.stat: umask;
 
     /***************************************************************************
 
@@ -137,6 +139,12 @@ public class UnixSocketListener ( CommandHandlerType ) : SelectListener!(
             address.sun_family = AF_UNIX;
             address.sun_path[0 .. this.address_pathnul.length] =
                 this.address_pathnul;
+
+            // The socket should be opened with rw-rw-r-- permissions,
+            // so the owner and group could connect to it by default.
+            auto old_umask = umask(Octal!("002"));
+            scope (exit)
+                umask(old_umask);
 
             super(cast(sockaddr*)&address, new UnixSocket,
                   epoll, handler, address_path);

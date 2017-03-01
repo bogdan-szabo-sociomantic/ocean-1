@@ -56,6 +56,7 @@ public abstract class DaemonApp : Application,
     import ocean.io.select.EpollSelectDispatcher;
     import ocean.text.Arguments : Arguments;
     import ocean.task.Scheduler;
+    import ocean.sys.Stats;
 
     import ocean.util.app.ext.ArgumentsExt;
     import ocean.util.app.ext.ConfigExt;
@@ -186,6 +187,14 @@ public abstract class DaemonApp : Application,
 
     /***************************************************************************
 
+        Cpu and memory collector instance.
+
+    ***************************************************************************/
+
+    private CpuMemoryStats system_stats;
+
+    /***************************************************************************
+
         Epoll instance used internally.
 
     ***************************************************************************/
@@ -201,7 +210,7 @@ public abstract class DaemonApp : Application,
 
     public static struct OptionalSettings
     {
-        import ocean.stdc.posix.signal : SIGHUP;
+        import core.sys.posix.signal : SIGHUP;
 
         /***********************************************************************
 
@@ -356,6 +365,8 @@ public abstract class DaemonApp : Application,
         this.unix_socket_ext = new UnixSocketExt();
         this.config_ext.registerExtension(this.unix_socket_ext);
         this.registerExtension(this.unix_socket_ext);
+
+        this.system_stats = new CpuMemoryStats();
     }
 
     /***************************************************************************
@@ -494,6 +505,18 @@ public abstract class DaemonApp : Application,
 
     /***************************************************************************
 
+        Collects CPU and memory stats and reports it to stats log. Should be
+        called periodically (inside onStatsTimer).
+
+    ***************************************************************************/
+
+    protected void reportSystemStats ( )
+    {
+        this.stats_ext.stats_log.add(this.system_stats.log());
+    }
+
+    /***************************************************************************
+
         Called by the timer extension when the stats period fires. By default
         does nothing, but should be overridden to write the required stats.
 
@@ -626,7 +649,7 @@ unittest
 
     class MyApp : DaemonApp
     {
-        import ocean.stdc.posix.signal: SIGINT, SIGTERM;
+        import core.sys.posix.signal: SIGINT, SIGTERM;
 
         import ocean.io.select.EpollSelectDispatcher;
 
@@ -682,6 +705,7 @@ unittest
         // Handle stats output.
         override protected void onStatsTimer ( )
         {
+            this.reportSystemStats();
             struct Treasure
             {
                 int copper, silver, gold;

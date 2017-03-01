@@ -37,7 +37,7 @@ import ocean.task.Scheduler;
 
 import ocean.core.Traits;
 import ocean.core.Enforce;
-import ocean.text.convert.Format;
+import ocean.text.convert.Formatter;
 import ocean.io.model.ISuspendable;
 import ocean.io.model.ISuspendableThrottler;
 
@@ -174,7 +174,7 @@ class StreamProcessor ( TaskT : Task )
             enforce(
                 this.throttler_failure_e,
                 throttler_config.suspend_point < total,
-                Format(
+                format(
                     "Trying to configure StreamProcessor with suspend point ({}) " ~
                         "larger or equal to task queue size {}",
                     throttler_config.suspend_point, total
@@ -188,7 +188,7 @@ class StreamProcessor ( TaskT : Task )
             enforce(
                 this.throttler_failure_e,
                 throttler_config.resume_point < total,
-                Format(
+                format(
                     "Trying to configure StreamProcessor with resume point ({}) " ~
                         "larger or equal to task queue size {}",
                     throttler_config.resume_point, total

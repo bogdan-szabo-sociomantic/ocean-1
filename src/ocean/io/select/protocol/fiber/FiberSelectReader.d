@@ -31,7 +31,7 @@ import ocean.io.select.protocol.fiber.model.IFiberSelectProtocol;
 
 import ocean.io.device.IODevice: IInputDevice;
 
-import ocean.stdc.errno: errno, EAGAIN, EWOULDBLOCK, EINTR;
+import core.stdc.errno: errno, EAGAIN, EWOULDBLOCK, EINTR;
 
 debug (Raw) import ocean.io.Stdout_tango: Stderr;
 
@@ -575,7 +575,7 @@ version (UnitTest)
 {
     import ocean.io.select.client.model.ISelectClient;
     import ocean.io.select.fiber.SelectFiber;
-    import ocean.stdc.posix.stdlib;
+    import core.sys.posix.stdlib;
     import ocean.core.Test;
     import ocean.transition;
 }

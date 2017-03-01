@@ -93,9 +93,9 @@ module ocean.io.Retry;
 
 *******************************************************************************/
 
-import Ctime = ocean.stdc.posix.time : nanosleep, timespec;
+import Ctime = core.sys.posix.time : nanosleep, timespec;
 
-import ocean.stdc.time : time_t;
+import core.stdc.time : time_t;
 
 
 

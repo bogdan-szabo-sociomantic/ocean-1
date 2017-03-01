@@ -38,13 +38,10 @@ import ocean.io.Console;
 import Integer = ocean.text.convert.Integer_tango;
 
 import ocean.io.model.IConduit;
+import ocean.util.log.Appender;
+import ocean.util.log.Event;
 
-import ocean.util.log.Log;
-
-import ocean.stdc.posix.signal;
-
-
-debug import ocean.core.Thread;
+import core.sys.posix.signal;
 
 
 /*******************************************************************************

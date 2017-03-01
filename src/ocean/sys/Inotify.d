@@ -28,14 +28,14 @@ import ocean.core.Traits;
 import ocean.text.util.StringC;
 import ocean.sys.ErrnoException;
 
-import ocean.sys.linux.inotify;
-import ocean.sys.linux.consts.fcntl;
+import core.sys.linux.sys.inotify;
+import core.sys.posix.fcntl;
 
 import ocean.io.model.IConduit: ISelectable;
 
 import ocean.stdc.posix.sys.types: ssize_t;
-import ocean.stdc.posix.unistd: read, close;
-import ocean.stdc.errno: EAGAIN, EWOULDBLOCK, errno;
+import core.sys.posix.unistd: read, close;
+import core.stdc.errno: EAGAIN, EWOULDBLOCK, errno;
 
 
 

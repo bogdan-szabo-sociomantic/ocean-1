@@ -29,8 +29,8 @@ import ocean.sys.socket.model.ISocket;
 
 import ocean.stdc.posix.sys.socket;
 import ocean.stdc.posix.sys.un: UNIX_PATH_MAX;
-import ocean.stdc.posix.unistd;
-import ocean.text.convert.Format;
+import core.sys.posix.unistd;
+import ocean.text.convert.Formatter;
 
 import ocean.stdc.posix.sys.un;
 
@@ -164,7 +164,7 @@ public class UnixSocket : ISocket
 
     override public void formatInfo ( ref char[] buf, bool io_error )
     {
-        Format.format(buf, "fd={}, unix_path={}, ioerr={}",
+        sformat(buf, "fd={}, unix_path={}, ioerr={}",
             this.fileHandle, this.path[0 .. this.path_len], io_error);
     }
 }

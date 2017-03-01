@@ -38,9 +38,9 @@ import ocean.net.server.connpool.ISelectListenerPoolInfo;
 
 import ocean.util.container.pool.model.IPoolInfo;
 
-import ocean.text.convert.Format;
+import ocean.text.convert.Formatter;
 
-import ocean.stdc.errno:            errno;
+import core.stdc.errno:            errno;
 
 import ocean.sys.socket.model.ISocket;
 
@@ -75,7 +75,7 @@ abstract class ISelectListener : ISelectClient
     import ocean.stdc.posix.sys.socket: accept, SOL_SOCKET, SO_ERROR,
                                         SO_REUSEADDR, sockaddr;
     import ocean.stdc.posix.netinet.in_: SOCK_STREAM;
-    import ocean.stdc.posix.unistd:     close;
+    import core.sys.posix.unistd:     close;
 
     /**************************************************************************
 
@@ -563,7 +563,7 @@ public class SelectListener ( T : IConnectionHandler, Args ... ) : ISelectListen
         foreach ( i, conn; conns )
         {
             this.connection_log_buf.length = 0;
-            Format.format(this.connection_log_buf, "{}: ", i);
+            sformat(this.connection_log_buf, "{}: ", i);
 
             conn.formatInfo(this.connection_log_buf);
 

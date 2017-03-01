@@ -32,17 +32,17 @@ module ocean.sys.SafeFork;
 
 import ocean.sys.ErrnoException;
 
-import ocean.stdc.posix.stdlib : exit;
+import core.sys.posix.stdlib : exit;
 
-import ocean.stdc.posix.unistd : fork;
+import core.sys.posix.unistd : fork;
 
 import ocean.stdc.posix.sys.wait;
 
-import ocean.stdc.posix.signal;
+import core.sys.posix.signal;
 
-import ocean.stdc.errno;
+import core.stdc.errno;
 
-import ocean.stdc.string;
+import core.stdc.string;
 
 
 

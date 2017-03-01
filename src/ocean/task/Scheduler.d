@@ -30,6 +30,8 @@ import core.thread;
 
 import ocean.transition;
 import ocean.core.Enforce;
+import ocean.core.Traits;
+import ocean.core.array.Mutation : reverse;
 import ocean.io.select.EpollSelectDispatcher;
 import ocean.util.container.queue.FixedRingQueue;
 
@@ -110,12 +112,23 @@ final class Scheduler
 {
     /***************************************************************************
 
-        Set when shutdown sequence is initiated and normal mode of operations
-        has to be prevented.
+        Tracks scheduler internal state to safeguard against harmful operations
 
     ***************************************************************************/
 
-    private bool shutting_down = false;
+    private enum State
+    {
+        /// Initial configured state
+        Initial,
+        /// Set when `eventLoop` method starts
+        Running,
+        /// Set when shutdown sequence is initiated and normal mode of operations
+        /// has to be prevented.
+        Shutdown
+    }
+
+    /// ditto
+    private State state = State.Initial;
 
     /***************************************************************************
 
@@ -201,6 +214,19 @@ final class Scheduler
     ***************************************************************************/
 
     public void delegate ( Task, FixedRingQueue!(Task) ) task_queue_full_cb;
+
+    /***************************************************************************
+
+        Called each time task terminates with an exception when being run in
+        context of the scheduler or the event loop.
+
+        NB: the task reference will be null when the delegate is called from the
+        EpollSelectDispatcher context (i.e. if task threw after resuming from
+        an event callback)
+
+    ***************************************************************************/
+
+    public void delegate ( Task, Exception ) exception_handler;
 
     /***************************************************************************
 
@@ -293,7 +319,7 @@ final class Scheduler
             " discardead, {} suspended tasks will be killed",
             this.queued_tasks.length(), this.suspended_tasks.length());
 
-        this.shutting_down = true;
+        this.state = State.Shutdown;
         this.queued_tasks.clear();
 
         Task task;
@@ -351,7 +377,7 @@ final class Scheduler
 
     public void schedule ( Task task )
     {
-        if (this.shutting_down)
+        if (this.state == State.Shutdown)
         {
             auto caller_task = Task.getThis();
             if (caller_task !is null)
@@ -360,20 +386,7 @@ final class Scheduler
 
         if (this.fiber_pool.num_busy() >= this.fiber_pool.limit())
         {
-            if (!this.queued_tasks.push(task))
-            {
-                debug_trace("trying to schedule a task with all worker " ~
-                    "fibers busy and task queue full");
-                if (this.task_queue_full_cb !is null)
-                    this.task_queue_full_cb(task, this.queued_tasks);
-                else
-                    enforce(this.queue_full_e, false);
-            }
-            else
-            {
-                debug_trace("delayed scheduling of task '{}' because all" ~
-                    " worker fibers are busy", cast(void*) task);
-            }
+            this.queue(task);
         }
         else
         {
@@ -382,9 +395,166 @@ final class Scheduler
                 cast(void*) task, cast(void*) fiber);
             fiber.reset(&this.worker_fiber_method);
             task.assignTo(fiber);
-            task.resume();
+            this.resumeTask(task);
         }
     }
+
+    /***************************************************************************
+
+        Method used to queue the task for later execution.
+
+        Will always put the task into the queue, even if there are idle worker
+        fibers. This method is mostly useful when implementing advanced library
+        facilities to ensure that no immediate execution takes place.
+
+        Will result in starting the task in the next event loop cycle at the
+        earliest.
+
+        Params:
+            task = derivative from `ocean.task.Task` defining some application
+                task to execute
+
+        Throws:
+            TaskQueueFullException if task queue is at full capacity
+
+    ***************************************************************************/
+
+    public void queue ( Task task )
+    {
+        if (!this.queued_tasks.push(task))
+        {
+            debug_trace("trying to queue a task while task queue is full");
+            if (this.task_queue_full_cb !is null)
+                this.task_queue_full_cb(task, this.queued_tasks);
+            else
+                enforce(this.queue_full_e, false);
+        }
+        else
+        {
+            debug_trace("task '{}' queued for delayed execution", cast(void*) task);
+        }
+    }
+
+    /***************************************************************************
+
+        Schedules the argument and suspends calling task until the argument
+        finishes.
+
+        This method must not be called outside of a task.
+
+        Params:
+            task = task to schedule and wait for
+            finished_dg = optional delegate called after task finishes but
+                before it gets recycled, can be used to copy some data into
+                caller fiber context
+
+    ***************************************************************************/
+
+    public void await ( Task task, void delegate (Task) finished_dg = null )
+    {
+        assert (this.state == State.Running && Task.getThis() !is null);
+
+        auto context = Task.getThis();
+        assert (context !is null);
+        assert (context !is task);
+
+        task.terminationHook(&context.resume);
+        if (finished_dg !is null)
+            task.terminationHook({ finished_dg(task); });
+        // force async scheduling to avoid checking if this context needs
+        // suspend/resume and do it unconditionally
+        this.queue(task);
+        context.suspend();
+    }
+
+    ///
+    unittest
+    {
+        void example ( )
+        {
+            static class ExampleTask : Task
+            {
+                mstring data;
+
+                override void run ( )
+                {
+                    // do things that may result in suspending ...
+                    data = "abcd".dup;
+                }
+
+                override void recycle ( )
+                {
+                    this.data = null;
+                }
+            }
+
+            mstring data;
+
+            theScheduler.await(
+                new ExampleTask,
+                (Task t) {
+                    // copy required data before tasks gets recycled
+                    auto task = cast(ExampleTask) t;
+                    data = task.data.dup;
+                }
+            );
+
+            test!("==")(data, "abcd");
+        }
+    }
+
+    /***************************************************************************
+
+        Convenience shortcut on top of `await` to await for a task and return
+        some value type as a result.
+
+        Params:
+            task = any task that defines `result` public field  of type with no
+                indirections
+
+        Returns:
+            content of `result` field of the task read right after that task
+            finishes
+
+    ***************************************************************************/
+
+    public typeof(TaskT.result) awaitResult ( TaskT : Task ) ( TaskT task )
+    {
+        static assert (
+            !hasIndirections!(typeof(task.result)),
+            "'awaitResult' can only work with result types with no indirection"
+        );
+        typeof(task.result) result;
+        this.await(task, (Task t) { result = (cast(TaskT) t).result; });
+        return result;
+    }
+
+    ///
+    unittest
+    {
+        void example ( )
+        {
+            static class ExampleTask : Task
+            {
+                int result;
+
+                override void run ( )
+                {
+                    // do things that may result in suspending ...
+                    this.result = 42;
+                }
+
+                override void recycle ( )
+                {
+                    this.result = 43;
+                }
+            }
+
+            auto data = theScheduler.awaitResult(new ExampleTask);
+            test!("==")(data, 42);
+        }
+    }
+
 
     /***************************************************************************
 
@@ -399,9 +569,17 @@ final class Scheduler
 
     public void eventLoop ( )
     {
+        assert (this.state != State.Shutdown);
+        this.state = State.Running;
+
         do
         {
-            this.epoll.eventLoop(&this.select_cycle_hook);
+            this.epoll.eventLoop(
+                &this.select_cycle_hook,
+                this.exception_handler is null ? null : (Exception e) {
+                        this.exception_handler(null, e);
+                    }
+            );
             debug_trace("end of scheduler internal event loop cycle ({} worker " ~
                 "fibers still suspended)", this.fiber_pool.num_busy());
 
@@ -409,7 +587,7 @@ final class Scheduler
         // handles corner case which is likely to only happen in synthetic
         // tests - when there are no/few events and tasks keep calling
         // `processEvents` in a loop
-        while (this.suspended_tasks.length);
+        while (this.suspended_tasks.length || this.queued_tasks.length);
 
         // cleans up any stalled worker fibers left after deregistration
         // of all events.
@@ -437,8 +615,7 @@ final class Scheduler
     public void processEvents ( istring file = __FILE__, int line = __LINE__ )
     {
         auto task = Task.getThis();
-
-        if (this.shutting_down)
+        if (this.state == State.Shutdown)
             task.kill();
 
         enforceImpl(
@@ -448,6 +625,7 @@ final class Scheduler
             file,
             line
         );
+
         debug_trace("task <{}> will be resumed after processing pending events",
             cast(void*) task);
         task.suspend();
@@ -465,22 +643,18 @@ final class Scheduler
 
     ***************************************************************************/
 
-    private static void runTask ( WorkerFiber fiber, Task task )
+    private void runTask ( WorkerFiber fiber, Task task )
     {
         task.assignTo(fiber);
         // execute the task
-        task.entryPoint();
-        // allow task to recycle any shared resources it may have (or recycle
-        // task instance itself)
-        debug_trace("Recycling task <{}>", cast(void*) task);
-        task.recycle();
+        bool had_exception = task.entryPoint();
 
         if (task.termination_hooks.length)
         {
             debug_trace("Calling {} termination_hooks for task <{}>",
                 task.termination_hooks.length, cast(void*) task);
 
-            auto hooks = task.termination_hooks[];
+            auto hooks = reverse(task.termination_hooks[]);
             task.termination_hooks.reset();
 
             foreach (hook; hooks)
@@ -493,6 +667,17 @@ final class Scheduler
                 );
             }
         }
+
+        // allow task to recycle any shared resources it may have (or recycle
+        // task instance itself)
+        debug_trace("Recycling task <{}>", cast(void*) task);
+        task.recycle();
+
+        // in case task was resumed after unhandled exception, delay further
+        // execution for one cycle to avoid situation where exception handler
+        // calls `Task.continueAfterThrow()` and that throws again
+        if (had_exception)
+            this.processEvents();
     }
 
     /***************************************************************************
@@ -516,7 +701,7 @@ final class Scheduler
 
         runTask(fiber, task);
 
-        while (this.queued_tasks.pop(task) && !this.shutting_down)
+        while (this.queued_tasks.pop(task) && this.state != State.Shutdown)
         {
             // there are some scheduled tasks in the queue. it is best for
             // latency and performance to start one of those immediately in
@@ -560,13 +745,52 @@ final class Scheduler
         {
             Task task;
             enforce(this.sanity_e, this.suspended_tasks.pop(task));
-            if (this.shutting_down)
+            if (this.state == State.Shutdown)
                 task.kill();
             else
-                task.resume();
+                this.resumeTask(task);
         }
 
-        return this.suspended_tasks.length > 0;
+        // if there are tasks in the queue AND free worker fibers, process some
+
+        bool queued = false;
+
+        while (this.fiber_pool.num_busy() < this.fiber_pool.limit()
+            && this.queued_tasks.length)
+        {
+            queued = true;
+            Task task;
+            auto success = this.queued_tasks.pop(task);
+            assert(success);
+            this.schedule(task);
+        }
+
+        return this.suspended_tasks.length > 0 || queued;
+    }
+
+    /***************************************************************************
+
+        Helper method which combines recurring pattern of resuming some task
+        and handling potential exceptions.
+
+        Params:
+            task = task to resume
+
+    ***************************************************************************/
+
+    private void resumeTask ( Task task )
+    {
+        try
+        {
+            task.resume();
+        }
+        catch (Exception e)
+        {
+            if (this.exception_handler !is null)
+                this.exception_handler(task, e);
+            else
+                throw e;
+        }
     }
 }
 
@@ -660,6 +884,37 @@ unittest
     theScheduler.eventLoop();
 }
 
+unittest
+{
+    initScheduler(SchedulerConfiguration.init);
+
+    class DummyTask : Task
+    {
+        override public void run ( ) { theScheduler.processEvents(); }
+    }
+
+    int result;
+    auto task = new DummyTask;
+
+    // use dummy dg to pre-allocate memory in hook array
+    void delegate() dummy = { };
+
+    task.terminationHook(dummy);
+    task.terminationHook(dummy);
+    task.removeTerminationHook(dummy);
+
+    // test with real delegates, make sure closure is not allocated in D2
+    testNoAlloc({
+        task.terminationHook({ result = 1; });
+        task.terminationHook({ result = 2; });
+    }());
+
+    theScheduler.schedule(task);
+    theScheduler.eventLoop();
+
+    test!("==")(result, 1);
+}
+
 /*******************************************************************************
 
     Singleton scheduler instance.
@@ -710,6 +965,13 @@ public void initScheduler ( SchedulerConfiguration config,
         assert (is_scheduler_unused());
 
     _scheduler = new Scheduler(config, epoll);
+
+    version(UnitTest)
+    {
+        _scheduler.exception_handler = (Task t, Exception e) {
+            throw e;
+        };
+    }
 }
 
 /*******************************************************************************

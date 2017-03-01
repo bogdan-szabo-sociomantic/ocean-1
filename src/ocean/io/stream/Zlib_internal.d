@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    Zlib base stream
+    Pending completele removal after ocean utilities using it are adjusted
 
     Copyright:
         Copyright (C) 2007 Daniel Keep.
@@ -25,7 +25,9 @@
 
 *******************************************************************************/
 
-module ocean.io.stream.Zlib;
+module ocean.io.stream.Zlib_internal;
+
+// package(ocean):
 
 import ocean.transition;
 

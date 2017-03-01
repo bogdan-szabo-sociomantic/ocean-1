@@ -25,7 +25,16 @@ import ocean.core.Exception_tango,
                 ocean.sys.Common;
 
 import ocean.io.FilePath_tango;
-import ocean.sys.linux.termios;
+import core.sys.linux.termios;
+import core.sys.posix.termios;
+
+/*******************************************************************************
+
+    B57600 baud rate value.
+
+*******************************************************************************/
+
+private const B57600 = Octal!("001001");
 
 /*******************************************************************************
 

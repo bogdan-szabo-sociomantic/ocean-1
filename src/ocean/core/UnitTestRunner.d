@@ -57,9 +57,9 @@ import ocean.transition;
 *******************************************************************************/
 
 import ocean.stdc.string: strdup, strlen, strncmp;
-import ocean.stdc.posix.unistd: unlink;
-import ocean.stdc.posix.libgen: basename;
-import ocean.stdc.posix.sys.time: gettimeofday, timeval, timersub;
+import core.sys.posix.unistd: unlink;
+import core.sys.posix.libgen: basename;
+import core.sys.posix.sys.time: gettimeofday, timeval, timersub;
 import ocean.core.Runtime: Runtime;
 import ocean.core.Exception_tango : AssertException;
 import ocean.io.Stdout_tango: Stdout, Stderr;
@@ -67,7 +67,7 @@ import ocean.io.stream.Format: FormatOutput;
 import ocean.io.stream.TextFile: TextFileOutput;
 import ocean.text.xml.Document: Document;
 import ocean.text.xml.DocPrinter: DocPrinter;
-import ocean.text.convert.Format: Format;
+import ocean.text.convert.Formatter;
 import ocean.core.Test: TestException, test;
 import core.memory;
 
@@ -582,8 +582,8 @@ private scope class UnitTestRunner
     private cstring convert ( T ) ( T val, cstring fmt = "{}" )
     {
         this.buf.length = 0;
-
-        return Format.format(this.buf, fmt, val);
+        enableStomping(this.buf);
+        return sformat(this.buf, fmt, val);
     }
 
 
@@ -621,8 +621,6 @@ private scope class UnitTestRunner
         timeval start = this.now();
         scope (exit) tv = elapsedTime(start);
 
-        auto format = &Format.format;
-
         try
         {
             version (D_Version2)
@@ -636,7 +634,7 @@ private scope class UnitTestRunner
             version (D_Version2)
                 e.toString((d) { err ~= d; });
             else
-                err = format(err, "{}:{}: test error: {}", e.file, e.line, getMsg(e));
+                err = sformat(err, "{}:{}: test error: {}", e.file, e.line, getMsg(e));
             return Result.Fail;
         }
         catch (AssertException e)
@@ -644,15 +642,15 @@ private scope class UnitTestRunner
             version (D_Version2)
                 e.toString((d) { err ~= d; });
             else
-                err = format(err, "{}:{}: assert error: {}", e.file, e.line, getMsg(e));
+                err = sformat(err, "{}:{}: assert error: {}", e.file, e.line, getMsg(e));
         }
         catch (Exception e)
         {
             version (D_Version2)
                 e.toString((d) { err ~= d; });
             else
-                err = format(err, "{}:{}: unexpected exception {}: {}",
-                             e.file, e.line, e.classinfo.name, getMsg(e));
+                err = sformat(err, "{}:{}: unexpected exception {}: {}",
+                              e.file, e.line, e.classinfo.name, getMsg(e));
         }
 
         return Result.Error;

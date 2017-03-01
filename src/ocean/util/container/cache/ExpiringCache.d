@@ -25,7 +25,13 @@ import ocean.util.container.cache.model.IExpiringCacheInfo;
 
 import ocean.util.container.cache.Cache;
 
-import ocean.stdc.time: time_t;
+import core.stdc.time: time_t;
+
+version (UnitTest)
+{
+    import ocean.core.Test;
+}
+
 
 /*******************************************************************************
 
@@ -363,8 +369,8 @@ class ExpiringCache ( size_t ValueSize = 0 ) : Cache!(ValueSize, true),
 
 /******************************************************************************/
 
-import ocean.stdc.posix.stdlib: srand48, mrand48, drand48;
-import ocean.stdc.time: time;
+import core.sys.posix.stdlib: srand48, mrand48, drand48;
+import core.stdc.time: time;
 
 extern (C) int getpid();
 
@@ -399,41 +405,62 @@ unittest
 
         with (expiring_cache)
         {
-            assert(length == 0);
+            test!("==")(length, 0);
 
             *createRaw(1) = data1;
-            assert(length == 1);
-            assert(exists(1));
+            test!("==")(length, 1);
+            test(exists(1));
             {
                 Value* data = getRaw(1);
-                assert(data !is null);
-                assert((*data)[] == data1);
+                test!("!is")(data, null);
+                test!("==")((*data)[], data1);
             }
 
-            assert(t <= 5);
+            test!("<=")(t, 5);
             t = 5;
 
             *createRaw(2) = data2;
-            assert(length == 2);
-            assert(exists(2));
+            test!("==")(length, 2);
+            test(exists(2));
             {
                 Value* data = getRaw(2);
-                assert(data !is null);
-                assert((*data)[] == data2);
+                test!("!is")(data, null);
+                test!("==")((*data)[], data2);
             }
 
-            assert(t <= 10);
+            test!("<=")(t, 10);
             t = 10;
 
-            assert(!exists(1));
+            test(!exists(1));
 
-            assert(t <= 17);
+            test!("<=")(t, 17);
             t = 17;
 
             {
                 Value* data = getRaw(2);
-                assert(data is null);
+                test!("is")(data, null);
             }
+        }
+
+        // Test clear().
+        with (expiring_cache)
+        {
+            t = 5;
+
+            test!("==")(length, 0);
+
+            *createRaw(1) = data1;
+            test!("==")(length, 1);
+            test(exists(1));
+
+            *createRaw(2) = data2;
+            test!("==")(length, 2);
+            test(exists(2));
+
+            clear();
+            test!("==")(length, 0);
+            test(!exists(1));
+            test(!exists(2));
         }
     }
 

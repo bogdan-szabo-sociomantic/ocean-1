@@ -101,9 +101,9 @@ import ocean.util.log.model.ILogger;
 
 import ocean.core.Vararg;
 
-public import ocean.util.log.Event;
+import AP = ocean.util.log.Appender;
+import EV = ocean.util.log.Event;
 import ocean.util.log.Hierarchy;
-public import ocean.util.log.Appender;
 
 alias void* Arg;
 alias va_list ArgList;
@@ -387,7 +387,7 @@ public struct Log
 
         static void config (OutputStream stream, bool flush = true)
         {
-                root.add (new AppendStream (stream, flush));
+                root.add (new AP.AppendStream (stream, flush));
         }
 
         /***********************************************************************
@@ -505,7 +505,7 @@ public class Logger : ILogger
         private istring         name_;
         package Level           level_;
         private bool            additive_;
-        private Appender        appender_;
+        private AP.Appender     appender_;
         private mstring         buffer_;
         private size_t          buffer_size_;
 
@@ -692,7 +692,7 @@ public class Logger : ILogger
 
         ***********************************************************************/
 
-        final Logger add (Appender another)
+        final Logger add (AP.Appender another)
         {
                 assert (another);
                 another.next = appender_;
@@ -782,7 +782,7 @@ public class Logger : ILogger
         {
                 if (host_.context.enabled (level_, level))
                    {
-                   LogEvent event;
+                   EV.LogEvent event;
 
                    // set the event attributes and append it
                    event.set (host_, level, exp, name.length ? name_[0..$-1] : "root");
@@ -797,7 +797,7 @@ public class Logger : ILogger
 
         ***********************************************************************/
 
-        private void append (LogEvent event)
+        private void append (EV.LogEvent event)
         {
                 // indicator if the event was at least once emitted to the
                 // appender (to use for global stats)
@@ -805,7 +805,7 @@ public class Logger : ILogger
 
                 // combine appenders from all ancestors
                 auto links = this;
-                Appender.Mask masks = 0;
+                AP.Appender.Mask masks = 0;
                 do {
                    auto appender = links.appender_;
 

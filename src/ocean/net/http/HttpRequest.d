@@ -510,8 +510,8 @@ version (OceanPerformanceTest)
 version ( UnitTest )
 {
     import ocean.core.Test;
-    import ocean.stdc.time: time;
-    import ocean.stdc.posix.stdlib: srand48, drand48;
+    import core.stdc.time: time;
+    import core.sys.posix.stdlib: srand48, drand48;
 }
 
 unittest

@@ -24,7 +24,7 @@ module ocean.io.FileException;
 import ocean.transition;
 
 import ocean.sys.ErrnoException;
-import ocean.stdc.errno;
+import core.stdc.errno;
 
 /**************************************************************************
 
@@ -35,7 +35,7 @@ import ocean.stdc.errno;
 
 class FileException : ErrnoException
 {
-    import ocean.stdc.stdio: FILE, ferror, feof, clearerr;
+    import core.stdc.stdio: FILE, ferror, feof, clearerr;
 
     /// Make ErrnoException's enforce available
     public alias ErrnoException.enforce enforce;
@@ -87,13 +87,21 @@ class FileException : ErrnoException
             }
         }
 
-        if (handle !is null && !ok)
+        if ( !ok )
         {
-            if (feof(handle) != 0)
+            if ( handle !is null && feof(handle) != 0 )
             {
                 // not really an errno
                 throw this.ReusableImpl
                     .set("Reading past end of file", file, line)
+                    .append(" (failed operation on '")
+                    .append(filename)
+                    .append("')");
+            }
+            else
+            {
+                throw this.ReusableImpl
+                    .set("File operation failed, without an error", file, line)
                     .append(" (failed operation on '")
                     .append(filename)
                     .append("')");
@@ -104,7 +112,7 @@ class FileException : ErrnoException
 
 version (UnitTest)
 {
-    import ocean.stdc.posix.stdio;
+    import core.sys.posix.stdio;
     import ocean.core.Test;
 }
 

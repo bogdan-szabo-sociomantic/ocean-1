@@ -61,8 +61,8 @@ import ocean.text.util.StringC;
 import ocean.text.regex.c.pcre;
 import ocean.core.TypeConvert;
 
-import ocean.stdc.stdlib : free;
-import ocean.text.convert.Format;
+import core.stdc.stdlib : free;
+import ocean.text.convert.Formatter;
 
 
 
@@ -255,8 +255,7 @@ public class PCRE
                     &error_offset, null);
             if ( !this.pcre_object )
             {
-                this.outer.exception.msg.length = 0;
-                this.outer.exception.msg = Format(
+                this.outer.exception.msg = format(
                     "Error compiling regular expression: {} - on pattern: {} at position {}",
                     StringC.toDString(errmsg), pattern, error_offset
                 );
@@ -508,7 +507,7 @@ version ( UnitTest )
 
         this ( )
         {
-            super(Format("PCRE test #{}", ++test_num));
+            super(format("PCRE test #{}", ++test_num));
         }
     }
 }

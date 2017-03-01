@@ -108,12 +108,12 @@ import ocean.core.Traits;
 
 import ocean.io.model.IConduit;
 
-import ocean.stdc.posix.signal;
-import ocean.stdc.posix.unistd : read, close;
+import core.sys.posix.signal;
+import core.sys.posix.unistd : read, close;
 
-import ocean.stdc.errno : EAGAIN, EWOULDBLOCK, errno;
+import core.stdc.errno : EAGAIN, EWOULDBLOCK, errno;
 
-import ocean.sys.linux.consts.fcntl : O_NONBLOCK;
+import core.sys.posix.fcntl : O_NONBLOCK;
 
 import ocean.core.Array : contains;
 

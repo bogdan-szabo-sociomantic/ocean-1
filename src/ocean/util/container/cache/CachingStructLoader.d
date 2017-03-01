@@ -29,7 +29,7 @@ import CacheValue = ocean.util.container.cache.model.Value;
 
 import ocean.util.serialize.contiguous.package_;
 
-import ocean.stdc.time: time_t, time;
+import core.stdc.time: time_t, time;
 
 /*******************************************************************************
 
@@ -342,6 +342,18 @@ class CachingStructLoader ( S )
     public S* opIn_r ( hash_t key )
     {
         return this.load(key).ptr;
+    }
+
+
+    /**************************************************************************
+
+        Remove all object from the cache.
+
+     **************************************************************************/
+
+    public void clear ( )
+    {
+        this.cache_.clear();
     }
 }
 
