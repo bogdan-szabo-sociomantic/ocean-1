@@ -23,7 +23,7 @@ module ocean.text.convert.Memory;
 
 *******************************************************************************/
 
-import ocean.text.convert.Format;
+import ocean.text.convert.Formatter;
 
 
 
@@ -59,20 +59,20 @@ public char[] memoryToHexAscii ( void[] mem, char[] output = null )
     for (size_t row = 0; row < data.length; row += 16)
     {
         // print relative offset
-        Format.format(output, "{:X6}:  ", row);
+        sformat(output, "{:X6}:  ", row);
 
         // print data bytes
         for (size_t idx = 0; idx < 16 ; idx++)
         {
             // print byte or stuffing spaces
             if (idx + row < data.length)
-                Format.format(output, "{:X2} ", data[row + idx]);
+                sformat(output, "{:X2} ", data[row + idx]);
             else
-                Format.format(output, "{}", "   ");
+                sformat(output, "{}", "   ");
 
             // after each 4 bytes group an extra space
             if ((idx & 0x03 ) == 3)
-                Format.format(output, "{}", " ");
+                sformat(output, "{}", " ");
         }
 
         // ascii view
@@ -87,7 +87,7 @@ public char[] memoryToHexAscii ( void[] mem, char[] output = null )
                 c = '.';
             ascii[idx] = c;
         }
-        Format.format(output, "{}\n", ascii[0 .. idx]);
+        sformat(output, "{}\n", ascii[0 .. idx]);
     }
 
     return output;

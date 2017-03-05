@@ -104,7 +104,7 @@ import core.sys.posix.sys.socket;  // SOCK_DGRAM
 import ocean.sys.socket.UnixSocket;
 import ocean.text.Util;
 import Float = ocean.text.convert.Float;
-import ocean.text.convert.Format;
+import ocean.text.convert.Formatter;
 import ocean.text.convert.Integer;
 import Conv = ocean.util.Convert;
 import ocean.text.util.StringSearch; // locateChar
@@ -465,7 +465,7 @@ public final class Collectd
                 static assert(0, "Cannot send an aggregate of type "
                               ~ typeof(arg).stringof ~ " to Collectd");
             else
-                Format(sink, "{}", arg);
+                sformat(sink, "{}", arg);
         }
     }
 

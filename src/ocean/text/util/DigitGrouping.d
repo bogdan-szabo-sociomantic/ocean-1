@@ -54,7 +54,7 @@ import ocean.text.util.MetricPrefix;
 
 import ocean.core.Traits;
 
-import ocean.text.convert.Format;
+import ocean.text.convert.Formatter;
 
 
 
@@ -154,7 +154,7 @@ public class DigitGrouping
         }
 
         // Format number into a string
-        Format.convert(&layoutSink, "{}", num);
+        sformat(&layoutSink, "{}", num);
         mstring num_as_string = string_buf[0.. layout_pos];
 
         bool comma;
@@ -278,9 +278,12 @@ public class BitGrouping
         output.length = 0;
         enableStomping(output);
 
+        if (unit.length == 0)
+            unit = "";
+
         if ( num == 0 )
         {
-            Format.format(output, "0{}", unit);
+            sformat(output, "0{}", unit);
         }
         else
         {
@@ -290,11 +293,11 @@ public class BitGrouping
                 {
                     if ( order == 0 )
                     {
-                        Format.format(output, "{}{}", order_val, unit);
+                        sformat(output, "{}{}", order_val, unit);
                     }
                     else
                     {
-                        Format.format(output, "{}{}{} ", order_val, prefix, unit);
+                        sformat(output, "{}{}{} ", order_val, prefix, unit);
                     }
                 }
                 else if ( order_val == 0 && order == 0 )
