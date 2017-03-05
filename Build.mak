@@ -15,8 +15,13 @@ DC = dmd-transitional
 override DFLAGS += -de
 endif
 
-# This is an integration test that depends on Collectd -- Don't run it
-TEST_FILTER_OUT += $C/test/collectd/main.d
+# deprecated modules
+TEST_FILTER_OUT += \
+	$C/src/ocean/io/Stdout_tango.d
+
+# integration test which is disabled by default because it depends on Collectd
+TEST_FILTER_OUT += \
+	$C/test/collectd/main.d 
 
 $O/test-filesystemevent: override LDFLAGS += -lrt
 
