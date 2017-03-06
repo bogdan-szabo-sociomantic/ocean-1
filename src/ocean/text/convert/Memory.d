@@ -23,6 +23,7 @@ module ocean.text.convert.Memory;
 
 *******************************************************************************/
 
+import ocean.transition;
 import ocean.text.convert.Formatter;
 
 
@@ -107,12 +108,14 @@ unittest
 `[]);
 
     buf.length = 0;
+    enableStomping(buf);
     buf = memoryToHexAscii(mem, buf);
     test!("==")(buf,
 `000000:  23 00 FF                                            #..
 `[]);
 
     buf.length = 0;
+    enableStomping(buf);
     mem ~= cast(ubyte[]) "hello world\x32\xf1";
     buf = memoryToHexAscii(mem, buf);
     test!("==")(buf,
@@ -120,6 +123,7 @@ unittest
 `[]);
 
     buf.length = 0;
+    enableStomping(buf);
     mem ~= cast(ubyte[]) "bye bye world!\x10\x07\00\01";
     buf = memoryToHexAscii(mem, buf);
     test!("==")(buf,
