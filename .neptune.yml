@@ -1,2 +1,4 @@
 library: true
 d2ready: true
+automatic-update-prs:
+    default: none
