@@ -45,12 +45,15 @@ module ocean.util.log.Stats;
 *******************************************************************************/
 
 import ocean.transition;
+import ocean.core.array.Search;
 import ocean.core.Enforce;
 import ocean.core.ExceptionDefinitions;
 import ocean.core.Traits : FieldName;
 import ocean.core.TypeConvert;
 import ocean.io.select.EpollSelectDispatcher;
 import ocean.io.select.client.TimerEvent;
+import ocean.io.stream.Iterator;
+import ocean.io.stream.Lines;
 import ocean.net.collectd.Collectd;
 import core.stdc.time : time_t;
 import ocean.sys.ErrnoException;
@@ -62,7 +65,9 @@ import ocean.util.log.Log;
 
 version (UnitTest)
 {
+    import ocean.io.device.Array;
     import ocean.util.app.DaemonApp;
+    import ocean.core.Test;
 }
 
 /*******************************************************************************
@@ -670,4 +675,331 @@ unittest
             this.stats_ext.stats_log.addObject!("channel")("discovery", discovery);
         }
     }
+}
+
+/// Struct that parses a stats line
+public struct StatsLine
+{
+    /// The stats after the date and time were removed
+    private mstring line;
+
+    public
+    {
+        /// The line date
+        istring date;
+
+        /// The line time
+        istring time;
+    }
+
+    /**************************************************************************
+
+        Create an StatsLine
+
+        Params:
+            line = a line stat
+
+        Returns:
+            A StatsLine
+
+    **************************************************************************/
+
+    static public StatsLine opCall (mstring line)
+    {
+        StatsLine stats_line;
+
+        auto position = find(line, " ");
+        stats_line.date =  idup(line[0..position]);
+
+        line = line[position + 1 .. $];
+
+        position = find(line, " ");
+        stats_line.time = idup(line[0..position]);
+
+        stats_line.line = line[position .. $];
+
+        return stats_line;
+    }
+
+    /**************************************************************************
+
+        Returns the value associated to a key
+
+        Params:
+            key = the stats key
+
+        Return:
+            the value associated with the key
+
+    **************************************************************************/
+
+    public cstring opIndex (cstring key)
+    {
+        auto position = find(line, key);
+
+        enforce(position < line.length, key ~ " is not present in the stats");
+        enforce(line[position - 1] == ' ', key ~ " is not present in the stats");
+
+        auto rest = line[position..$];
+        auto begin = find(rest, ':') + 1;
+        auto end = find(rest, ' ');
+
+
+        return idup(rest[begin .. end]);
+    }
+}
+
+/// Parsing a valid stat line
+unittest
+{
+    auto line = StatsLine("2018-09-12 10:03:07,598 cpu_usage:64.96 memory:330.19");
+    bool has_exception;
+
+    /// It should not extract a missing key
+    try
+    {
+        line["missing_key"];
+    }
+    catch(Exception e)
+    {
+        test!("==")(e.message, "missing_key is not present in the stats");
+        has_exception = true;
+    }
+    test(has_exception);
+
+    /// It should not extract a key when the name is not fully provided
+    try
+    {
+        line["pu_usage"];
+    }
+    catch(Exception e)
+    {
+        test!("==")(e.message, "pu_usage is not present in the stats");
+        has_exception = true;
+    }
+    test(has_exception);
+
+    try
+    {
+        line["cpu_usag"];
+    }
+    catch(Exception e)
+    {
+        test!("==")(e.message, "cpu_usag is not present in the stats");
+        has_exception = true;
+    }
+    test(has_exception);
+
+    /// Valid indexes
+    test!("==")(line["cpu_usage"], "64.96");
+    test!("==")(line["memory"], "330.19");
+    test!("==")(line.date, "2018-09-12");
+    test!("==")(line.time, "10:03:07,598");
+}
+
+/// Parsing a stat line with missing values
+unittest
+{
+    auto line = StatsLine("2018-09-12 10:03:07,598 cpu_usage: memory:");
+    bool has_exception;
+
+    /// It should return an empty string
+    test!("==")(line["cpu_usage"], "");
+    test!("==")(line["memory"], "");
+}
+
+/// Parsing a stat line with missing space separator
+unittest
+{
+    auto line = StatsLine("2018-09-12 10:03:07,598 2018-09-12 10:03:07,598 cpu_usage:64.96memory:330.19");
+    bool has_exception;
+
+    /// It should return an empty string
+    test!("==")(line["cpu_usage"], "64.96memory:330.19");
+
+    try
+    {
+        line["memory"];
+    }
+    catch(Exception e)
+    {
+        test!("==")(e.message, "memory is not present in the stats");
+        has_exception = true;
+    }
+    test(has_exception);
+}
+
+/// Class that iterarates through a char stream and extracts the StatsLines
+public class StatsLogReader
+{
+    /// Line iterator
+    private Lines!(char) lines;
+
+    /**************************************************************************
+
+        Constructor
+
+        Params:
+            stream = a char stream that contains stats
+
+    **************************************************************************/
+
+    this (InputStream stream)
+    {
+        this.lines = new Lines!(char)(stream);
+    }
+
+    /***************************************************************************
+
+        Get the last line from the stats
+
+        Returns:
+            The last line
+
+    ***************************************************************************/
+
+    public StatsLine last ( )
+    {
+        char[] last_line;
+
+        foreach (line; this.lines)
+        {
+            last_line = line;
+        }
+
+        enforce(last_line.length > 0, "The stats are empty");
+
+        return StatsLine(last_line);
+    }
+
+
+    /***************************************************************************
+
+        Enables 'foreach' iteration over the stat lines.
+
+        Params:
+            dg = delegate called for each argument
+
+    ***************************************************************************/
+
+    public int opApply ( int delegate(ref StatsLine) dg )
+    {
+        int result;
+
+        foreach (line; this.lines)
+        {
+            result = dg(StatsLine(line));
+
+            if ( result != 0 )
+            {
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    /// ditto
+    public int opApply ( int delegate(ref size_t index, ref StatsLine) dg )
+    {
+        int result;
+        size_t index;
+
+        foreach (line; this.lines)
+        {
+            result = dg(index, StatsLine(line));
+            index++;
+
+            if ( result != 0 )
+            {
+                break;
+            }
+        }
+
+        return result;
+    }
+}
+
+/// Read a list of stats
+unittest
+{
+    auto data = new Array(
+        "2018-09-12 10:03:07,598 2018-09-12 10:03:07,598 cpu_usage:1 memory:3\n" ~
+        "2018-09-12 10:03:07,598 2018-09-12 10:03:07,598 cpu_usage:2 memory:4");
+
+    auto reader = new StatsLogReader(data);
+
+    /// Iteration without index
+    size_t index;
+    foreach (line; reader)
+    {
+        if (index == 0)
+        {
+            test!("==")(line["cpu_usage"], "1");
+            test!("==")(line["memory"], "3");
+        }
+        else
+        {
+            test!("==")(line["cpu_usage"], "2");
+            test!("==")(line["memory"], "4");
+        }
+        index++;
+    }
+
+    test!("==")(index, 2);
+
+    /// Iteration with index
+    data = new Array(
+        "2018-09-12 10:03:07,598 2018-09-12 10:03:07,598 cpu_usage:1 memory:3\n" ~
+        "2018-09-12 10:03:07,598 2018-09-12 10:03:07,598 cpu_usage:2 memory:4");
+    reader = new StatsLogReader(data);
+    index = 0;
+    foreach (i, line; reader)
+    {
+        if (i == 0)
+        {
+            test!("==")(line["cpu_usage"], "1");
+            test!("==")(line["memory"], "3");
+        }
+        else
+        {
+            test!("==")(line["cpu_usage"], "2");
+            test!("==")(line["memory"], "4");
+        }
+
+        index = i;
+    }
+
+    test!("==")(index, 1);
+}
+
+/// Get the last line
+unittest
+{
+    auto data = new Array(
+        "2018-09-12 10:03:07,598 2018-09-12 10:03:07,598 cpu_usage:1 memory:3\n" ~
+        "2018-09-12 10:03:07,598 2018-09-12 10:03:07,598 cpu_usage:2 memory:4");
+
+    auto reader = new StatsLogReader(data);
+    auto line = reader.last();
+
+    test!("==")(line["cpu_usage"], "2");
+    test!("==")(line["memory"], "4");
+
+    /// It should raise an error for an empty string
+    bool has_exception;
+
+    try
+    {
+        data = new Array("");
+        reader = new StatsLogReader(data);
+        reader.last();
+    }
+    catch(Exception e)
+    {
+        test!("==")(e.message, "The stats are empty");
+        has_exception = true;
+    }
+
+    test(has_exception);
 }
